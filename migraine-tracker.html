@@ -48,7 +48,7 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            padding-bottom: 100px;
+            padding-bottom: 140px;
         }
 
         header {
@@ -440,6 +440,7 @@
         /* Calendar Styles */
         .calendar-section {
             margin-top: 40px;
+            margin-bottom: 60px;
         }
 
         .calendar-header {
@@ -552,7 +553,8 @@
             display: flex;
             justify-content: center;
             gap: 20px;
-            margin-top: 20px;
+            margin-top: 24px;
+            padding-bottom: 24px;
             font-size: 12px;
         }
 
@@ -580,11 +582,112 @@
             background: var(--pain-severe);
         }
 
+        /* Custom Modal - MIGRAINE FRIENDLY */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 29, 36, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .modal-message {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+            white-space: pre-line;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-btn-cancel {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-btn-cancel:active {
+            background: var(--bg-primary);
+        }
+
+        .modal-btn-confirm {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        .modal-btn-confirm:active {
+            background: var(--accent-green-light);
+        }
+
+        .modal-btn-confirm.danger {
+            background: var(--pain-severe);
+        }
+
+        .modal-btn-confirm.danger:active {
+            background: #c97a72;
+        }
+
         /* Responsive Design */
         @media (max-width: 480px) {
             .container {
                 padding: 16px;
-                padding-bottom: 80px;
+                padding-bottom: 120px;
             }
 
             .pain-scale-buttons {
@@ -605,6 +708,10 @@
 
             .calendar-weekday {
                 font-size: 10px;
+            }
+
+            .modal-content {
+                padding: 20px;
             }
         }
     </style>
@@ -775,6 +882,50 @@
         let migraines = [];
         let currentCalendarDate = new Date();
 
+        // Custom Modal System - COMPLETELY REPLACES ALERTS
+        function showModal(title, message, confirmText = 'OK', cancelText = null, isDangerous = false) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                
+                const modal = document.createElement('div');
+                modal.className = 'modal-content';
+                
+                const buttonsHTML = cancelText 
+                    ? `<button class="modal-btn modal-btn-cancel" id="modalCancel">${cancelText}</button>
+                       <button class="modal-btn modal-btn-confirm ${isDangerous ? 'danger' : ''}" id="modalConfirm">${confirmText}</button>`
+                    : `<button class="modal-btn modal-btn-confirm" id="modalConfirm">${confirmText}</button>`;
+                
+                modal.innerHTML = `
+                    <div class="modal-title">${title}</div>
+                    <div class="modal-message">${message}</div>
+                    <div class="modal-buttons">
+                        ${buttonsHTML}
+                    </div>
+                `;
+                
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+                
+                const handleClose = (confirmed) => {
+                    overlay.remove();
+                    resolve(confirmed);
+                };
+                
+                document.getElementById('modalConfirm').onclick = () => handleClose(true);
+                if (cancelText) {
+                    document.getElementById('modalCancel').onclick = () => handleClose(false);
+                }
+                
+                // Close on overlay click (for info modals only)
+                if (!cancelText) {
+                    overlay.onclick = (e) => {
+                        if (e.target === overlay) handleClose(true);
+                    };
+                }
+            });
+        }
+
         // Initialize app
         function init() {
             loadMigraines();
@@ -786,27 +937,22 @@
             setInterval(updateTimestamp, 1000);
         }
 
-        // Page Navigation - FIXED
+        // Page Navigation
         function switchPage(pageId) {
-            // Hide all pages
             document.querySelectorAll('.page').forEach(page => {
                 page.classList.remove('active');
             });
             
-            // Show selected page
             document.getElementById(pageId).classList.add('active');
             
-            // Update nav items - FIX: Get the clicked button properly
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
-                // Check if this nav item's onclick matches the current page
                 const onclickAttr = item.getAttribute('onclick');
                 if (onclickAttr && onclickAttr.includes(pageId)) {
                     item.classList.add('active');
                 }
             });
             
-            // Refresh data on page switch
             if (pageId === 'historyPage') {
                 renderHistory();
             } else if (pageId === 'logPage') {
@@ -815,26 +961,22 @@
             }
         }
 
-        // Calendar Functions - FIXED
+        // Calendar Functions
         function renderCalendar() {
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
             
-            // Update month display
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                               'July', 'August', 'September', 'October', 'November', 'December'];
             document.getElementById('calendarMonth').textContent = `${monthNames[month]} ${year}`;
             
-            // Get first day of month and number of days
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const daysInPrevMonth = new Date(year, month, 0).getDate();
             
-            // Get migraine data for this month - FIXED: Consistent date formatting
             const migrainesByDate = {};
             migraines.forEach(m => {
                 const date = new Date(m.timestamp);
-                // FIX: Normalize to midnight for accurate date comparison
                 const dateKey = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                 
                 if (!migrainesByDate[dateKey]) {
@@ -843,11 +985,9 @@
                 migrainesByDate[dateKey].push(m);
             });
             
-            // Build calendar
             const container = document.getElementById('calendarDays');
             container.innerHTML = '';
             
-            // Previous month days
             for (let i = firstDay - 1; i >= 0; i--) {
                 const day = daysInPrevMonth - i;
                 const dayEl = document.createElement('div');
@@ -856,10 +996,8 @@
                 container.appendChild(dayEl);
             }
             
-            // Current month days
             const today = new Date();
             for (let day = 1; day <= daysInMonth; day++) {
-                // FIX: Use same date key format
                 const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayMigraines = migrainesByDate[dateKey] || [];
                 
@@ -867,18 +1005,15 @@
                 dayEl.className = 'calendar-day';
                 dayEl.textContent = day;
                 
-                // Check if today
                 if (year === today.getFullYear() && 
                     month === today.getMonth() && 
                     day === today.getDate()) {
                     dayEl.classList.add('today');
                 }
                 
-                // Check if has migraine
                 if (dayMigraines.length > 0) {
                     dayEl.classList.add('has-migraine');
                     
-                    // Get highest severity for this day
                     const maxPain = Math.max(...dayMigraines.map(m => m.painLevel));
                     if (maxPain >= 7) {
                         dayEl.classList.add('severe');
@@ -886,16 +1021,14 @@
                         dayEl.classList.add('moderate');
                     }
                     
-                    // Add click handler to show details
                     dayEl.onclick = () => showDayDetails(year, month, day, dayMigraines);
                 }
                 
                 container.appendChild(dayEl);
             }
             
-            // Next month days
             const totalCells = container.children.length;
-            const remainingCells = 42 - totalCells; // 6 rows × 7 days
+            const remainingCells = 42 - totalCells;
             for (let day = 1; day <= remainingCells; day++) {
                 const dayEl = document.createElement('div');
                 dayEl.className = 'calendar-day other-month';
@@ -909,12 +1042,11 @@
             renderCalendar();
         }
 
-        function showDayDetails(year, month, day, migraines) {
+        async function showDayDetails(year, month, day, migraines) {
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                               'July', 'August', 'September', 'October', 'November', 'December'];
             
-            let details = `${monthNames[month]} ${day}, ${year}\n\n`;
-            details += `${migraines.length} episode(s):\n\n`;
+            let message = `${migraines.length} episode(s):\n\n`;
             
             migraines.forEach((m, i) => {
                 const time = new Date(m.timestamp).toLocaleTimeString('en-US', {
@@ -922,17 +1054,20 @@
                     minute: '2-digit',
                     hour12: true
                 });
-                details += `${i + 1}. ${time} - Pain: ${m.painLevel}/10 (${m.category})\n`;
+                message += `${i + 1}. ${time} - Pain: ${m.painLevel}/10 (${m.category})\n`;
                 if (m.notes) {
-                    details += `   Notes: ${m.notes}\n`;
+                    message += `   ${m.notes}\n`;
                 }
-                details += '\n';
+                message += '\n';
             });
             
-            alert(details);
+            await showModal(
+                `${monthNames[month]} ${day}, ${year}`,
+                message,
+                'Close'
+            );
         }
 
-        // Create pain scale buttons
         function createPainScale() {
             const container = document.getElementById('painScale');
             for (let i = 0; i <= 10; i++) {
@@ -944,25 +1079,20 @@
             }
         }
 
-        // Select pain level
         function selectPain(level) {
             selectedPainLevel = level;
             
-            // Update button states
             document.querySelectorAll('.pain-btn').forEach((btn, index) => {
                 btn.classList.toggle('selected', index === level);
             });
             
-            // Update display
             document.getElementById('selectedPain').textContent = level;
             
-            // Update category
             const category = painCategories[level];
             document.getElementById('painCategory').innerHTML = 
                 `<strong>${category.label} (${level}/10)</strong> ${category.description}`;
         }
 
-        // Update timestamp display
         function updateTimestamp() {
             const now = new Date();
             const options = { 
@@ -977,10 +1107,13 @@
                 now.toLocaleDateString('en-US', options);
         }
 
-        // Log migraine
-        function logMigraine() {
+        async function logMigraine() {
             if (selectedPainLevel === null) {
-                alert('Please select a pain level');
+                await showModal(
+                    'Pain Level Required',
+                    'Please select a pain level before logging.',
+                    'OK'
+                );
                 return;
             }
 
@@ -995,21 +1128,17 @@
             migraines.unshift(migraine);
             saveMigraines();
             
-            // Show success message
             const successMsg = document.getElementById('successMessage');
             successMsg.classList.add('show');
             setTimeout(() => successMsg.classList.remove('show'), 3000);
             
-            // Reset form
             resetForm();
             
-            // Update UI
             updateStats();
             renderHistory();
             renderCalendar();
         }
 
-        // Reset form
         function resetForm() {
             selectedPainLevel = null;
             document.querySelectorAll('.pain-btn').forEach(btn => {
@@ -1021,9 +1150,7 @@
             document.getElementById('notes').value = '';
         }
 
-        // Delete migraine - FIXED with better confirmation
-        function deleteMigraine(id) {
-            // Find the migraine to show details in confirmation
+        async function deleteMigraine(id) {
             const migraine = migraines.find(m => m.id === id);
             if (!migraine) return;
             
@@ -1035,14 +1162,21 @@
                 minute: '2-digit'
             });
             
-            if (confirm(`Delete episode from ${dateStr}?\nPain Level: ${migraine.painLevel}/10\n\nThis cannot be undone.`)) {
+            const confirmed = await showModal(
+                'Delete Episode',
+                `${dateStr}\nPain Level: ${migraine.painLevel}/10\n\nThis cannot be undone.`,
+                'Delete',
+                'Cancel',
+                true
+            );
+            
+            if (confirmed) {
                 migraines = migraines.filter(m => m.id !== id);
                 saveMigraines();
                 updateStats();
                 renderHistory();
                 renderCalendar();
                 
-                // Show feedback
                 const successMsg = document.getElementById('successMessage');
                 successMsg.textContent = '✓ Episode deleted';
                 successMsg.classList.add('show');
@@ -1053,7 +1187,6 @@
             }
         }
 
-        // Render history
         function renderHistory() {
             const container = document.getElementById('historyList');
             
@@ -1095,7 +1228,6 @@
             }).join('');
         }
 
-        // Update stats
         function updateStats() {
             const total = migraines.length;
             document.getElementById('totalEpisodes').textContent = total;
@@ -1107,17 +1239,14 @@
                 return;
             }
 
-            // Average pain
             const avgPain = (migraines.reduce((sum, m) => sum + m.painLevel, 0) / total).toFixed(1);
             document.getElementById('avgPain').textContent = avgPain;
 
-            // This week
             const weekAgo = new Date();
             weekAgo.setDate(weekAgo.getDate() - 7);
             const thisWeek = migraines.filter(m => new Date(m.timestamp) > weekAgo).length;
             document.getElementById('thisWeek').textContent = thisWeek;
 
-            // Last episode
             const lastDate = new Date(migraines[0].timestamp);
             const now = new Date();
             const diffHours = Math.floor((now - lastDate) / (1000 * 60 * 60));
@@ -1134,7 +1263,6 @@
             document.getElementById('lastEpisode').textContent = lastText;
         }
 
-        // Local storage functions
         function saveMigraines() {
             localStorage.setItem('migraines', JSON.stringify(migraines));
         }
@@ -1146,7 +1274,6 @@
             }
         }
 
-        // Initialize on load
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
