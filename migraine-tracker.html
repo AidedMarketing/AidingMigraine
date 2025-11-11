@@ -786,7 +786,7 @@
             setInterval(updateTimestamp, 1000);
         }
 
-        // Page Navigation
+        // Page Navigation - FIXED
         function switchPage(pageId) {
             // Hide all pages
             document.querySelectorAll('.page').forEach(page => {
@@ -796,19 +796,26 @@
             // Show selected page
             document.getElementById(pageId).classList.add('active');
             
-            // Update nav items
+            // Update nav items - FIX: Get the clicked button properly
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
+                // Check if this nav item's onclick matches the current page
+                const onclickAttr = item.getAttribute('onclick');
+                if (onclickAttr && onclickAttr.includes(pageId)) {
+                    item.classList.add('active');
+                }
             });
-            event.target.closest('.nav-item').classList.add('active');
             
             // Refresh data on page switch
             if (pageId === 'historyPage') {
                 renderHistory();
+            } else if (pageId === 'logPage') {
+                renderCalendar();
+                updateStats();
             }
         }
 
-        // Calendar Functions
+        // Calendar Functions - FIXED
         function renderCalendar() {
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
@@ -823,11 +830,12 @@
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const daysInPrevMonth = new Date(year, month, 0).getDate();
             
-            // Get migraine data for this month
+            // Get migraine data for this month - FIXED: Consistent date formatting
             const migrainesByDate = {};
             migraines.forEach(m => {
                 const date = new Date(m.timestamp);
-                const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+                // FIX: Normalize to midnight for accurate date comparison
+                const dateKey = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                 
                 if (!migrainesByDate[dateKey]) {
                     migrainesByDate[dateKey] = [];
@@ -851,7 +859,8 @@
             // Current month days
             const today = new Date();
             for (let day = 1; day <= daysInMonth; day++) {
-                const dateKey = `${year}-${month}-${day}`;
+                // FIX: Use same date key format
+                const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayMigraines = migrainesByDate[dateKey] || [];
                 
                 const dayEl = document.createElement('div');
@@ -1012,14 +1021,35 @@
             document.getElementById('notes').value = '';
         }
 
-        // Delete migraine
+        // Delete migraine - FIXED with better confirmation
         function deleteMigraine(id) {
-            if (confirm('Delete this episode?')) {
+            // Find the migraine to show details in confirmation
+            const migraine = migraines.find(m => m.id === id);
+            if (!migraine) return;
+            
+            const date = new Date(migraine.timestamp);
+            const dateStr = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+            
+            if (confirm(`Delete episode from ${dateStr}?\nPain Level: ${migraine.painLevel}/10\n\nThis cannot be undone.`)) {
                 migraines = migraines.filter(m => m.id !== id);
                 saveMigraines();
                 updateStats();
                 renderHistory();
                 renderCalendar();
+                
+                // Show feedback
+                const successMsg = document.getElementById('successMessage');
+                successMsg.textContent = '✓ Episode deleted';
+                successMsg.classList.add('show');
+                setTimeout(() => {
+                    successMsg.classList.remove('show');
+                    successMsg.textContent = '✓ Migraine logged successfully';
+                }, 2000);
             }
         }
 
