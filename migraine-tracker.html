@@ -69,6 +69,169 @@
             font-size: 14px;
         }
 
+        /* Alert Banner */
+        .alert-banner {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-icon {
+            font-size: 24px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .alert-message {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .alert-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .alert-btn-primary {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border: none;
+        }
+
+        .alert-btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Active Episode Section */
+        .active-episode {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 30px;
+            border: 2px solid var(--accent-green);
+        }
+
+        .episode-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .episode-icon {
+            font-size: 24px;
+        }
+
+        .episode-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-green-light);
+        }
+
+        .episode-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .episode-stat {
+            background: var(--bg-tertiary);
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .episode-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .episode-stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .episode-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .secondary-link {
+            color: var(--accent-green);
+            font-size: 14px;
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .secondary-link:hover {
+            color: var(--accent-green-light);
+        }
+
+        .more-options {
+            margin-top: 8px;
+        }
+
+        .more-options-toggle {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .more-options-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .more-options-content.open {
+            max-height: 100px;
+        }
+
+        .more-options-content button {
+            width: 100%;
+            margin-top: 8px;
+        }
+
         /* Quick Log Section */
         .quick-log {
             background: var(--bg-secondary);
@@ -296,6 +459,10 @@
             align-items: center;
         }
 
+        .history-item.active {
+            border: 2px solid var(--accent-green);
+        }
+
         .history-info {
             flex: 1;
         }
@@ -310,6 +477,18 @@
             font-size: 18px;
             font-weight: 600;
             color: var(--text-primary);
+        }
+
+        .pain-progression {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .history-duration {
+            font-size: 13px;
+            color: var(--accent-green);
+            margin-top: 4px;
         }
 
         .history-notes {
@@ -545,6 +724,11 @@
             font-size: 16px;
         }
 
+        .calendar-day.has-migraine.active::after {
+            content: '⚡';
+            font-size: 14px;
+        }
+
         .calendar-day:hover {
             transform: scale(1.1);
         }
@@ -582,7 +766,7 @@
             background: var(--pain-severe);
         }
 
-        /* Custom Modal - MIGRAINE FRIENDLY */
+        /* Custom Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -610,6 +794,8 @@
             padding: 24px;
             max-width: 400px;
             width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
             animation: slideUp 0.3s ease;
         }
@@ -729,8 +915,54 @@
                 <p class="subtitle">Quick & easy migraine management</p>
             </header>
 
+            <!-- Long Duration Alert -->
+            <div id="longDurationAlert" style="display: none;"></div>
+
+            <!-- Active Episode Section -->
+            <div id="activeEpisodeSection" style="display: none;">
+                <div class="active-episode">
+                    <div class="episode-header">
+                        <span class="episode-icon">⚡</span>
+                        <h2 class="episode-title">Active Episode</h2>
+                    </div>
+                    
+                    <div class="episode-stats">
+                        <div class="episode-stat">
+                            <div class="episode-stat-label">Duration</div>
+                            <div class="episode-stat-value" id="activeDuration">0m</div>
+                        </div>
+                        <div class="episode-stat">
+                            <div class="episode-stat-label">Pain Level</div>
+                            <div class="episode-stat-value" id="activePain">0/10</div>
+                        </div>
+                        <div class="episode-stat">
+                            <div class="episode-stat-label">Started</div>
+                            <div class="episode-stat-value" id="activeStartTime">--</div>
+                        </div>
+                        <div class="episode-stat">
+                            <div class="episode-stat-label">Category</div>
+                            <div class="episode-stat-value" id="activeCategory" style="font-size: 16px;">--</div>
+                        </div>
+                    </div>
+
+                    <div class="episode-actions">
+                        <button class="btn-primary" onclick="showEndEpisodeModal()">End Episode</button>
+                        <a class="secondary-link" onclick="showUpdatePainModal()">Update Pain Level</a>
+                        
+                        <div class="more-options">
+                            <button class="more-options-toggle" onclick="toggleMoreOptions()">
+                                <span id="moreOptionsText">▼ More Options</span>
+                            </button>
+                            <div class="more-options-content" id="moreOptionsContent">
+                                <button class="btn-secondary" onclick="confirmNewEpisode()">Start New Episode</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Quick Log Section -->
-            <div class="quick-log">
+            <div class="quick-log" id="quickLogSection">
                 <h2 class="section-title">Log New Episode</h2>
                 
                 <div class="pain-scale">
@@ -881,8 +1113,10 @@
         let selectedPainLevel = null;
         let migraines = [];
         let currentCalendarDate = new Date();
+        let activeEpisode = null;
+        let durationInterval = null;
 
-        // Custom Modal System - COMPLETELY REPLACES ALERTS
+        // Custom Modal System
         function showModal(title, message, confirmText = 'OK', cancelText = null, isDangerous = false) {
             return new Promise((resolve) => {
                 const overlay = document.createElement('div');
@@ -917,7 +1151,6 @@
                     document.getElementById('modalCancel').onclick = () => handleClose(false);
                 }
                 
-                // Close on overlay click (for info modals only)
                 if (!cancelText) {
                     overlay.onclick = (e) => {
                         if (e.target === overlay) handleClose(true);
@@ -926,15 +1159,320 @@
             });
         }
 
+        // Modal with custom content
+        function showCustomModal(title, contentHTML, buttons) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                
+                const modal = document.createElement('div');
+                modal.className = 'modal-content';
+                
+                const buttonsHTML = buttons.map((btn, idx) => 
+                    `<button class="modal-btn ${btn.class || 'modal-btn-confirm'}" id="modalBtn${idx}">${btn.text}</button>`
+                ).join('');
+                
+                modal.innerHTML = `
+                    <div class="modal-title">${title}</div>
+                    <div class="modal-message">${contentHTML}</div>
+                    <div class="modal-buttons">
+                        ${buttonsHTML}
+                    </div>
+                `;
+                
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+                
+                buttons.forEach((btn, idx) => {
+                    document.getElementById(`modalBtn${idx}`).onclick = () => {
+                        const result = btn.getValue ? btn.getValue() : idx;
+                        overlay.remove();
+                        resolve(result);
+                    };
+                });
+            });
+        }
+
         // Initialize app
         function init() {
             loadMigraines();
             createPainScale();
             updateTimestamp();
+            checkActiveEpisode();
+            checkLongDuration();
             updateStats();
             renderHistory();
             renderCalendar();
             setInterval(updateTimestamp, 1000);
+            setInterval(updateActiveDuration, 60000); // Update every minute
+        }
+
+        // Check for active episode on load
+        function checkActiveEpisode() {
+            activeEpisode = migraines.find(m => m.status === 'active');
+            
+            if (activeEpisode) {
+                showActiveEpisodeUI();
+                updateActiveDuration();
+            } else {
+                showNormalLogUI();
+            }
+        }
+
+        // Check if active episode is >4 hours
+        function checkLongDuration() {
+            if (!activeEpisode) return;
+            
+            const duration = Math.floor((Date.now() - new Date(activeEpisode.startTime).getTime()) / 1000);
+            const hours = Math.floor(duration / 3600);
+            
+            if (hours >= 4) {
+                const durationText = formatDuration(duration);
+                const alertHTML = `
+                    <div class="alert-banner">
+                        <span class="alert-icon">⚠️</span>
+                        <div class="alert-content">
+                            <div class="alert-title">Active Episode (${durationText})</div>
+                            <div class="alert-message">Still experiencing migraine?</div>
+                            <div class="alert-actions">
+                                <button class="alert-btn alert-btn-primary" onclick="showUpdatePainModal()">Update Status</button>
+                                <button class="alert-btn alert-btn-secondary" onclick="dismissAlert()">Dismiss</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('longDurationAlert').innerHTML = alertHTML;
+                document.getElementById('longDurationAlert').style.display = 'block';
+            }
+        }
+
+        function dismissAlert() {
+            document.getElementById('longDurationAlert').style.display = 'none';
+        }
+
+        // Show/hide UI sections
+        function showActiveEpisodeUI() {
+            document.getElementById('activeEpisodeSection').style.display = 'block';
+            document.getElementById('quickLogSection').style.display = 'none';
+        }
+
+        function showNormalLogUI() {
+            document.getElementById('activeEpisodeSection').style.display = 'none';
+            document.getElementById('quickLogSection').style.display = 'block';
+        }
+
+        // Update active episode display
+        function updateActiveDuration() {
+            if (!activeEpisode) return;
+            
+            const duration = Math.floor((Date.now() - new Date(activeEpisode.startTime).getTime()) / 1000);
+            document.getElementById('activeDuration').textContent = formatDuration(duration);
+            
+            const currentPain = activeEpisode.painHistory[activeEpisode.painHistory.length - 1].level;
+            document.getElementById('activePain').textContent = `${currentPain}/10`;
+            
+            const startTime = new Date(activeEpisode.startTime);
+            document.getElementById('activeStartTime').textContent = startTime.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+            
+            document.getElementById('activeCategory').textContent = painCategories[currentPain].label;
+        }
+
+        // Format duration (rounded to 5 min for display)
+        function formatDuration(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const remainingMinutes = Math.round((minutes % 60) / 5) * 5; // Round to nearest 5 min
+            
+            if (hours === 0) {
+                return `${minutes}m`;
+            } else if (remainingMinutes === 0) {
+                return `${hours}h`;
+            } else {
+                return `${hours}h ${remainingMinutes}m`;
+            }
+        }
+
+        // Format duration for display (exact)
+        function formatDurationExact(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const remainingMinutes = minutes % 60;
+            
+            if (hours === 0) {
+                return `${minutes} minutes`;
+            } else if (remainingMinutes === 0) {
+                return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+            } else {
+                return `${hours} ${hours === 1 ? 'hour' : 'hours'} ${remainingMinutes} minutes`;
+            }
+        }
+
+        // Toggle more options
+        function toggleMoreOptions() {
+            const content = document.getElementById('moreOptionsContent');
+            const text = document.getElementById('moreOptionsText');
+            
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                text.textContent = '▼ More Options';
+            } else {
+                content.classList.add('open');
+                text.textContent = '▲ Less Options';
+            }
+        }
+
+        // Update pain modal
+        async function showUpdatePainModal() {
+            const contentHTML = `
+                <div class="pain-scale">
+                    <div class="pain-scale-label">
+                        <span>Select New Pain Level</span>
+                    </div>
+                    <div class="pain-scale-buttons" id="modalPainScale">
+                        ${Array.from({length: 11}, (_, i) => 
+                            `<button class="pain-btn" onclick="selectModalPain(${i})">${i}</button>`
+                        ).join('')}
+                    </div>
+                    <div class="pain-category" id="modalPainCategory">Select a pain level</div>
+                </div>
+            `;
+            
+            const result = await showCustomModal(
+                'Update Pain Level',
+                contentHTML,
+                [
+                    { text: 'Cancel', class: 'modal-btn-cancel' },
+                    { 
+                        text: 'Update', 
+                        class: 'modal-btn-confirm',
+                        getValue: () => {
+                            return document.querySelector('#modalPainScale .pain-btn.selected')?.textContent || null;
+                        }
+                    }
+                ]
+            );
+            
+            if (result !== 0 && result) {
+                const newPain = parseInt(result);
+                activeEpisode.painHistory.push({
+                    timestamp: new Date().toISOString(),
+                    level: newPain
+                });
+                activeEpisode.painLevel = newPain;
+                activeEpisode.category = painCategories[newPain].label;
+                
+                saveMigraines();
+                updateActiveDuration();
+                renderHistory();
+                renderCalendar();
+                
+                showSuccessMessage('✓ Pain level updated');
+            }
+        }
+
+        function selectModalPain(level) {
+            document.querySelectorAll('#modalPainScale .pain-btn').forEach((btn, index) => {
+                btn.classList.toggle('selected', index === level);
+            });
+            
+            const category = painCategories[level];
+            document.getElementById('modalPainCategory').innerHTML = 
+                `<strong>${category.label} (${level}/10)</strong> ${category.description}`;
+        }
+
+        // End episode modal
+        async function showEndEpisodeModal() {
+            const duration = Math.floor((Date.now() - new Date(activeEpisode.startTime).getTime()) / 1000);
+            const durationText = formatDurationExact(duration);
+            
+            const painHistory = activeEpisode.painHistory;
+            const startPain = painHistory[0].level;
+            const endPain = painHistory[painHistory.length - 1].level;
+            
+            let progressionText = '';
+            if (painHistory.length > 1) {
+                const progression = painHistory.map(p => p.level).join(' → ');
+                const trend = endPain < startPain ? '(Improving ↓)' : endPain > startPain ? '(Worsening ↑)' : '(Stable →)';
+                progressionText = `<div style="margin-bottom: 16px;">Pain: ${progression} ${trend}</div>`;
+            }
+            
+            const contentHTML = `
+                <div style="margin-bottom: 16px;">
+                    <strong>Duration:</strong> ${durationText}
+                </div>
+                ${progressionText}
+                <div class="quick-notes">
+                    <label class="section-title" for="endNotes">Final Notes (Optional)</label>
+                    <textarea 
+                        id="endNotes" 
+                        placeholder="How did it resolve? What helped?"
+                        maxlength="500"
+                        style="min-height: 60px;"
+                    ></textarea>
+                </div>
+            `;
+            
+            const result = await showCustomModal(
+                'End Episode',
+                contentHTML,
+                [
+                    { text: 'Cancel', class: 'modal-btn-cancel' },
+                    { 
+                        text: 'End Episode', 
+                        class: 'modal-btn-confirm',
+                        getValue: () => document.getElementById('endNotes').value
+                    }
+                ]
+            );
+            
+            if (result !== 0) {
+                endEpisode(result);
+            }
+        }
+
+        // End episode
+        function endEpisode(endNotes) {
+            activeEpisode.endTime = new Date().toISOString();
+            activeEpisode.duration = Math.floor((new Date(activeEpisode.endTime).getTime() - new Date(activeEpisode.startTime).getTime()) / 1000);
+            activeEpisode.endNotes = endNotes || '';
+            activeEpisode.status = 'completed';
+            
+            saveMigraines();
+            
+            activeEpisode = null;
+            showNormalLogUI();
+            dismissAlert();
+            
+            updateStats();
+            renderHistory();
+            renderCalendar();
+            
+            showSuccessMessage('✓ Episode ended');
+        }
+
+        // Confirm new episode while one is active
+        async function confirmNewEpisode() {
+            const duration = formatDuration(Math.floor((Date.now() - new Date(activeEpisode.startTime).getTime()) / 1000));
+            
+            const confirmed = await showModal(
+                'Start New Episode',
+                `You have an active episode (${duration}).\n\nEnd current episode first or start a separate one?`,
+                'Start Separate',
+                'End Current First'
+            );
+            
+            if (confirmed) {
+                // Start separate episode
+                showNormalLogUI();
+                showSuccessMessage('Log new episode below');
+            } else {
+                // End current first
+                await showEndEpisodeModal();
+            }
         }
 
         // Page Navigation
@@ -958,6 +1496,8 @@
             } else if (pageId === 'logPage') {
                 renderCalendar();
                 updateStats();
+                checkActiveEpisode();
+                checkLongDuration();
             }
         }
 
@@ -976,7 +1516,7 @@
             
             const migrainesByDate = {};
             migraines.forEach(m => {
-                const date = new Date(m.timestamp);
+                const date = new Date(m.startTime);
                 const dateKey = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                 
                 if (!migrainesByDate[dateKey]) {
@@ -1015,10 +1555,16 @@
                     dayEl.classList.add('has-migraine');
                     
                     const maxPain = Math.max(...dayMigraines.map(m => m.painLevel));
+                    const hasActive = dayMigraines.some(m => m.status === 'active');
+                    
                     if (maxPain >= 7) {
                         dayEl.classList.add('severe');
                     } else if (maxPain >= 4) {
                         dayEl.classList.add('moderate');
+                    }
+                    
+                    if (hasActive) {
+                        dayEl.classList.add('active');
                     }
                     
                     dayEl.onclick = () => showDayDetails(year, month, day, dayMigraines);
@@ -1049,16 +1595,32 @@
             let message = `${migraines.length} episode(s):\n\n`;
             
             migraines.forEach((m, i) => {
-                const time = new Date(m.timestamp).toLocaleTimeString('en-US', {
+                const time = new Date(m.startTime).toLocaleTimeString('en-US', {
                     hour: 'numeric',
                     minute: '2-digit',
                     hour12: true
                 });
-                message += `${i + 1}. ${time} - Pain: ${m.painLevel}/10 (${m.category})\n`;
-                if (m.notes) {
-                    message += `   ${m.notes}\n`;
+                
+                if (m.status === 'active') {
+                    const duration = Math.floor((Date.now() - new Date(m.startTime).getTime()) / 1000);
+                    message += `${i + 1}. ${time} - Pain: ${m.painLevel}/10 (${m.category})\n`;
+                    message += `   ⚡ Active (${formatDuration(duration)})\n\n`;
+                } else {
+                    const durationText = formatDurationExact(m.duration);
+                    
+                    if (m.painHistory.length > 1) {
+                        const progression = m.painHistory.map(p => p.level).join(' → ');
+                        message += `${i + 1}. ${time} - Pain: ${progression} (${m.category})\n`;
+                    } else {
+                        message += `${i + 1}. ${time} - Pain: ${m.painLevel}/10 (${m.category})\n`;
+                    }
+                    
+                    message += `   Duration: ${durationText}\n`;
+                    if (m.notes) {
+                        message += `   ${m.notes}\n`;
+                    }
+                    message += '\n';
                 }
-                message += '\n';
             });
             
             await showModal(
@@ -1117,20 +1679,31 @@
                 return;
             }
 
+            const now = new Date().toISOString();
             const migraine = {
                 id: Date.now(),
-                timestamp: new Date().toISOString(),
+                startTime: now,
+                endTime: null,
+                status: 'active',
                 painLevel: selectedPainLevel,
+                painHistory: [{
+                    timestamp: now,
+                    level: selectedPainLevel
+                }],
                 notes: document.getElementById('notes').value.trim(),
+                endNotes: '',
+                duration: null,
                 category: painCategories[selectedPainLevel].label
             };
 
             migraines.unshift(migraine);
             saveMigraines();
             
-            const successMsg = document.getElementById('successMessage');
-            successMsg.classList.add('show');
-            setTimeout(() => successMsg.classList.remove('show'), 3000);
+            activeEpisode = migraine;
+            showActiveEpisodeUI();
+            updateActiveDuration();
+            
+            showSuccessMessage('✓ Episode started');
             
             resetForm();
             
@@ -1154,7 +1727,7 @@
             const migraine = migraines.find(m => m.id === id);
             if (!migraine) return;
             
-            const date = new Date(migraine.timestamp);
+            const date = new Date(migraine.startTime);
             const dateStr = date.toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -1162,9 +1735,14 @@
                 minute: '2-digit'
             });
             
+            const isActive = migraine.status === 'active';
+            const message = isActive 
+                ? `Delete active episode from ${dateStr}?\nPain Level: ${migraine.painLevel}/10\n\nThis will end the active tracking.`
+                : `Delete episode from ${dateStr}?\nPain Level: ${migraine.painLevel}/10\n\nThis cannot be undone.`;
+            
             const confirmed = await showModal(
                 'Delete Episode',
-                `${dateStr}\nPain Level: ${migraine.painLevel}/10\n\nThis cannot be undone.`,
+                message,
                 'Delete',
                 'Cancel',
                 true
@@ -1173,17 +1751,18 @@
             if (confirmed) {
                 migraines = migraines.filter(m => m.id !== id);
                 saveMigraines();
+                
+                if (isActive) {
+                    activeEpisode = null;
+                    showNormalLogUI();
+                    dismissAlert();
+                }
+                
                 updateStats();
                 renderHistory();
                 renderCalendar();
                 
-                const successMsg = document.getElementById('successMessage');
-                successMsg.textContent = '✓ Episode deleted';
-                successMsg.classList.add('show');
-                setTimeout(() => {
-                    successMsg.classList.remove('show');
-                    successMsg.textContent = '✓ Migraine logged successfully';
-                }, 2000);
+                showSuccessMessage('✓ Episode deleted');
             }
         }
 
@@ -1202,7 +1781,7 @@
             }
 
             container.innerHTML = migraines.map(m => {
-                const date = new Date(m.timestamp);
+                const date = new Date(m.startTime);
                 const dateStr = date.toLocaleDateString('en-US', {
                     weekday: 'short',
                     month: 'short',
@@ -1212,15 +1791,51 @@
                     hour12: true
                 });
 
+                const isActive = m.status === 'active';
+                let painDisplay = '';
+                let durationDisplay = '';
+                
+                if (isActive) {
+                    const duration = Math.floor((Date.now() - new Date(m.startTime).getTime()) / 1000);
+                    durationDisplay = `<div class="history-duration">⚡ Active (${formatDuration(duration)})</div>`;
+                    
+                    if (m.painHistory.length > 1) {
+                        const progression = m.painHistory.map(p => p.level).join(' → ');
+                        const latest = m.painHistory[m.painHistory.length - 1].level;
+                        const first = m.painHistory[0].level;
+                        const trend = latest < first ? '(Improving ↓)' : latest > first ? '(Worsening ↑)' : '(Stable →)';
+                        painDisplay = `
+                            <div class="history-pain">Pain Level: ${latest}/10 <span style="color: var(--text-secondary); font-size: 14px;">(${m.category})</span></div>
+                            <div class="pain-progression">Pain: ${progression} ${trend}</div>
+                        `;
+                    } else {
+                        painDisplay = `<div class="history-pain">Pain Level: ${m.painLevel}/10 <span style="color: var(--text-secondary); font-size: 14px;">(${m.category})</span></div>`;
+                    }
+                } else {
+                    const durationText = formatDurationExact(m.duration);
+                    durationDisplay = `<div class="history-duration">Duration: ${durationText}</div>`;
+                    
+                    if (m.painHistory.length > 1) {
+                        const progression = m.painHistory.map(p => p.level).join(' → ');
+                        const first = m.painHistory[0].level;
+                        const last = m.painHistory[m.painHistory.length - 1].level;
+                        const trend = last < first ? '(Improved ↓)' : last > first ? '(Worsened ↑)' : '(Stable →)';
+                        painDisplay = `
+                            <div class="history-pain">Pain: ${progression} ${trend}</div>
+                        `;
+                    } else {
+                        painDisplay = `<div class="history-pain">Pain Level: ${m.painLevel}/10 <span style="color: var(--text-secondary); font-size: 14px;">(${m.category})</span></div>`;
+                    }
+                }
+
                 return `
-                    <div class="history-item">
+                    <div class="history-item ${isActive ? 'active' : ''}">
                         <div class="history-info">
-                            <div class="history-date">${dateStr}</div>
-                            <div class="history-pain">
-                                Pain Level: ${m.painLevel}/10 
-                                <span style="color: var(--text-secondary); font-size: 14px;">(${m.category})</span>
-                            </div>
+                            <div class="history-date">${isActive ? '⚡ ' : ''}${dateStr}</div>
+                            ${painDisplay}
+                            ${durationDisplay}
                             ${m.notes ? `<div class="history-notes">${m.notes}</div>` : ''}
+                            ${m.endNotes && !isActive ? `<div class="history-notes">${m.endNotes}</div>` : ''}
                         </div>
                         <button class="delete-btn" onclick="deleteMigraine(${m.id})">Delete</button>
                     </div>
@@ -1229,38 +1844,60 @@
         }
 
         function updateStats() {
-            const total = migraines.length;
-            document.getElementById('totalEpisodes').textContent = total;
+            const completed = migraines.filter(m => m.status === 'completed');
+            const total = completed.length;
+            
+            document.getElementById('totalEpisodes').textContent = migraines.length;
 
-            if (total === 0) {
+            if (total === 0 && !activeEpisode) {
                 document.getElementById('avgPain').textContent = '0';
                 document.getElementById('thisWeek').textContent = '0';
                 document.getElementById('lastEpisode').textContent = 'Never';
                 return;
             }
 
-            const avgPain = (migraines.reduce((sum, m) => sum + m.painLevel, 0) / total).toFixed(1);
-            document.getElementById('avgPain').textContent = avgPain;
+            // Average pain (completed only)
+            if (total > 0) {
+                const avgPain = (completed.reduce((sum, m) => sum + m.painLevel, 0) / total).toFixed(1);
+                document.getElementById('avgPain').textContent = avgPain;
+            } else {
+                document.getElementById('avgPain').textContent = '0';
+            }
 
+            // This week (all episodes)
             const weekAgo = new Date();
             weekAgo.setDate(weekAgo.getDate() - 7);
-            const thisWeek = migraines.filter(m => new Date(m.timestamp) > weekAgo).length;
+            const thisWeek = migraines.filter(m => new Date(m.startTime) > weekAgo).length;
             document.getElementById('thisWeek').textContent = thisWeek;
 
-            const lastDate = new Date(migraines[0].timestamp);
-            const now = new Date();
-            const diffHours = Math.floor((now - lastDate) / (1000 * 60 * 60));
-            
-            let lastText;
-            if (diffHours < 1) {
-                lastText = 'Just now';
-            } else if (diffHours < 24) {
-                lastText = `${diffHours}h ago`;
+            // Last episode
+            if (activeEpisode) {
+                document.getElementById('lastEpisode').textContent = 'Active now';
+            } else if (completed.length > 0) {
+                const lastDate = new Date(completed[0].startTime);
+                const now = new Date();
+                const diffHours = Math.floor((now - lastDate) / (1000 * 60 * 60));
+                
+                let lastText;
+                if (diffHours < 1) {
+                    lastText = 'Just now';
+                } else if (diffHours < 24) {
+                    lastText = `${diffHours}h ago`;
+                } else {
+                    const diffDays = Math.floor(diffHours / 24);
+                    lastText = `${diffDays}d ago`;
+                }
+                document.getElementById('lastEpisode').textContent = lastText;
             } else {
-                const diffDays = Math.floor(diffHours / 24);
-                lastText = `${diffDays}d ago`;
+                document.getElementById('lastEpisode').textContent = 'Never';
             }
-            document.getElementById('lastEpisode').textContent = lastText;
+        }
+
+        function showSuccessMessage(message) {
+            const successMsg = document.getElementById('successMessage');
+            successMsg.textContent = message;
+            successMsg.classList.add('show');
+            setTimeout(() => successMsg.classList.remove('show'), 3000);
         }
 
         function saveMigraines() {
