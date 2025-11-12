@@ -1094,19 +1094,19 @@
     </div>
 
     <script>
-        // Pain scale data with medical categories
+        // Pain scale data - UPDATED with clear, research-backed descriptions
         const painCategories = {
-            0: { label: "No Pain", description: "Pain-free" },
-            1: { label: "Mild", description: "Can function normally" },
-            2: { label: "Mild", description: "Can function normally" },
-            3: { label: "Mild", description: "Can function normally" },
-            4: { label: "Moderate", description: "Impacts daily activities" },
-            5: { label: "Moderate", description: "Impacts daily activities" },
-            6: { label: "Moderate", description: "Impacts daily activities" },
-            7: { label: "Severe", description: "Debilitating pain" },
-            8: { label: "Severe", description: "Debilitating pain" },
-            9: { label: "Severe", description: "Debilitating pain" },
-            10: { label: "Severe", description: "Worst possible pain" }
+            0: { label: "No Pain", description: "Completely pain-free" },
+            1: { label: "Very Mild", description: "Barely noticeable" },
+            2: { label: "Mild", description: "Can ignore if distracted" },
+            3: { label: "Noticeable", description: "Can function normally" },
+            4: { label: "Moderate", description: "Impacts concentration" },
+            5: { label: "Moderately Strong", description: "Limits some tasks" },
+            6: { label: "Strong", description: "Hard to work through" },
+            7: { label: "Very Strong", description: "Difficult to function" },
+            8: { label: "Intense", description: "Physical activity limited" },
+            9: { label: "Severe", description: "Unable to function" },
+            10: { label: "Worst Possible", description: "Unbearable" }
         };
 
         // Global state
@@ -1115,6 +1115,40 @@
         let currentCalendarDate = new Date();
         let activeEpisode = null;
         let durationInterval = null;
+
+        // DATA MIGRATION - Convert old format to new
+        function migrateData() {
+            let needsSave = false;
+            
+            migraines = migraines.map(m => {
+                if (!m.hasOwnProperty('status')) {
+                    needsSave = true;
+                    
+                    return {
+                        id: m.id,
+                        startTime: m.timestamp || m.startTime || new Date().toISOString(),
+                        endTime: m.timestamp || m.startTime || new Date().toISOString(),
+                        status: 'completed',
+                        painLevel: m.painLevel,
+                        painHistory: [{
+                            timestamp: m.timestamp || m.startTime || new Date().toISOString(),
+                            level: m.painLevel
+                        }],
+                        notes: m.notes || '',
+                        endNotes: '',
+                        duration: 0,
+                        category: m.category || painCategories[m.painLevel].label
+                    };
+                }
+                
+                return m;
+            });
+            
+            if (needsSave) {
+                console.log('Migrated old data to v1.3.0 format');
+                saveMigraines();
+            }
+        }
 
         // Custom Modal System
         function showModal(title, message, confirmText = 'OK', cancelText = null, isDangerous = false) {
@@ -1193,18 +1227,39 @@
             });
         }
 
+        // FIXED: Start/stop duration interval properly
+        function startDurationInterval() {
+            if (durationInterval) {
+                clearInterval(durationInterval);
+            }
+            durationInterval = setInterval(updateActiveDuration, 5000); // Every 5 seconds
+            updateActiveDuration(); // Update immediately
+        }
+
+        function stopDurationInterval() {
+            if (durationInterval) {
+                clearInterval(durationInterval);
+                durationInterval = null;
+            }
+        }
+
         // Initialize app
         function init() {
             loadMigraines();
+            migrateData();
             createPainScale();
             updateTimestamp();
             checkActiveEpisode();
             checkLongDuration();
             updateStats();
             renderHistory();
-            renderCalendar();
+            
+            // FIX: Render calendar after a brief delay to ensure data is ready
+            setTimeout(() => {
+                renderCalendar();
+            }, 50);
+            
             setInterval(updateTimestamp, 1000);
-            setInterval(updateActiveDuration, 60000); // Update every minute
         }
 
         // Check for active episode on load
@@ -1213,9 +1268,10 @@
             
             if (activeEpisode) {
                 showActiveEpisodeUI();
-                updateActiveDuration();
+                startDurationInterval(); // FIX: Start interval when active episode found
             } else {
                 showNormalLogUI();
+                stopDurationInterval();
             }
         }
 
@@ -1263,7 +1319,10 @@
 
         // Update active episode display
         function updateActiveDuration() {
-            if (!activeEpisode) return;
+            if (!activeEpisode) {
+                stopDurationInterval();
+                return;
+            }
             
             const duration = Math.floor((Date.now() - new Date(activeEpisode.startTime).getTime()) / 1000);
             document.getElementById('activeDuration').textContent = formatDuration(duration);
@@ -1285,7 +1344,7 @@
         function formatDuration(seconds) {
             const minutes = Math.floor(seconds / 60);
             const hours = Math.floor(minutes / 60);
-            const remainingMinutes = Math.round((minutes % 60) / 5) * 5; // Round to nearest 5 min
+            const remainingMinutes = Math.round((minutes % 60) / 5) * 5;
             
             if (hours === 0) {
                 return `${minutes}m`;
@@ -1444,6 +1503,7 @@
             saveMigraines();
             
             activeEpisode = null;
+            stopDurationInterval(); // FIX: Stop interval when episode ends
             showNormalLogUI();
             dismissAlert();
             
@@ -1466,11 +1526,9 @@
             );
             
             if (confirmed) {
-                // Start separate episode
                 showNormalLogUI();
                 showSuccessMessage('Log new episode below');
             } else {
-                // End current first
                 await showEndEpisodeModal();
             }
         }
@@ -1606,9 +1664,9 @@
                     message += `${i + 1}. ${time} - Pain: ${m.painLevel}/10 (${m.category})\n`;
                     message += `   ⚡ Active (${formatDuration(duration)})\n\n`;
                 } else {
-                    const durationText = formatDurationExact(m.duration);
+                    const durationText = m.duration ? formatDurationExact(m.duration) : 'Unknown';
                     
-                    if (m.painHistory.length > 1) {
+                    if (m.painHistory && m.painHistory.length > 1) {
                         const progression = m.painHistory.map(p => p.level).join(' → ');
                         message += `${i + 1}. ${time} - Pain: ${progression} (${m.category})\n`;
                     } else {
@@ -1701,7 +1759,7 @@
             
             activeEpisode = migraine;
             showActiveEpisodeUI();
-            updateActiveDuration();
+            startDurationInterval(); // FIX: Start interval when new episode created
             
             showSuccessMessage('✓ Episode started');
             
@@ -1754,6 +1812,7 @@
                 
                 if (isActive) {
                     activeEpisode = null;
+                    stopDurationInterval(); // FIX: Stop interval when active deleted
                     showNormalLogUI();
                     dismissAlert();
                 }
@@ -1799,7 +1858,7 @@
                     const duration = Math.floor((Date.now() - new Date(m.startTime).getTime()) / 1000);
                     durationDisplay = `<div class="history-duration">⚡ Active (${formatDuration(duration)})</div>`;
                     
-                    if (m.painHistory.length > 1) {
+                    if (m.painHistory && m.painHistory.length > 1) {
                         const progression = m.painHistory.map(p => p.level).join(' → ');
                         const latest = m.painHistory[m.painHistory.length - 1].level;
                         const first = m.painHistory[0].level;
@@ -1812,10 +1871,12 @@
                         painDisplay = `<div class="history-pain">Pain Level: ${m.painLevel}/10 <span style="color: var(--text-secondary); font-size: 14px;">(${m.category})</span></div>`;
                     }
                 } else {
-                    const durationText = formatDurationExact(m.duration);
-                    durationDisplay = `<div class="history-duration">Duration: ${durationText}</div>`;
+                    if (m.duration && m.duration > 0) {
+                        const durationText = formatDurationExact(m.duration);
+                        durationDisplay = `<div class="history-duration">Duration: ${durationText}</div>`;
+                    }
                     
-                    if (m.painHistory.length > 1) {
+                    if (m.painHistory && m.painHistory.length > 1) {
                         const progression = m.painHistory.map(p => p.level).join(' → ');
                         const first = m.painHistory[0].level;
                         const last = m.painHistory[m.painHistory.length - 1].level;
@@ -1856,7 +1917,6 @@
                 return;
             }
 
-            // Average pain (completed only)
             if (total > 0) {
                 const avgPain = (completed.reduce((sum, m) => sum + m.painLevel, 0) / total).toFixed(1);
                 document.getElementById('avgPain').textContent = avgPain;
@@ -1864,13 +1924,11 @@
                 document.getElementById('avgPain').textContent = '0';
             }
 
-            // This week (all episodes)
             const weekAgo = new Date();
             weekAgo.setDate(weekAgo.getDate() - 7);
             const thisWeek = migraines.filter(m => new Date(m.startTime) > weekAgo).length;
             document.getElementById('thisWeek').textContent = thisWeek;
 
-            // Last episode
             if (activeEpisode) {
                 document.getElementById('lastEpisode').textContent = 'Active now';
             } else if (completed.length > 0) {
