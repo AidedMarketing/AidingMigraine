@@ -997,7 +997,7 @@
                 </div>
             </div>
 
-            <div class="section-card">
+            <div class="section-card" id="data-management-section">
                 <h2>💾 Data Management</h2>
                 <div class="settings-actions">
                     <button class="settings-btn" id="export-json-btn">
@@ -2729,15 +2729,15 @@
             {
                 title: 'Export & Backup',
                 description: 'Export your data as PDF for doctor visits or JSON for backups. You can also import data to restore or merge from another device.',
-                target: '#export-json-btn',
+                target: '#data-management-section',
                 page: 'settings',
                 position: 'top'
             },
             {
                 title: 'Your Data is Private',
                 description: 'Everything is stored locally on your device. No data is sent to any server. Remember to export backups regularly!',
-                target: null,
-                page: 'log',
+                target: '#privacy-btn',
+                page: 'settings',
                 position: 'center'
             }
         ];
