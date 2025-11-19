@@ -6,7 +6,7 @@
     <title>Aiding Migraine</title>
     <style>
         /* ============================================
-           AIDING MIGRAINE v1.4.2 - PDF EXPORT
+           AIDING MIGRAINE v1.4.3 - IMPORT ENHANCEMENTS
            ============================================ */
 
         /* === ROOT VARIABLES (DARK - DEFAULT) === */
@@ -1044,7 +1044,7 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v1.4.2</p>
+                <p>Aiding Migraine v1.4.3</p>
                 <p>Built with care for migraine sufferers</p>
             </div>
         </div>
@@ -1692,7 +1692,7 @@
 
         function exportJSON() {
             const data = {
-                appVersion: '1.4.2',
+                appVersion: '1.4.3',
                 exportDate: new Date().toISOString(),
                 totalEpisodes: migraines.length,
                 migraines: migraines
@@ -1715,34 +1715,261 @@
         function handleImport(e) {
             const file = e.target.files[0];
             if (!file) return;
-            
+
             const reader = new FileReader();
             reader.onload = (event) => {
                 try {
                     const data = JSON.parse(event.target.result);
-                    
+
                     if (!data.migraines || !Array.isArray(data.migraines)) {
                         throw new Error('Invalid backup file format');
                     }
-                    
-                    const existingIds = new Set(migraines.map(m => m.id));
-                    const newEpisodes = data.migraines.filter(m => !existingIds.has(m.id));
-                    
-                    migraines.push(...newEpisodes);
-                    saveData();
-                    renderHistory();
-                    updateDashboard();
-                    renderCalendar();
-                    updateStorageInfo();
-                    
-                    showModal('Import Complete', `Imported ${newEpisodes.length} new episodes.`);
+
+                    // Analyze import data
+                    const analysis = analyzeImportData(data.migraines);
+
+                    // Show import review UI
+                    showImportReviewModal(data.migraines, analysis);
+
                 } catch (error) {
                     showModal('Import Failed', 'The file you selected is not a valid backup file.');
                 }
             };
             reader.readAsText(file);
-            
+
             e.target.value = '';
+        }
+
+        function analyzeImportData(importedEpisodes) {
+            const newEpisodes = [];
+            const duplicates = [];
+            const conflicts = [];
+
+            importedEpisodes.forEach(imported => {
+                // Check for exact ID match
+                const exactMatch = migraines.find(m => m.id === imported.id);
+
+                if (exactMatch) {
+                    // Check if data is identical or different
+                    const isDifferent = JSON.stringify(exactMatch) !== JSON.stringify(imported);
+
+                    if (isDifferent) {
+                        conflicts.push({
+                            imported: imported,
+                            existing: exactMatch,
+                            matchType: 'id'
+                        });
+                    } else {
+                        duplicates.push({
+                            imported: imported,
+                            existing: exactMatch,
+                            matchType: 'exact'
+                        });
+                    }
+                } else {
+                    // Check for timestamp proximity (within 1 minute)
+                    const importTime = new Date(imported.startTime).getTime();
+                    const proximityMatch = migraines.find(m => {
+                        const existingTime = new Date(m.startTime).getTime();
+                        const diff = Math.abs(importTime - existingTime);
+                        return diff < 60000; // 1 minute
+                    });
+
+                    if (proximityMatch) {
+                        // Similar timing - could be duplicate
+                        conflicts.push({
+                            imported: imported,
+                            existing: proximityMatch,
+                            matchType: 'time'
+                        });
+                    } else {
+                        // Truly new episode
+                        newEpisodes.push(imported);
+                    }
+                }
+            });
+
+            return {
+                total: importedEpisodes.length,
+                new: newEpisodes,
+                duplicates: duplicates,
+                conflicts: conflicts
+            };
+        }
+
+        function showImportReviewModal(importedEpisodes, analysis) {
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            let summaryHTML = `
+                <p style="margin-bottom: 16px;">Found <strong>${analysis.total} episodes</strong> in backup file:</p>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+                    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
+                        <span>✅ New Episodes:</span>
+                        <strong style="color: var(--accent-green);">${analysis.new.length}</strong>
+                    </div>
+                    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
+                        <span>📋 Exact Duplicates:</span>
+                        <strong>${analysis.duplicates.length}</strong>
+                    </div>
+                    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
+                        <span>⚠️ Conflicts:</span>
+                        <strong style="color: var(--accent-red);">${analysis.conflicts.length}</strong>
+                    </div>
+                </div>
+            `;
+
+            if (analysis.conflicts.length > 0) {
+                summaryHTML += `
+                    <p style="color: var(--accent-red); margin-bottom: 12px;">
+                        <strong>⚠️ Conflicts Detected</strong><br>
+                        Some episodes have the same ID or similar timing but different data.
+                    </p>
+                `;
+            }
+
+            if (analysis.new.length === 0 && analysis.conflicts.length === 0) {
+                summaryHTML += `<p style="color: var(--text-secondary);">All episodes already exist. Nothing new to import.</p>`;
+            }
+
+            body.innerHTML = summaryHTML;
+
+            // Action buttons
+            const actions = document.getElementById('modal-actions');
+
+            if (analysis.new.length === 0 && analysis.conflicts.length === 0) {
+                actions.innerHTML = `
+                    <button class="btn btn-primary" onclick="closeModal()">Close</button>
+                `;
+            } else if (analysis.conflicts.length > 0) {
+                actions.innerHTML = `
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-secondary" onclick="reviewConflicts(${JSON.stringify(analysis).replace(/"/g, '&quot;')})">Review Conflicts</button>
+                    <button class="btn btn-primary" onclick="importWithStrategy(${JSON.stringify(analysis).replace(/"/g, '&quot;')}, 'skipConflicts')">Import New Only</button>
+                `;
+            } else {
+                actions.innerHTML = `
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="confirmImport(${JSON.stringify(analysis.new).replace(/"/g, '&quot;')})">Import ${analysis.new.length} Episodes</button>
+                `;
+            }
+
+            document.getElementById('modal-title').textContent = 'Import Review';
+            modal.classList.add('active');
+        }
+
+        function reviewConflicts(analysis) {
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            let conflictsHTML = `
+                <p style="margin-bottom: 16px;">Review ${analysis.conflicts.length} conflicting episodes:</p>
+                <div style="max-height: 400px; overflow-y: auto;">
+            `;
+
+            analysis.conflicts.forEach((conflict, index) => {
+                const imported = conflict.imported;
+                const existing = conflict.existing;
+                const matchLabel = conflict.matchType === 'id' ? 'Same ID' : 'Similar Time';
+
+                conflictsHTML += `
+                    <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--accent-red);">
+                        <div style="margin-bottom: 8px; font-weight: 600; color: var(--accent-red);">
+                            Conflict #${index + 1} (${matchLabel})
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.9rem;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-green);">📥 Importing:</div>
+                                <div>Date: ${formatDate(new Date(imported.startTime))}</div>
+                                <div>Time: ${formatTime(new Date(imported.startTime))}</div>
+                                <div>Pain: ${imported.painLevel}/10</div>
+                                <div>Duration: ${formatDuration(imported.duration || 0)}</div>
+                                ${imported.medication ? `<div>Med: ${imported.medication}</div>` : ''}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-blue);">💾 Existing:</div>
+                                <div>Date: ${formatDate(new Date(existing.startTime))}</div>
+                                <div>Time: ${formatTime(new Date(existing.startTime))}</div>
+                                <div>Pain: ${existing.painLevel}/10</div>
+                                <div>Duration: ${formatDuration(existing.duration || 0)}</div>
+                                ${existing.medication ? `<div>Med: ${existing.medication}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            conflictsHTML += `</div>`;
+
+            body.innerHTML = conflictsHTML;
+
+            const actions = document.getElementById('modal-actions');
+            actions.innerHTML = `
+                <button class="btn btn-secondary" onclick="showImportReviewModal([], ${JSON.stringify(analysis).replace(/"/g, '&quot;')})">Back</button>
+                <button class="btn btn-secondary" onclick="importWithStrategy(${JSON.stringify(analysis).replace(/"/g, '&quot;')}, 'skipConflicts')">Skip Conflicts</button>
+                <button class="btn btn-primary" onclick="importWithStrategy(${JSON.stringify(analysis).replace(/"/g, '&quot;')}, 'replaceConflicts')">Replace Existing</button>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Review Conflicts';
+        }
+
+        function importWithStrategy(analysis, strategy) {
+            let importedCount = 0;
+
+            // Always import new episodes
+            analysis.new.forEach(episode => {
+                migraines.push(episode);
+                importedCount++;
+            });
+
+            // Handle conflicts based on strategy
+            if (strategy === 'replaceConflicts') {
+                analysis.conflicts.forEach(conflict => {
+                    // Remove existing and add new
+                    const index = migraines.findIndex(m => m.id === conflict.existing.id);
+                    if (index !== -1) {
+                        migraines[index] = conflict.imported;
+                        importedCount++;
+                    }
+                });
+            }
+            // If 'skipConflicts', we just don't import them
+
+            // Sort migraines by startTime
+            migraines.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+            saveData();
+            renderHistory();
+            updateDashboard();
+            renderCalendar();
+            updateStorageInfo();
+
+            closeModal();
+
+            let message = `Successfully imported ${importedCount} episodes.`;
+            if (strategy === 'skipConflicts' && analysis.conflicts.length > 0) {
+                message += `\n\nSkipped ${analysis.conflicts.length} conflicting episodes.`;
+            }
+
+            showModal('Import Complete', message);
+        }
+
+        function confirmImport(newEpisodes) {
+            newEpisodes.forEach(episode => {
+                migraines.push(episode);
+            });
+
+            // Sort migraines by startTime
+            migraines.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+            saveData();
+            renderHistory();
+            updateDashboard();
+            renderCalendar();
+            updateStorageInfo();
+
+            closeModal();
+            showModal('Import Complete', `Successfully imported ${newEpisodes.length} episodes.`);
         }
 
         function showPDFDateRangeModal() {
@@ -2028,7 +2255,7 @@
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v1.4.2</strong></p>
+                <p><strong>Aiding Migraine v1.4.3</strong></p>
                 <p>Built with care for migraine sufferers.</p>
                 
                 <h3>Features</h3>
