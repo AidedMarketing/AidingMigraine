@@ -1956,10 +1956,10 @@
             document.getElementById('view-trash-btn').addEventListener('click', viewTrash);
 
             document.getElementById('tour-btn').addEventListener('click', () => {
-                switchPage('log');
+                showPage('log');
                 setTimeout(() => {
                     startGuidedTour();
-                }, 150);
+                }, 200);
             });
 
             document.getElementById('how-to-btn').addEventListener('click', showHowTo);
@@ -2754,7 +2754,7 @@
 
             // Switch to the required page
             if (step.page !== currentPage) {
-                switchPage(step.page);
+                showPage(step.page);
             }
 
             // Wait for page to render before positioning tooltip
