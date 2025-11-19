@@ -6,7 +6,7 @@
     <title>Aiding Migraine</title>
     <style>
         /* ============================================
-           AIDING MIGRAINE v1.4.3 - IMPORT ENHANCEMENTS
+           AIDING MIGRAINE v1.5.0 - WEEK 3 POLISH
            ============================================ */
 
         /* === ROOT VARIABLES (DARK - DEFAULT) === */
@@ -972,9 +972,28 @@
                         <span class="info-value" id="storage-size">0 KB</span>
                     </div>
                     <div class="info-row">
+                        <span class="info-label">In Trash:</span>
+                        <span class="info-value" id="trash-count">0</span>
+                    </div>
+                    <div class="info-row">
                         <span class="info-label">Last Backup:</span>
                         <span class="info-value" id="last-backup">Never</span>
                     </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>🗑️ Recently Deleted</h2>
+                <div class="settings-info" style="margin-bottom: 16px;">
+                    <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                        Deleted episodes are kept for 30 days before being permanently removed.
+                    </p>
+                </div>
+                <div class="settings-actions">
+                    <button class="settings-btn" id="view-trash-btn">
+                        <span>🗑️ View Trash</span>
+                        <span class="btn-subtitle" id="trash-subtitle">0 items</span>
+                    </button>
                 </div>
             </div>
 
@@ -1021,6 +1040,10 @@
             <div class="section-card">
                 <h2>ℹ️ Information</h2>
                 <div class="settings-actions">
+                    <button class="settings-btn" id="tour-btn">
+                        <span>🎯 Take a Tour</span>
+                        <span class="btn-subtitle">Interactive walkthrough</span>
+                    </button>
                     <button class="settings-btn" id="how-to-btn">
                         <span>📖 How to Use</span>
                     </button>
@@ -1044,7 +1067,7 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v1.4.3</p>
+                <p>Aiding Migraine v1.5.0</p>
                 <p>Built with care for migraine sufferers</p>
             </div>
         </div>
@@ -1086,6 +1109,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
+            purgeOldDeletedEpisodes();
             initializeTheme();
             initializeNavigation();
             initializePainScale();
@@ -1097,6 +1121,7 @@
             updateDashboard();
             renderHistory();
             renderCalendar();
+            checkFirstTimeUser();
         });
 
         function loadData() {
@@ -1408,23 +1433,24 @@
         }
 
         function updateDashboard() {
-            const total = migraines.length;
-            const avgPain = total > 0 
-                ? (migraines.reduce((sum, m) => sum + m.painLevel, 0) / total).toFixed(1)
+            const activeMigraines = getActiveMigraines();
+            const total = activeMigraines.length;
+            const avgPain = total > 0
+                ? (activeMigraines.reduce((sum, m) => sum + m.painLevel, 0) / total).toFixed(1)
                 : 0;
-            
+
             const now = new Date();
             const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
             const twoWeeksAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);
-            
-            const thisWeek = migraines.filter(m => new Date(m.startTime) >= weekAgo).length;
-            const lastWeek = migraines.filter(m => {
+
+            const thisWeek = activeMigraines.filter(m => new Date(m.startTime) >= weekAgo).length;
+            const lastWeek = activeMigraines.filter(m => {
                 const date = new Date(m.startTime);
                 return date >= twoWeeksAgo && date < weekAgo;
             }).length;
-            
-            const lastEpisode = total > 0 
-                ? formatRelativeTime(migraines[migraines.length - 1].startTime)
+
+            const lastEpisode = total > 0
+                ? formatRelativeTime(activeMigraines[activeMigraines.length - 1].startTime)
                 : '-';
             
             document.getElementById('total-episodes').textContent = total;
@@ -1454,8 +1480,9 @@
 
         function renderHistory() {
             const list = document.getElementById('history-list');
-            
-            if (migraines.length === 0) {
+            const activeMigraines = getActiveMigraines();
+
+            if (activeMigraines.length === 0) {
                 list.innerHTML = `
                     <div class="section-card" style="text-align: center; padding: 40px;">
                         <h2>📊 No Episodes Yet</h2>
@@ -1466,8 +1493,8 @@
                 `;
                 return;
             }
-            
-            const sorted = [...migraines].reverse();
+
+            const sorted = [...activeMigraines].reverse();
             
             list.innerHTML = sorted.map(m => {
                 const start = new Date(m.startTime);
@@ -1498,6 +1525,7 @@
                         ${m.notes ? `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">${m.notes}</p>` : ''}
                         <div class="history-actions">
                             <button class="btn btn-secondary" onclick="viewEpisode(${m.id})">View Details</button>
+                            <button class="btn btn-secondary" onclick="editEpisode(${m.id})">Edit</button>
                             <button class="btn btn-secondary" onclick="deleteEpisode(${m.id})">Delete</button>
                         </div>
                     </div>
@@ -1539,25 +1567,274 @@
             showModal('Episode Details', content);
         }
 
+        function editEpisode(id) {
+            const migraine = migraines.find(m => m.id === id);
+            if (!migraine) return;
+
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            body.innerHTML = `
+                <div class="form-group">
+                    <label>💊 Medication</label>
+                    <input type="text" id="edit-medication" value="${migraine.medication || ''}"
+                           placeholder="e.g. Sumatriptan 100mg"
+                           style="width: 100%; padding: 12px; background: var(--bg-tertiary);
+                                  border: 1px solid var(--border-color); border-radius: 8px;
+                                  color: var(--text-primary); font-size: 1rem;">
+                </div>
+                <div class="form-group">
+                    <label>📝 Notes</label>
+                    <textarea id="edit-notes" rows="4" placeholder="Add any notes about this episode..."
+                              style="width: 100%; padding: 12px; background: var(--bg-tertiary);
+                                     border: 1px solid var(--border-color); border-radius: 8px;
+                                     color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${migraine.notes || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>🏁 Resolution Notes</label>
+                    <textarea id="edit-end-notes" rows="3" placeholder="How did it resolve? What helped?"
+                              style="width: 100%; padding: 12px; background: var(--bg-tertiary);
+                                     border: 1px solid var(--border-color); border-radius: 8px;
+                                     color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${migraine.endNotes || ''}</textarea>
+                </div>
+            `;
+
+            document.getElementById('modal-actions').innerHTML = `
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEpisodeEdit(${id})">Save Changes</button>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Edit Episode';
+            modal.classList.add('active');
+        }
+
+        function saveEpisodeEdit(id) {
+            const migraine = migraines.find(m => m.id === id);
+            if (!migraine) return;
+
+            const medication = document.getElementById('edit-medication').value.trim();
+            const notes = document.getElementById('edit-notes').value.trim();
+            const endNotes = document.getElementById('edit-end-notes').value.trim();
+
+            migraine.medication = medication || null;
+            migraine.notes = notes || null;
+            migraine.endNotes = endNotes || null;
+
+            saveData();
+            renderHistory();
+            closeModal();
+            showModal('Changes Saved', 'Episode has been updated successfully.');
+        }
+
         function deleteEpisode(id) {
             const modal = document.getElementById('modal');
             document.getElementById('modal-title').textContent = 'Delete Episode?';
-            document.getElementById('modal-body').innerHTML = '<p>This action cannot be undone.</p>';
+            document.getElementById('modal-body').innerHTML = '<p>This episode will be moved to trash and can be recovered within 30 days.</p>';
             document.getElementById('modal-actions').innerHTML = `
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="confirmDelete(${id})">Delete</button>
+                <button class="btn btn-primary" onclick="confirmDelete(${id})">Move to Trash</button>
             `;
             modal.classList.add('active');
         }
 
         function confirmDelete(id) {
-            migraines = migraines.filter(m => m.id !== id);
+            const migraine = migraines.find(m => m.id === id);
+            if (migraine) {
+                migraine.deleted = true;
+                migraine.deletedAt = new Date().toISOString();
+                saveData();
+                renderHistory();
+                updateDashboard();
+                renderCalendar();
+                closeModal();
+                showModal('Moved to Trash', 'Episode moved to trash. You can restore it from Settings within 30 days.');
+            }
+        }
+
+        function getActiveMigraines() {
+            return migraines.filter(m => !m.deleted);
+        }
+
+        function getDeletedMigraines() {
+            // Auto-purge episodes older than 30 days
+            const now = new Date();
+            const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+
+            return migraines.filter(m => {
+                if (!m.deleted) return false;
+                const deletedDate = new Date(m.deletedAt);
+                return deletedDate >= thirtyDaysAgo;
+            });
+        }
+
+        function purgeOldDeletedEpisodes() {
+            const now = new Date();
+            const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+
+            const beforeCount = migraines.length;
+            migraines = migraines.filter(m => {
+                if (!m.deleted) return true;
+                const deletedDate = new Date(m.deletedAt);
+                return deletedDate >= thirtyDaysAgo;
+            });
+
+            const purgedCount = beforeCount - migraines.length;
+            if (purgedCount > 0) {
+                saveData();
+            }
+        }
+
+        function viewTrash() {
+            const deletedMigraines = getDeletedMigraines();
+
+            if (deletedMigraines.length === 0) {
+                showModal('Trash Empty', '<p style="text-align: center;">No recently deleted episodes.</p>');
+                return;
+            }
+
+            const now = new Date();
+
+            let content = `
+                <div style="margin-bottom: 20px;">
+                    <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                        Episodes are automatically deleted after 30 days.
+                    </p>
+                </div>
+            `;
+
+            deletedMigraines
+                .sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt))
+                .forEach(m => {
+                    const deletedDate = new Date(m.deletedAt);
+                    const daysRemaining = Math.ceil(30 - (now - deletedDate) / (1000 * 60 * 60 * 24));
+                    const startDate = new Date(m.startTime);
+
+                    content += `
+                        <div style="margin-bottom: 16px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border-left: 4px solid ${
+                            m.category === 'Severe' ? 'var(--pain-severe)' :
+                            m.category === 'Moderate' ? 'var(--pain-moderate)' :
+                            'var(--pain-mild)'
+                        };">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                <div>
+                                    <p style="font-weight: 600; margin-bottom: 4px;">${formatDate(startDate)}</p>
+                                    <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                                        ${formatTime(startDate)} • ${m.category} (${m.painLevel}/10)
+                                    </p>
+                                </div>
+                                <span style="font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap;">
+                                    ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} left
+                                </span>
+                            </div>
+                            ${m.medication ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">💊 ${m.medication}</p>` : ''}
+                            ${m.notes ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">📝 ${m.notes}</p>` : ''}
+                            <div style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button class="btn btn-primary" style="flex: 1; padding: 8px;" onclick="restoreEpisode(${m.id})">
+                                    ♻️ Restore
+                                </button>
+                                <button class="btn btn-danger" style="flex: 1; padding: 8px;" onclick="permanentlyDelete(${m.id})">
+                                    🗑️ Delete Forever
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+            content += `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                    <button class="btn btn-danger" style="width: 100%;" onclick="emptyTrash()">
+                        🗑️ Empty Trash (Delete All)
+                    </button>
+                </div>
+            `;
+
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+            const actions = document.getElementById('modal-actions');
+
+            document.getElementById('modal-title').textContent = `Trash (${deletedMigraines.length})`;
+            body.innerHTML = content;
+            actions.innerHTML = '<button class="btn btn-secondary" onclick="closeModal()">Close</button>';
+            modal.classList.add('active');
+        }
+
+        function restoreEpisode(id) {
+            const migraine = migraines.find(m => m.id === id);
+            if (migraine && migraine.deleted) {
+                delete migraine.deleted;
+                delete migraine.deletedAt;
+                saveData();
+                renderHistory();
+                updateDashboard();
+                renderCalendar();
+                updateStorageInfo();
+                viewTrash(); // Refresh trash view
+                showModal('Episode Restored', 'The episode has been restored successfully.');
+            }
+        }
+
+        function permanentlyDelete(id) {
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+            const actions = document.getElementById('modal-actions');
+
+            body.innerHTML = `
+                <p style="text-align: center;">Are you sure you want to permanently delete this episode?</p>
+                <p style="text-align: center; color: var(--accent-red); font-weight: 600;">This action cannot be undone.</p>
+            `;
+
+            actions.innerHTML = `
+                <button class="btn btn-secondary" onclick="viewTrash()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmPermanentDelete(${id})">Delete Forever</button>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Confirm Permanent Deletion';
+        }
+
+        function confirmPermanentDelete(id) {
+            const index = migraines.findIndex(m => m.id === id);
+            if (index !== -1) {
+                migraines.splice(index, 1);
+                saveData();
+                updateStorageInfo();
+                viewTrash(); // Refresh trash view
+            }
+        }
+
+        function emptyTrash() {
+            const deletedCount = getDeletedMigraines().length;
+
+            if (deletedCount === 0) {
+                showModal('Trash Empty', '<p style="text-align: center;">No episodes to delete.</p>');
+                return;
+            }
+
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+            const actions = document.getElementById('modal-actions');
+
+            body.innerHTML = `
+                <p style="text-align: center;">Are you sure you want to permanently delete all ${deletedCount} episode${deletedCount !== 1 ? 's' : ''} from trash?</p>
+                <p style="text-align: center; color: var(--accent-red); font-weight: 600;">This action cannot be undone.</p>
+            `;
+
+            actions.innerHTML = `
+                <button class="btn btn-secondary" onclick="viewTrash()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmEmptyTrash()">Empty Trash</button>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Empty Trash';
+        }
+
+        function confirmEmptyTrash() {
+            migraines = migraines.filter(m => !m.deleted);
             saveData();
             renderHistory();
             updateDashboard();
             renderCalendar();
+            updateStorageInfo();
             closeModal();
-            showModal('Episode Deleted', 'The episode has been removed.');
+            showModal('Trash Emptied', 'All deleted episodes have been permanently removed.');
         }
 
         function initializeCalendar() {
@@ -1591,11 +1868,13 @@
                 html += '<div class="calendar-day empty"></div>';
             }
             
+            const activeMigraines = getActiveMigraines();
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month, day);
                 const dateStr = date.toISOString().split('T')[0];
-                
-                const dayMigraines = migraines.filter(m => {
+
+                const dayMigraines = activeMigraines.filter(m => {
                     const mDate = new Date(m.startTime).toISOString().split('T')[0];
                     return mDate === dateStr;
                 });
@@ -1634,7 +1913,8 @@
         }
 
         function showDayDetails(dateStr) {
-            const dayMigraines = migraines.filter(m => {
+            const activeMigraines = getActiveMigraines();
+            const dayMigraines = activeMigraines.filter(m => {
                 const mDate = new Date(m.startTime).toISOString().split('T')[0];
                 return mDate === dateStr;
             });
@@ -1660,42 +1940,62 @@
 
         function initializeSettings() {
             updateStorageInfo();
-            
+
             document.getElementById('export-json-btn').addEventListener('click', exportJSON);
-            
+
             document.getElementById('export-pdf-btn').addEventListener('click', showPDFDateRangeModal);
-            
+
             document.getElementById('import-json-btn').addEventListener('click', () => {
                 document.getElementById('import-file-input').click();
             });
-            
+
             document.getElementById('import-file-input').addEventListener('change', handleImport);
-            
+
+            document.getElementById('view-trash-btn').addEventListener('click', viewTrash);
+
+            document.getElementById('tour-btn').addEventListener('click', () => {
+                switchPage('log');
+                startGuidedTour();
+            });
+
             document.getElementById('how-to-btn').addEventListener('click', showHowTo);
             document.getElementById('about-btn').addEventListener('click', showAbout);
             document.getElementById('privacy-btn').addEventListener('click', showPrivacy);
-            
+
             document.getElementById('clear-all-btn').addEventListener('click', clearAllData);
         }
 
         function updateStorageInfo() {
-            const episodes = migraines.length;
+            const activeMigraines = getActiveMigraines();
+            const deletedMigraines = getDeletedMigraines();
+            const episodes = activeMigraines.length;
             const dataStr = JSON.stringify(migraines);
             const sizeBytes = new Blob([dataStr]).size;
             const sizeKB = (sizeBytes / 1024).toFixed(2);
             const lastBackup = localStorage.getItem('lastBackup') || 'Never';
-            
+
             document.getElementById('storage-episodes').textContent = episodes;
             document.getElementById('storage-size').textContent = `${sizeKB} KB`;
             document.getElementById('last-backup').textContent = lastBackup;
+
+            const trashCount = document.getElementById('trash-count');
+            const trashSubtitle = document.getElementById('trash-subtitle');
+            if (trashCount) {
+                trashCount.textContent = deletedMigraines.length;
+            }
+            if (trashSubtitle) {
+                const itemText = deletedMigraines.length === 1 ? 'item' : 'items';
+                trashSubtitle.textContent = `${deletedMigraines.length} ${itemText}`;
+            }
         }
 
         function exportJSON() {
+            const activeMigraines = getActiveMigraines();
             const data = {
-                appVersion: '1.4.3',
+                appVersion: '1.5.0',
                 exportDate: new Date().toISOString(),
-                totalEpisodes: migraines.length,
-                migraines: migraines
+                totalEpisodes: activeMigraines.length,
+                migraines: activeMigraines
             };
             
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -2070,7 +2370,8 @@
             }
 
             // Filter episodes in range
-            const episodesInRange = migraines.filter(m => {
+            const activeMigraines = getActiveMigraines();
+            const episodesInRange = activeMigraines.filter(m => {
                 const episodeDate = new Date(m.startTime);
                 return episodeDate >= startDate && episodeDate <= endDate;
             });
@@ -2255,7 +2556,7 @@
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v1.4.3</strong></p>
+                <p><strong>Aiding Migraine v1.5.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
                 
                 <h3>Features</h3>
@@ -2343,6 +2644,246 @@
 
         function closeModal() {
             document.getElementById('modal').classList.remove('active');
+        }
+
+        function showWelcomeModal() {
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+            const actions = document.getElementById('modal-actions');
+
+            body.innerHTML = `
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">🤕</div>
+                    <h2 style="margin-bottom: 16px; font-size: 1.5rem;">Welcome to Aiding Migraine</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.8;">
+                        Your personal migraine tracking companion. Log episodes, track patterns,
+                        and generate professional reports for your healthcare provider.
+                    </p>
+                    <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 20px; margin: 24px 0; text-align: left;">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 12px; text-align: center;">✨ Key Features</h3>
+                        <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 2;">
+                            <li>📝 <strong>Easy Logging:</strong> Track pain levels, triggers, and medications</li>
+                            <li>📊 <strong>Visual History:</strong> Calendar view and detailed statistics</li>
+                            <li>📄 <strong>PDF Reports:</strong> Professional reports for doctor visits</li>
+                            <li>💾 <strong>Secure Backup:</strong> Import/export your data safely</li>
+                            <li>🗑️ <strong>Smart Recovery:</strong> 30-day trash for deleted episodes</li>
+                        </ul>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
+                        All your data stays private on your device. Nothing is sent to any server.
+                    </p>
+                </div>
+            `;
+
+            actions.innerHTML = `
+                <button class="btn btn-secondary" onclick="closeWelcome()">Get Started</button>
+                <button class="btn btn-primary" onclick="startGuidedTour()">Take a Tour</button>
+            `;
+
+            document.getElementById('modal-title').textContent = '';
+            modal.classList.add('active');
+        }
+
+        function closeWelcome() {
+            localStorage.setItem('hasSeenWelcome', 'true');
+            closeModal();
+        }
+
+        function checkFirstTimeUser() {
+            const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+            if (!hasSeenWelcome) {
+                // Small delay to let the page load first
+                setTimeout(() => {
+                    showWelcomeModal();
+                }, 500);
+            }
+        }
+
+        let tourStep = 0;
+        const tourSteps = [
+            {
+                title: 'Log a Migraine Episode',
+                description: 'Select your pain level (1-10) and click "Start Episode" to begin tracking. You can update pain levels and add notes during the episode.',
+                target: '.pain-scale',
+                page: 'log',
+                position: 'bottom'
+            },
+            {
+                title: 'Episode History',
+                description: 'View all your past episodes here. You can edit notes, view details, or delete episodes. Deleted episodes go to trash for 30 days.',
+                target: '.nav-btn[data-page="history"]',
+                page: 'log',
+                position: 'top'
+            },
+            {
+                title: 'Calendar View',
+                description: 'The Dashboard shows your migraine patterns over time. Click any day to see episodes logged that day.',
+                target: '.calendar-header',
+                page: 'log',
+                position: 'bottom'
+            },
+            {
+                title: 'Export & Backup',
+                description: 'Export your data as PDF for doctor visits or JSON for backups. You can also import data to restore or merge from another device.',
+                target: '.nav-btn[data-page="settings"]',
+                page: 'log',
+                position: 'top'
+            },
+            {
+                title: 'Your Data is Private',
+                description: 'Everything is stored locally on your device. No data is sent to any server. Remember to export backups regularly!',
+                target: null,
+                page: 'log',
+                position: 'center'
+            }
+        ];
+
+        function startGuidedTour() {
+            localStorage.setItem('hasSeenWelcome', 'true');
+            closeModal();
+            tourStep = 0;
+            showTourStep();
+        }
+
+        function showTourStep() {
+            const step = tourSteps[tourStep];
+
+            // Switch to the required page
+            if (step.page !== currentPage) {
+                switchPage(step.page);
+            }
+
+            // Create or update tour overlay
+            let overlay = document.getElementById('tour-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'tour-overlay';
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.75);
+                    z-index: 9998;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: fadeIn 0.3s ease;
+                `;
+                document.body.appendChild(overlay);
+            }
+
+            // Create tour tooltip
+            let tooltip = document.getElementById('tour-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'tour-tooltip';
+                document.body.appendChild(tooltip);
+            }
+
+            tooltip.style.cssText = `
+                position: fixed;
+                background: var(--bg-secondary);
+                border: 2px solid var(--accent-blue);
+                border-radius: 12px;
+                padding: 24px;
+                max-width: 400px;
+                z-index: 9999;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+                animation: fadeIn 0.3s ease;
+            `;
+
+            tooltip.innerHTML = `
+                <div style="margin-bottom: 8px; color: var(--accent-blue); font-size: 0.9rem; font-weight: 600;">
+                    Step ${tourStep + 1} of ${tourSteps.length}
+                </div>
+                <h3 style="margin-bottom: 12px; font-size: 1.3rem;">${step.title}</h3>
+                <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">
+                    ${step.description}
+                </p>
+                <div style="display: flex; gap: 12px; justify-content: space-between;">
+                    <button class="btn btn-secondary" onclick="skipTour()" style="flex: 1;">
+                        Skip Tour
+                    </button>
+                    <button class="btn btn-primary" onclick="nextTourStep()" style="flex: 1;">
+                        ${tourStep === tourSteps.length - 1 ? 'Finish' : 'Next'}
+                    </button>
+                </div>
+            `;
+
+            // Position tooltip
+            if (step.target) {
+                const targetEl = document.querySelector(step.target);
+                if (targetEl) {
+                    const rect = targetEl.getBoundingClientRect();
+
+                    // Highlight the target element
+                    targetEl.style.position = 'relative';
+                    targetEl.style.zIndex = '9999';
+                    targetEl.style.boxShadow = '0 0 0 4px var(--accent-blue), 0 0 20px rgba(107, 139, 184, 0.5)';
+                    targetEl.style.borderRadius = '8px';
+                    targetEl.setAttribute('data-tour-highlight', 'true');
+
+                    if (step.position === 'bottom') {
+                        tooltip.style.top = `${rect.bottom + 20}px`;
+                        tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                        tooltip.style.transform = 'translateX(-50%)';
+                    } else if (step.position === 'top') {
+                        tooltip.style.bottom = `${window.innerHeight - rect.top + 20}px`;
+                        tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                        tooltip.style.transform = 'translateX(-50%)';
+                    }
+                }
+            } else {
+                // Center tooltip
+                tooltip.style.top = '50%';
+                tooltip.style.left = '50%';
+                tooltip.style.transform = 'translate(-50%, -50%)';
+            }
+        }
+
+        function nextTourStep() {
+            // Remove highlight from previous step
+            const highlighted = document.querySelector('[data-tour-highlight]');
+            if (highlighted) {
+                highlighted.style.position = '';
+                highlighted.style.zIndex = '';
+                highlighted.style.boxShadow = '';
+                highlighted.style.borderRadius = '';
+                highlighted.removeAttribute('data-tour-highlight');
+            }
+
+            tourStep++;
+            if (tourStep < tourSteps.length) {
+                showTourStep();
+            } else {
+                endTour();
+            }
+        }
+
+        function skipTour() {
+            endTour();
+        }
+
+        function endTour() {
+            // Remove highlight
+            const highlighted = document.querySelector('[data-tour-highlight]');
+            if (highlighted) {
+                highlighted.style.position = '';
+                highlighted.style.zIndex = '';
+                highlighted.style.boxShadow = '';
+                highlighted.style.borderRadius = '';
+                highlighted.removeAttribute('data-tour-highlight');
+            }
+
+            // Remove overlay and tooltip
+            const overlay = document.getElementById('tour-overlay');
+            const tooltip = document.getElementById('tour-tooltip');
+            if (overlay) overlay.remove();
+            if (tooltip) tooltip.remove();
+
+            tourStep = 0;
         }
 
         document.querySelector('.modal-close').addEventListener('click', closeModal);
