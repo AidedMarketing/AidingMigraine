@@ -6,7 +6,7 @@
     <title>Aiding Migraine</title>
     <style>
         /* ============================================
-           AIDING MIGRAINE v1.4.1.1 - DARK MODE FIX
+           AIDING MIGRAINE v1.4.2 - PDF EXPORT
            ============================================ */
 
         /* === ROOT VARIABLES (DARK - DEFAULT) === */
@@ -830,6 +830,7 @@
             }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -1043,7 +1044,7 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v1.4.1.1</p>
+                <p>Aiding Migraine v1.4.2</p>
                 <p>Built with care for migraine sufferers</p>
             </div>
         </div>
@@ -1662,9 +1663,7 @@
             
             document.getElementById('export-json-btn').addEventListener('click', exportJSON);
             
-            document.getElementById('export-pdf-btn').addEventListener('click', () => {
-                showModal('Coming Soon', 'PDF export will be available later today.');
-            });
+            document.getElementById('export-pdf-btn').addEventListener('click', showPDFDateRangeModal);
             
             document.getElementById('import-json-btn').addEventListener('click', () => {
                 document.getElementById('import-file-input').click();
@@ -1693,7 +1692,7 @@
 
         function exportJSON() {
             const data = {
-                appVersion: '1.4.1.1',
+                appVersion: '1.4.2',
                 exportDate: new Date().toISOString(),
                 totalEpisodes: migraines.length,
                 migraines: migraines
@@ -1746,6 +1745,262 @@
             e.target.value = '';
         }
 
+        function showPDFDateRangeModal() {
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            body.innerHTML = `
+                <p style="margin-bottom: 20px; color: var(--text-secondary);">Select a date range for your doctor report:</p>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button class="settings-btn" onclick="exportPDF('7days')">
+                        <span>📅 Last 7 Days</span>
+                    </button>
+                    <button class="settings-btn" onclick="exportPDF('30days')">
+                        <span>📅 Last 30 Days</span>
+                    </button>
+                    <button class="settings-btn" onclick="exportPDF('90days')">
+                        <span>📅 Last 90 Days</span>
+                    </button>
+                    <button class="settings-btn" onclick="showCustomDateRange()">
+                        <span>📅 Custom Range</span>
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('modal-actions').innerHTML = `
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Export PDF Report';
+            modal.classList.add('active');
+        }
+
+        function showCustomDateRange() {
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            const today = new Date().toISOString().split('T')[0];
+            const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+            body.innerHTML = `
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" id="custom-start-date" value="${monthAgo}" max="${today}"
+                           style="width: 100%; padding: 12px; background: var(--bg-tertiary);
+                                  border: 1px solid var(--border-color); border-radius: 8px;
+                                  color: var(--text-primary); font-size: 1rem;">
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" id="custom-end-date" value="${today}" max="${today}"
+                           style="width: 100%; padding: 12px; background: var(--bg-tertiary);
+                                  border: 1px solid var(--border-color); border-radius: 8px;
+                                  color: var(--text-primary); font-size: 1rem;">
+                </div>
+            `;
+
+            document.getElementById('modal-actions').innerHTML = `
+                <button class="btn btn-secondary" onclick="showPDFDateRangeModal()">Back</button>
+                <button class="btn btn-primary" onclick="exportCustomPDF()">Generate PDF</button>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Custom Date Range';
+        }
+
+        function exportCustomPDF() {
+            const startDate = document.getElementById('custom-start-date').value;
+            const endDate = document.getElementById('custom-end-date').value;
+
+            if (!startDate || !endDate) {
+                showModal('Error', 'Please select both start and end dates.');
+                return;
+            }
+
+            if (new Date(startDate) > new Date(endDate)) {
+                showModal('Error', 'Start date must be before end date.');
+                return;
+            }
+
+            exportPDF('custom', startDate, endDate);
+        }
+
+        function exportPDF(rangeType, customStart, customEnd) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Calculate date range
+            let startDate, endDate;
+            const now = new Date();
+
+            if (rangeType === 'custom') {
+                startDate = new Date(customStart);
+                endDate = new Date(customEnd);
+                endDate.setHours(23, 59, 59, 999);
+            } else {
+                endDate = now;
+                const days = rangeType === '7days' ? 7 : rangeType === '30days' ? 30 : 90;
+                startDate = new Date(now - days * 24 * 60 * 60 * 1000);
+            }
+
+            // Filter episodes in range
+            const episodesInRange = migraines.filter(m => {
+                const episodeDate = new Date(m.startTime);
+                return episodeDate >= startDate && episodeDate <= endDate;
+            });
+
+            // Generate PDF
+            let yPos = 20;
+
+            // Title
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('Migraine Report', 105, yPos, { align: 'center' });
+            yPos += 10;
+
+            // Date range
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            const dateRangeStr = `${formatDate(startDate)} - ${formatDate(endDate)}`;
+            doc.text(dateRangeStr, 105, yPos, { align: 'center' });
+            yPos += 15;
+
+            // Patient Information Section (blank for handwriting)
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Patient Information', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('Name: _______________________________________', 20, yPos);
+            yPos += 7;
+            doc.text('Date of Birth: _______________', 20, yPos);
+            doc.text('Visit Date: _______________', 120, yPos);
+            yPos += 15;
+
+            // Summary Statistics
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Summary Statistics', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+
+            const totalEpisodes = episodesInRange.length;
+            const avgPain = totalEpisodes > 0
+                ? (episodesInRange.reduce((sum, m) => sum + m.painLevel, 0) / totalEpisodes).toFixed(1)
+                : 0;
+            const avgDuration = totalEpisodes > 0
+                ? episodesInRange.reduce((sum, m) => sum + (m.duration || 0), 0) / totalEpisodes
+                : 0;
+
+            const severeCount = episodesInRange.filter(m => m.painLevel >= 7).length;
+            const moderateCount = episodesInRange.filter(m => m.painLevel >= 4 && m.painLevel < 7).length;
+            const mildCount = episodesInRange.filter(m => m.painLevel < 4).length;
+
+            doc.text(`Total Episodes: ${totalEpisodes}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Average Pain Level: ${avgPain}/10`, 20, yPos);
+            yPos += 6;
+            doc.text(`Average Duration: ${formatDuration(Math.floor(avgDuration))}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Severity Distribution: Severe (${severeCount}), Moderate (${moderateCount}), Mild (${mildCount})`, 20, yPos);
+            yPos += 15;
+
+            // Episode Details
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Episode Details', 20, yPos);
+            yPos += 8;
+
+            if (totalEpisodes === 0) {
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('No episodes recorded in this date range.', 20, yPos);
+            } else {
+                // Table header
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'bold');
+                doc.text('Date', 20, yPos);
+                doc.text('Time', 50, yPos);
+                doc.text('Pain', 75, yPos);
+                doc.text('Duration', 95, yPos);
+                doc.text('Medication', 125, yPos);
+                yPos += 5;
+
+                // Line under header
+                doc.line(20, yPos, 190, yPos);
+                yPos += 5;
+
+                // Episode rows
+                doc.setFont(undefined, 'normal');
+                const sortedEpisodes = [...episodesInRange].sort((a, b) =>
+                    new Date(b.startTime) - new Date(a.startTime)
+                );
+
+                for (const episode of sortedEpisodes) {
+                    // Check if we need a new page
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+
+                    const epStart = new Date(episode.startTime);
+                    const painStr = episode.painHistory && episode.painHistory.length > 1
+                        ? `${episode.painHistory[0].level}→${episode.painLevel}`
+                        : `${episode.painLevel}/10`;
+
+                    doc.text(formatDate(epStart), 20, yPos);
+                    doc.text(formatTime(epStart), 50, yPos);
+                    doc.text(painStr, 75, yPos);
+                    doc.text(formatDuration(episode.duration || 0), 95, yPos);
+
+                    const medText = episode.medication || 'None';
+                    const maxMedWidth = 65;
+                    if (doc.getTextWidth(medText) > maxMedWidth) {
+                        doc.text(medText.substring(0, 25) + '...', 125, yPos);
+                    } else {
+                        doc.text(medText, 125, yPos);
+                    }
+
+                    yPos += 5;
+
+                    // Add notes if present
+                    if (episode.notes) {
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'italic');
+                        const noteLines = doc.splitTextToSize(`Notes: ${episode.notes}`, 170);
+                        doc.text(noteLines, 25, yPos);
+                        yPos += noteLines.length * 4;
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                    }
+
+                    yPos += 2;
+                }
+            }
+
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'italic');
+                doc.text(`Generated by Aiding Migraine on ${formatDate(new Date())}`, 105, 285, { align: 'center' });
+                doc.text(`Page ${i} of ${pageCount}`, 190, 285, { align: 'right' });
+            }
+
+            // Save PDF
+            const startDateStr = formatDateFile(startDate);
+            const endDateStr = formatDateFile(endDate);
+            const filename = `migraine-report-${startDateStr}-to-${endDateStr}.pdf`;
+            doc.save(filename);
+
+            closeModal();
+            showModal('PDF Exported', `Your migraine report has been saved as ${filename}`);
+        }
+
         function showHowTo() {
             const content = `
                 <h3>Logging Episodes</h3>
@@ -1773,7 +2028,7 @@
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v1.4.1.1</strong></p>
+                <p><strong>Aiding Migraine v1.4.2</strong></p>
                 <p>Built with care for migraine sufferers.</p>
                 
                 <h3>Features</h3>
