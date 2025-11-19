@@ -2020,13 +2020,92 @@
             const file = e.target.files[0];
             if (!file) return;
 
+            // Validate file type
+            if (!file.name.endsWith('.json')) {
+                showModal('Invalid File Type',
+                    '<p>Please select a JSON file (.json).</p>' +
+                    '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;">Backup files exported from this app end with .json</p>');
+                e.target.value = '';
+                return;
+            }
+
+            // Validate file size (max 10MB)
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                showModal('File Too Large',
+                    '<p>The selected file is too large. Maximum size is 10MB.</p>' +
+                    '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;">If you have many episodes, try exporting a smaller date range.</p>');
+                e.target.value = '';
+                return;
+            }
+
+            // Check for empty file
+            if (file.size === 0) {
+                showModal('Empty File', '<p>The selected file is empty. Please select a valid backup file.</p>');
+                e.target.value = '';
+                return;
+            }
+
             const reader = new FileReader();
+
+            reader.onerror = () => {
+                showModal('File Read Error',
+                    '<p>Could not read the file. Please try again.</p>' +
+                    '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;">Make sure the file is not corrupted or in use by another program.</p>');
+                e.target.value = '';
+            };
+
             reader.onload = (event) => {
                 try {
-                    const data = JSON.parse(event.target.result);
+                    const text = event.target.result;
 
-                    if (!data.migraines || !Array.isArray(data.migraines)) {
-                        throw new Error('Invalid backup file format');
+                    // Check for empty content
+                    if (!text || text.trim().length === 0) {
+                        throw new Error('EMPTY_CONTENT');
+                    }
+
+                    // Parse JSON
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (parseError) {
+                        throw new Error('INVALID_JSON');
+                    }
+
+                    // Validate structure
+                    if (!data || typeof data !== 'object') {
+                        throw new Error('INVALID_STRUCTURE');
+                    }
+
+                    if (!data.migraines) {
+                        throw new Error('MISSING_MIGRAINES');
+                    }
+
+                    if (!Array.isArray(data.migraines)) {
+                        throw new Error('MIGRAINES_NOT_ARRAY');
+                    }
+
+                    if (data.migraines.length === 0) {
+                        showModal('Empty Backup',
+                            '<p>This backup file contains no episodes.</p>' +
+                            '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;">The file is valid but has no data to import.</p>');
+                        e.target.value = '';
+                        return;
+                    }
+
+                    // Validate individual episodes
+                    const validationResult = validateEpisodes(data.migraines);
+
+                    if (!validationResult.valid) {
+                        showModal('Invalid Episode Data',
+                            `<p>Some episodes in the backup file have invalid data:</p>` +
+                            `<ul style="margin: 12px 0; padding-left: 20px; color: var(--text-secondary);">` +
+                            validationResult.errors.slice(0, 5).map(err => `<li>${err}</li>`).join('') +
+                            (validationResult.errors.length > 5 ? `<li>...and ${validationResult.errors.length - 5} more</li>` : '') +
+                            `</ul>` +
+                            `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;">This may not be a valid Aiding Migraine backup file.</p>`);
+                        e.target.value = '';
+                        return;
                     }
 
                     // Analyze import data
@@ -2036,12 +2115,92 @@
                     showImportReviewModal(data.migraines, analysis);
 
                 } catch (error) {
-                    showModal('Import Failed', 'The file you selected is not a valid backup file.');
-                }
-            };
-            reader.readAsText(file);
+                    let title = 'Import Failed';
+                    let message = '';
 
-            e.target.value = '';
+                    switch (error.message) {
+                        case 'EMPTY_CONTENT':
+                            message = '<p>The file appears to be empty or contains only whitespace.</p>';
+                            break;
+                        case 'INVALID_JSON':
+                            message = '<p>The file is not valid JSON format.</p>' +
+                                     '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;">Make sure you selected a backup file exported from Aiding Migraine.</p>';
+                            break;
+                        case 'INVALID_STRUCTURE':
+                            message = '<p>The file structure is not recognized.</p>' +
+                                     '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;">This doesn\'t appear to be an Aiding Migraine backup file.</p>';
+                            break;
+                        case 'MISSING_MIGRAINES':
+                            message = '<p>The file is missing the required "migraines" data field.</p>' +
+                                     '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;">This may be from a different app or an older version.</p>';
+                            break;
+                        case 'MIGRAINES_NOT_ARRAY':
+                            message = '<p>The episodes data is in an incorrect format.</p>' +
+                                     '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;">The file may be corrupted.</p>';
+                            break;
+                        default:
+                            message = '<p>The file you selected could not be imported.</p>' +
+                                     '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 12px;">Please make sure it\'s a valid backup file from Aiding Migraine.</p>';
+                    }
+
+                    showModal(title, message);
+                }
+
+                e.target.value = '';
+            };
+
+            reader.readAsText(file);
+        }
+
+        function validateEpisodes(episodes) {
+            const errors = [];
+            const requiredFields = ['id', 'startTime', 'painLevel', 'category', 'duration'];
+
+            episodes.forEach((episode, index) => {
+                // Check if episode is an object
+                if (!episode || typeof episode !== 'object') {
+                    errors.push(`Episode ${index + 1}: Invalid episode format`);
+                    return;
+                }
+
+                // Check required fields
+                requiredFields.forEach(field => {
+                    if (episode[field] === undefined || episode[field] === null) {
+                        errors.push(`Episode ${index + 1}: Missing required field "${field}"`);
+                    }
+                });
+
+                // Validate specific fields
+                if (episode.painLevel !== undefined) {
+                    if (typeof episode.painLevel !== 'number' || episode.painLevel < 1 || episode.painLevel > 10) {
+                        errors.push(`Episode ${index + 1}: Pain level must be between 1-10`);
+                    }
+                }
+
+                if (episode.startTime !== undefined) {
+                    const date = new Date(episode.startTime);
+                    if (isNaN(date.getTime())) {
+                        errors.push(`Episode ${index + 1}: Invalid start time format`);
+                    }
+                }
+
+                if (episode.category !== undefined) {
+                    if (!['Mild', 'Moderate', 'Severe'].includes(episode.category)) {
+                        errors.push(`Episode ${index + 1}: Invalid category "${episode.category}"`);
+                    }
+                }
+
+                if (episode.duration !== undefined) {
+                    if (typeof episode.duration !== 'number' || episode.duration < 0) {
+                        errors.push(`Episode ${index + 1}: Invalid duration value`);
+                    }
+                }
+            });
+
+            return {
+                valid: errors.length === 0,
+                errors: errors
+            };
         }
 
         function analyzeImportData(importedEpisodes) {
