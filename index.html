@@ -1931,7 +1931,9 @@
                     <p><strong>${formatTime(new Date(m.startTime))}</strong></p>
                     <p>Pain: ${m.painLevel}/10 (${m.category})</p>
                     <p>Duration: ${formatDuration(m.duration)}</p>
-                    ${m.medication ? `<p>Medication: ${m.medication}</p>` : ''}
+                    ${m.medication ? `<p>💊 Medication: ${m.medication}</p>` : ''}
+                    ${m.notes ? `<p style="margin-top: 8px;">📝 Notes: ${m.notes}</p>` : ''}
+                    ${m.endNotes ? `<p style="margin-top: 8px;">🏁 Resolution: ${m.endNotes}</p>` : ''}
                 </div>
             `).join('');
             
@@ -2662,7 +2664,7 @@
                     <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 20px; margin: 24px 0; text-align: left;">
                         <h3 style="font-size: 1.1rem; margin-bottom: 12px; text-align: center;">✨ Key Features</h3>
                         <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 2;">
-                            <li>📝 <strong>Easy Logging:</strong> Track pain levels, triggers, and medications</li>
+                            <li>📝 <strong>Easy Logging:</strong> Track pain levels, duration, and medications</li>
                             <li>📊 <strong>Visual History:</strong> Calendar view and detailed statistics</li>
                             <li>📄 <strong>PDF Reports:</strong> Professional reports for doctor visits</li>
                             <li>💾 <strong>Secure Backup:</strong> Import/export your data safely</li>
@@ -2711,22 +2713,22 @@
             {
                 title: 'Episode History',
                 description: 'View all your past episodes here. You can edit notes, view details, or delete episodes. Deleted episodes go to trash for 30 days.',
-                target: '.nav-btn[data-page="history"]',
-                page: 'log',
+                target: '#history-list',
+                page: 'history',
                 position: 'top'
             },
             {
                 title: 'Calendar View',
                 description: 'The Dashboard shows your migraine patterns over time. Click any day to see episodes logged that day.',
-                target: '.calendar-header',
+                target: '#calendar-grid',
                 page: 'log',
-                position: 'bottom'
+                position: 'top'
             },
             {
                 title: 'Export & Backup',
                 description: 'Export your data as PDF for doctor visits or JSON for backups. You can also import data to restore or merge from another device.',
-                target: '.nav-btn[data-page="settings"]',
-                page: 'log',
+                target: '#export-json-btn',
+                page: 'settings',
                 position: 'top'
             },
             {
@@ -2753,94 +2755,126 @@
                 switchPage(step.page);
             }
 
-            // Create or update tour overlay
-            let overlay = document.getElementById('tour-overlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = 'tour-overlay';
-                overlay.style.cssText = `
+            // Wait for page to render before positioning tooltip
+            setTimeout(() => {
+                // Create or update tour overlay
+                let overlay = document.getElementById('tour-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'tour-overlay';
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.75);
+                        z-index: 9998;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        animation: fadeIn 0.3s ease;
+                    `;
+                    document.body.appendChild(overlay);
+                }
+
+                // Create tour tooltip
+                let tooltip = document.getElementById('tour-tooltip');
+                if (!tooltip) {
+                    tooltip = document.createElement('div');
+                    tooltip.id = 'tour-tooltip';
+                    document.body.appendChild(tooltip);
+                }
+
+                tooltip.style.cssText = `
                     position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.75);
-                    z-index: 9998;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    background: var(--bg-secondary);
+                    border: 2px solid var(--accent-blue);
+                    border-radius: 12px;
+                    padding: 24px;
+                    max-width: 400px;
+                    width: 90%;
+                    z-index: 9999;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
                     animation: fadeIn 0.3s ease;
                 `;
-                document.body.appendChild(overlay);
-            }
 
-            // Create tour tooltip
-            let tooltip = document.getElementById('tour-tooltip');
-            if (!tooltip) {
-                tooltip = document.createElement('div');
-                tooltip.id = 'tour-tooltip';
-                document.body.appendChild(tooltip);
-            }
+                tooltip.innerHTML = `
+                    <div style="margin-bottom: 8px; color: var(--accent-blue); font-size: 0.9rem; font-weight: 600;">
+                        Step ${tourStep + 1} of ${tourSteps.length}
+                    </div>
+                    <h3 style="margin-bottom: 12px; font-size: 1.3rem;">${step.title}</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">
+                        ${step.description}
+                    </p>
+                    <div style="display: flex; gap: 12px; justify-content: space-between;">
+                        <button class="btn btn-secondary" onclick="skipTour()" style="flex: 1;">
+                            Skip Tour
+                        </button>
+                        <button class="btn btn-primary" onclick="nextTourStep()" style="flex: 1;">
+                            ${tourStep === tourSteps.length - 1 ? 'Finish' : 'Next'}
+                        </button>
+                    </div>
+                `;
 
-            tooltip.style.cssText = `
-                position: fixed;
-                background: var(--bg-secondary);
-                border: 2px solid var(--accent-blue);
-                border-radius: 12px;
-                padding: 24px;
-                max-width: 400px;
-                z-index: 9999;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-                animation: fadeIn 0.3s ease;
-            `;
+                // Position tooltip
+                if (step.target) {
+                    const targetEl = document.querySelector(step.target);
+                    if (targetEl) {
+                        const rect = targetEl.getBoundingClientRect();
 
-            tooltip.innerHTML = `
-                <div style="margin-bottom: 8px; color: var(--accent-blue); font-size: 0.9rem; font-weight: 600;">
-                    Step ${tourStep + 1} of ${tourSteps.length}
-                </div>
-                <h3 style="margin-bottom: 12px; font-size: 1.3rem;">${step.title}</h3>
-                <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">
-                    ${step.description}
-                </p>
-                <div style="display: flex; gap: 12px; justify-content: space-between;">
-                    <button class="btn btn-secondary" onclick="skipTour()" style="flex: 1;">
-                        Skip Tour
-                    </button>
-                    <button class="btn btn-primary" onclick="nextTourStep()" style="flex: 1;">
-                        ${tourStep === tourSteps.length - 1 ? 'Finish' : 'Next'}
-                    </button>
-                </div>
-            `;
+                        // Highlight the target element
+                        targetEl.style.position = 'relative';
+                        targetEl.style.zIndex = '9999';
+                        targetEl.style.boxShadow = '0 0 0 4px var(--accent-blue), 0 0 20px rgba(107, 139, 184, 0.5)';
+                        targetEl.style.borderRadius = '8px';
+                        targetEl.setAttribute('data-tour-highlight', 'true');
 
-            // Position tooltip
-            if (step.target) {
-                const targetEl = document.querySelector(step.target);
-                if (targetEl) {
-                    const rect = targetEl.getBoundingClientRect();
+                        // Calculate tooltip position with bounds checking
+                        const tooltipRect = tooltip.getBoundingClientRect();
+                        const margin = 20;
+                        const screenPadding = 10;
 
-                    // Highlight the target element
-                    targetEl.style.position = 'relative';
-                    targetEl.style.zIndex = '9999';
-                    targetEl.style.boxShadow = '0 0 0 4px var(--accent-blue), 0 0 20px rgba(107, 139, 184, 0.5)';
-                    targetEl.style.borderRadius = '8px';
-                    targetEl.setAttribute('data-tour-highlight', 'true');
+                        let tooltipTop, tooltipLeft;
 
-                    if (step.position === 'bottom') {
-                        tooltip.style.top = `${rect.bottom + 20}px`;
-                        tooltip.style.left = `${rect.left + rect.width / 2}px`;
-                        tooltip.style.transform = 'translateX(-50%)';
-                    } else if (step.position === 'top') {
-                        tooltip.style.bottom = `${window.innerHeight - rect.top + 20}px`;
-                        tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                        if (step.position === 'bottom') {
+                            tooltipTop = rect.bottom + margin;
+                            // Check if tooltip goes off bottom of screen
+                            if (tooltipTop + tooltipRect.height > window.innerHeight - screenPadding) {
+                                // Position above instead
+                                tooltipTop = rect.top - tooltipRect.height - margin;
+                            }
+                        } else if (step.position === 'top') {
+                            tooltipTop = rect.top - tooltipRect.height - margin;
+                            // Check if tooltip goes off top of screen
+                            if (tooltipTop < screenPadding) {
+                                // Position below instead
+                                tooltipTop = rect.bottom + margin;
+                            }
+                        }
+
+                        // Center horizontally on target
+                        tooltipLeft = rect.left + (rect.width / 2);
+
+                        // Ensure tooltip stays on screen horizontally
+                        const halfTooltipWidth = tooltipRect.width / 2;
+                        if (tooltipLeft - halfTooltipWidth < screenPadding) {
+                            tooltipLeft = halfTooltipWidth + screenPadding;
+                        } else if (tooltipLeft + halfTooltipWidth > window.innerWidth - screenPadding) {
+                            tooltipLeft = window.innerWidth - halfTooltipWidth - screenPadding;
+                        }
+
+                        tooltip.style.top = `${tooltipTop}px`;
+                        tooltip.style.left = `${tooltipLeft}px`;
                         tooltip.style.transform = 'translateX(-50%)';
                     }
+                } else {
+                    // Center tooltip
+                    tooltip.style.top = '50%';
+                    tooltip.style.left = '50%';
+                    tooltip.style.transform = 'translate(-50%, -50%)';
                 }
-            } else {
-                // Center tooltip
-                tooltip.style.top = '50%';
-                tooltip.style.left = '50%';
-                tooltip.style.transform = 'translate(-50%, -50%)';
-            }
+            }, 100); // Small delay to let page switch complete
         }
 
         function nextTourStep() {
