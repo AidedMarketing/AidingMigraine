@@ -1957,7 +1957,9 @@
 
             document.getElementById('tour-btn').addEventListener('click', () => {
                 switchPage('log');
-                startGuidedTour();
+                setTimeout(() => {
+                    startGuidedTour();
+                }, 150);
             });
 
             document.getElementById('how-to-btn').addEventListener('click', showHowTo);
