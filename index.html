@@ -1959,7 +1959,7 @@
                 showPage('log');
                 setTimeout(() => {
                     startGuidedTour();
-                }, 200);
+                }, 400);
             });
 
             document.getElementById('how-to-btn').addEventListener('click', showHowTo);
@@ -2746,7 +2746,10 @@
             localStorage.setItem('hasSeenWelcome', 'true');
             closeModal();
             tourStep = 0;
-            showTourStep();
+            // Add a delay to ensure modal is fully closed
+            setTimeout(() => {
+                showTourStep();
+            }, 300);
         }
 
         function showTourStep() {
@@ -2790,6 +2793,8 @@
 
                 tooltip.style.cssText = `
                     position: fixed;
+                    display: block;
+                    visibility: visible;
                     background: var(--bg-secondary);
                     border: 2px solid var(--accent-blue);
                     border-radius: 12px;
@@ -2880,7 +2885,7 @@
                     }
                 }
                 // If no target or target not found, tooltip stays centered (already set above)
-            }, 100); // Small delay to let page switch complete
+            }, 200); // Small delay to let page switch complete
         }
 
         function nextTourStep() {
