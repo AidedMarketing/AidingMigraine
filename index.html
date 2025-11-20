@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aiding Migraine</title>
+
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#7ba68a">
+    <meta name="description" content="Track and manage your migraine symptoms with ease">
+
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AidMigraine">
+    <link rel="apple-touch-icon" href="/icons/icon-384.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="384x384" href="/icons/icon-384.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
+
     <style>
         /* ============================================
            AIDING MIGRAINE v1.5.0 - WEEK 3 POLISH
@@ -3208,6 +3224,21 @@
             if (hours < 24) return `${hours}h ago`;
             if (days < 7) return `${days}d ago`;
             return formatDate(date);
+        }
+    </script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
         }
     </script>
 </body>

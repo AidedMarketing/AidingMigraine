@@ -1,0 +1,45 @@
+{
+  "name": "Aiding Migraine",
+  "short_name": "AidMigraine",
+  "description": "Track and manage your migraine symptoms with ease",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1d24",
+  "theme_color": "#7ba68a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["health", "medical", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Log Migraine",
+      "short_name": "Log",
+      "description": "Quickly log a new migraine episode",
+      "url": "/?action=log",
+      "icons": [
+        {
+          "src": "/icons/icon-384.png",
+          "sizes": "384x384"
+        }
+      ]
+    }
+  ]
+}
