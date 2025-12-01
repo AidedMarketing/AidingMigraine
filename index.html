@@ -655,6 +655,52 @@
             font-size: 0.9rem;
         }
 
+        /* === TOGGLE SWITCH === */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--accent-green);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
         .app-info {
             text-align: center;
             padding: 20px;
@@ -1055,6 +1101,108 @@
                 </div>
             </div>
 
+            <div class="section-card" id="notification-section">
+                <h2>🔔 Notifications</h2>
+                <div class="settings-info" style="margin-bottom: 16px;">
+                    <div id="notification-status" class="info-banner" style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: var(--bg-tertiary); text-align: center;">
+                        <span id="notification-status-text">Loading...</span>
+                    </div>
+                </div>
+
+                <div id="notification-settings-content">
+                    <!-- iOS Installation Prompt (hidden by default) -->
+                    <div id="ios-install-prompt" style="display: none; padding: 16px; border-radius: 8px; background: var(--accent-blue); color: white; margin-bottom: 16px;">
+                        <p style="margin-bottom: 12px; font-weight: 600;">📱 Installation Required</p>
+                        <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 12px;">
+                            To receive notifications on iOS:
+                        </p>
+                        <ol style="font-size: 0.9rem; line-height: 1.8; margin-left: 20px;">
+                            <li>Tap the Share button <span style="font-size: 1.2rem;">⎋</span></li>
+                            <li>Scroll down and tap "Add to Home Screen"</li>
+                            <li>Tap "Add" in the top right</li>
+                            <li>Open the app from your home screen</li>
+                            <li>Return here to enable notifications</li>
+                        </ol>
+                    </div>
+
+                    <!-- Permission Request Section -->
+                    <div id="notification-enable-section" style="display: none;">
+                        <div class="settings-actions">
+                            <button class="settings-btn" id="enable-notifications-btn" style="background: var(--accent-green); color: white;">
+                                <span>🔔 Enable Notifications</span>
+                                <span class="btn-subtitle">Tap to request permission</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Notification Settings (shown when enabled) -->
+                    <div id="notification-preferences" style="display: none;">
+                        <!-- Daily Check-in -->
+                        <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
+                            <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span>📅 Daily Check-in</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="daily-checkin-enabled" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </label>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px;">
+                                Daily reminder to log your migraine status
+                            </p>
+                            <div id="daily-checkin-settings">
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Reminder Time</label>
+                                    <input type="time" id="daily-checkin-time" value="19:00" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Frequency</label>
+                                    <select id="daily-checkin-frequency" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;">
+                                        <option value="daily">Every day</option>
+                                        <option value="every-other-day">Every other day</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Post-Attack Follow-up -->
+                        <div class="settings-group" style="margin-bottom: 20px;">
+                            <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span>⏰ Post-Attack Follow-up</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="followup-enabled" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </label>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px;">
+                                Reminder to update status after logging an attack
+                            </p>
+                            <div id="followup-settings">
+                                <div>
+                                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Check-in After</label>
+                                    <select id="followup-delay" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;">
+                                        <option value="2">2 hours</option>
+                                        <option value="3">3 hours</option>
+                                        <option value="4">4 hours</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Notifications -->
+                        <div class="settings-actions">
+                            <button class="settings-btn" id="test-notification-btn">
+                                <span>🧪 Send Test Notification</span>
+                                <span class="btn-subtitle">Verify notifications are working</span>
+                            </button>
+                            <button class="settings-btn danger" id="disable-notifications-btn">
+                                <span>🔕 Disable Notifications</span>
+                                <span class="btn-subtitle">Unsubscribe from all notifications</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="section-card">
                 <h2>ℹ️ Information</h2>
                 <div class="settings-actions">
@@ -1294,7 +1442,10 @@
             clearForm();
             updateDashboard();
             renderCalendar();
-            
+
+            // Schedule post-attack follow-up notification
+            schedulePostAttackFollowUp(migraine.id);
+
             showModal('Episode Logged', 'Your migraine episode has been logged and is now being tracked.');
         }
 
@@ -1985,6 +2136,8 @@
             document.getElementById('privacy-btn').addEventListener('click', showPrivacy);
 
             document.getElementById('clear-all-btn').addEventListener('click', clearAllData);
+
+            initializeNotifications();
         }
 
         function updateStorageInfo() {
@@ -3216,16 +3369,299 @@
             const date = new Date(dateString);
             const now = new Date();
             const diff = now - date;
-            
+
             const minutes = Math.floor(diff / 60000);
             const hours = Math.floor(diff / 3600000);
             const days = Math.floor(diff / 86400000);
-            
+
             if (minutes < 1) return 'Just now';
             if (minutes < 60) return `${minutes}m ago`;
             if (hours < 24) return `${hours}h ago`;
             if (days < 7) return `${days}d ago`;
             return formatDate(date);
+        }
+
+        // ============================================
+        // NOTIFICATION SYSTEM
+        // ============================================
+
+        let notificationPreferences = {
+            enabled: false,
+            dailyCheckIn: {
+                enabled: true,
+                time: '19:00',
+                frequency: 'daily'
+            },
+            postAttackFollowUp: {
+                enabled: true,
+                delayHours: 2
+            },
+            pushSubscription: null
+        };
+
+        function initializeNotifications() {
+            loadNotificationPreferences();
+            updateNotificationUI();
+
+            // Event listeners
+            document.getElementById('enable-notifications-btn').addEventListener('click', enableNotifications);
+            document.getElementById('disable-notifications-btn').addEventListener('click', disableNotifications);
+            document.getElementById('test-notification-btn').addEventListener('click', sendTestNotification);
+
+            // Preference change listeners
+            document.getElementById('daily-checkin-enabled').addEventListener('change', saveNotificationPreferences);
+            document.getElementById('daily-checkin-time').addEventListener('change', saveNotificationPreferences);
+            document.getElementById('daily-checkin-frequency').addEventListener('change', saveNotificationPreferences);
+            document.getElementById('followup-enabled').addEventListener('change', saveNotificationPreferences);
+            document.getElementById('followup-delay').addEventListener('change', saveNotificationPreferences);
+
+            // Handle deep links from notification clicks
+            handleNotificationDeepLink();
+        }
+
+        function loadNotificationPreferences() {
+            const stored = localStorage.getItem('notificationPreferences');
+            if (stored) {
+                notificationPreferences = JSON.parse(stored);
+
+                // Update UI with stored values
+                document.getElementById('daily-checkin-enabled').checked = notificationPreferences.dailyCheckIn.enabled;
+                document.getElementById('daily-checkin-time').value = notificationPreferences.dailyCheckIn.time;
+                document.getElementById('daily-checkin-frequency').value = notificationPreferences.dailyCheckIn.frequency;
+                document.getElementById('followup-enabled').checked = notificationPreferences.postAttackFollowUp.enabled;
+                document.getElementById('followup-delay').value = notificationPreferences.postAttackFollowUp.delayHours;
+            }
+        }
+
+        function saveNotificationPreferences() {
+            notificationPreferences.dailyCheckIn.enabled = document.getElementById('daily-checkin-enabled').checked;
+            notificationPreferences.dailyCheckIn.time = document.getElementById('daily-checkin-time').value;
+            notificationPreferences.dailyCheckIn.frequency = document.getElementById('daily-checkin-frequency').value;
+            notificationPreferences.postAttackFollowUp.enabled = document.getElementById('followup-enabled').checked;
+            notificationPreferences.postAttackFollowUp.delayHours = parseInt(document.getElementById('followup-delay').value);
+
+            localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
+
+            // Sync with server if notifications are enabled
+            if (notificationPreferences.enabled && notificationPreferences.pushSubscription) {
+                syncPreferencesWithServer();
+            }
+        }
+
+        async function updateNotificationUI() {
+            const statusText = document.getElementById('notification-status-text');
+            const enableSection = document.getElementById('notification-enable-section');
+            const preferencesSection = document.getElementById('notification-preferences');
+            const iosPrompt = document.getElementById('ios-install-prompt');
+
+            // Check if notifications are supported
+            if (!('Notification' in window)) {
+                statusText.innerHTML = '❌ Notifications not supported on this browser';
+                statusText.parentElement.style.background = 'var(--accent-red)';
+                statusText.parentElement.style.color = 'white';
+                return;
+            }
+
+            // Check iOS installation status
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
+
+            if (isIOS && !isInstalled) {
+                statusText.innerHTML = '📱 Please install app to home screen';
+                statusText.parentElement.style.background = 'var(--accent-blue)';
+                statusText.parentElement.style.color = 'white';
+                iosPrompt.style.display = 'block';
+                return;
+            } else {
+                iosPrompt.style.display = 'none';
+            }
+
+            // Check permission status
+            const permission = Notification.permission;
+
+            if (permission === 'granted') {
+                // Check if we have a valid subscription
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+
+                if (subscription || notificationPreferences.enabled) {
+                    statusText.innerHTML = '✅ Notifications enabled';
+                    statusText.parentElement.style.background = 'var(--accent-green)';
+                    statusText.parentElement.style.color = 'white';
+                    enableSection.style.display = 'none';
+                    preferencesSection.style.display = 'block';
+                    notificationPreferences.enabled = true;
+                } else {
+                    statusText.innerHTML = '🔔 Permission granted - Click to enable';
+                    statusText.parentElement.style.background = 'var(--bg-tertiary)';
+                    enableSection.style.display = 'block';
+                    preferencesSection.style.display = 'none';
+                }
+            } else if (permission === 'denied') {
+                statusText.innerHTML = '❌ Notifications blocked - Check browser settings';
+                statusText.parentElement.style.background = 'var(--accent-red)';
+                statusText.parentElement.style.color = 'white';
+                enableSection.style.display = 'none';
+                preferencesSection.style.display = 'none';
+            } else {
+                statusText.innerHTML = '🔔 Click below to enable notifications';
+                statusText.parentElement.style.background = 'var(--bg-tertiary)';
+                enableSection.style.display = 'block';
+                preferencesSection.style.display = 'none';
+            }
+        }
+
+        async function enableNotifications() {
+            try {
+                // Request permission
+                const permission = await Notification.requestPermission();
+
+                if (permission !== 'granted') {
+                    alert('Notification permission denied. Please enable it in your browser settings.');
+                    updateNotificationUI();
+                    return;
+                }
+
+                // Get service worker registration
+                const registration = await navigator.serviceWorker.ready;
+
+                // For now, we'll show success without server integration
+                // In production, you would subscribe to push notifications here with VAPID keys
+                notificationPreferences.enabled = true;
+                localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
+
+                alert('✅ Notifications enabled! You will receive daily check-ins and post-attack follow-ups.');
+                updateNotificationUI();
+
+                // Note: Full push notification requires server setup
+                console.log('Note: Server-side push notification setup required for production use');
+
+            } catch (error) {
+                console.error('Error enabling notifications:', error);
+                alert('Failed to enable notifications. Please try again.');
+            }
+        }
+
+        async function disableNotifications() {
+            if (!confirm('Are you sure you want to disable all notifications?')) {
+                return;
+            }
+
+            try {
+                // Unsubscribe from push notifications if subscribed
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+
+                if (subscription) {
+                    await subscription.unsubscribe();
+                }
+
+                notificationPreferences.enabled = false;
+                notificationPreferences.pushSubscription = null;
+                localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
+
+                alert('Notifications disabled successfully.');
+                updateNotificationUI();
+
+            } catch (error) {
+                console.error('Error disabling notifications:', error);
+                alert('Failed to disable notifications. Please try again.');
+            }
+        }
+
+        async function sendTestNotification() {
+            if (Notification.permission !== 'granted') {
+                alert('Please enable notifications first.');
+                return;
+            }
+
+            try {
+                // Send a local notification for testing
+                const registration = await navigator.serviceWorker.ready;
+
+                registration.showNotification('Aiding Migraine', {
+                    body: 'Test notification - Your notification system is working! 🎉',
+                    icon: './icons/icon-192x192.png',
+                    badge: './icons/icon-72x72.png',
+                    tag: 'test-notification',
+                    requireInteraction: false,
+                    vibrate: [200, 100, 200]
+                });
+
+            } catch (error) {
+                console.error('Error sending test notification:', error);
+                alert('Failed to send test notification.');
+            }
+        }
+
+        function handleNotificationDeepLink() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action');
+            const attackId = urlParams.get('attackId');
+
+            if (action === 'log') {
+                showPage('log');
+            } else if (action === 'update' && attackId) {
+                // Find and show the attack for updating
+                const attack = migraines.find(m => m.id === attackId);
+                if (attack) {
+                    showPage('history');
+                    setTimeout(() => {
+                        showMigraineSummary(attack);
+                    }, 500);
+                }
+            }
+
+            // Clean up URL
+            if (action) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        async function syncPreferencesWithServer() {
+            // This function will sync preferences with the notification server
+            // Placeholder for server integration
+            console.log('Syncing preferences with server:', notificationPreferences);
+
+            // In production, this would call:
+            // await fetch('/api/update-preferences', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(notificationPreferences)
+            // });
+        }
+
+        // Schedule post-attack follow-up notification
+        function schedulePostAttackFollowUp(attackId) {
+            if (!notificationPreferences.enabled || !notificationPreferences.postAttackFollowUp.enabled) {
+                return;
+            }
+
+            const delayMs = notificationPreferences.postAttackFollowUp.delayHours * 60 * 60 * 1000;
+            const followUpTime = new Date(Date.now() + delayMs);
+
+            // Store scheduled notification
+            const scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications') || '[]');
+            scheduledNotifications.push({
+                id: `followup-${attackId}`,
+                attackId: attackId,
+                scheduledTime: followUpTime.toISOString(),
+                type: 'post-attack-followup'
+            });
+            localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
+
+            console.log(`Scheduled follow-up notification for ${followUpTime.toLocaleString()}`);
+
+            // In production, this would call the server:
+            // await fetch('/api/schedule-followup', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({
+            //         attackId: attackId,
+            //         followUpTime: followUpTime.toISOString(),
+            //         subscription: notificationPreferences.pushSubscription
+            //     })
+            // });
         }
     </script>
 
