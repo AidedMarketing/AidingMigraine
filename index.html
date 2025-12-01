@@ -436,6 +436,21 @@
             color: white;
         }
 
+        .calendar-day.mild-continuation {
+            background: rgba(123, 166, 138, 0.35);
+            color: white;
+        }
+
+        .calendar-day.moderate-continuation {
+            background: rgba(212, 165, 116, 0.35);
+            color: white;
+        }
+
+        .calendar-day.severe-continuation {
+            background: rgba(201, 104, 104, 0.35);
+            color: white;
+        }
+
         .calendar-day.active-indicator::after {
             content: '⚡';
             position: absolute;
@@ -963,9 +978,8 @@
                 </div>
                 <div id="calendar-grid" class="calendar-grid"></div>
                 <div class="calendar-legend">
-                    <span><span class="legend-dot mild"></span> Mild (0-3)</span>
-                    <span><span class="legend-dot moderate"></span> Moderate (4-6)</span>
-                    <span><span class="legend-dot severe"></span> Severe (7-10)</span>
+                    <span><span class="legend-dot severe"></span> Attack Start</span>
+                    <span style="opacity: 0.5;">Faded = Continuation Days</span>
                 </div>
             </div>
         </div>
@@ -1892,25 +1906,51 @@
                 const date = new Date(year, month, day);
                 const dateStr = date.toISOString().split('T')[0];
 
+                // Check if any attacks started on this day
                 const dayMigraines = activeMigraines.filter(m => {
                     const mDate = new Date(m.startTime).toISOString().split('T')[0];
                     return mDate === dateStr;
                 });
-                
+
+                // Check if any attacks are ongoing on this day (but started earlier)
+                const continuationMigraines = activeMigraines.filter(m => {
+                    const startDate = new Date(m.startTime);
+                    const endDate = m.endTime ? new Date(m.endTime) : new Date();
+                    const currentDate = new Date(dateStr + 'T23:59:59'); // End of the day
+
+                    // Check if this day falls within the attack duration but is not the start day
+                    const mDate = new Date(m.startTime).toISOString().split('T')[0];
+                    return mDate !== dateStr && startDate < currentDate && endDate >= date;
+                });
+
                 let classes = 'calendar-day';
+
+                // Priority: Start days get full color, continuation days get faded color
                 if (dayMigraines.length > 0) {
                     classes += ' has-episode';
-                    
+
                     const maxStartingPain = Math.max(...dayMigraines.map(m => {
                         if (m.painHistory && m.painHistory.length > 0) {
                             return m.painHistory[0].level;
                         }
                         return m.painLevel;
                     }));
-                    
+
                     if (maxStartingPain <= 3) classes += ' mild';
                     else if (maxStartingPain <= 6) classes += ' moderate';
                     else classes += ' severe';
+                } else if (continuationMigraines.length > 0) {
+                    // This day is a continuation day (not the start day)
+                    const maxContinuationPain = Math.max(...continuationMigraines.map(m => {
+                        if (m.painHistory && m.painHistory.length > 0) {
+                            return m.painHistory[0].level;
+                        }
+                        return m.painLevel;
+                    }));
+
+                    if (maxContinuationPain <= 3) classes += ' mild-continuation';
+                    else if (maxContinuationPain <= 6) classes += ' moderate-continuation';
+                    else classes += ' severe-continuation';
                 }
                 
                 if (date.toDateString() === today.toDateString()) {
@@ -1932,29 +1972,60 @@
 
         function showDayDetails(dateStr) {
             const activeMigraines = getActiveMigraines();
-            const dayMigraines = activeMigraines.filter(m => {
+
+            // Find attacks that started on this day
+            const startedToday = activeMigraines.filter(m => {
                 const mDate = new Date(m.startTime).toISOString().split('T')[0];
                 return mDate === dateStr;
             });
-            
+
+            // Find attacks ongoing on this day (but started earlier)
+            const ongoingToday = activeMigraines.filter(m => {
+                const startDate = new Date(m.startTime);
+                const endDate = m.endTime ? new Date(m.endTime) : new Date();
+                const date = new Date(dateStr + 'T00:00:00');
+                const currentDate = new Date(dateStr + 'T23:59:59');
+
+                const mDate = new Date(m.startTime).toISOString().split('T')[0];
+                return mDate !== dateStr && startDate < currentDate && endDate >= date;
+            });
+
             const date = new Date(dateStr + 'T00:00:00');
-            
-            if (dayMigraines.length === 0) {
+
+            if (startedToday.length === 0 && ongoingToday.length === 0) {
                 showModal(formatDate(date), '<p>No episodes logged on this day.</p>');
                 return;
             }
-            
-            let content = dayMigraines.map(m => `
-                <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                    <p><strong>${formatTime(new Date(m.startTime))}</strong></p>
-                    <p>Pain: ${m.painLevel}/10 (${m.category})</p>
-                    <p>Duration: ${formatDuration(m.duration)}</p>
-                    ${m.medication ? `<p>💊 Medication: ${m.medication}</p>` : ''}
-                    ${m.notes ? `<p style="margin-top: 8px;">📝 Notes: ${m.notes}</p>` : ''}
-                    ${m.endNotes ? `<p style="margin-top: 8px;">🏁 Resolution: ${m.endNotes}</p>` : ''}
-                </div>
-            `).join('');
-            
+
+            let content = '';
+
+            if (startedToday.length > 0) {
+                content += startedToday.map(m => `
+                    <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                        <p><strong>Started: ${formatTime(new Date(m.startTime))}</strong></p>
+                        <p>Pain: ${m.painLevel}/10 (${m.category})</p>
+                        <p>Duration: ${formatDuration(m.duration)}</p>
+                        ${m.medication ? `<p>💊 Medication: ${m.medication}</p>` : ''}
+                        ${m.notes ? `<p style="margin-top: 8px;">📝 Notes: ${m.notes}</p>` : ''}
+                        ${m.endNotes ? `<p style="margin-top: 8px;">🏁 Resolution: ${m.endNotes}</p>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            if (ongoingToday.length > 0) {
+                content += ongoingToday.map(m => `
+                    <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-blue);">
+                        <p><strong>Ongoing Attack</strong></p>
+                        <p>Started: ${formatTime(new Date(m.startTime))}</p>
+                        <p>Pain: ${m.painLevel}/10 (${m.category})</p>
+                        <p>Duration: ${formatDuration(m.duration)}</p>
+                        ${m.medication ? `<p>💊 Medication: ${m.medication}</p>` : ''}
+                        ${m.notes ? `<p style="margin-top: 8px;">📝 Notes: ${m.notes}</p>` : ''}
+                        ${m.endNotes ? `<p style="margin-top: 8px;">🏁 Resolution: ${m.endNotes}</p>` : ''}
+                    </div>
+                `).join('');
+            }
+
             showModal(formatDate(date), content);
         }
 
