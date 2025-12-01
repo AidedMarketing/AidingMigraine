@@ -3525,21 +3525,70 @@
                 // Get service worker registration
                 const registration = await navigator.serviceWorker.ready;
 
-                // For now, we'll show success without server integration
-                // In production, you would subscribe to push notifications here with VAPID keys
+                // IMPORTANT: Replace this with your actual VAPID public key from Step 1
+                // Get it by running: npx web-push generate-vapid-keys
+                const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+
+                // Check if VAPID key is configured
+                if (VAPID_PUBLIC_KEY === 'YOUR_VAPID_PUBLIC_KEY_HERE') {
+                    // Server not configured yet - use local notifications only
+                    notificationPreferences.enabled = true;
+                    localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
+                    alert('✅ Notifications enabled (local only)!\n\nTo enable server push notifications, configure Firebase and VAPID keys.\nSee NOTIFICATIONS_SETUP.md for details.');
+                    updateNotificationUI();
+                    return;
+                }
+
+                // Subscribe to push notifications with VAPID key
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                });
+
+                // Send subscription to server
+                const SERVER_URL = 'http://localhost:3000'; // Change to your production URL
+                const response = await fetch(`${SERVER_URL}/api/subscriptions/subscribe`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        subscription: subscription,
+                        preferences: {
+                            dailyCheckIn: notificationPreferences.dailyCheckIn,
+                            postAttackFollowUp: notificationPreferences.postAttackFollowUp
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to subscribe on server');
+                }
+
+                // Save subscription locally
                 notificationPreferences.enabled = true;
+                notificationPreferences.pushSubscription = subscription.toJSON();
                 localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
 
                 alert('✅ Notifications enabled! You will receive daily check-ins and post-attack follow-ups.');
                 updateNotificationUI();
 
-                // Note: Full push notification requires server setup
-                console.log('Note: Server-side push notification setup required for production use');
-
             } catch (error) {
                 console.error('Error enabling notifications:', error);
-                alert('Failed to enable notifications. Please try again.');
+                alert('Failed to enable notifications. ' + error.message);
             }
+        }
+
+        // Helper function to convert VAPID key from Base64 to Uint8Array
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
         }
 
         async function disableNotifications() {
@@ -3619,20 +3668,38 @@
         }
 
         async function syncPreferencesWithServer() {
-            // This function will sync preferences with the notification server
-            // Placeholder for server integration
-            console.log('Syncing preferences with server:', notificationPreferences);
+            // Sync preferences with the notification server
+            if (!notificationPreferences.pushSubscription) {
+                console.log('No push subscription - server sync skipped');
+                return;
+            }
 
-            // In production, this would call:
-            // await fetch('/api/update-preferences', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(notificationPreferences)
-            // });
+            try {
+                const SERVER_URL = 'http://localhost:3000'; // Change to your production URL
+                const response = await fetch(`${SERVER_URL}/api/subscriptions/update-preferences`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        endpoint: notificationPreferences.pushSubscription.endpoint,
+                        preferences: {
+                            dailyCheckIn: notificationPreferences.dailyCheckIn,
+                            postAttackFollowUp: notificationPreferences.postAttackFollowUp
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('✅ Preferences synced with server');
+                } else {
+                    console.error('Failed to sync preferences with server');
+                }
+            } catch (error) {
+                console.error('Error syncing preferences:', error);
+            }
         }
 
         // Schedule post-attack follow-up notification
-        function schedulePostAttackFollowUp(attackId) {
+        async function schedulePostAttackFollowUp(attackId) {
             if (!notificationPreferences.enabled || !notificationPreferences.postAttackFollowUp.enabled) {
                 return;
             }
@@ -3640,7 +3707,7 @@
             const delayMs = notificationPreferences.postAttackFollowUp.delayHours * 60 * 60 * 1000;
             const followUpTime = new Date(Date.now() + delayMs);
 
-            // Store scheduled notification
+            // Store scheduled notification locally
             const scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications') || '[]');
             scheduledNotifications.push({
                 id: `followup-${attackId}`,
@@ -3650,18 +3717,31 @@
             });
             localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
 
-            console.log(`Scheduled follow-up notification for ${followUpTime.toLocaleString()}`);
+            console.log(`📅 Scheduled follow-up notification for ${followUpTime.toLocaleString()}`);
 
-            // In production, this would call the server:
-            // await fetch('/api/schedule-followup', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({
-            //         attackId: attackId,
-            //         followUpTime: followUpTime.toISOString(),
-            //         subscription: notificationPreferences.pushSubscription
-            //     })
-            // });
+            // Send to server if push subscription exists
+            if (notificationPreferences.pushSubscription) {
+                try {
+                    const SERVER_URL = 'http://localhost:3000'; // Change to your production URL
+                    const response = await fetch(`${SERVER_URL}/api/notifications/schedule-followup`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            attackId: attackId,
+                            followUpTime: followUpTime.toISOString(),
+                            subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
+                        })
+                    });
+
+                    if (response.ok) {
+                        console.log('✅ Follow-up scheduled on server');
+                    } else {
+                        console.error('Failed to schedule follow-up on server');
+                    }
+                } catch (error) {
+                    console.error('Error scheduling follow-up:', error);
+                }
+            }
         }
     </script>
 
