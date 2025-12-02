@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.2.0 - GitHub Pages subdirectory support
+// Version 1.3.0 - Push Notifications
 
-const CACHE_NAME = 'aiding-migraine-v1.2';
+const CACHE_NAME = 'aiding-migraine-v1.3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -78,4 +78,103 @@ self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
+});
+
+// ============================================
+// PUSH NOTIFICATION HANDLERS
+// ============================================
+
+// Listen for push events from the server
+self.addEventListener('push', (event) => {
+    console.log('Push notification received:', event);
+
+    let data = {
+        title: 'Aiding Migraine',
+        body: 'You have a new notification',
+        icon: './icons/icon-192x192.png',
+        badge: './icons/icon-72x72.png',
+        tag: 'default',
+        url: './',
+        type: 'general'
+    };
+
+    // Parse push data if available
+    if (event.data) {
+        try {
+            data = { ...data, ...event.data.json() };
+        } catch (e) {
+            console.error('Error parsing push data:', e);
+        }
+    }
+
+    const options = {
+        body: data.body,
+        icon: data.icon,
+        badge: data.badge,
+        tag: data.tag,
+        requireInteraction: true,
+        vibrate: [200, 100, 200],
+        data: {
+            url: data.url,
+            type: data.type,
+            attackId: data.attackId
+        },
+        actions: []
+    };
+
+    // Add actions based on notification type
+    if (data.type === 'daily-checkin') {
+        options.actions = [
+            { action: 'log', title: 'Log Now' },
+            { action: 'dismiss', title: 'Dismiss' }
+        ];
+    } else if (data.type === 'post-attack-followup') {
+        options.actions = [
+            { action: 'update', title: 'Update Status' },
+            { action: 'dismiss', title: 'Later' }
+        ];
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, options)
+    );
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+    console.log('Notification clicked:', event);
+
+    event.notification.close();
+
+    const notificationData = event.notification.data;
+    let urlToOpen = notificationData.url || './';
+
+    // Handle action buttons
+    if (event.action === 'log') {
+        urlToOpen = './?action=log';
+    } else if (event.action === 'update' && notificationData.attackId) {
+        urlToOpen = `./?action=update&attackId=${notificationData.attackId}`;
+    } else if (event.action === 'dismiss') {
+        return;
+    }
+
+    // Open or focus the PWA
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then((clientList) => {
+                // Check if PWA is already open
+                for (let i = 0; i < clientList.length; i++) {
+                    const client = clientList[i];
+                    if (client.url.includes(self.registration.scope) && 'focus' in client) {
+                        // Navigate to the URL and focus the window
+                        client.navigate(urlToOpen);
+                        return client.focus();
+                    }
+                }
+                // If not open, open a new window
+                if (clients.openWindow) {
+                    return clients.openWindow(urlToOpen);
+                }
+            })
+    );
 });
