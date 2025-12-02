@@ -3596,9 +3596,8 @@
                 // Get service worker registration
                 const registration = await navigator.serviceWorker.ready;
 
-                // IMPORTANT: Replace this with your actual VAPID public key from Step 1
-                // Get it by running: npx web-push generate-vapid-keys
-                const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+                // VAPID Public Key for push notifications
+                const VAPID_PUBLIC_KEY = 'BJ9vywBjnCoHDMUQoxyX9ciyARzXRPJeiBBdaoEMRB98HH9X1X4QRuus1FhP9VK4g91c382KclMId8MEeGwakHo';
 
                 // Check if VAPID key is configured
                 if (VAPID_PUBLIC_KEY === 'YOUR_VAPID_PUBLIC_KEY_HERE') {
@@ -3617,7 +3616,7 @@
                 });
 
                 // Send subscription to server
-                const SERVER_URL = 'http://localhost:3000'; // Change to your production URL
+                const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
                 const response = await fetch(`${SERVER_URL}/api/subscriptions/subscribe`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -3746,7 +3745,7 @@
             }
 
             try {
-                const SERVER_URL = 'http://localhost:3000'; // Change to your production URL
+                const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
                 const response = await fetch(`${SERVER_URL}/api/subscriptions/update-preferences`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -3793,7 +3792,7 @@
             // Send to server if push subscription exists
             if (notificationPreferences.pushSubscription) {
                 try {
-                    const SERVER_URL = 'http://localhost:3000'; // Change to your production URL
+                    const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
                     const response = await fetch(`${SERVER_URL}/api/notifications/schedule-followup`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
