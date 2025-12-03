@@ -383,6 +383,58 @@
             background: var(--bg-secondary);
         }
 
+        .monthly-stats, .analytics-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+            margin-top: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 16px;
+            display: inline-block;
+        }
+
+        .stat-change.positive {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--pain-severe);
+        }
+
+        .stat-change.negative {
+            background: rgba(76, 175, 80, 0.15);
+            color: var(--accent-green);
+        }
+
+        .stat-change.neutral {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -895,6 +947,7 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -1007,6 +1060,20 @@
                     <h3 id="current-month"></h3>
                     <button id="next-month" class="calendar-nav-btn">→</button>
                 </div>
+
+                <!-- Monthly Stats Summary -->
+                <div id="monthly-stats" class="monthly-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="current-month-days">-</div>
+                        <div class="stat-label">Migraine Days This Month</div>
+                        <div class="stat-change" id="month-trend"></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="current-month-status">-</div>
+                        <div class="stat-label">Status</div>
+                    </div>
+                </div>
+
                 <div id="calendar-grid" class="calendar-grid"></div>
                 <div class="calendar-legend">
                     <span><span class="legend-dot mild"></span> Mild (0-3)</span>
@@ -1019,6 +1086,69 @@
         <div id="history-page" class="page">
             <h1>Episode History</h1>
             <div id="history-list"></div>
+        </div>
+
+        <div id="analytics-page" class="page">
+            <h1>Analytics & Insights</h1>
+
+            <!-- Date Range Selector -->
+            <div class="section-card">
+                <label for="analytics-range" style="display: block; margin-bottom: 8px; font-weight: 600;">Time Period</label>
+                <select id="analytics-range" style="width: 100%; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem;">
+                    <option value="90">Last 3 Months</option>
+                    <option value="180" selected>Last 6 Months</option>
+                    <option value="365">Last Year</option>
+                    <option value="all">All Time</option>
+                </select>
+            </div>
+
+            <!-- Key Metrics Grid -->
+            <div class="analytics-metrics">
+                <div class="stat-card">
+                    <div class="stat-value" id="analytics-total-days">-</div>
+                    <div class="stat-label">Total Migraine Days</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="analytics-avg-month">-</div>
+                    <div class="stat-label">Average Per Month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="analytics-avg-pain">-</div>
+                    <div class="stat-label">Average Pain Level</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="analytics-avg-duration">-</div>
+                    <div class="stat-label">Average Duration</div>
+                </div>
+            </div>
+
+            <!-- Frequency Trend Chart -->
+            <div class="section-card">
+                <h2>Migraine Frequency Trend</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Migraine days per month over time</p>
+                <canvas id="frequency-chart"></canvas>
+            </div>
+
+            <!-- Pain Level Distribution -->
+            <div class="section-card">
+                <h2>Pain Level Distribution</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Breakdown of pain severity</p>
+                <canvas id="pain-chart"></canvas>
+            </div>
+
+            <!-- Time of Day Patterns -->
+            <div class="section-card">
+                <h2>Time of Day Patterns</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">When migraines typically start</p>
+                <canvas id="time-chart"></canvas>
+            </div>
+
+            <!-- Day of Week Patterns -->
+            <div class="section-card">
+                <h2>Day of Week Patterns</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Which days have the most migraines</p>
+                <canvas id="dow-chart"></canvas>
+            </div>
         </div>
 
         <div id="settings-page" class="page">
@@ -1243,8 +1373,12 @@
                 <span class="nav-icon">📝</span>
                 <span class="nav-label">Log</span>
             </button>
+            <button class="nav-btn" data-page="analytics">
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">Analytics</span>
+            </button>
             <button class="nav-btn" data-page="history">
-                <span class="nav-icon">📊</span>
+                <span class="nav-icon">📋</span>
                 <span class="nav-label">History</span>
             </button>
             <button class="nav-btn" data-page="settings">
@@ -1377,6 +1511,8 @@
                 updateStorageInfo();
             } else if (pageName === 'log') {
                 renderCalendar();
+            } else if (pageName === 'analytics') {
+                initializeAnalytics();
             }
         }
 
@@ -2018,25 +2154,101 @@
             });
         }
 
+        function updateMonthlyStats() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+
+            // Get migraine days for current month
+            const activeMigraines = getActiveMigraines();
+            const monthStart = new Date(year, month, 1);
+            const monthEnd = new Date(year, month + 1, 0, 23, 59, 59);
+
+            // Count unique days with migraines
+            const migraineDays = new Set();
+            activeMigraines.forEach(m => {
+                const mDate = new Date(m.startTime);
+                if (mDate >= monthStart && mDate <= monthEnd) {
+                    const dateStr = mDate.toISOString().split('T')[0];
+                    migraineDays.add(dateStr);
+                }
+            });
+
+            const currentMonthDays = migraineDays.size;
+
+            // Get previous month's data for comparison
+            const prevMonthStart = new Date(year, month - 1, 1);
+            const prevMonthEnd = new Date(year, month, 0, 23, 59, 59);
+            const prevMigraineDays = new Set();
+            activeMigraines.forEach(m => {
+                const mDate = new Date(m.startTime);
+                if (mDate >= prevMonthStart && mDate <= prevMonthEnd) {
+                    const dateStr = mDate.toISOString().split('T')[0];
+                    prevMigraineDays.add(dateStr);
+                }
+            });
+
+            const prevMonthDays = prevMigraineDays.size;
+            const difference = currentMonthDays - prevMonthDays;
+
+            // Update display
+            document.getElementById('current-month-days').textContent = currentMonthDays;
+
+            // Determine clinical status based on research thresholds
+            let status, statusColor;
+            if (currentMonthDays >= 15) {
+                status = 'Chronic Migraine';
+                statusColor = 'var(--pain-severe)';
+            } else if (currentMonthDays >= 10) {
+                status = 'High-Frequency';
+                statusColor = 'var(--pain-moderate)';
+            } else if (currentMonthDays >= 4) {
+                status = 'Episodic Migraine';
+                statusColor = 'var(--accent-blue)';
+            } else {
+                status = 'Low-Frequency';
+                statusColor = 'var(--accent-green)';
+            }
+
+            const statusEl = document.getElementById('current-month-status');
+            statusEl.textContent = status;
+            statusEl.style.color = statusColor;
+
+            // Update trend indicator
+            const trendEl = document.getElementById('month-trend');
+            if (difference > 0) {
+                trendEl.textContent = `↑ ${difference} more than last month`;
+                trendEl.className = 'stat-change positive';
+            } else if (difference < 0) {
+                trendEl.textContent = `↓ ${Math.abs(difference)} fewer than last month`;
+                trendEl.className = 'stat-change negative';
+            } else {
+                trendEl.textContent = 'Same as last month';
+                trendEl.className = 'stat-change neutral';
+            }
+        }
+
         function renderCalendar() {
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth();
-            
-            document.getElementById('current-month').textContent = 
+
+            document.getElementById('current-month').textContent =
                 new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            
+
+            // Update monthly stats
+            updateMonthlyStats();
+
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const today = new Date();
-            
-            let html = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => 
+
+            let html = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d =>
                 `<div class="calendar-day empty" style="font-weight: 600;">${d}</div>`
             ).join('');
-            
+
             for (let i = 0; i < firstDay; i++) {
                 html += '<div class="calendar-day empty"></div>';
             }
-            
+
             const activeMigraines = getActiveMigraines();
 
             for (let day = 1; day <= daysInMonth; day++) {
@@ -2834,34 +3046,106 @@
             doc.text('Visit Date: _______________', 120, yPos);
             yPos += 15;
 
-            // Summary Statistics
+            // Summary Statistics with Clinical Interpretation
             doc.setFontSize(14);
             doc.setFont(undefined, 'bold');
-            doc.text('Summary Statistics', 20, yPos);
-            yPos += 8;
+            doc.text('Clinical Summary', 20, yPos);
+            yPos += 10;
 
             doc.setFontSize(10);
             doc.setFont(undefined, 'normal');
 
             const totalEpisodes = episodesInRange.length;
+
+            // Calculate unique migraine days (most important clinical metric)
+            const migraineDays = new Set();
+            episodesInRange.forEach(m => {
+                const dateStr = new Date(m.startTime).toISOString().split('T')[0];
+                migraineDays.add(dateStr);
+            });
+            const uniqueMigraineDays = migraineDays.size;
+
+            // Calculate days in range
+            const daysInRange = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const monthsInRange = (daysInRange / 30).toFixed(1);
+
+            // Calculate monthly average
+            const migraineDaysPerMonth = (uniqueMigraineDays / (daysInRange / 30)).toFixed(1);
+
+            // Determine clinical status
+            let clinicalStatus, statusNote;
+            if (migraineDaysPerMonth >= 15) {
+                clinicalStatus = 'Chronic Migraine';
+                statusNote = 'Clinical note: ≥15 headache days/month meets criteria for Chronic Migraine';
+            } else if (migraineDaysPerMonth >= 10) {
+                clinicalStatus = 'High-Frequency Episodic Migraine';
+                statusNote = 'Clinical note: >10 days/month indicates elevated risk for chronification';
+            } else if (migraineDaysPerMonth >= 4) {
+                clinicalStatus = 'Episodic Migraine';
+                statusNote = 'Clinical note: <15 days/month indicates episodic pattern';
+            } else {
+                clinicalStatus = 'Low-Frequency Episodic Migraine';
+                statusNote = 'Clinical note: <4 days/month indicates low-frequency pattern';
+            }
+
+            // Headache Frequency Section
+            doc.setFont(undefined, 'bold');
+            doc.text('📊 Headache Frequency', 20, yPos);
+            yPos += 6;
+            doc.setFont(undefined, 'normal');
+            doc.text(`Migraine Days in Period: ${uniqueMigraineDays} days (out of ${daysInRange} days tracked)`, 20, yPos);
+            yPos += 5;
+            doc.text(`Average per Month: ${migraineDaysPerMonth} days/month`, 20, yPos);
+            yPos += 5;
+            doc.text(`Total Episodes: ${totalEpisodes}`, 20, yPos);
+            yPos += 5;
+            doc.setFont(undefined, 'bold');
+            doc.text(`Status: ${clinicalStatus}`, 20, yPos);
+            yPos += 5;
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'italic');
+            doc.text(statusNote, 20, yPos);
+            yPos += 10;
+
+            // Pain Characteristics
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('📈 Pain Characteristics', 20, yPos);
+            yPos += 6;
+            doc.setFont(undefined, 'normal');
+
             const avgPain = totalEpisodes > 0
                 ? (episodesInRange.reduce((sum, m) => sum + m.painLevel, 0) / totalEpisodes).toFixed(1)
                 : 0;
-            const avgDuration = totalEpisodes > 0
-                ? episodesInRange.reduce((sum, m) => sum + (m.duration || 0), 0) / totalEpisodes
-                : 0;
+            const painInterpretation = avgPain >= 7 ? 'Severe' : avgPain >= 4 ? 'Moderate' : 'Mild';
+
+            doc.text(`Average Pain Level: ${avgPain}/10 (${painInterpretation})`, 20, yPos);
+            yPos += 5;
 
             const severeCount = episodesInRange.filter(m => m.painLevel >= 7).length;
             const moderateCount = episodesInRange.filter(m => m.painLevel >= 4 && m.painLevel < 7).length;
             const mildCount = episodesInRange.filter(m => m.painLevel < 4).length;
 
-            doc.text(`Total Episodes: ${totalEpisodes}`, 20, yPos);
+            doc.text(`Pain Distribution: Severe (${severeCount}), Moderate (${moderateCount}), Mild (${mildCount})`, 20, yPos);
+            yPos += 10;
+
+            // Duration Analysis
+            doc.setFont(undefined, 'bold');
+            doc.text('⏱️ Duration Analysis', 20, yPos);
             yPos += 6;
-            doc.text(`Average Pain Level: ${avgPain}/10`, 20, yPos);
-            yPos += 6;
+            doc.setFont(undefined, 'normal');
+
+            const avgDuration = totalEpisodes > 0
+                ? episodesInRange.reduce((sum, m) => sum + (m.duration || 0), 0) / totalEpisodes
+                : 0;
+
+            const durations = episodesInRange.map(m => m.duration || 0).filter(d => d > 0);
+            const minDuration = durations.length > 0 ? Math.min(...durations) : 0;
+            const maxDuration = durations.length > 0 ? Math.max(...durations) : 0;
+
             doc.text(`Average Duration: ${formatDuration(Math.floor(avgDuration))}`, 20, yPos);
-            yPos += 6;
-            doc.text(`Severity Distribution: Severe (${severeCount}), Moderate (${moderateCount}), Mild (${mildCount})`, 20, yPos);
+            yPos += 5;
+            doc.text(`Range: ${formatDuration(minDuration)} - ${formatDuration(maxDuration)}`, 20, yPos);
             yPos += 15;
 
             // Episode Details
@@ -3804,6 +4088,312 @@
                     console.error('Error scheduling follow-up:', error);
                 }
             }
+        }
+
+        // ============================================
+        // ANALYTICS SYSTEM
+        // ============================================
+
+        let analyticsCharts = {
+            frequency: null,
+            pain: null,
+            time: null,
+            dow: null
+        };
+
+        function initializeAnalytics() {
+            // Set up event listener for range change
+            document.getElementById('analytics-range').addEventListener('change', renderAnalytics);
+
+            // Initial render
+            renderAnalytics();
+        }
+
+        function renderAnalytics() {
+            const range = document.getElementById('analytics-range').value;
+            const activeMigraines = getActiveMigraines();
+
+            // Filter data by range
+            let startDate;
+            const endDate = new Date();
+
+            if (range === 'all') {
+                startDate = new Date(0); // Beginning of time
+            } else {
+                const days = parseInt(range);
+                startDate = new Date(endDate - days * 24 * 60 * 60 * 1000);
+            }
+
+            const filteredData = activeMigraines.filter(m => {
+                const date = new Date(m.startTime);
+                return date >= startDate && date <= endDate;
+            });
+
+            // Calculate and display metrics
+            updateAnalyticsMetrics(filteredData, startDate, endDate);
+
+            // Render charts
+            renderFrequencyChart(filteredData, startDate, endDate);
+            renderPainChart(filteredData);
+            renderTimeChart(filteredData);
+            renderDayOfWeekChart(filteredData);
+        }
+
+        function updateAnalyticsMetrics(data, startDate, endDate) {
+            // Count unique migraine days
+            const migraineDays = new Set();
+            data.forEach(m => {
+                const dateStr = new Date(m.startTime).toISOString().split('T')[0];
+                migraineDays.add(dateStr);
+            });
+
+            const totalDays = migraineDays.size;
+            const daysInRange = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const monthsInRange = daysInRange / 30;
+            const avgPerMonth = monthsInRange > 0 ? (totalDays / monthsInRange).toFixed(1) : 0;
+
+            const avgPain = data.length > 0
+                ? (data.reduce((sum, m) => sum + m.painLevel, 0) / data.length).toFixed(1)
+                : 0;
+
+            const avgDuration = data.length > 0
+                ? data.reduce((sum, m) => sum + (m.duration || 0), 0) / data.length
+                : 0;
+
+            document.getElementById('analytics-total-days').textContent = totalDays;
+            document.getElementById('analytics-avg-month').textContent = avgPerMonth;
+            document.getElementById('analytics-avg-pain').textContent = `${avgPain}/10`;
+            document.getElementById('analytics-avg-duration').textContent = formatDuration(Math.floor(avgDuration));
+        }
+
+        function renderFrequencyChart(data, startDate, endDate) {
+            const canvas = document.getElementById('frequency-chart');
+            const ctx = canvas.getContext('2d');
+
+            // Destroy existing chart
+            if (analyticsCharts.frequency) {
+                analyticsCharts.frequency.destroy();
+            }
+
+            // Group data by month
+            const monthlyData = {};
+            data.forEach(m => {
+                const date = new Date(m.startTime);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const dayKey = date.toISOString().split('T')[0];
+
+                if (!monthlyData[monthKey]) {
+                    monthlyData[monthKey] = new Set();
+                }
+                monthlyData[monthKey].add(dayKey);
+            });
+
+            // Generate labels for all months in range
+            const labels = [];
+            const values = [];
+            const current = new Date(startDate);
+            current.setDate(1);
+
+            while (current <= endDate) {
+                const monthKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+                const label = current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                labels.push(label);
+                values.push(monthlyData[monthKey] ? monthlyData[monthKey].size : 0);
+                current.setMonth(current.getMonth() + 1);
+            }
+
+            analyticsCharts.frequency = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Migraine Days',
+                        data: values,
+                        borderColor: 'rgb(147, 51, 234)',
+                        backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 5
+                            },
+                            title: {
+                                display: true,
+                                text: 'Days per Month'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderPainChart(data) {
+            const canvas = document.getElementById('pain-chart');
+            const ctx = canvas.getContext('2d');
+
+            if (analyticsCharts.pain) {
+                analyticsCharts.pain.destroy();
+            }
+
+            const mild = data.filter(m => m.painLevel <= 3).length;
+            const moderate = data.filter(m => m.painLevel >= 4 && m.painLevel <= 6).length;
+            const severe = data.filter(m => m.painLevel >= 7).length;
+
+            analyticsCharts.pain = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Mild (0-3)', 'Moderate (4-6)', 'Severe (7-10)'],
+                    datasets: [{
+                        data: [mild, moderate, severe],
+                        backgroundColor: [
+                            'rgb(76, 175, 80)',
+                            'rgb(255, 193, 7)',
+                            'rgb(244, 67, 54)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTimeChart(data) {
+            const canvas = document.getElementById('time-chart');
+            const ctx = canvas.getContext('2d');
+
+            if (analyticsCharts.time) {
+                analyticsCharts.time.destroy();
+            }
+
+            // Group by time of day (4-hour blocks)
+            const timeBlocks = {
+                'Night (12am-4am)': 0,
+                'Early Morning (4am-8am)': 0,
+                'Morning (8am-12pm)': 0,
+                'Afternoon (12pm-4pm)': 0,
+                'Evening (4pm-8pm)': 0,
+                'Night (8pm-12am)': 0
+            };
+
+            data.forEach(m => {
+                const hour = new Date(m.startTime).getHours();
+                if (hour >= 0 && hour < 4) timeBlocks['Night (12am-4am)']++;
+                else if (hour >= 4 && hour < 8) timeBlocks['Early Morning (4am-8am)']++;
+                else if (hour >= 8 && hour < 12) timeBlocks['Morning (8am-12pm)']++;
+                else if (hour >= 12 && hour < 16) timeBlocks['Afternoon (12pm-4pm)']++;
+                else if (hour >= 16 && hour < 20) timeBlocks['Evening (4pm-8pm)']++;
+                else timeBlocks['Night (8pm-12am)']++;
+            });
+
+            analyticsCharts.time = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(timeBlocks),
+                    datasets: [{
+                        label: 'Number of Migraines',
+                        data: Object.values(timeBlocks),
+                        backgroundColor: 'rgba(147, 51, 234, 0.7)',
+                        borderColor: 'rgb(147, 51, 234)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderDayOfWeekChart(data) {
+            const canvas = document.getElementById('dow-chart');
+            const ctx = canvas.getContext('2d');
+
+            if (analyticsCharts.dow) {
+                analyticsCharts.dow.destroy();
+            }
+
+            const dowCounts = {
+                'Sunday': 0,
+                'Monday': 0,
+                'Tuesday': 0,
+                'Wednesday': 0,
+                'Thursday': 0,
+                'Friday': 0,
+                'Saturday': 0
+            };
+
+            data.forEach(m => {
+                const dayName = new Date(m.startTime).toLocaleDateString('en-US', { weekday: 'long' });
+                dowCounts[dayName]++;
+            });
+
+            analyticsCharts.dow = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(dowCounts),
+                    datasets: [{
+                        label: 'Number of Migraines',
+                        data: Object.values(dowCounts),
+                        backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                        borderColor: 'rgb(37, 99, 235)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
         }
     </script>
 
