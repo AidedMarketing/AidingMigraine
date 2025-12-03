@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.3.0 - Push Notifications
+// Version 1.4.0 - Timezone Support for Notifications
 
-const CACHE_NAME = 'aiding-migraine-v1.3';
+const CACHE_NAME = 'aiding-migraine-v1.4';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

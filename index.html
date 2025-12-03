@@ -3511,6 +3511,18 @@
             notificationPreferences.postAttackFollowUp.enabled = document.getElementById('followup-enabled').checked;
             notificationPreferences.postAttackFollowUp.delayHours = parseInt(document.getElementById('followup-delay').value);
 
+            // Convert local time to UTC for server synchronization
+            const localTime = notificationPreferences.dailyCheckIn.time;
+            const utcData = convertLocalTimeToUTC(localTime);
+
+            // Store UTC time data for server sync
+            notificationPreferences.dailyCheckIn.utcHour = utcData.utcHour;
+            notificationPreferences.dailyCheckIn.utcMinutes = utcData.utcMinutes;
+            notificationPreferences.dailyCheckIn.utcTime = utcData.utcTime;
+            notificationPreferences.dailyCheckIn.timezone = utcData.timezone;
+
+            console.log(`Daily check-in set for ${localTime} local (${utcData.utcTime} UTC) in timezone ${utcData.timezone}`);
+
             localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
 
             // Sync with server if notifications are enabled
@@ -3615,6 +3627,18 @@
                     applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
                 });
 
+                // Convert local time to UTC for server synchronization
+                const localTime = notificationPreferences.dailyCheckIn.time;
+                const utcData = convertLocalTimeToUTC(localTime);
+
+                // Store UTC time data
+                notificationPreferences.dailyCheckIn.utcHour = utcData.utcHour;
+                notificationPreferences.dailyCheckIn.utcMinutes = utcData.utcMinutes;
+                notificationPreferences.dailyCheckIn.utcTime = utcData.utcTime;
+                notificationPreferences.dailyCheckIn.timezone = utcData.timezone;
+
+                console.log(`Daily check-in set for ${localTime} local (${utcData.utcTime} UTC) in timezone ${utcData.timezone}`);
+
                 // Send subscription to server
                 const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
                 const response = await fetch(`${SERVER_URL}/api/subscriptions/subscribe`, {
@@ -3623,7 +3647,14 @@
                     body: JSON.stringify({
                         subscription: subscription,
                         preferences: {
-                            dailyCheckIn: notificationPreferences.dailyCheckIn,
+                            dailyCheckIn: {
+                                ...notificationPreferences.dailyCheckIn,
+                                time: localTime,  // Keep local time for reference
+                                utcHour: utcData.utcHour,
+                                utcMinutes: utcData.utcMinutes,
+                                utcTime: utcData.utcTime,
+                                timezone: utcData.timezone
+                            },
                             postAttackFollowUp: notificationPreferences.postAttackFollowUp
                         }
                     })
@@ -3659,6 +3690,38 @@
                 outputArray[i] = rawData.charCodeAt(i);
             }
             return outputArray;
+        }
+
+        // Get user's timezone
+        function getUserTimezone() {
+            try {
+                return Intl.DateTimeFormat().resolvedOptions().timeZone;
+            } catch (e) {
+                console.error('Error getting timezone:', e);
+                return 'UTC';
+            }
+        }
+
+        // Convert local time (HH:MM) to UTC hour
+        function convertLocalTimeToUTC(localTime) {
+            // localTime format: "HH:MM" (e.g., "15:00")
+            const [hours, minutes] = localTime.split(':').map(Number);
+
+            // Create a date object for today at the specified local time
+            const now = new Date();
+            const localDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+
+            // Get UTC hour
+            const utcHour = localDate.getUTCHours();
+            const utcMinutes = localDate.getUTCMinutes();
+
+            return {
+                utcHour: utcHour,
+                utcMinutes: utcMinutes,
+                utcTime: `${String(utcHour).padStart(2, '0')}:${String(utcMinutes).padStart(2, '0')}`,
+                timezone: getUserTimezone(),
+                timezoneOffset: -localDate.getTimezoneOffset() // offset in minutes
+            };
         }
 
         async function disableNotifications() {
