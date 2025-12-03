@@ -56,7 +56,8 @@ function initializeScheduler() {
 }
 
 async function processDailyCheckIns(currentHour, currentDay) {
-    console.log(`📅 Checking for daily check-ins at hour ${currentHour}...`);
+    const now = new Date();
+    console.log(`📅 Checking for daily check-ins at UTC hour ${currentHour} (${now.toISOString()})...`);
 
     const subscriptions = getSubscriptionsForDailyCheckIn(currentHour, currentDay);
 
@@ -66,6 +67,14 @@ async function processDailyCheckIns(currentHour, currentDay) {
     }
 
     console.log(`   Found ${subscriptions.length} users for daily check-in`);
+
+    // Log timezone info for debugging
+    subscriptions.forEach((sub, index) => {
+        const timezone = sub.preferences.dailyCheckIn.timezone || 'Unknown';
+        const localTime = sub.preferences.dailyCheckIn.time || 'Unknown';
+        const utcTime = sub.preferences.dailyCheckIn.utcTime || 'Unknown';
+        console.log(`   User ${index + 1}: ${localTime} (${timezone}) = ${utcTime} UTC`);
+    });
 
     const payload = createDailyCheckInPayload();
     let sent = 0;

@@ -108,10 +108,19 @@ function getSubscriptionsForDailyCheckIn(currentHour, currentDay) {
             return false;
         }
 
-        const [hour, minute] = sub.preferences.dailyCheckIn.time.split(':').map(Number);
+        // Use UTC hour if available (new implementation with timezone support)
+        // Fall back to parsing time string for backwards compatibility
+        let targetHour;
+        if (sub.preferences.dailyCheckIn.utcHour !== undefined) {
+            targetHour = sub.preferences.dailyCheckIn.utcHour;
+        } else {
+            // Backwards compatibility: assume time is in UTC if no utcHour field
+            const [hour, minute] = sub.preferences.dailyCheckIn.time.split(':').map(Number);
+            targetHour = hour;
+        }
 
-        // Check if it's the right hour
-        if (hour !== currentHour) {
+        // Check if it's the right hour (currentHour is in UTC)
+        if (targetHour !== currentHour) {
             return false;
         }
 
