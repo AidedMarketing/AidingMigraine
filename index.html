@@ -383,7 +383,7 @@
             background: var(--bg-secondary);
         }
 
-        .monthly-stats, .analytics-metrics {
+        .analytics-metrics {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
@@ -391,6 +391,71 @@
             margin-top: 16px;
         }
 
+        /* Compact monthly stats for calendar */
+        .monthly-stats-compact {
+            background: var(--bg-tertiary);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            margin-top: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-line {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .stat-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-text {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-left: 4px;
+        }
+
+        .stat-trend {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 12px;
+            margin-left: 8px;
+        }
+
+        .stat-trend.positive {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--pain-severe);
+        }
+
+        .stat-trend.negative {
+            background: rgba(76, 175, 80, 0.15);
+            color: var(--accent-green);
+        }
+
+        .stat-trend.neutral {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+
+        .stat-label-text {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-right: 6px;
+        }
+
+        .stat-status {
+            font-weight: 600;
+        }
+
+        /* Analytics page stat cards */
         .stat-card {
             background: var(--bg-tertiary);
             padding: 20px;
@@ -960,11 +1025,107 @@
                 justify-content: flex-start;
             }
         }
+
+        /* Update Banner */
+        .update-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            z-index: 9999;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .update-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .update-icon {
+            font-size: 1.2rem;
+        }
+
+        .update-text {
+            font-weight: 600;
+            flex: 1;
+            text-align: left;
+        }
+
+        .update-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .update-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .update-btn:active {
+            transform: scale(0.95);
+        }
+
+        .dismiss-update-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 8px;
+            line-height: 1;
+            opacity: 0.8;
+        }
+
+        .dismiss-update-btn:hover {
+            opacity: 1;
+        }
+
+        /* Push content down when banner is visible */
+        .container {
+            transition: margin-top 0.3s ease;
+        }
+
+        .container.with-update-banner {
+            margin-top: 60px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
+    <!-- Update Available Banner -->
+    <div id="update-banner" class="update-banner" style="display: none;">
+        <div class="update-content">
+            <span class="update-icon">✨</span>
+            <span class="update-text">New version available!</span>
+            <button id="update-btn" class="update-btn">Update Now</button>
+            <button id="dismiss-update-btn" class="dismiss-update-btn">×</button>
+        </div>
+    </div>
+
     <div class="container">
         <div id="log-page" class="page active">
             <h1>Aiding Migraine</h1>
@@ -1077,15 +1238,15 @@
                 </div>
 
                 <!-- Monthly Stats Summary -->
-                <div id="monthly-stats" class="monthly-stats">
-                    <div class="stat-card">
-                        <div class="stat-value" id="current-month-days">-</div>
-                        <div class="stat-label">Migraine Days This Month</div>
-                        <div class="stat-change" id="month-trend"></div>
+                <div id="monthly-stats" class="monthly-stats-compact">
+                    <div class="stat-line">
+                        <span id="current-month-days" class="stat-number">-</span>
+                        <span class="stat-text">migraine days</span>
+                        <span id="month-trend" class="stat-trend"></span>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="current-month-status">-</div>
-                        <div class="stat-label">Status</div>
+                    <div class="stat-line">
+                        <span class="stat-label-text">Status:</span>
+                        <span id="current-month-status" class="stat-status">-</span>
                     </div>
                 </div>
 
@@ -2168,6 +2329,36 @@
             });
         }
 
+        // Helper function to get all calendar days a migraine spans
+        function getMigraineDays(migraine) {
+            const days = [];
+            const startDate = new Date(migraine.startTime);
+
+            // Calculate end date
+            let endDate;
+            if (migraine.endTime) {
+                endDate = new Date(migraine.endTime);
+            } else if (migraine.duration) {
+                endDate = new Date(startDate.getTime() + migraine.duration * 60 * 1000);
+            } else {
+                // If still active or no end time, just count the start day
+                endDate = startDate;
+            }
+
+            // Get all days between start and end (inclusive)
+            const currentDate = new Date(startDate);
+            currentDate.setHours(0, 0, 0, 0);
+            const finalDate = new Date(endDate);
+            finalDate.setHours(0, 0, 0, 0);
+
+            while (currentDate <= finalDate) {
+                days.push(currentDate.toISOString().split('T')[0]);
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            return days;
+        }
+
         function updateMonthlyStats() {
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth();
@@ -2177,14 +2368,16 @@
             const monthStart = new Date(year, month, 1);
             const monthEnd = new Date(year, month + 1, 0, 23, 59, 59);
 
-            // Count unique days with migraines
+            // Count unique days with migraines (including multi-day attacks)
             const migraineDays = new Set();
             activeMigraines.forEach(m => {
-                const mDate = new Date(m.startTime);
-                if (mDate >= monthStart && mDate <= monthEnd) {
-                    const dateStr = mDate.toISOString().split('T')[0];
-                    migraineDays.add(dateStr);
-                }
+                const days = getMigraineDays(m);
+                days.forEach(day => {
+                    const dayDate = new Date(day + 'T00:00:00');
+                    if (dayDate >= monthStart && dayDate <= monthEnd) {
+                        migraineDays.add(day);
+                    }
+                });
             });
 
             const currentMonthDays = migraineDays.size;
@@ -2194,11 +2387,13 @@
             const prevMonthEnd = new Date(year, month, 0, 23, 59, 59);
             const prevMigraineDays = new Set();
             activeMigraines.forEach(m => {
-                const mDate = new Date(m.startTime);
-                if (mDate >= prevMonthStart && mDate <= prevMonthEnd) {
-                    const dateStr = mDate.toISOString().split('T')[0];
-                    prevMigraineDays.add(dateStr);
-                }
+                const days = getMigraineDays(m);
+                days.forEach(day => {
+                    const dayDate = new Date(day + 'T00:00:00');
+                    if (dayDate >= prevMonthStart && dayDate <= prevMonthEnd) {
+                        prevMigraineDays.add(day);
+                    }
+                });
             });
 
             const prevMonthDays = prevMigraineDays.size;
@@ -2227,17 +2422,20 @@
             statusEl.textContent = status;
             statusEl.style.color = statusColor;
 
-            // Update trend indicator
+            // Update trend indicator (compact format)
             const trendEl = document.getElementById('month-trend');
             if (difference > 0) {
-                trendEl.textContent = `↑ ${difference} more than last month`;
-                trendEl.className = 'stat-change positive';
+                trendEl.textContent = `(↑${difference})`;
+                trendEl.className = 'stat-trend positive';
             } else if (difference < 0) {
-                trendEl.textContent = `↓ ${Math.abs(difference)} fewer than last month`;
-                trendEl.className = 'stat-change negative';
+                trendEl.textContent = `(↓${Math.abs(difference)})`;
+                trendEl.className = 'stat-trend negative';
+            } else if (prevMonthDays > 0) {
+                trendEl.textContent = '(same)';
+                trendEl.className = 'stat-trend neutral';
             } else {
-                trendEl.textContent = 'Same as last month';
-                trendEl.className = 'stat-change neutral';
+                trendEl.textContent = '';
+                trendEl.className = '';
             }
         }
 
@@ -3128,11 +3326,11 @@
 
             const totalEpisodes = episodesInRange.length;
 
-            // Calculate unique migraine days (most important clinical metric)
+            // Calculate unique migraine days (most important clinical metric, including multi-day attacks)
             const migraineDays = new Set();
             episodesInRange.forEach(m => {
-                const dateStr = new Date(m.startTime).toISOString().split('T')[0];
-                migraineDays.add(dateStr);
+                const days = getMigraineDays(m);
+                days.forEach(day => migraineDays.add(day));
             });
             const uniqueMigraineDays = migraineDays.size;
 
@@ -4211,11 +4409,11 @@
         }
 
         function updateAnalyticsMetrics(data, startDate, endDate) {
-            // Count unique migraine days
+            // Count unique migraine days (including multi-day attacks)
             const migraineDays = new Set();
             data.forEach(m => {
-                const dateStr = new Date(m.startTime).toISOString().split('T')[0];
-                migraineDays.add(dateStr);
+                const days = getMigraineDays(m);
+                days.forEach(day => migraineDays.add(day));
             });
 
             const totalDays = migraineDays.size;
@@ -4246,17 +4444,19 @@
                 analyticsCharts.frequency.destroy();
             }
 
-            // Group data by month
+            // Group data by month (including multi-day attacks)
             const monthlyData = {};
             data.forEach(m => {
-                const date = new Date(m.startTime);
-                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                const dayKey = date.toISOString().split('T')[0];
+                const days = getMigraineDays(m);
+                days.forEach(day => {
+                    const date = new Date(day + 'T00:00:00');
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
-                if (!monthlyData[monthKey]) {
-                    monthlyData[monthKey] = new Set();
-                }
-                monthlyData[monthKey].add(dayKey);
+                    if (!monthlyData[monthKey]) {
+                        monthlyData[monthKey] = new Set();
+                    }
+                    monthlyData[monthKey].add(day);
+                });
             });
 
             // Generate labels for all months in range
@@ -4468,17 +4668,84 @@
         }
     </script>
 
-    <!-- Service Worker Registration -->
+    <!-- Service Worker Registration with Update Detection -->
     <script>
+        let newWorker;
+
+        function showUpdateBanner() {
+            const banner = document.getElementById('update-banner');
+            const container = document.querySelector('.container');
+
+            banner.style.display = 'block';
+            container.classList.add('with-update-banner');
+
+            console.log('✨ Update available! Showing banner.');
+        }
+
+        function hideUpdateBanner() {
+            const banner = document.getElementById('update-banner');
+            const container = document.querySelector('.container');
+
+            banner.style.display = 'none';
+            container.classList.remove('with-update-banner');
+        }
+
+        function updateApp() {
+            if (newWorker) {
+                console.log('⚡ Updating app...');
+                // Send message to skip waiting
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
+        }
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
                     .then(registration => {
-                        console.log('Service Worker registered successfully:', registration.scope);
+                        console.log('✅ Service Worker registered:', registration.scope);
+
+                        // Check for updates every hour
+                        setInterval(() => {
+                            registration.update();
+                        }, 60 * 60 * 1000);
+
+                        // Listen for waiting service worker
+                        registration.addEventListener('updatefound', () => {
+                            const installingWorker = registration.installing;
+
+                            installingWorker.addEventListener('statechange', () => {
+                                if (installingWorker.state === 'installed') {
+                                    if (navigator.serviceWorker.controller) {
+                                        // New update available
+                                        newWorker = installingWorker;
+                                        showUpdateBanner();
+                                    } else {
+                                        // First time installation
+                                        console.log('Service Worker installed for the first time');
+                                    }
+                                }
+                            });
+                        });
                     })
                     .catch(error => {
-                        console.log('Service Worker registration failed:', error);
+                        console.error('❌ Service Worker registration failed:', error);
                     });
+
+                // Listen for service worker controller change
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    console.log('🔄 New service worker activated, reloading page...');
+                    window.location.reload();
+                });
+
+                // Update button click handler
+                document.getElementById('update-btn').addEventListener('click', () => {
+                    updateApp();
+                });
+
+                // Dismiss button click handler
+                document.getElementById('dismiss-update-btn').addEventListener('click', () => {
+                    hideUpdateBanner();
+                });
             });
         }
     </script>
