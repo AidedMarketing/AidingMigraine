@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.4.0 - Timezone Support for Notifications
+// Version 1.5.0 - Analytics Dashboard
 
-const CACHE_NAME = 'aiding-migraine-v1.4';
+const CACHE_NAME = 'aiding-migraine-v1.5';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -18,15 +18,23 @@ const ASSETS_TO_CACHE = [
 
 // Install event - cache assets
 self.addEventListener('install', (event) => {
-    console.log('Service Worker: Installing...');
+    console.log('Service Worker: Installing new version...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('Service Worker: Caching app shell');
                 return cache.addAll(ASSETS_TO_CACHE);
             })
-            .then(() => self.skipWaiting())
+            // Don't automatically skip waiting - let the user choose when to update
     );
+});
+
+// Listen for skip waiting message from app
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        console.log('Service Worker: Skip waiting requested by app');
+        self.skipWaiting();
+    }
 });
 
 // Activate event - clean up old caches
