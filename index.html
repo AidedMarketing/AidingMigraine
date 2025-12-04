@@ -4773,16 +4773,30 @@
                     .then(registration => {
                         console.log('✅ Service Worker registered:', registration.scope);
 
+                        // Immediately check for updates on load
+                        registration.update().then(() => {
+                            console.log('🔍 Checked for updates');
+                        });
+
+                        // Check if there's already a waiting service worker
+                        if (registration.waiting) {
+                            newWorker = registration.waiting;
+                            showUpdateBanner();
+                        }
+
                         // Check for updates every hour
                         setInterval(() => {
+                            console.log('⏰ Hourly update check...');
                             registration.update();
                         }, 60 * 60 * 1000);
 
                         // Listen for waiting service worker
                         registration.addEventListener('updatefound', () => {
+                            console.log('📦 Update found!');
                             const installingWorker = registration.installing;
 
                             installingWorker.addEventListener('statechange', () => {
+                                console.log('Service worker state:', installingWorker.state);
                                 if (installingWorker.state === 'installed') {
                                     if (navigator.serviceWorker.controller) {
                                         // New update available

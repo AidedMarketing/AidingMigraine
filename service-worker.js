@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.5.0 - Analytics Dashboard
+// Version 1.5.1 - Dark Mode Fixes + Better Update Detection
 
-const CACHE_NAME = 'aiding-migraine-v1.5';
+const CACHE_NAME = 'aiding-migraine-v1.5.1';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -79,13 +79,6 @@ self.addEventListener('fetch', (event) => {
                 return caches.match('./index.html');
             })
     );
-});
-
-// Handle messages from the client
-self.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'SKIP_WAITING') {
-        self.skipWaiting();
-    }
 });
 
 // ============================================
