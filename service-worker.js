@@ -81,13 +81,6 @@ self.addEventListener('fetch', (event) => {
     );
 });
 
-// Handle messages from the client
-self.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'SKIP_WAITING') {
-        self.skipWaiting();
-    }
-});
-
 // ============================================
 // PUSH NOTIFICATION HANDLERS
 // ============================================
