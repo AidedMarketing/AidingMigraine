@@ -33,7 +33,7 @@
             --bg-secondary: #252930;
             --bg-tertiary: #2f3339;
             --text-primary: #e8e6e3;
-            --text-secondary: #aca8a0;
+            --text-secondary: #c7c3bb;
             --border-color: #3a3f47;
             --accent-green: #7ba68a;
             --accent-red: #c96868;
@@ -4370,6 +4370,23 @@
             dow: null
         };
 
+        // Get theme-aware colors for charts
+        function getChartColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+
+            return {
+                text: isDark ? '#f0eeeb' : '#2a2a2a',
+                textSecondary: isDark ? '#d8d5cf' : '#666666',
+                grid: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
+                primary: isDark ? 'rgb(168, 85, 247)' : 'rgb(147, 51, 234)',  // Brighter purple for dark mode
+                primaryBg: isDark ? 'rgba(168, 85, 247, 0.2)' : 'rgba(147, 51, 234, 0.1)',
+                green: isDark ? '#9cd4ab' : '#4a7c59',  // Brighter green for dark mode
+                yellow: isDark ? '#ffd966' : '#ff9800',  // Brighter yellow for dark mode
+                red: isDark ? '#ff9e94' : '#f44336',  // Brighter red for dark mode
+                blue: isDark ? '#90bbff' : '#2196f3'  // Brighter blue for dark mode
+            };
+        }
+
         function initializeAnalytics() {
             // Set up event listener for range change
             document.getElementById('analytics-range').addEventListener('change', renderAnalytics);
@@ -4473,6 +4490,8 @@
                 current.setMonth(current.getMonth() + 1);
             }
 
+            const colors = getChartColors();
+
             analyticsCharts.frequency = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -4480,8 +4499,8 @@
                     datasets: [{
                         label: 'Migraine Days',
                         data: values,
-                        borderColor: 'rgb(147, 51, 234)',
-                        backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                        borderColor: colors.primary,
+                        backgroundColor: colors.primaryBg,
                         borderWidth: 3,
                         fill: true,
                         tension: 0.3
@@ -4497,14 +4516,27 @@
                         }
                     },
                     scales: {
+                        x: {
+                            ticks: {
+                                color: colors.textSecondary
+                            },
+                            grid: {
+                                color: colors.grid
+                            }
+                        },
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 5
+                                stepSize: 5,
+                                color: colors.textSecondary
+                            },
+                            grid: {
+                                color: colors.grid
                             },
                             title: {
                                 display: true,
-                                text: 'Days per Month'
+                                text: 'Days per Month',
+                                color: colors.text
                             }
                         }
                     }
@@ -4524,6 +4556,8 @@
             const moderate = data.filter(m => m.painLevel >= 4 && m.painLevel <= 6).length;
             const severe = data.filter(m => m.painLevel >= 7).length;
 
+            const colors = getChartColors();
+
             analyticsCharts.pain = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -4531,9 +4565,9 @@
                     datasets: [{
                         data: [mild, moderate, severe],
                         backgroundColor: [
-                            'rgb(76, 175, 80)',
-                            'rgb(255, 193, 7)',
-                            'rgb(244, 67, 54)'
+                            colors.green,
+                            colors.yellow,
+                            colors.red
                         ]
                     }]
                 },
@@ -4543,7 +4577,14 @@
                     aspectRatio: 2,
                     plugins: {
                         legend: {
-                            position: 'bottom'
+                            position: 'bottom',
+                            labels: {
+                                color: colors.text,
+                                padding: 12,
+                                font: {
+                                    size: 12
+                                }
+                            }
                         }
                     }
                 }
@@ -4578,6 +4619,8 @@
                 else timeBlocks['Night (8pm-12am)']++;
             });
 
+            const colors = getChartColors();
+
             analyticsCharts.time = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -4585,9 +4628,9 @@
                     datasets: [{
                         label: 'Number of Migraines',
                         data: Object.values(timeBlocks),
-                        backgroundColor: 'rgba(147, 51, 234, 0.7)',
-                        borderColor: 'rgb(147, 51, 234)',
-                        borderWidth: 1
+                        backgroundColor: colors.primaryBg.replace('0.2', '0.6'),
+                        borderColor: colors.primary,
+                        borderWidth: 2
                     }]
                 },
                 options: {
@@ -4600,10 +4643,22 @@
                         }
                     },
                     scales: {
+                        x: {
+                            ticks: {
+                                color: colors.textSecondary
+                            },
+                            grid: {
+                                color: colors.grid
+                            }
+                        },
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1
+                                stepSize: 1,
+                                color: colors.textSecondary
+                            },
+                            grid: {
+                                color: colors.grid
                             }
                         }
                     }
@@ -4634,6 +4689,8 @@
                 dowCounts[dayName]++;
             });
 
+            const colors = getChartColors();
+
             analyticsCharts.dow = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -4641,9 +4698,9 @@
                     datasets: [{
                         label: 'Number of Migraines',
                         data: Object.values(dowCounts),
-                        backgroundColor: 'rgba(37, 99, 235, 0.7)',
-                        borderColor: 'rgb(37, 99, 235)',
-                        borderWidth: 1
+                        backgroundColor: colors.blue,
+                        borderColor: colors.blue,
+                        borderWidth: 2
                     }]
                 },
                 options: {
@@ -4656,10 +4713,22 @@
                         }
                     },
                     scales: {
+                        x: {
+                            ticks: {
+                                color: colors.textSecondary
+                            },
+                            grid: {
+                                color: colors.grid
+                            }
+                        },
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1
+                                stepSize: 1,
+                                color: colors.textSecondary
+                            },
+                            grid: {
+                                color: colors.grid
                             }
                         }
                     }
