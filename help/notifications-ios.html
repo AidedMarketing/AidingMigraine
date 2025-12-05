@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Notification Setup - Aiding Migraine</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
+</head>
+<body>
+    <div class="help-container">
+        <header class="help-header">
+            <h1>🔔 iOS Notification Setup</h1>
+            <a href="index.html" class="back-button">← Back to Help</a>
+        </header>
+
+        <main class="help-content">
+            <p>Getting notifications to work on iOS requires a few specific steps. This guide will walk you through the complete setup process and troubleshoot common issues.</p>
+
+            <div class="info-box warning">
+                <h4>⚠️ Critical Requirement</h4>
+                <p><strong>You MUST install Aiding Migraine to your home screen for notifications to work on iOS.</strong> Safari's web browser alone cannot receive push notifications - only installed Progressive Web Apps can.</p>
+            </div>
+
+            <h2>📋 Prerequisites</h2>
+
+            <p>Before setting up notifications, make sure you have:</p>
+            <ul>
+                <li><strong>iOS 16.4 or later</strong> (Check: Settings → General → About → Software Version)</li>
+                <li><strong>Safari browser</strong> (Other browsers like Chrome won't work for PWA installation)</li>
+                <li><strong>Sufficient storage space</strong> (The app is small, but iOS needs some free space)</li>
+                <li><strong>Network connection</strong> (Required for initial setup only)</li>
+            </ul>
+
+            <h2>📱 Step 1: Install to Home Screen</h2>
+
+            <ol class="step-list">
+                <li>
+                    <strong>Open in Safari</strong><br>
+                    Navigate to the Aiding Migraine web app using Safari. Make absolutely sure you're using Safari - not Chrome, not Firefox, not any other browser.
+                </li>
+                <li>
+                    <strong>Tap the Share Button</strong><br>
+                    Look for the Share button at the bottom of the Safari window (it's a square with an arrow pointing upward).
+                </li>
+                <li>
+                    <strong>Select "Add to Home Screen"</strong><br>
+                    Scroll down in the share menu and tap "Add to Home Screen". You may need to scroll down to find this option.
+                </li>
+                <li>
+                    <strong>Confirm the Name</strong><br>
+                    You'll see a preview. The name should be "AidMigraine" or "Aiding Migraine". Tap "Add" in the top right.
+                </li>
+                <li>
+                    <strong>Close Safari</strong><br>
+                    Navigate back to your home screen. You should see the Aiding Migraine icon.
+                </li>
+            </ol>
+
+            <div class="info-box success">
+                <h4>✅ How to Tell It's Installed Correctly</h4>
+                <p>When you open Aiding Migraine from your home screen, it should:</p>
+                <ul style="margin-top: 10px;">
+                    <li>Open in its own window (not Safari)</li>
+                    <li>Have NO browser address bar at the top</li>
+                    <li>Have NO Safari navigation buttons at the bottom</li>
+                    <li>Look like a native app</li>
+                </ul>
+            </div>
+
+            <h2>🔔 Step 2: Enable Notifications in App</h2>
+
+            <ol class="step-list">
+                <li>
+                    <strong>Launch from Home Screen</strong><br>
+                    Tap the Aiding Migraine icon on your home screen (NOT from Safari bookmarks).
+                </li>
+                <li>
+                    <strong>Go to Settings</strong><br>
+                    Tap the ⚙️ Settings icon in the bottom navigation bar.
+                </li>
+                <li>
+                    <strong>Enable Daily Check-Ins</strong><br>
+                    Toggle on "Daily Check-In" notifications. You should immediately see an iOS permission prompt.
+                </li>
+                <li>
+                    <strong>Allow Notifications</strong><br>
+                    When iOS prompts "Aiding Migraine Would Like to Send You Notifications", tap <strong>Allow</strong>.
+                </li>
+                <li>
+                    <strong>Set Your Time</strong><br>
+                    Choose what time you want your daily reminder (we recommend 8-9 PM).
+                </li>
+                <li>
+                    <strong>Save Settings</strong><br>
+                    Your preferences are automatically saved.
+                </li>
+            </ol>
+
+            <div class="info-box">
+                <h4>💡 Didn't See the Permission Prompt?</h4>
+                <p>If you didn't see the notification permission request:</p>
+                <ul style="margin-top: 10px;">
+                    <li>You may have previously denied it - see troubleshooting below</li>
+                    <li>Make sure you opened the app from the home screen icon, not Safari</li>
+                    <li>Try toggling notifications off and on again in the app settings</li>
+                </ul>
+            </div>
+
+            <h2>⚙️ Step 3: Verify iOS System Settings</h2>
+
+            <p>Double-check that iOS system settings are configured correctly:</p>
+
+            <ol class="step-list">
+                <li>
+                    <strong>Open iOS Settings</strong><br>
+                    Go to your iPhone/iPad Settings app (the gray gear icon).
+                </li>
+                <li>
+                    <strong>Navigate to Notifications</strong><br>
+                    Scroll down and tap "Notifications".
+                </li>
+                <li>
+                    <strong>Find Aiding Migraine</strong><br>
+                    Scroll through the app list and find "Aiding Migraine" (or "AidMigraine"). Tap it.
+                </li>
+                <li>
+                    <strong>Verify Settings</strong><br>
+                    Make sure these are enabled:
+                    <ul style="margin-top: 10px;">
+                        <li><strong>Allow Notifications:</strong> ON</li>
+                        <li><strong>Lock Screen:</strong> ON (to see notifications when locked)</li>
+                        <li><strong>Notification Center:</strong> ON</li>
+                        <li><strong>Banners:</strong> ON (choose Temporary or Persistent)</li>
+                        <li><strong>Sounds:</strong> ON (if you want audio alerts)</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h2>🧪 Step 4: Test Your Notifications</h2>
+
+            <p>The best way to confirm notifications are working:</p>
+
+            <ol class="step-list">
+                <li>
+                    <strong>Set a Test Time</strong><br>
+                    In the app Settings, set your daily check-in time to 2-3 minutes from now.
+                </li>
+                <li>
+                    <strong>Close the App</strong><br>
+                    Swipe up from the bottom (or double-click home button) and close Aiding Migraine completely.
+                </li>
+                <li>
+                    <strong>Lock Your Phone</strong><br>
+                    Press the power button to turn off the screen.
+                </li>
+                <li>
+                    <strong>Wait and Check</strong><br>
+                    At the scheduled time, you should receive a notification on your lock screen.
+                </li>
+            </ol>
+
+            <div class="info-box success">
+                <h4>✅ Success!</h4>
+                <p>If you received the notification, you're all set! Change your check-in time back to your preferred schedule (we recommend 8-9 PM).</p>
+            </div>
+
+            <h2>🔧 Troubleshooting</h2>
+
+            <h3>❌ "I didn't get the permission prompt"</h3>
+            <p><strong>Most common cause:</strong> You previously denied notification permission.</p>
+            <p><strong>Fix:</strong></p>
+            <ol>
+                <li>Go to iOS Settings → Notifications</li>
+                <li>Find "Aiding Migraine" in the list</li>
+                <li>Toggle "Allow Notifications" ON</li>
+                <li>Return to the app and toggle notifications on</li>
+            </ol>
+
+            <h3>❌ "I don't see Aiding Migraine in iOS Settings → Notifications"</h3>
+            <p><strong>Most common cause:</strong> The app wasn't properly installed to the home screen.</p>
+            <p><strong>Fix:</strong></p>
+            <ol>
+                <li>Delete the current home screen icon (long press → Remove App)</li>
+                <li>Clear Safari cache (Settings → Safari → Clear History and Website Data)</li>
+                <li>Re-install using Safari's "Add to Home Screen" feature</li>
+                <li>Make sure you open it from the home screen icon (not Safari)</li>
+            </ol>
+
+            <h3>❌ "Notifications were working, but stopped"</h3>
+            <p><strong>Possible causes:</strong></p>
+            <ul>
+                <li><strong>Focus Mode/Do Not Disturb:</strong> Check if you have Focus mode enabled (Settings → Focus)</li>
+                <li><strong>Low Power Mode:</strong> Can delay notifications (Settings → Battery)</li>
+                <li><strong>App needs update:</strong> Check if an update notification appears in the app</li>
+                <li><strong>Notification settings changed:</strong> Verify iOS Settings → Notifications → Aiding Migraine</li>
+            </ul>
+
+            <h3>❌ "Notifications arrive late or inconsistently"</h3>
+            <p>iOS manages background tasks aggressively to save battery. This is normal behavior. Notifications might arrive a few minutes late, especially if:</p>
+            <ul>
+                <li>Your device is in Low Power Mode</li>
+                <li>You have many apps sending notifications</li>
+                <li>Your internet connection is weak</li>
+            </ul>
+            <p><strong>This is an iOS limitation, not an app bug.</strong> Notifications will arrive, just potentially a few minutes after the scheduled time.</p>
+
+            <h3>❌ "I'm getting notifications at the wrong time"</h3>
+            <p><strong>Check your timezone settings:</strong></p>
+            <ol>
+                <li>Go to iOS Settings → General → Date & Time</li>
+                <li>Make sure "Set Automatically" is ON</li>
+                <li>Verify the displayed time zone is correct</li>
+                <li>In Aiding Migraine Settings, toggle notifications off and on to resync</li>
+            </ol>
+
+            <h3>❌ "Notifications work in Test, but not for Daily Check-Ins"</h3>
+            <p>Daily check-in notifications are scheduled server-side. If test notifications work but dailies don't:</p>
+            <ol>
+                <li>Make sure you have an active internet connection when enabling notifications</li>
+                <li>Try toggling Daily Check-Ins off, waiting 10 seconds, then back on</li>
+                <li>Check that your set time hasn't already passed today</li>
+                <li>Wait until tomorrow's scheduled time to see if they resume</li>
+            </ol>
+
+            <h2>📞 Still Having Issues?</h2>
+
+            <p>If you've tried all the troubleshooting steps and notifications still aren't working:</p>
+
+            <ol>
+                <li>Make a note of:
+                    <ul style="margin-top: 10px;">
+                        <li>Your iOS version</li>
+                        <li>What specific steps you've tried</li>
+                        <li>Whether test notifications work</li>
+                        <li>Any error messages you see</li>
+                    </ul>
+                </li>
+                <li><a href="mailto:support@aidingmigraine.com">Contact our support team</a> with the details above</li>
+                <li>Or <a href="https://github.com/AidedMarketing/AidingMigraine/issues" target="_blank">report an issue on GitHub</a></li>
+            </ol>
+
+            <h2>💡 Quick Reference</h2>
+
+            <table>
+                <tr>
+                    <th>Requirement</th>
+                    <th>Details</th>
+                </tr>
+                <tr>
+                    <td>Browser</td>
+                    <td>Safari only (for installation)</td>
+                </tr>
+                <tr>
+                    <td>iOS Version</td>
+                    <td>16.4 or later</td>
+                </tr>
+                <tr>
+                    <td>Installation</td>
+                    <td>Must install to home screen</td>
+                </tr>
+                <tr>
+                    <td>Launch</td>
+                    <td>Must open from home screen icon</td>
+                </tr>
+                <tr>
+                    <td>Permission</td>
+                    <td>Allow notifications when prompted</td>
+                </tr>
+                <tr>
+                    <td>Test Method</td>
+                    <td>Set time 2-3 min ahead, close app, wait</td>
+                </tr>
+            </table>
+
+        </main>
+
+        <footer class="help-footer">
+            <p>Questions about iOS notifications? <a href="mailto:support@aidingmigraine.com">Contact Support</a></p>
+            <p><a href="index.html">← Back to Help Center</a> | <a href="../index.html">Return to App</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Sync theme with main app
+        function syncTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        }
+
+        syncTheme();
+
+        // Listen for theme changes
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'theme') {
+                syncTheme();
+            }
+        });
+    </script>
+</body>
+</html>

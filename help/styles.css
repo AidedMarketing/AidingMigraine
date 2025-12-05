@@ -1,0 +1,422 @@
+/* ============================================
+   AIDING MIGRAINE - HELP DOCUMENTATION STYLES
+   ============================================ */
+
+/* === ROOT VARIABLES (DARK - DEFAULT) === */
+:root {
+    --bg-primary: #1a1d24;
+    --bg-secondary: #252930;
+    --bg-tertiary: #2f3339;
+    --text-primary: #e8e6e3;
+    --text-secondary: #c7c3bb;
+    --border-color: #3a3f47;
+    --accent-green: #7ba68a;
+    --accent-red: #c96868;
+    --accent-blue: #6b8bb8;
+    --accent-purple: #a855f7;
+    --link-color: #8ab4f8;
+    --link-hover: #aac7fa;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --radius: 12px;
+    --transition: all 0.2s ease;
+}
+
+/* === LIGHT THEME OVERRIDE === */
+:root[data-theme="light"] {
+    --bg-primary: #f5f5f5;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e8e8e8;
+    --text-primary: #2a2a2a;
+    --text-secondary: #666666;
+    --border-color: #d0d0d0;
+    --accent-green: #4a7c59;
+    --accent-red: #b85050;
+    --accent-blue: #4a6b9e;
+    --accent-purple: #9333ea;
+    --link-color: #1a73e8;
+    --link-hover: #0d47a1;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Detect system theme preference */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme]) {
+        --bg-primary: #f5f5f5;
+        --bg-secondary: #ffffff;
+        --bg-tertiary: #e8e8e8;
+        --text-primary: #2a2a2a;
+        --text-secondary: #666666;
+        --border-color: #d0d0d0;
+        --accent-green: #4a7c59;
+        --accent-red: #b85050;
+        --accent-blue: #4a6b9e;
+        --accent-purple: #9333ea;
+        --link-color: #1a73e8;
+        --link-hover: #0d47a1;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* === BASE STYLES === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.7;
+    transition: var(--transition);
+}
+
+/* === LAYOUT === */
+.help-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    padding-bottom: 60px;
+}
+
+/* === HEADER === */
+.help-header {
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--border-color);
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.help-header h1 {
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--accent-green);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+}
+
+.back-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* === NAVIGATION === */
+.help-nav {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+}
+
+.help-nav h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.help-nav ul {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+.help-nav li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.help-nav li a:hover {
+    background: var(--accent-green);
+    color: white;
+    transform: translateX(5px);
+}
+
+.nav-icon {
+    font-size: 1.3rem;
+    min-width: 24px;
+}
+
+/* === MAIN CONTENT === */
+.help-content {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 30px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.help-content h2 {
+    font-size: 1.6rem;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    color: var(--accent-green);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.help-content h2:first-child {
+    margin-top: 0;
+}
+
+.help-content h3 {
+    font-size: 1.3rem;
+    margin-top: 25px;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.help-content p {
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+}
+
+.help-content ul,
+.help-content ol {
+    margin-left: 25px;
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+}
+
+.help-content li {
+    margin-bottom: 8px;
+}
+
+.help-content a {
+    color: var(--link-color);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: var(--transition);
+}
+
+.help-content a:hover {
+    color: var(--link-hover);
+    border-bottom-color: var(--link-hover);
+}
+
+.help-content code {
+    background: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+    font-size: 0.9em;
+    color: var(--accent-purple);
+}
+
+.help-content pre {
+    background: var(--bg-tertiary);
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.help-content pre code {
+    background: none;
+    padding: 0;
+}
+
+/* === SPECIAL ELEMENTS === */
+.info-box {
+    background: var(--bg-tertiary);
+    border-left: 4px solid var(--accent-blue);
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+}
+
+.info-box.warning {
+    border-left-color: var(--accent-red);
+}
+
+.info-box.success {
+    border-left-color: var(--accent-green);
+}
+
+.info-box h4 {
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.info-box p {
+    margin-bottom: 0;
+}
+
+.step-list {
+    counter-reset: step-counter;
+    list-style: none;
+    margin-left: 0 !important;
+}
+
+.step-list li {
+    counter-increment: step-counter;
+    position: relative;
+    padding-left: 50px;
+    margin-bottom: 25px;
+}
+
+.step-list li::before {
+    content: counter(step-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: var(--accent-green);
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.screenshot {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin: 20px 0;
+    border: 1px solid var(--border-color);
+}
+
+/* === FOOTER === */
+.help-footer {
+    background: var(--bg-secondary);
+    border-top: 2px solid var(--border-color);
+    padding: 20px;
+    margin-top: 40px;
+    border-radius: var(--radius);
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.help-footer p {
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.help-footer a {
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.help-footer a:hover {
+    color: var(--link-hover);
+    text-decoration: underline;
+}
+
+/* === TABLE STYLES === */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    background: var(--accent-green);
+    color: white;
+    font-weight: 600;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .help-container {
+        padding: 15px;
+    }
+
+    .help-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .help-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .help-content {
+        padding: 20px;
+    }
+
+    .help-content h2 {
+        font-size: 1.4rem;
+    }
+
+    .help-content h3 {
+        font-size: 1.2rem;
+    }
+
+    .help-nav ul {
+        grid-template-columns: 1fr;
+    }
+
+    .step-list li {
+        padding-left: 45px;
+    }
+
+    .step-list li::before {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .help-header h1 {
+        font-size: 1.3rem;
+    }
+
+    .back-button {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}
