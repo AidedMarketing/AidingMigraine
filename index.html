@@ -101,6 +101,32 @@
             margin-bottom: 24px;
             font-weight: 600;
             text-align: center;
+            position: relative;
+        }
+
+        .help-icon {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .help-icon:hover {
+            transform: scale(1.1);
+            background: #6b9177;
         }
 
         h2 {
@@ -1128,7 +1154,10 @@
 
     <div class="container">
         <div id="log-page" class="page active">
-            <h1>Aiding Migraine</h1>
+            <h1>
+                Aiding Migraine
+                <a href="./help/index.html" class="help-icon" title="Help & Documentation">?</a>
+            </h1>
             
             <div id="active-episode-section" style="display: none;">
                 <div class="active-episode-card">
@@ -1259,12 +1288,18 @@
         </div>
 
         <div id="history-page" class="page">
-            <h1>Episode History</h1>
+            <h1>
+                Episode History
+                <a href="./help/index.html" class="help-icon" title="Help & Documentation">?</a>
+            </h1>
             <div id="history-list"></div>
         </div>
 
         <div id="analytics-page" class="page">
-            <h1>Analytics & Insights</h1>
+            <h1>
+                Analytics & Insights
+                <a href="./help/analytics.html" class="help-icon" title="Understanding Your Analytics">?</a>
+            </h1>
 
             <!-- Date Range Selector -->
             <div class="section-card">
@@ -1327,7 +1362,10 @@
         </div>
 
         <div id="settings-page" class="page">
-            <h1>Settings</h1>
+            <h1>
+                Settings
+                <a href="./help/index.html" class="help-icon" title="Help & Documentation">?</a>
+            </h1>
 
             <div class="section-card">
                 <h2>📊 Storage & Backup</h2>
@@ -1524,6 +1562,32 @@
                     <button class="settings-btn" id="privacy-btn">
                         <span>🔒 Privacy & Your Data</span>
                     </button>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>📚 Help & Resources</h2>
+                <div class="settings-actions">
+                    <a href="./help/quick-start.html" class="settings-btn" style="text-decoration: none; display: block;">
+                        <span>🚀 Quick Start Guide</span>
+                        <span class="btn-subtitle">Get started in minutes</span>
+                    </a>
+                    <a href="./help/notifications-ios.html" class="settings-btn" style="text-decoration: none; display: block;">
+                        <span>🔔 iOS Notification Setup</span>
+                        <span class="btn-subtitle">Fix notification issues</span>
+                    </a>
+                    <a href="./help/analytics.html" class="settings-btn" style="text-decoration: none; display: block;">
+                        <span>📊 Understanding Analytics</span>
+                        <span class="btn-subtitle">Interpret your charts</span>
+                    </a>
+                    <a href="./help/faq.html" class="settings-btn" style="text-decoration: none; display: block;">
+                        <span>💡 FAQ</span>
+                        <span class="btn-subtitle">Common questions</span>
+                    </a>
+                    <a href="./help/privacy.html" class="settings-btn" style="text-decoration: none; display: block;">
+                        <span>🔒 Privacy Policy</span>
+                        <span class="btn-subtitle">How we protect your data</span>
+                    </a>
                 </div>
             </div>
 

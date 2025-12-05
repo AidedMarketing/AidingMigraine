@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frequently Asked Questions - Aiding Migraine</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
+</head>
+<body>
+    <div class="help-container">
+        <header class="help-header">
+            <h1>💡 Frequently Asked Questions</h1>
+            <a href="index.html" class="back-button">← Back to Help</a>
+        </header>
+
+        <main class="help-content">
+            <p>Find answers to common questions about Aiding Migraine. Can't find what you're looking for? <a href="mailto:support@aidingmigraine.com">Contact us</a>.</p>
+
+            <h2>🔒 Privacy & Data</h2>
+
+            <h3>Is my data private?</h3>
+            <p><strong>Yes, completely.</strong> All your migraine entries, analytics, and personal health information are stored exclusively on your device using browser local storage. This data never leaves your device and is never transmitted to our servers.</p>
+
+            <h3>Where is my data stored?</h3>
+            <p>Your migraine tracking data is stored in your browser's local storage on your device. The only information sent to our servers is:</p>
+            <ul>
+                <li>Your notification preferences (time, timezone, enabled/disabled status)</li>
+                <li>An anonymous push notification subscription token</li>
+            </ul>
+            <p>No personally identifiable information or health data is ever transmitted.</p>
+
+            <h3>Can I delete my data?</h3>
+            <p><strong>Yes, at any time.</strong> To delete all your data:</p>
+            <ol>
+                <li>Go to Settings in the app</li>
+                <li>Scroll to the bottom and tap "Clear All Data"</li>
+                <li>Confirm the deletion</li>
+            </ol>
+            <p>This will permanently remove all migraine entries, settings, and analytics from your device. This action cannot be undone, so export your data first if you want a backup.</p>
+
+            <h3>Do you sell my data?</h3>
+            <p><strong>Absolutely not.</strong> We don't collect your health data in the first place, so there's nothing to sell. Aiding Migraine is a privacy-first application built to help people track migraines without compromising their personal health information.</p>
+
+            <h3>Can someone else see my migraine data?</h3>
+            <p>Only if they have physical access to your device. Your data is stored locally on your phone/computer. Standard security practices:</p>
+            <ul>
+                <li>Keep your device locked with a passcode/biometric</li>
+                <li>Don't share your device login with others</li>
+                <li>Enable auto-lock on your device</li>
+            </ul>
+
+            <h2>💻 Technical</h2>
+
+            <h3>Does this work offline?</h3>
+            <p><strong>Yes!</strong> Once installed, Aiding Migraine works completely offline. You can:</p>
+            <ul>
+                <li>Log migraines without internet</li>
+                <li>View your calendar and analytics</li>
+                <li>Export PDF reports</li>
+                <li>Access all features</li>
+            </ul>
+            <p><strong>Note:</strong> You need internet connection for:</p>
+            <ul>
+                <li>Initial installation</li>
+                <li>Receiving push notifications</li>
+                <li>App updates</li>
+            </ul>
+
+            <h3>Can I use it on multiple devices?</h3>
+            <p><strong>Currently, no.</strong> Because data is stored locally on each device, your migraine log won't sync between devices. This is by design for privacy - no cloud storage means no data transmission.</p>
+            <p><strong>Workaround:</strong> You can export your PDF report from one device and use it as a reference, but active tracking should be done on one primary device.</p>
+            <p><strong>Future feature:</strong> We're exploring optional Google Drive sync for users who want cross-device access while maintaining privacy.</p>
+
+            <h3>What browsers are supported?</h3>
+            <p>Aiding Migraine works best in modern browsers:</p>
+            <table>
+                <tr>
+                    <th>Browser</th>
+                    <th>Support Status</th>
+                </tr>
+                <tr>
+                    <td>Safari (iOS 16.4+)</td>
+                    <td>✅ Full support (install to home screen for notifications)</td>
+                </tr>
+                <tr>
+                    <td>Chrome (Desktop/Android)</td>
+                    <td>✅ Full support</td>
+                </tr>
+                <tr>
+                    <td>Edge (Desktop/Android)</td>
+                    <td>✅ Full support</td>
+                </tr>
+                <tr>
+                    <td>Firefox (Desktop/Android)</td>
+                    <td>✅ Full support</td>
+                </tr>
+                <tr>
+                    <td>Chrome (iOS)</td>
+                    <td>⚠️ Limited - can't install as PWA</td>
+                </tr>
+            </table>
+
+            <h3>Why do I need to install on iOS?</h3>
+            <p>iOS requires web apps to be installed to the home screen (as a Progressive Web App) to access advanced features like:</p>
+            <ul>
+                <li>Push notifications</li>
+                <li>Offline functionality</li>
+                <li>Full-screen app experience</li>
+            </ul>
+            <p>This is an Apple limitation, not a choice we made. See our <a href="notifications-ios.html">iOS Notification Setup Guide</a> for installation instructions.</p>
+
+            <h3>How much storage does it use?</h3>
+            <p>Aiding Migraine is extremely lightweight:</p>
+            <ul>
+                <li><strong>App size:</strong> ~500 KB - 1 MB</li>
+                <li><strong>Data storage:</strong> Minimal (a few KB even with years of entries)</li>
+                <li><strong>Total footprint:</strong> Less than most photos on your phone</li>
+            </ul>
+
+            <h2>📝 Tracking</h2>
+
+            <h3>How do I log a multi-day migraine?</h3>
+            <p>If your migraine lasts across multiple calendar days:</p>
+            <ol>
+                <li>Tap the date when the migraine <strong>started</strong></li>
+                <li>Enter the start time</li>
+                <li>Select severity (mild, moderate, severe)</li>
+                <li>Enter the total duration (e.g., "48 hours" or "72 hours")</li>
+                <li>Save the entry</li>
+            </ol>
+            <p>The app will automatically count each calendar day as a separate migraine day. For example, a migraine from Monday 11 PM to Wednesday 3 AM counts as 3 migraine days (Mon, Tue, Wed) - which is clinically accurate.</p>
+
+            <h3>Can I edit past entries?</h3>
+            <p><strong>Currently, no.</strong> To modify a past entry:</p>
+            <ol>
+                <li>Tap the date on the calendar</li>
+                <li>Delete the existing entry</li>
+                <li>Create a new entry with corrected information</li>
+            </ol>
+            <p><strong>Future feature:</strong> We're working on adding an edit function to simplify corrections.</p>
+
+            <h3>What if I miss a day?</h3>
+            <p>Don't worry! You can log past days at any time:</p>
+            <ol>
+                <li>Use the calendar navigation arrows to go back in time</li>
+                <li>Tap the missed date</li>
+                <li>Log whether you had a migraine or not</li>
+            </ol>
+            <p><strong>Tip:</strong> Enable daily reminders in Settings to avoid missing days in the future.</p>
+
+            <h3>Can I track multiple migraines per day?</h3>
+            <p><strong>Currently, no.</strong> The app is designed around the clinical standard of counting "migraine days" rather than individual attacks. If you have multiple distinct migraines in one day (rare, but possible), log the most severe one or the longest duration.</p>
+            <p>Clinically, what matters most is the total number of days affected by migraine per month, not the number of individual attacks.</p>
+
+            <h3>What's the difference between "mild," "moderate," and "severe"?</h3>
+            <p>Use these guidelines:</p>
+            <table>
+                <tr>
+                    <th>Severity</th>
+                    <th>Description</th>
+                    <th>Examples</th>
+                </tr>
+                <tr>
+                    <td><strong>Mild</strong></td>
+                    <td>Noticeable but not disabling</td>
+                    <td>Can work/function normally, just uncomfortable</td>
+                </tr>
+                <tr>
+                    <td><strong>Moderate</strong></td>
+                    <td>Significantly impairs activity</td>
+                    <td>Can push through if necessary, but difficult and distressing</td>
+                </tr>
+                <tr>
+                    <td><strong>Severe</strong></td>
+                    <td>Disabling</td>
+                    <td>Cannot perform normal activities; need to rest in dark/quiet</td>
+                </tr>
+            </table>
+
+            <h2>🔔 Notifications</h2>
+
+            <h3>Why aren't my notifications working?</h3>
+            <p>Troubleshooting steps:</p>
+
+            <h4>For iOS:</h4>
+            <ol>
+                <li><strong>Verify installation:</strong> Must be installed to home screen (not just Safari)</li>
+                <li><strong>Check permissions:</strong> Settings → Notifications → Aiding Migraine → Allow Notifications ON</li>
+                <li><strong>Check Focus modes:</strong> Do Not Disturb or Focus modes block notifications</li>
+                <li><strong>Re-enable in app:</strong> Toggle notifications off and on in app Settings</li>
+            </ol>
+            <p>See our detailed <a href="notifications-ios.html">iOS Notification Setup Guide</a> for more help.</p>
+
+            <h4>For Android/Desktop:</h4>
+            <ol>
+                <li><strong>Browser permissions:</strong> Allow notifications when prompted</li>
+                <li><strong>System settings:</strong> Check device notification settings</li>
+                <li><strong>Do Not Disturb:</strong> Make sure DND mode is off</li>
+            </ol>
+
+            <h3>Can I change notification times?</h3>
+            <p><strong>Yes!</strong> Go to Settings → Daily Check-In Time → select your new preferred time. Changes take effect immediately for tomorrow's notification.</p>
+
+            <h3>How do I disable notifications?</h3>
+            <p>Two ways:</p>
+            <ol>
+                <li><strong>In the app:</strong> Settings → Toggle off "Daily Check-In" and "Post-Attack Reminders"</li>
+                <li><strong>Device settings:</strong> iOS: Settings → Notifications → Aiding Migraine → Toggle off</li>
+            </ol>
+
+            <h3>Do notifications work offline?</h3>
+            <p><strong>No.</strong> Push notifications require an internet connection to be delivered. However:</p>
+            <ul>
+                <li>The app works completely offline for logging and viewing data</li>
+                <li>Notifications will resume when you reconnect to internet</li>
+                <li>You don't need to be actively using the app to receive notifications</li>
+            </ul>
+
+            <h3>Why do notifications sometimes arrive late?</h3>
+            <p>This is normal, especially on iOS. Mobile operating systems manage background tasks aggressively to save battery. Notifications might arrive a few minutes late if:</p>
+            <ul>
+                <li>Device is in Low Power Mode</li>
+                <li>Many apps are sending notifications</li>
+                <li>Internet connection is weak</li>
+                <li>Device is under heavy use</li>
+            </ul>
+            <p>Expect delivery within 5-15 minutes of scheduled time. This is an OS limitation, not an app bug.</p>
+
+            <h2>📄 Export</h2>
+
+            <h3>What format is the export?</h3>
+            <p>Aiding Migraine exports data as a <strong>PDF report</strong>, which includes:</p>
+            <ul>
+                <li>Summary of migraine days by month</li>
+                <li>Clinical classification (episodic vs. chronic)</li>
+                <li>Severity distribution breakdown</li>
+                <li>Attack frequency patterns</li>
+                <li>Clinical interpretations and recommendations</li>
+            </ul>
+            <p>The PDF is formatted for easy sharing with healthcare providers.</p>
+
+            <h3>What data is included in the export?</h3>
+            <p>The PDF export includes:</p>
+            <ul>
+                <li>Date range of the report</li>
+                <li>Total migraine days</li>
+                <li>Monthly breakdown</li>
+                <li>Severity percentages</li>
+                <li>Clinical status (episodic/chronic)</li>
+                <li>Key metrics doctors need</li>
+            </ul>
+            <p><strong>Not included:</strong> Individual entry-by-entry details (this keeps the report concise and doctor-friendly).</p>
+
+            <h3>Can I import data from another app?</h3>
+            <p><strong>Not currently.</strong> Aiding Migraine doesn't have a data import feature. If you're switching from another tracker:</p>
+            <ul>
+                <li>Start fresh with Aiding Migraine</li>
+                <li>Keep your old app's export for historical reference</li>
+                <li>Track for 3 months to establish patterns</li>
+            </ul>
+            <p><strong>Future feature:</strong> CSV import is on our roadmap.</p>
+
+            <h3>How do I share my report with my doctor?</h3>
+            <p>After exporting the PDF:</p>
+            <ol>
+                <li><strong>Email:</strong> Send to yourself or your doctor directly</li>
+                <li><strong>Print:</strong> Print from your device and bring to appointment</li>
+                <li><strong>Patient portal:</strong> Upload to your healthcare provider's patient portal</li>
+                <li><strong>Show on device:</strong> Open the PDF during your appointment</li>
+            </ol>
+            <p><strong>Tip:</strong> Export 1-2 days before your appointment so you have time to review it yourself first.</p>
+
+            <h2>🆘 Support</h2>
+
+            <h3>How do I report a bug?</h3>
+            <p>Found something not working right? Report it:</p>
+            <ol>
+                <li><strong>GitHub Issues:</strong> <a href="https://github.com/AidedMarketing/AidingMigraine/issues" target="_blank">Create an issue</a> with details</li>
+                <li><strong>Email:</strong> <a href="mailto:support@aidingmigraine.com">support@aidingmigraine.com</a> with:
+                    <ul style="margin-top: 10px;">
+                        <li>What you were trying to do</li>
+                        <li>What happened instead</li>
+                        <li>Your device and browser</li>
+                        <li>Screenshots if possible</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h3>Can I request a feature?</h3>
+            <p><strong>Yes!</strong> We welcome feature requests:</p>
+            <ul>
+                <li><strong>GitHub:</strong> Open a <a href="https://github.com/AidedMarketing/AidingMigraine/issues" target="_blank">feature request issue</a></li>
+                <li><strong>Email:</strong> <a href="mailto:support@aidingmigraine.com">Send us your ideas</a></li>
+            </ul>
+            <p>We especially value feedback from people who actually live with migraines, since this app is built by and for the migraine community.</p>
+
+            <h3>Is there a user community?</h3>
+            <p>Not yet! We're a small team focused on building the best migraine tracking tool possible. As we grow, we'd love to create:</p>
+            <ul>
+                <li>User forum for sharing tips</li>
+                <li>Discord or Slack community</li>
+                <li>Beta testing group</li>
+            </ul>
+            <p>Interested in being part of this? <a href="mailto:support@aidingmigraine.com">Let us know!</a></p>
+
+            <h3>How do I contact support?</h3>
+            <p>We're here to help:</p>
+            <ul>
+                <li><strong>Email:</strong> <a href="mailto:support@aidingmigraine.com">support@aidingmigraine.com</a></li>
+                <li><strong>GitHub Issues:</strong> <a href="https://github.com/AidedMarketing/AidingMigraine/issues" target="_blank">Report bugs or request features</a></li>
+                <li><strong>Response time:</strong> Usually within 24-48 hours</li>
+            </ul>
+
+            <h2>📱 Updates & Features</h2>
+
+            <h3>How do I update the app?</h3>
+            <p>Aiding Migraine updates automatically! When a new version is available:</p>
+            <ol>
+                <li>You'll see an "Update Available" banner at the top of the app</li>
+                <li>Tap "Update Now"</li>
+                <li>The app will reload with the latest version</li>
+            </ol>
+            <p>Your data is preserved during updates.</p>
+
+            <h3>What features are coming next?</h3>
+            <p>Our roadmap includes:</p>
+            <ul>
+                <li><strong>Cloud sync via Google Drive</strong> (optional, privacy-preserving)</li>
+                <li><strong>Medication tracking improvements</strong></li>
+                <li><strong>Trigger pattern detection</strong></li>
+                <li><strong>Weather integration</strong> (for weather-sensitive migraines)</li>
+                <li><strong>Entry editing</strong> (fix mistakes without deleting)</li>
+                <li><strong>CSV import/export</strong></li>
+            </ul>
+            <p>Priorities can shift based on user feedback!</p>
+
+            <h3>Is this app free?</h3>
+            <p><strong>Yes, completely free.</strong> No subscriptions, no ads, no in-app purchases, no premium tiers. We built Aiding Migraine to help people, not to monetize suffering.</p>
+
+            <h3>Why is it free? What's the catch?</h3>
+            <p><strong>No catch.</strong> This app was built by someone who lives with migraines and was frustrated by existing tracking options. It's a passion project to help the migraine community.</p>
+            <p>The app is open source, meaning the code is publicly available for anyone to review, contribute to, or learn from.</p>
+
+        </main>
+
+        <footer class="help-footer">
+            <p>Didn't find your answer? <a href="mailto:support@aidingmigraine.com">Contact Support</a></p>
+            <p><a href="index.html">← Back to Help Center</a> | <a href="../index.html">Return to App</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Sync theme with main app
+        function syncTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        }
+
+        syncTheme();
+
+        // Listen for theme changes
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'theme') {
+                syncTheme();
+            }
+        });
+    </script>
+</body>
+</html>
