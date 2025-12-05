@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.5.1 - Dark Mode Fixes + Better Update Detection
+// Version 1.6.0 - Documentation System
 
-const CACHE_NAME = 'aiding-migraine-v1.5.1';
+const CACHE_NAME = 'aiding-migraine-v1.6.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -13,7 +13,14 @@ const ASSETS_TO_CACHE = [
     './icons/icon-192x192-maskable.png',
     './icons/icon-384x384.png',
     './icons/icon-512x512.png',
-    './icons/icon-512x512-maskable.png'
+    './icons/icon-512x512-maskable.png',
+    './help/index.html',
+    './help/quick-start.html',
+    './help/notifications-ios.html',
+    './help/analytics.html',
+    './help/faq.html',
+    './help/privacy.html',
+    './help/styles.css'
 ];
 
 // Install event - cache assets
