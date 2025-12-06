@@ -1754,6 +1754,31 @@
                             </div>
                         </div>
 
+                        <!-- Active Attack Check-in -->
+                        <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
+                            <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span>⚡ Active Attack Check-in</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="active-checkin-enabled" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </label>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px;">
+                                Reminder during an ongoing attack to update pain level or end episode
+                            </p>
+                            <div id="active-checkin-settings">
+                                <div>
+                                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Check-in After</label>
+                                    <select id="active-checkin-delay" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;">
+                                        <option value="1">1 hour</option>
+                                        <option value="2" selected>2 hours</option>
+                                        <option value="3">3 hours</option>
+                                        <option value="4">4 hours</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Post-Attack Follow-up -->
                         <div class="settings-group" style="margin-bottom: 20px;">
                             <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
@@ -2168,6 +2193,9 @@
             updateDashboard();
             renderCalendar();
 
+            // Schedule active attack check-in notification
+            scheduleActiveAttackCheckIn(migraine.id);
+
             // Schedule post-attack follow-up notification
             schedulePostAttackFollowUp(migraine.id);
 
@@ -2262,9 +2290,13 @@
                 activeMigraine.duration = Math.floor((new Date(activeMigraine.endTime) - new Date(activeMigraine.startTime)) / 1000);
                 activeMigraine.endWeather = getCurrentWeatherForEntry();
 
+                const completedMigraineId = activeMigraine.id;
                 migraines.push(activeMigraine);
                 activeMigraine = null;
-                
+
+                // Cancel active attack check-in notification (attack has ended)
+                cancelActiveAttackCheckIn(completedMigraineId);
+
                 stopDurationTracking();
                 saveData();
                 checkActiveMigraine();
@@ -4456,6 +4488,10 @@
                 time: '19:00',
                 frequency: 'daily'
             },
+            activeAttackCheckIn: {
+                enabled: true,
+                delayHours: 2
+            },
             postAttackFollowUp: {
                 enabled: true,
                 delayHours: 2
@@ -4476,6 +4512,8 @@
             document.getElementById('daily-checkin-enabled').addEventListener('change', saveNotificationPreferences);
             document.getElementById('daily-checkin-time').addEventListener('change', saveNotificationPreferences);
             document.getElementById('daily-checkin-frequency').addEventListener('change', saveNotificationPreferences);
+            document.getElementById('active-checkin-enabled').addEventListener('change', saveNotificationPreferences);
+            document.getElementById('active-checkin-delay').addEventListener('change', saveNotificationPreferences);
             document.getElementById('followup-enabled').addEventListener('change', saveNotificationPreferences);
             document.getElementById('followup-delay').addEventListener('change', saveNotificationPreferences);
 
@@ -4488,10 +4526,21 @@
             if (stored) {
                 notificationPreferences = JSON.parse(stored);
 
+                // Migrate old preferences (add activeAttackCheckIn if missing)
+                if (!notificationPreferences.activeAttackCheckIn) {
+                    notificationPreferences.activeAttackCheckIn = {
+                        enabled: true,
+                        delayHours: 2
+                    };
+                    localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
+                }
+
                 // Update UI with stored values
                 document.getElementById('daily-checkin-enabled').checked = notificationPreferences.dailyCheckIn.enabled;
                 document.getElementById('daily-checkin-time').value = notificationPreferences.dailyCheckIn.time;
                 document.getElementById('daily-checkin-frequency').value = notificationPreferences.dailyCheckIn.frequency;
+                document.getElementById('active-checkin-enabled').checked = notificationPreferences.activeAttackCheckIn.enabled;
+                document.getElementById('active-checkin-delay').value = notificationPreferences.activeAttackCheckIn.delayHours;
                 document.getElementById('followup-enabled').checked = notificationPreferences.postAttackFollowUp.enabled;
                 document.getElementById('followup-delay').value = notificationPreferences.postAttackFollowUp.delayHours;
             }
@@ -4501,6 +4550,8 @@
             notificationPreferences.dailyCheckIn.enabled = document.getElementById('daily-checkin-enabled').checked;
             notificationPreferences.dailyCheckIn.time = document.getElementById('daily-checkin-time').value;
             notificationPreferences.dailyCheckIn.frequency = document.getElementById('daily-checkin-frequency').value;
+            notificationPreferences.activeAttackCheckIn.enabled = document.getElementById('active-checkin-enabled').checked;
+            notificationPreferences.activeAttackCheckIn.delayHours = parseInt(document.getElementById('active-checkin-delay').value);
             notificationPreferences.postAttackFollowUp.enabled = document.getElementById('followup-enabled').checked;
             notificationPreferences.postAttackFollowUp.delayHours = parseInt(document.getElementById('followup-delay').value);
 
@@ -4866,6 +4917,77 @@
                     }
                 } catch (error) {
                     console.error('Error scheduling follow-up:', error);
+                }
+            }
+        }
+
+        async function scheduleActiveAttackCheckIn(attackId) {
+            if (!notificationPreferences.enabled || !notificationPreferences.activeAttackCheckIn.enabled) {
+                return;
+            }
+
+            const delayMs = notificationPreferences.activeAttackCheckIn.delayHours * 60 * 60 * 1000;
+            const checkInTime = new Date(Date.now() + delayMs);
+
+            // Store scheduled notification locally
+            const scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications') || '[]');
+            scheduledNotifications.push({
+                id: `active-checkin-${attackId}`,
+                attackId: attackId,
+                scheduledTime: checkInTime.toISOString(),
+                type: 'active-attack-checkin'
+            });
+            localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
+
+            console.log(`⚡ Scheduled active attack check-in notification for ${checkInTime.toLocaleString()}`);
+
+            // Send to server if push subscription exists
+            if (notificationPreferences.pushSubscription) {
+                try {
+                    const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
+                    const response = await fetch(`${SERVER_URL}/api/notifications/schedule-active-checkin`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            attackId: attackId,
+                            checkInTime: checkInTime.toISOString(),
+                            subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
+                        })
+                    });
+
+                    if (response.ok) {
+                        console.log('✅ Active attack check-in scheduled on server');
+                    } else {
+                        console.error('Failed to schedule active attack check-in on server');
+                    }
+                } catch (error) {
+                    console.error('Error scheduling active attack check-in:', error);
+                }
+            }
+        }
+
+        function cancelActiveAttackCheckIn(attackId) {
+            // Remove from local scheduled notifications
+            let scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications') || '[]');
+            scheduledNotifications = scheduledNotifications.filter(n => n.id !== `active-checkin-${attackId}`);
+            localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
+
+            console.log(`🚫 Canceled active attack check-in notification for attack ${attackId}`);
+
+            // Cancel on server if push subscription exists
+            if (notificationPreferences.pushSubscription) {
+                try {
+                    const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
+                    fetch(`${SERVER_URL}/api/notifications/cancel-active-checkin`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            attackId: attackId,
+                            subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
+                        })
+                    }).catch(error => console.error('Error canceling active attack check-in on server:', error));
+                } catch (error) {
+                    console.error('Error canceling active attack check-in:', error);
                 }
             }
         }
