@@ -281,6 +281,89 @@
             margin-top: 4px;
         }
 
+        /* Weather Display on Log Screen */
+        .weather-info-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .weather-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .weather-icon {
+            font-size: 1.2rem;
+        }
+
+        .weather-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .weather-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .weather-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .weather-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .weather-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .weather-unit {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .weather-trend {
+            font-size: 1.1rem;
+            margin-left: 4px;
+        }
+
+        .weather-alert {
+            background: rgba(123, 166, 138, 0.15);
+            border: 1px solid var(--accent-green);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+
+        .alert-icon {
+            font-size: 1rem;
+        }
+
+        .alert-text {
+            flex: 1;
+        }
+
         .optional-details {
             margin: 20px 0;
         }
@@ -415,6 +498,64 @@
             gap: 16px;
             margin-bottom: 20px;
             margin-top: 16px;
+        }
+
+        /* Weather Correlation Styles */
+        .correlation-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .correlation-stat {
+            text-align: center;
+            padding: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .correlation-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .correlation-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin-bottom: 4px;
+        }
+
+        .correlation-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .correlation-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .detail-row span {
+            color: var(--text-secondary);
+        }
+
+        .detail-row strong {
+            color: var(--text-primary);
         }
 
         /* Compact monthly stats for calendar */
@@ -600,6 +741,15 @@
             top: 2px;
             right: 2px;
             font-size: 0.7rem;
+        }
+
+        .pressure-indicator {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            opacity: 0.8;
         }
 
         .calendar-legend {
@@ -1211,7 +1361,37 @@
             <div id="logging-section">
                 <div class="section-card">
                     <h2>Log New Episode</h2>
-                    
+
+                    <!-- Weather Information (if enabled) -->
+                    <div id="log-weather-display" style="display: none;">
+                        <div class="weather-info-card">
+                            <div class="weather-header">
+                                <span class="weather-icon">☁️</span>
+                                <span class="weather-title">Current Conditions</span>
+                            </div>
+                            <div class="weather-stats">
+                                <div class="weather-stat">
+                                    <span class="weather-label">Pressure</span>
+                                    <div>
+                                        <span id="log-current-pressure" class="weather-value">--</span>
+                                        <span class="weather-unit">hPa</span>
+                                    </div>
+                                </div>
+                                <div class="weather-stat">
+                                    <span class="weather-label">24h Change</span>
+                                    <div>
+                                        <span id="log-pressure-change" class="weather-value">--</span>
+                                        <span id="log-pressure-trend" class="weather-trend"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="log-pressure-alert" class="weather-alert" style="display: none;">
+                                <span class="alert-icon">⚠️</span>
+                                <span class="alert-text">Significant pressure change detected (>5 hPa in 24h)</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label>Pain Intensity</label>
                         <div class="pain-scale">
@@ -1380,6 +1560,51 @@
                 <h2>Day of Week Patterns</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Which days have the most migraines</p>
                 <canvas id="dow-chart"></canvas>
+            </div>
+
+            <!-- Weather Correlation (if enabled) -->
+            <div id="weather-correlation-card" class="section-card" style="display: none;">
+                <h2>☁️ Weather Correlation</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Relationship between barometric pressure changes and migraines</p>
+
+                <div class="correlation-summary">
+                    <div class="correlation-stat">
+                        <div class="correlation-label">Correlation Strength</div>
+                        <div id="correlation-strength" class="correlation-value">-</div>
+                        <div id="correlation-description" class="correlation-desc">-</div>
+                    </div>
+                    <div class="correlation-details">
+                        <div class="detail-row">
+                            <span>Significant pressure changes:</span>
+                            <strong id="correlation-changes">-</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Migraines on change days:</span>
+                            <strong id="correlation-migraines">-</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Correlation percentage:</span>
+                            <strong id="correlation-percent">-</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box" style="margin-top: 16px; font-size: 0.9rem;">
+                    <strong>Understanding correlation:</strong> "Significant pressure change" = >5 hPa change in 24 hours (research-backed threshold).
+                    <strong>Strong correlation (≥70%)</strong> suggests high weather sensitivity.
+                    <strong>Moderate (40-70%)</strong> suggests possible sensitivity.
+                    <strong>Weak (<40%)</strong> suggests low weather sensitivity.
+                </div>
+            </div>
+
+            <!-- Pressure Trend Chart (if enabled) -->
+            <div id="pressure-chart-card" class="section-card" style="display: none;">
+                <h2>Barometric Pressure Trends</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Pressure changes and migraine occurrences</p>
+                <canvas id="pressure-chart"></canvas>
+                <div style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
+                    Red vertical bars indicate migraine days • Dotted line shows clinical threshold (±5 hPa change)
+                </div>
             </div>
         </div>
 
@@ -1565,6 +1790,107 @@
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>☁️ Weather Tracking (Optional)</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.95rem;">
+                    Track barometric pressure to identify weather-related migraine patterns.
+                    Research shows ~15-20% of migraine sufferers are sensitive to pressure changes.
+                </p>
+
+                <!-- Weather Tracking Toggle -->
+                <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <span style="font-weight: 500;">Enable Weather Tracking</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="weather-tracking-enabled">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </label>
+
+                <!-- Weather Settings (shown when enabled) -->
+                <div id="weather-settings" style="display: none;">
+                    <!-- Location Entry -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">📍 Your Location</label>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 10px;">
+                            Enter your ZIP/postal code or city name to fetch local weather data.
+                        </p>
+                        <div style="display: flex; gap: 10px;">
+                            <input
+                                type="text"
+                                id="weather-location-input"
+                                placeholder="e.g., 10001 or New York, NY"
+                                style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;"
+                            >
+                            <button
+                                id="weather-location-save"
+                                class="btn btn-primary"
+                                style="padding: 12px 20px; white-space: nowrap;"
+                            >
+                                Save
+                            </button>
+                        </div>
+                        <div id="weather-location-status" style="margin-top: 8px; font-size: 0.85rem;"></div>
+                    </div>
+
+                    <!-- Current Weather Display -->
+                    <div id="weather-current-display" style="display: none; background: var(--bg-tertiary); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">Current Location</div>
+                                <div id="weather-location-display" style="font-weight: 500; margin-top: 4px;">-</div>
+                            </div>
+                            <button id="weather-refresh-btn" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 12px;">
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">Barometric Pressure</div>
+                            <div style="font-size: 1.8rem; font-weight: 600; color: var(--accent-green);" id="weather-current-pressure">
+                                -
+                            </div>
+                            <div style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;" id="weather-pressure-change">
+                                -
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-secondary);" id="weather-last-updated">
+                            Last updated: Never
+                        </div>
+                    </div>
+
+                    <!-- Privacy Notice -->
+                    <div class="info-box" style="margin-bottom: 16px; background: var(--bg-tertiary); border-left: 4px solid var(--accent-blue); padding: 12px 16px; border-radius: 0 8px 8px 0;">
+                        <div style="display: flex; align-items: start; gap: 10px;">
+                            <span style="font-size: 1.2rem;">🔒</span>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                                <strong style="color: var(--text-primary);">Privacy First:</strong> Your location stays on your device.
+                                We never send it to our servers. Weather data is fetched directly from a free public API.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- How It Works -->
+                    <details style="margin-bottom: 16px; background: var(--bg-tertiary); padding: 12px 16px; border-radius: 8px;">
+                        <summary style="cursor: pointer; font-weight: 500; color: var(--text-primary);">
+                            ℹ️ How does this work?
+                        </summary>
+                        <div style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+                            <p style="margin-bottom: 8px;">
+                                When enabled, the app fetches barometric pressure data from Open-Meteo
+                                (a free, privacy-friendly weather API) twice per day.
+                            </p>
+                            <p style="margin-bottom: 8px;">
+                                <strong>Clinical threshold:</strong> Pressure changes >5 hPa (millibars) in 24 hours
+                                are considered significant based on migraine research.
+                            </p>
+                            <p>
+                                The app analyzes your migraine patterns alongside pressure data to help identify
+                                if weather is a trigger for you. This information can be valuable for your doctor.
+                            </p>
+                        </div>
+                    </details>
                 </div>
             </div>
 
@@ -1772,6 +2098,7 @@
                 updateStorageInfo();
             } else if (pageName === 'log') {
                 renderCalendar();
+                updateLogWeatherDisplay();
             } else if (pageName === 'analytics') {
                 initializeAnalytics();
             }
@@ -1829,6 +2156,7 @@
                 status: 'active',
                 notes: notes,
                 medication: medication || null,
+                weather: getCurrentWeatherForEntry(),
                 category: getPainCategory(selectedPain)
             };
 
@@ -1927,12 +2255,13 @@
             
             document.getElementById('confirm-end').addEventListener('click', () => {
                 const endNotes = document.getElementById('end-notes').value.trim();
-                
+
                 activeMigraine.endTime = new Date().toISOString();
                 activeMigraine.status = 'completed';
                 activeMigraine.endNotes = endNotes;
                 activeMigraine.duration = Math.floor((new Date(activeMigraine.endTime) - new Date(activeMigraine.startTime)) / 1000);
-                
+                activeMigraine.endWeather = getCurrentWeatherForEntry();
+
                 migraines.push(activeMigraine);
                 activeMigraine = null;
                 
@@ -2610,8 +2939,39 @@
                         classes += ' active-indicator';
                     }
                 }
-                
-                html += `<div class="${classes}" onclick="showDayDetails('${dateStr}')">${day}</div>`;
+
+                // Add pressure indicator if weather tracking enabled
+                let pressureIndicator = '';
+                if (weatherData.enabled && weatherData.history.length > 0) {
+                    const weatherEntry = weatherData.history.find(w => w.date.startsWith(dateStr));
+                    if (weatherEntry) {
+                        // Find previous day to calculate change
+                        const prevDate = new Date(date);
+                        prevDate.setDate(prevDate.getDate() - 1);
+                        const prevDateStr = prevDate.toISOString().split('T')[0];
+                        const prevEntry = weatherData.history.find(w => w.date.startsWith(prevDateStr));
+
+                        if (prevEntry) {
+                            const change = weatherEntry.pressure - prevEntry.pressure;
+                            let icon = '→';
+                            let color = 'var(--text-secondary)';
+
+                            if (change > 5) {
+                                icon = '↑';
+                                color = 'var(--accent-green)';
+                            } else if (change < -5) {
+                                icon = '↓';
+                                color = 'var(--pain-moderate)';
+                            }
+
+                            pressureIndicator = `<span class="pressure-indicator" style="color: ${color}">${icon}</span>`;
+                        }
+                    }
+                }
+
+                html += `<div class="${classes}" onclick="showDayDetails('${dateStr}')">
+                    ${day}${pressureIndicator}
+                </div>`;
             }
             
             document.getElementById('calendar-grid').innerHTML = html;
@@ -2639,12 +2999,40 @@
 
             const date = new Date(dateStr + 'T00:00:00');
 
+            // Check for weather data on this day
+            let weatherContent = '';
+            if (weatherData.enabled && weatherData.history.length > 0) {
+                const weatherEntry = weatherData.history.find(w => w.date.startsWith(dateStr));
+                if (weatherEntry) {
+                    const prevDate = new Date(date);
+                    prevDate.setDate(prevDate.getDate() - 1);
+                    const prevDateStr = prevDate.toISOString().split('T')[0];
+                    const prevEntry = weatherData.history.find(w => w.date.startsWith(prevDateStr));
+
+                    if (prevEntry) {
+                        const change = weatherEntry.pressure - prevEntry.pressure;
+                        const changeText = change > 0 ? `+${change.toFixed(1)}` : change.toFixed(1);
+                        const trend = change > 5 ? '↑ Rising' : change < -5 ? '↓ Falling' : '→ Stable';
+
+                        weatherContent = `
+                            <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green);">
+                                <p><strong>☁️ Weather Conditions</strong></p>
+                                <p>Pressure: ${weatherEntry.pressure.toFixed(1)} hPa</p>
+                                <p>24h Change: ${changeText} hPa (${trend})</p>
+                                ${Math.abs(change) > 5 ? `<p style="color: var(--pain-moderate); margin-top: 4px;">⚠️ Significant pressure change</p>` : ''}
+                            </div>
+                        `;
+                    }
+                }
+            }
+
             if (startedToday.length === 0 && ongoingToday.length === 0) {
-                showModal(formatDate(date), '<p>No episodes logged on this day.</p>');
+                const noEpisodeContent = weatherContent || '<p>No episodes logged on this day.</p>';
+                showModal(formatDate(date), noEpisodeContent);
                 return;
             }
 
-            let content = '';
+            let content = weatherContent;
 
             if (startedToday.length > 0) {
                 content += startedToday.map(m => `
@@ -3502,6 +3890,43 @@
             yPos += 5;
             doc.text(`Range: ${formatDuration(minDuration)} - ${formatDuration(maxDuration)}`, 20, yPos);
             yPos += 15;
+
+            // Weather Correlation (if enabled)
+            if (weatherData.enabled && weatherData.history.length >= 7) {
+                const correlation = calculateWeatherCorrelation();
+
+                if (correlation) {
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('☁️ Weather Sensitivity Analysis', 20, yPos);
+                    yPos += 6;
+                    doc.setFont(undefined, 'normal');
+
+                    const strengthText = correlation.level === 'strong' ? 'Strong Correlation' :
+                                       correlation.level === 'moderate' ? 'Moderate Correlation' :
+                                       'Weak Correlation';
+
+                    doc.text(`Barometric Pressure Correlation: ${correlation.percentage.toFixed(0)}% (${strengthText})`, 20, yPos);
+                    yPos += 5;
+                    doc.text(`Significant Pressure Changes: ${correlation.significantChangeDays} days (>5 hPa in 24h)`, 20, yPos);
+                    yPos += 5;
+                    doc.text(`Migraines on Change Days: ${correlation.migrainesOnChangeDays} days`, 20, yPos);
+                    yPos += 5;
+
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'italic');
+                    let clinicalNote = '';
+                    if (correlation.level === 'strong') {
+                        clinicalNote = 'Clinical note: Strong weather sensitivity detected. Consider preventive measures before significant pressure changes.';
+                    } else if (correlation.level === 'moderate') {
+                        clinicalNote = 'Clinical note: Moderate weather sensitivity. May benefit from monitoring pressure changes.';
+                    } else {
+                        clinicalNote = 'Clinical note: Low weather correlation. Other triggers may be more significant.';
+                    }
+                    doc.text(clinicalNote, 20, yPos);
+                    yPos += 10;
+                }
+            }
 
             // Episode Details
             doc.setFontSize(14);
@@ -4446,6 +4871,437 @@
         }
 
         // ============================================
+        // WEATHER TRACKING SYSTEM
+        // ============================================
+
+        // Weather data structure (stored in localStorage)
+        let weatherData = {
+            enabled: false,
+            location: {
+                query: '',      // User's input (ZIP or city)
+                city: '',       // Resolved city name
+                lat: null,      // Latitude
+                lon: null       // Longitude
+            },
+            current: {
+                pressure: null,     // Current pressure in hPa
+                temperature: null,  // Temperature in °C
+                timestamp: null     // When fetched
+            },
+            forecast: [],           // 24-hour forecast
+            history: [],            // 30 days of pressure readings
+            lastFetch: null         // Last API call timestamp
+        };
+
+        // Initialize weather tracking
+        function initWeatherTracking() {
+            // Load saved weather data
+            const saved = localStorage.getItem('weatherData');
+            if (saved) {
+                try {
+                    weatherData = JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error loading weather data:', e);
+                }
+            }
+
+            // Set up UI
+            const enableToggle = document.getElementById('weather-tracking-enabled');
+            const weatherSettings = document.getElementById('weather-settings');
+
+            if (enableToggle) {
+                enableToggle.checked = weatherData.enabled;
+                weatherSettings.style.display = weatherData.enabled ? 'block' : 'none';
+
+                enableToggle.addEventListener('change', () => {
+                    weatherData.enabled = enableToggle.checked;
+                    weatherSettings.style.display = weatherData.enabled ? 'block' : 'none';
+                    saveWeatherData();
+
+                    if (weatherData.enabled && weatherData.location.lat) {
+                        // Fetch weather immediately when enabled
+                        fetchWeatherData();
+                    }
+                });
+            }
+
+            // Load current location if exists
+            if (weatherData.location.query) {
+                document.getElementById('weather-location-input').value = weatherData.location.query;
+                displayCurrentWeather();
+            }
+
+            // Location save button
+            document.getElementById('weather-location-save')?.addEventListener('click', saveWeatherLocation);
+
+            // Refresh button
+            document.getElementById('weather-refresh-btn')?.addEventListener('click', () => {
+                fetchWeatherData(true);
+            });
+
+            // Auto-refresh weather data if enabled and stale (>6 hours old)
+            if (weatherData.enabled && weatherData.location.lat) {
+                const sixHoursAgo = Date.now() - (6 * 60 * 60 * 1000);
+                if (!weatherData.lastFetch || weatherData.lastFetch < sixHoursAgo) {
+                    fetchWeatherData();
+                }
+            }
+        }
+
+        // Save weather data to localStorage
+        function saveWeatherData() {
+            localStorage.setItem('weatherData', JSON.stringify(weatherData));
+        }
+
+        // Save weather location (geocode and fetch weather)
+        async function saveWeatherLocation() {
+            const input = document.getElementById('weather-location-input').value.trim();
+            const statusDiv = document.getElementById('weather-location-status');
+
+            if (!input) {
+                statusDiv.innerHTML = '<span style="color: var(--accent-red);">Please enter a location</span>';
+                return;
+            }
+
+            statusDiv.innerHTML = '<span style="color: var(--accent-blue);">🔍 Looking up location...</span>';
+
+            try {
+                // Use Open-Meteo geocoding API (free, no key needed)
+                const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(input)}&count=1&language=en&format=json`;
+
+                const response = await fetch(geocodeUrl);
+                const data = await response.json();
+
+                if (!data.results || data.results.length === 0) {
+                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">❌ Location not found. Try a different format (e.g., "New York" or "10001")</span>';
+                    return;
+                }
+
+                const result = data.results[0];
+
+                // Save location data
+                weatherData.location = {
+                    query: input,
+                    city: `${result.name}${result.admin1 ? ', ' + result.admin1 : ''}${result.country ? ', ' + result.country : ''}`,
+                    lat: result.latitude,
+                    lon: result.longitude
+                };
+
+                saveWeatherData();
+
+                statusDiv.innerHTML = `<span style="color: var(--accent-green);">✅ Location saved: ${weatherData.location.city}</span>`;
+
+                // Fetch weather for this location
+                await fetchWeatherData();
+
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                statusDiv.innerHTML = '<span style="color: var(--accent-red);">❌ Error looking up location. Please try again.</span>';
+            }
+        }
+
+        // Fetch weather data from Open-Meteo
+        async function fetchWeatherData(forced = false) {
+            if (!weatherData.location.lat || !weatherData.location.lon) {
+                console.log('No location set for weather fetch');
+                return;
+            }
+
+            // Don't fetch if we fetched recently (unless forced)
+            if (!forced && weatherData.lastFetch) {
+                const oneHourAgo = Date.now() - (60 * 60 * 1000);
+                if (weatherData.lastFetch > oneHourAgo) {
+                    console.log('Weather data is recent, skipping fetch');
+                    displayCurrentWeather();
+                    return;
+                }
+            }
+
+            try {
+                // Open-Meteo API - Free, no key required
+                // Get current + 24h forecast of surface pressure
+                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${weatherData.location.lat}&longitude=${weatherData.location.lon}&current=surface_pressure,temperature_2m&hourly=surface_pressure&timezone=auto&forecast_days=2`;
+
+                const response = await fetch(weatherUrl);
+                const data = await response.json();
+
+                if (!data.current || !data.hourly) {
+                    throw new Error('Invalid weather data received');
+                }
+
+                // Store current weather
+                weatherData.current = {
+                    pressure: Math.round(data.current.surface_pressure * 10) / 10, // hPa, 1 decimal
+                    temperature: Math.round(data.current.temperature_2m * 10) / 10,
+                    timestamp: Date.now()
+                };
+
+                // Store 24-hour forecast
+                weatherData.forecast = data.hourly.time.slice(0, 24).map((time, i) => ({
+                    time: time,
+                    pressure: Math.round(data.hourly.surface_pressure[i] * 10) / 10
+                }));
+
+                // Add to history (keep last 30 days)
+                const today = new Date().toISOString().split('T')[0];
+                const historyEntry = {
+                    date: today,
+                    pressure: weatherData.current.pressure,
+                    hadMigraine: false // Will be updated when migraine is logged
+                };
+
+                // Update or add today's entry
+                const existingIndex = weatherData.history.findIndex(h => h.date === today);
+                if (existingIndex >= 0) {
+                    weatherData.history[existingIndex].pressure = weatherData.current.pressure;
+                } else {
+                    weatherData.history.push(historyEntry);
+                }
+
+                // Keep only last 30 days
+                weatherData.history = weatherData.history
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 30);
+
+                weatherData.lastFetch = Date.now();
+                saveWeatherData();
+
+                displayCurrentWeather();
+
+                console.log('✅ Weather data updated:', weatherData.current.pressure, 'hPa');
+
+            } catch (error) {
+                console.error('Weather fetch error:', error);
+                const statusDiv = document.getElementById('weather-location-status');
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">❌ Error fetching weather data. Please try again later.</span>';
+                }
+            }
+        }
+
+        // Display current weather in settings
+        function displayCurrentWeather() {
+            const displayDiv = document.getElementById('weather-current-display');
+            const locationSpan = document.getElementById('weather-location-display');
+            const pressureSpan = document.getElementById('weather-current-pressure');
+            const changeSpan = document.getElementById('weather-pressure-change');
+            const updatedSpan = document.getElementById('weather-last-updated');
+
+            if (!weatherData.location.city || !weatherData.current.pressure) {
+                displayDiv.style.display = 'none';
+                return;
+            }
+
+            displayDiv.style.display = 'block';
+            locationSpan.textContent = weatherData.location.city;
+            pressureSpan.textContent = `${weatherData.current.pressure} hPa`;
+
+            // Calculate 24h pressure change
+            const change24h = getPressureChange24h();
+            if (change24h !== null) {
+                const changeText = change24h > 0 ? `↑ ${change24h} hPa` : `↓ ${Math.abs(change24h)} hPa`;
+                const changeColor = Math.abs(change24h) > 5 ? 'var(--accent-red)' : 'var(--text-secondary)';
+                changeSpan.innerHTML = `<span style="color: ${changeColor}">24h change: ${changeText}${Math.abs(change24h) > 5 ? ' (significant)' : ''}</span>`;
+            } else {
+                changeSpan.textContent = '24h change: Not enough data';
+            }
+
+            // Last updated
+            if (weatherData.current.timestamp) {
+                const lastUpdate = new Date(weatherData.current.timestamp);
+                const now = new Date();
+                const diffMinutes = Math.floor((now - lastUpdate) / 60000);
+
+                let timeAgo;
+                if (diffMinutes < 1) {
+                    timeAgo = 'Just now';
+                } else if (diffMinutes < 60) {
+                    timeAgo = `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+                } else {
+                    const diffHours = Math.floor(diffMinutes / 60);
+                    timeAgo = `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+                }
+
+                updatedSpan.textContent = `Last updated: ${timeAgo}`;
+            }
+        }
+
+        // Get 24-hour pressure change
+        function getPressureChange24h() {
+            if (!weatherData.current.pressure || weatherData.history.length < 2) {
+                return null;
+            }
+
+            // Find yesterday's pressure
+            const today = new Date().toISOString().split('T')[0];
+            const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+            const yesterdayData = weatherData.history.find(h => h.date === yesterday);
+            if (!yesterdayData) {
+                return null;
+            }
+
+            const change = weatherData.current.pressure - yesterdayData.pressure;
+            return Math.round(change * 10) / 10; // 1 decimal place
+        }
+
+        // Get pressure trend description
+        function getPressureTrend() {
+            const change24h = getPressureChange24h();
+            if (change24h === null) {
+                return { text: 'Unknown', icon: '?' };
+            }
+
+            if (change24h > 5) {
+                return { text: 'Rising rapidly', icon: '↑', significant: true };
+            } else if (change24h > 2) {
+                return { text: 'Rising', icon: '↑', significant: false };
+            } else if (change24h > -2) {
+                return { text: 'Stable', icon: '→', significant: false };
+            } else if (change24h > -5) {
+                return { text: 'Falling', icon: '↓', significant: false };
+            } else {
+                return { text: 'Falling rapidly', icon: '↓', significant: true };
+            }
+        }
+
+        // Get current weather for migraine entry
+        function getCurrentWeatherForEntry() {
+            if (!weatherData.enabled || !weatherData.current.pressure) {
+                return null;
+            }
+
+            return {
+                pressure: weatherData.current.pressure,
+                change24h: getPressureChange24h(),
+                trend: getPressureTrend(),
+                timestamp: weatherData.current.timestamp
+            };
+        }
+
+        // Update weather display on log screen
+        function updateLogWeatherDisplay() {
+            const displayEl = document.getElementById('log-weather-display');
+
+            if (!weatherData.enabled || !weatherData.current.pressure) {
+                displayEl.style.display = 'none';
+                return;
+            }
+
+            // Show weather section
+            displayEl.style.display = 'block';
+
+            // Update current pressure
+            document.getElementById('log-current-pressure').textContent = weatherData.current.pressure.toFixed(1);
+
+            // Update 24h change
+            const change24h = getPressureChange24h();
+            const trend = getPressureTrend();
+
+            if (change24h !== null) {
+                const changeEl = document.getElementById('log-pressure-change');
+                const trendEl = document.getElementById('log-pressure-trend');
+
+                // Format change with + or - sign
+                const changeText = change24h > 0 ? `+${change24h.toFixed(1)}` : change24h.toFixed(1);
+                changeEl.textContent = changeText;
+                trendEl.textContent = trend.icon;
+
+                // Show alert if significant change (>5 hPa or <-5 hPa)
+                const alertEl = document.getElementById('log-pressure-alert');
+                if (trend.significant) {
+                    alertEl.style.display = 'flex';
+                } else {
+                    alertEl.style.display = 'none';
+                }
+            } else {
+                document.getElementById('log-pressure-change').textContent = '--';
+                document.getElementById('log-pressure-trend').textContent = '';
+                document.getElementById('log-pressure-alert').style.display = 'none';
+            }
+        }
+
+        // Calculate weather correlation for analytics
+        function calculateWeatherCorrelation() {
+            if (!weatherData.enabled || weatherData.history.length < 7) {
+                return null;
+            }
+
+            const migraines = getActiveMigraines();
+
+            // Count migraines during significant pressure changes
+            let significantChangeDays = 0;
+            let migrainesOnChangeDays = 0;
+            let totalMigraineDays = 0;
+
+            weatherData.history.forEach((day, index) => {
+                if (index === weatherData.history.length - 1) return; // Skip oldest (no previous day)
+
+                const nextDay = weatherData.history[index + 1];
+                const pressureChange = Math.abs(day.pressure - nextDay.pressure);
+
+                // Clinical threshold: >5 hPa change is significant
+                if (pressureChange > 5) {
+                    significantChangeDays++;
+
+                    // Check if user had migraine on this day
+                    const hadMigraine = migraines.some(m => {
+                        const migraineDate = new Date(m.startTime).toISOString().split('T')[0];
+                        return migraineDate === day.date;
+                    });
+
+                    if (hadMigraine) {
+                        migrainesOnChangeDays++;
+                    }
+                }
+
+                // Count total migraine days in tracked period
+                const dayHadMigraine = migraines.some(m => {
+                    const migraineDate = new Date(m.startTime).toISOString().split('T')[0];
+                    return migraineDate === day.date;
+                });
+
+                if (dayHadMigraine) {
+                    totalMigraineDays++;
+                }
+            });
+
+            if (significantChangeDays === 0) {
+                return {
+                    correlation: 0,
+                    significantChangeDays: 0,
+                    migrainesOnChangeDays: 0,
+                    correlationLevel: 'insufficient',
+                    message: 'Not enough significant pressure changes recorded yet.'
+                };
+            }
+
+            // Calculate correlation percentage
+            const correlationPercent = Math.round((migrainesOnChangeDays / significantChangeDays) * 100);
+
+            let correlationLevel, message;
+            if (correlationPercent >= 70) {
+                correlationLevel = 'strong';
+                message = 'Strong correlation detected. Pressure changes appear to be a significant trigger for you.';
+            } else if (correlationPercent >= 40) {
+                correlationLevel = 'moderate';
+                message = 'Moderate correlation. Pressure changes may affect your migraines.';
+            } else {
+                correlationLevel = 'weak';
+                message = 'Low correlation. Pressure changes don\'t appear to be a major trigger for you.';
+            }
+
+            return {
+                correlation: correlationPercent,
+                significantChangeDays: significantChangeDays,
+                migrainesOnChangeDays: migrainesOnChangeDays,
+                totalMigraineDays: totalMigraineDays,
+                correlationLevel: correlationLevel,
+                message: message
+            };
+        }
+
+        // ============================================
         // ANALYTICS SYSTEM
         // ============================================
 
@@ -4453,7 +5309,8 @@
             frequency: null,
             pain: null,
             time: null,
-            dow: null
+            dow: null,
+            pressure: null
         };
 
         // Get theme-aware colors for charts
@@ -4533,6 +5390,16 @@
             renderPainChart(filteredData);
             renderTimeChart(filteredData);
             renderDayOfWeekChart(filteredData);
+
+            // Render weather-related analytics if enabled
+            if (weatherData.enabled && weatherData.history.length >= 7) {
+                renderWeatherCorrelation(filteredData);
+                renderPressureChart(filteredData, startDate, endDate);
+            } else {
+                // Hide weather analytics if not enabled or insufficient data
+                document.getElementById('weather-correlation-card').style.display = 'none';
+                document.getElementById('pressure-chart-card').style.display = 'none';
+            }
         }
 
         function updateAnalyticsMetrics(data, startDate, endDate) {
@@ -4839,6 +5706,232 @@
                             },
                             grid: {
                                 color: colors.grid
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderWeatherCorrelation(data) {
+            const correlationCard = document.getElementById('weather-correlation-card');
+
+            if (!weatherData.enabled || weatherData.history.length < 7) {
+                correlationCard.style.display = 'none';
+                return;
+            }
+
+            correlationCard.style.display = 'block';
+
+            // Calculate correlation using existing function
+            const correlation = calculateWeatherCorrelation();
+
+            if (!correlation) {
+                correlationCard.style.display = 'none';
+                return;
+            }
+
+            // Update UI with correlation data
+            document.getElementById('correlation-strength').textContent =
+                `${correlation.percentage.toFixed(0)}%`;
+
+            let strengthText = '';
+            let strengthColor = '';
+
+            if (correlation.level === 'strong') {
+                strengthText = 'Strong Correlation';
+                strengthColor = 'var(--pain-severe)';
+            } else if (correlation.level === 'moderate') {
+                strengthText = 'Moderate Correlation';
+                strengthColor = 'var(--pain-moderate)';
+            } else {
+                strengthText = 'Weak Correlation';
+                strengthColor = 'var(--pain-mild)';
+            }
+
+            document.getElementById('correlation-description').textContent = strengthText;
+            document.getElementById('correlation-strength').style.color = strengthColor;
+
+            document.getElementById('correlation-changes').textContent =
+                `${correlation.significantChangeDays} days`;
+            document.getElementById('correlation-migraines').textContent =
+                `${correlation.migrainesOnChangeDays} days`;
+            document.getElementById('correlation-percent').textContent =
+                `${correlation.percentage.toFixed(1)}%`;
+        }
+
+        function renderPressureChart(data, startDate, endDate) {
+            const chartCard = document.getElementById('pressure-chart-card');
+
+            if (!weatherData.enabled || weatherData.history.length < 7) {
+                chartCard.style.display = 'none';
+                return;
+            }
+
+            chartCard.style.display = 'block';
+
+            const canvas = document.getElementById('pressure-chart');
+            const ctx = canvas.getContext('2d');
+
+            if (analyticsCharts.pressure) {
+                analyticsCharts.pressure.destroy();
+            }
+
+            // Prepare data: last 30 days of weather history
+            const days = 30;
+            const labels = [];
+            const pressureData = [];
+            const changeData = [];
+            const migraineIndicators = [];
+
+            // Get migraine days in the period
+            const migraineDays = new Set();
+            data.forEach(m => {
+                const days = getMigraineDays(m);
+                days.forEach(day => migraineDays.add(day));
+            });
+
+            // Build chart data from weather history
+            const sortedHistory = [...weatherData.history].sort((a, b) =>
+                new Date(a.date) - new Date(b.date)
+            ).slice(-days);
+
+            sortedHistory.forEach((entry, index) => {
+                const date = new Date(entry.date);
+                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                pressureData.push(entry.pressure);
+
+                // Calculate 24h change
+                if (index > 0) {
+                    const change = entry.pressure - sortedHistory[index - 1].pressure;
+                    changeData.push(change);
+                } else {
+                    changeData.push(0);
+                }
+
+                // Check if there was a migraine this day
+                const dateKey = entry.date.split('T')[0];
+                migraineIndicators.push(migraineDays.has(dateKey) ? entry.pressure : null);
+            });
+
+            const colors = getChartColors();
+
+            analyticsCharts.pressure = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Barometric Pressure (hPa)',
+                            data: pressureData,
+                            borderColor: colors.blue,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointBackgroundColor: colors.blue,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '24h Change',
+                            data: changeData,
+                            borderColor: colors.orange,
+                            backgroundColor: 'transparent',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Migraine Days',
+                            data: migraineIndicators,
+                            type: 'bar',
+                            backgroundColor: 'rgba(255, 99, 132, 0.3)',
+                            borderColor: 'rgba(255, 99, 132, 0.7)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: colors.textSecondary,
+                                boxWidth: 20,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        if (context.datasetIndex === 0) {
+                                            label += context.parsed.y.toFixed(1) + ' hPa';
+                                        } else if (context.datasetIndex === 1) {
+                                            label += (context.parsed.y > 0 ? '+' : '') +
+                                                     context.parsed.y.toFixed(1) + ' hPa';
+                                        } else {
+                                            label = 'Migraine occurred';
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: colors.textSecondary,
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: {
+                                color: colors.grid
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Pressure (hPa)',
+                                color: colors.textSecondary
+                            },
+                            ticks: {
+                                color: colors.textSecondary
+                            },
+                            grid: {
+                                color: colors.grid
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '24h Change (hPa)',
+                                color: colors.textSecondary
+                            },
+                            ticks: {
+                                color: colors.textSecondary
+                            },
+                            grid: {
+                                drawOnChartArea: false
                             }
                         }
                     }

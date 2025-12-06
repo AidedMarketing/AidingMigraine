@@ -358,6 +358,52 @@
             </ul>
             <p>You can switch to light mode if preferred - the app follows your system's color scheme setting.</p>
 
+            <h2>☁️ Weather Tracking</h2>
+
+            <h3>What is weather tracking?</h3>
+            <p><strong>Barometric pressure tracking (optional feature).</strong> Research shows that 15-20% of migraine sufferers are sensitive to atmospheric pressure changes. Aiding Migraine can track local pressure and correlate it with your migraine patterns.</p>
+
+            <h3>How do I enable weather tracking?</h3>
+            <p>Go to <strong>Settings → Weather Tracking</strong>:</p>
+            <ol>
+                <li>Toggle on "Enable Weather Tracking"</li>
+                <li>Enter your location (ZIP code or city name)</li>
+                <li>Tap "Save"</li>
+            </ol>
+            <p>The app will display current pressure conditions when you log migraines and show weather correlation in Analytics.</p>
+
+            <h3>What does "significant pressure change" mean?</h3>
+            <p><strong>Changes greater than 5 hPa (hectopascals) in 24 hours.</strong> This threshold is based on migraine research and is considered clinically significant for pressure-sensitive individuals.</p>
+            <ul>
+                <li><strong>Rising rapidly (↑):</strong> Pressure increased >5 hPa in 24 hours</li>
+                <li><strong>Falling rapidly (↓):</strong> Pressure decreased >5 hPa in 24 hours</li>
+                <li><strong>Stable (→):</strong> Pressure change within ±2 hPa</li>
+            </ul>
+
+            <h3>How do I interpret the weather correlation?</h3>
+            <p>The Analytics page shows your personal weather correlation:</p>
+            <ul>
+                <li><strong>Strong (≥70%):</strong> High weather sensitivity - most significant pressure changes coincide with migraines</li>
+                <li><strong>Moderate (40-70%):</strong> Possible weather sensitivity - worth monitoring</li>
+                <li><strong>Weak (<40%):</strong> Low weather sensitivity - other triggers may be more relevant</li>
+            </ul>
+            <p><strong>Important:</strong> Correlation requires at least 7 days of data. The more data you have, the more accurate the correlation becomes.</p>
+
+            <h3>Is my location data private?</h3>
+            <p><strong>Yes, completely private.</strong> Your location is:</p>
+            <ul>
+                <li>Stored only on your device (localStorage)</li>
+                <li>Never sent to our servers</li>
+                <li>Only used to fetch weather data from a free, public weather API (Open-Meteo)</li>
+                <li>You can disable weather tracking anytime to delete all weather data</li>
+            </ul>
+
+            <h3>Does weather tracking use GPS?</h3>
+            <p><strong>No.</strong> You manually enter your location (ZIP code or city name). We don't access your device's GPS to preserve your privacy.</p>
+
+            <h3>What if I'm not weather-sensitive?</h3>
+            <p><strong>You don't need to use this feature!</strong> Weather tracking is completely optional. If the correlation is weak, that's valuable information too - it tells you to focus on other potential triggers.</p>
+
             <h2>📱 Updates & Features</h2>
 
             <h3>How do I update the app?</h3>
@@ -372,10 +418,10 @@
             <h3>What features are coming next?</h3>
             <p>Our roadmap includes:</p>
             <ul>
+                <li><strong>Structured symptom tracking</strong> (nausea, aura, photophobia, phonophobia)</li>
+                <li><strong>Medication tracking improvements</strong> (frequency analysis, MOH detection)</li>
+                <li><strong>Trigger pattern detection</strong> (multi-factor analysis)</li>
                 <li><strong>Cloud sync via Google Drive</strong> (optional, privacy-preserving)</li>
-                <li><strong>Medication tracking improvements</strong></li>
-                <li><strong>Trigger pattern detection</strong></li>
-                <li><strong>Weather integration</strong> (for weather-sensitive migraines)</li>
                 <li><strong>Entry editing</strong> (fix mistakes without deleting)</li>
                 <li><strong>CSV import/export</strong></li>
             </ul>

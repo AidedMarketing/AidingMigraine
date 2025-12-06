@@ -56,6 +56,22 @@
                 <li>You can delete it anytime by disabling notifications</li>
             </ul>
 
+            <h3>☁️ Weather Tracking (Optional, Local Storage Only)</h3>
+            <p>If you enable weather tracking, we store on your device:</p>
+            <ul>
+                <li><strong>Location query:</strong> The ZIP code or city name you entered (e.g., "10001" or "New York, NY")</li>
+                <li><strong>Coordinates:</strong> Latitude and longitude for your location (for fetching weather data)</li>
+                <li><strong>Weather data:</strong> 30 days of barometric pressure history</li>
+            </ul>
+
+            <p><strong>Important:</strong> All weather data is stored exclusively on your device. Your location is:</p>
+            <ul>
+                <li>✅ Never sent to our servers</li>
+                <li>✅ Never shared with third parties</li>
+                <li>✅ Only used to fetch weather data from Open-Meteo (a free, public weather API)</li>
+                <li>✅ Deleted when you disable weather tracking</li>
+            </ul>
+
             <h3>💾 Migraine Data (Local Storage Only)</h3>
             <p>All your migraine tracking data is stored exclusively on your device:</p>
             <ul>
@@ -63,6 +79,7 @@
                 <li>Calendar data</li>
                 <li>Analytics calculations</li>
                 <li>App settings and preferences</li>
+                <li>Weather correlation analysis (if weather tracking enabled)</li>
             </ul>
 
             <p><strong>This data never leaves your device.</strong> It's stored in your browser's local storage and is not transmitted to our servers, cloud services, or third parties.</p>
@@ -74,7 +91,8 @@
             <ul>
                 <li>❌ <strong>No personal identifying information</strong> (name, email, phone number)</li>
                 <li>❌ <strong>No migraine symptoms or health data</strong> (we never see your entries)</li>
-                <li>❌ <strong>No location data</strong> (beyond timezone for notification delivery)</li>
+                <li>❌ <strong>No server-side location tracking</strong> (weather location stored locally only, timezone for notifications)</li>
+                <li>❌ <strong>No GPS access</strong> (you manually enter location for weather tracking)</li>
                 <li>❌ <strong>No analytics or usage tracking</strong> (we don't use Google Analytics, Facebook Pixel, etc.)</li>
                 <li>❌ <strong>No advertising IDs or tracking cookies</strong></li>
                 <li>❌ <strong>No browsing history or behavioral data</strong></li>
@@ -140,6 +158,11 @@
                     <td>GitHub Pages</td>
                     <td>Host the web app</td>
                     <td>None (static file hosting)</td>
+                </tr>
+                <tr>
+                    <td>Open-Meteo</td>
+                    <td>Fetch weather data (if weather tracking enabled)</td>
+                    <td>Location coordinates (not linked to your identity)</td>
                 </tr>
             </table>
 
