@@ -164,12 +164,12 @@
 
         .pulse-indicator {
             font-size: 1.5rem;
-            animation: pulse 2s infinite;
+            animation: pulse 3.5s ease-in-out infinite;
         }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.75; }  /* Gentler fade - less jarring */
         }
 
         .active-stats {
@@ -1136,6 +1136,28 @@
 
         .container.with-update-banner {
             margin-top: 60px;
+        }
+
+        /* ============================================
+           ACCESSIBILITY: REDUCED MOTION SUPPORT
+           ============================================ */
+
+        /* Respect user's motion preferences - critical for migraine sufferers */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+
+            /* Completely disable the pulse animation */
+            .pulse-indicator {
+                animation: none !important;
+                opacity: 1 !important;
+            }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -4460,6 +4482,30 @@
         }
 
         function renderAnalytics() {
+            // Check for reduced motion preference and disable Chart.js animations
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (prefersReducedMotion) {
+                Chart.defaults.animation = false;
+                Chart.defaults.animations = {
+                    colors: false,
+                    x: false,
+                    y: false
+                };
+                Chart.defaults.transitions = {
+                    active: { animation: { duration: 0 } },
+                    resize: { animation: { duration: 0 } },
+                    show: { animation: { duration: 0 } },
+                    hide: { animation: { duration: 0 } }
+                };
+            } else {
+                // Enable smooth animations for users who haven't opted out
+                Chart.defaults.animation = {
+                    duration: 400,
+                    easing: 'easeInOutQuart'
+                };
+            }
+
             const range = document.getElementById('analytics-range').value;
             const activeMigraines = getActiveMigraines();
 
