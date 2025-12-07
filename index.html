@@ -1383,6 +1383,9 @@
                                         <span id="log-pressure-change" class="weather-value">--</span>
                                         <span id="log-pressure-trend" class="weather-trend"></span>
                                     </div>
+                                    <div id="log-weather-note" style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px; text-align: center; display: none;">
+                                        Available after 24h of tracking
+                                    </div>
                                 </div>
                             </div>
                             <div id="log-pressure-alert" class="weather-alert" style="display: none;">
@@ -1842,7 +1845,7 @@
                         <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 10px;">
                             Enter your ZIP/postal code or city name to fetch local weather data.
                         </p>
-                        <div style="display: flex; gap: 10px;">
+                        <div style="display: flex; gap: 10px; align-items: stretch;">
                             <input
                                 type="text"
                                 id="weather-location-input"
@@ -1852,7 +1855,7 @@
                             <button
                                 id="weather-location-save"
                                 class="btn btn-primary"
-                                style="padding: 12px 20px; white-space: nowrap;"
+                                style="padding: 12px 16px; white-space: nowrap; font-size: 0.9rem;"
                             >
                                 Save
                             </button>
@@ -5118,6 +5121,10 @@
                 // Fetch weather for this location
                 await fetchWeatherData();
 
+                // Update log screen weather display and calendar
+                updateLogWeatherDisplay();
+                renderCalendar();
+
             } catch (error) {
                 console.error('Geocoding error:', error);
                 statusDiv.innerHTML = '<span style="color: var(--accent-red);">❌ Error looking up location. Please try again.</span>';
@@ -5191,6 +5198,7 @@
                 saveWeatherData();
 
                 displayCurrentWeather();
+                updateLogWeatherDisplay();
 
                 console.log('✅ Weather data updated:', weatherData.current.pressure, 'hPa');
 
@@ -5330,6 +5338,7 @@
                 const changeText = change24h > 0 ? `+${change24h.toFixed(1)}` : change24h.toFixed(1);
                 changeEl.textContent = changeText;
                 trendEl.textContent = trend.icon;
+                document.getElementById('log-weather-note').style.display = 'none';
 
                 // Show alert if significant change (>5 hPa or <-5 hPa)
                 const alertEl = document.getElementById('log-pressure-alert');
@@ -5342,6 +5351,7 @@
                 document.getElementById('log-pressure-change').textContent = '--';
                 document.getElementById('log-pressure-trend').textContent = '';
                 document.getElementById('log-pressure-alert').style.display = 'none';
+                document.getElementById('log-weather-note').style.display = 'block';
             }
         }
 
