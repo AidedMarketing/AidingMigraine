@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.7.0 - Weather Tracking System
+// Version 1.7.1 - Weather Tracking Initialization Fix
 
-const CACHE_NAME = 'aiding-migraine-v1.7.0';
+const CACHE_NAME = 'aiding-migraine-v1.7.1';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
