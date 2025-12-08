@@ -1412,6 +1412,42 @@
                         </div>
                     </div>
 
+                    <!-- Weather Forecast Indicator -->
+                    <div id="weather-forecast-indicator" style="display: none; margin-bottom: 20px;">
+                        <!-- Clear Day State -->
+                        <div id="weather-clear" class="weather-forecast-box" style="display: none; background: rgba(123, 166, 138, 0.1); border-left: 4px solid var(--accent-green); padding: 12px 16px; border-radius: 0 8px 8px 0;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.2rem;">✅</span>
+                                <div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--accent-green);">Clear Conditions</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">No significant pressure changes expected</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Pressure Warning State -->
+                        <div id="weather-warning" class="weather-forecast-box" style="display: none; background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 12px 16px; border-radius: 0 8px 8px 0;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.2rem;">⚠️</span>
+                                <div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: #ffc107;">Pressure Change Detected</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;" id="weather-warning-detail">Significant change in last 24h</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Not Enabled State -->
+                        <div id="weather-disabled" class="weather-forecast-box" style="display: none; background: var(--bg-tertiary); border-left: 4px solid var(--border-color); padding: 12px 16px; border-radius: 0 8px 8px 0;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.2rem;">☁️</span>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary);">Weather Tracking Disabled</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">
+                                        Enable in Settings to track pressure changes
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="optional-details">
                         <button id="toggle-details-btn" class="toggle-details-btn">
                             <span id="details-arrow">▼</span> Optional Details
@@ -5310,9 +5346,19 @@
         // Update weather display on log screen
         function updateLogWeatherDisplay() {
             const displayEl = document.getElementById('log-weather-display');
+            const forecastIndicator = document.getElementById('weather-forecast-indicator');
+            const clearBox = document.getElementById('weather-clear');
+            const warningBox = document.getElementById('weather-warning');
+            const disabledBox = document.getElementById('weather-disabled');
 
             if (!weatherData.enabled || !weatherData.current.pressure) {
                 displayEl.style.display = 'none';
+
+                // Show "disabled" state in forecast indicator
+                forecastIndicator.style.display = 'block';
+                clearBox.style.display = 'none';
+                warningBox.style.display = 'none';
+                disabledBox.style.display = 'block';
                 return;
             }
 
@@ -5343,11 +5389,35 @@
                 } else {
                     alertEl.style.display = 'none';
                 }
+
+                // Update forecast indicator - show warning or clear based on pressure change
+                forecastIndicator.style.display = 'block';
+                disabledBox.style.display = 'none';
+
+                if (trend.significant) {
+                    // Significant pressure change - show warning
+                    clearBox.style.display = 'none';
+                    warningBox.style.display = 'block';
+
+                    // Update warning detail with specific change
+                    const warningDetail = document.getElementById('weather-warning-detail');
+                    warningDetail.textContent = `${trend.text} (${changeText} hPa in 24h) - may trigger migraine`;
+                } else {
+                    // Normal pressure - show clear
+                    clearBox.style.display = 'block';
+                    warningBox.style.display = 'none';
+                }
             } else {
                 document.getElementById('log-pressure-change').textContent = '--';
                 document.getElementById('log-pressure-trend').textContent = '';
                 document.getElementById('log-pressure-alert').style.display = 'none';
                 document.getElementById('log-weather-note').style.display = 'block';
+
+                // Not enough data yet - show disabled state
+                forecastIndicator.style.display = 'block';
+                clearBox.style.display = 'none';
+                warningBox.style.display = 'none';
+                disabledBox.style.display = 'block';
             }
         }
 
