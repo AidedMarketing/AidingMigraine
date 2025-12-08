@@ -26,6 +26,13 @@ A Progressive Web App for tracking migraines, identifying patterns, and improvin
 - 🔔 **Post-attack follow-ups** (2-4 hours after logging)
 - 📱 **iOS-optimized** (requires home screen installation)
 - 🌍 **Timezone conversion** ensures notifications arrive at correct local time
+- 🚨 **Active attack check-ins** during ongoing migraines
+
+### Weather Tracking
+- 🌦️ **Barometric pressure correlation** (2-level tracking system)
+- 📍 **ZIP code-based weather data**
+- 📊 **Automatic weather pattern analysis**
+- 🎯 **Identify weather-triggered migraines**
 
 ### Privacy First
 - 🔒 **All data stays on YOUR device** (local storage only)
@@ -195,19 +202,21 @@ See [Contributing Guidelines](#contributing) below
 
 ## 🚧 Roadmap
 
-**Current (v1.5.1):**
+**Current (v1.6.0):**
 - ✅ Core tracking and calendar
 - ✅ Analytics dashboard with 4 charts
 - ✅ Notification system (timezone-aware)
 - ✅ PDF export with clinical interpretations
 - ✅ Seamless update system
 - ✅ Dark mode support
+- ✅ **Weather tracking** with barometric pressure correlation
+- ✅ **Active attack check-in notifications**
+- ✅ **Motion sensitivity accessibility support**
 
-**Coming Soon (v1.6.0):**
+**Coming Soon (v1.7.0):**
 - 🔄 **Cloud sync via Google Drive** (optional, privacy-preserving)
 - 💊 **Medication tracking improvements**
-- 🎯 **Trigger pattern detection**
-- 🌦️ **Weather integration** (for weather-sensitive migraines)
+- 🎯 **Enhanced trigger pattern detection**
 - ✏️ **Entry editing** (fix mistakes without deleting)
 - 📥 **CSV import/export**
 
