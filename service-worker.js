@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.7.3 - Weather Forecast Indicator
+// Version 1.7.4 - Simplified Weather Forecast
 
-const CACHE_NAME = 'aiding-migraine-v1.7.3';
+const CACHE_NAME = 'aiding-migraine-v1.7.4';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
