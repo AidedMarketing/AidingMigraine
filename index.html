@@ -2434,19 +2434,37 @@
                 new Date(b.timestamp) - new Date(a.timestamp)
             );
 
-            sortedMethods.forEach(relief => {
+            sortedMethods.forEach((relief, index) => {
                 const entry = document.createElement('div');
                 entry.style.cssText = 'display: flex; align-items: center; gap: 12px; padding: 10px; background: var(--bg-secondary); border-radius: 6px; border-left: 3px solid var(--accent-green);';
 
                 const time = formatTime(new Date(relief.timestamp));
+                // Find original index in unsorted array for deletion
+                const originalIndex = activeMigraine.reliefMethods.findIndex(r =>
+                    r.timestamp === relief.timestamp && r.method === relief.method
+                );
 
                 entry.innerHTML = `
                     <div style="font-size: 0.85rem; color: var(--text-secondary); min-width: 60px;">${time}</div>
                     <div style="flex: 1; font-size: 0.9rem; color: var(--text-primary);">${relief.method}</div>
+                    <button onclick="deleteReliefMethod(${originalIndex})"
+                            style="background: none; border: none; color: var(--text-secondary);
+                                   cursor: pointer; font-size: 1.1rem; padding: 4px 8px;
+                                   transition: var(--transition); line-height: 1;"
+                            title="Remove this entry">✕</button>
                 `;
 
                 entriesContainer.appendChild(entry);
             });
+        }
+
+        function deleteReliefMethod(index) {
+            if (!activeMigraine || !activeMigraine.reliefMethods) return;
+
+            // Remove the relief method at the specified index
+            activeMigraine.reliefMethods.splice(index, 1);
+            saveData();
+            updateReliefTimeline();
         }
 
         function updateDashboard() {
@@ -2572,21 +2590,35 @@
                 });
                 content += `</ul>`;
             }
-            
+
+            if (migraine.reliefMethods && migraine.reliefMethods.length > 0) {
+                content += `<h3>Relief Methods</h3><ul>`;
+                migraine.reliefMethods.forEach(r => {
+                    content += `<li>${formatTime(new Date(r.timestamp))}: ${r.method}</li>`;
+                });
+                content += `</ul>`;
+            }
+
             if (migraine.notes) {
                 content += `<h3>Notes</h3><p>${migraine.notes}</p>`;
             }
-            
+
             if (migraine.endNotes) {
                 content += `<h3>Resolution Notes</h3><p>${migraine.endNotes}</p>`;
             }
-            
+
             showModal('Episode Details', content);
         }
+
+        // Temporary storage for relief methods being edited
+        let tempReliefMethods = [];
 
         function editEpisode(id) {
             const migraine = migraines.find(m => m.id === id);
             if (!migraine) return;
+
+            // Copy relief methods to temporary storage
+            tempReliefMethods = migraine.reliefMethods ? [...migraine.reliefMethods] : [];
 
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
@@ -2614,6 +2646,17 @@
                                      border: 1px solid var(--border-color); border-radius: 8px;
                                      color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${migraine.endNotes || ''}</textarea>
                 </div>
+                <div class="form-group">
+                    <label>💊🧊 Relief Methods</label>
+                    <div id="edit-relief-methods-list" style="margin-bottom: 12px;"></div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="new-relief-method" placeholder="Add relief method (e.g., Ice pack, Sumatriptan)"
+                               style="flex: 1; padding: 10px; background: var(--bg-tertiary);
+                                      border: 1px solid var(--border-color); border-radius: 8px;
+                                      color: var(--text-primary); font-size: 0.95rem;">
+                        <button onclick="addEditReliefMethod()" class="btn btn-secondary" style="white-space: nowrap;">Add</button>
+                    </div>
+                </div>
             `;
 
             document.getElementById('modal-actions').innerHTML = `
@@ -2623,6 +2666,69 @@
 
             document.getElementById('modal-title').textContent = 'Edit Episode';
             modal.classList.add('active');
+
+            // Render relief methods list
+            renderEditReliefMethods();
+
+            // Allow Enter key to add relief method
+            document.getElementById('new-relief-method').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addEditReliefMethod();
+                }
+            });
+        }
+
+        function renderEditReliefMethods() {
+            const list = document.getElementById('edit-relief-methods-list');
+            if (!list) return;
+
+            if (tempReliefMethods.length === 0) {
+                list.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.9rem; padding: 8px; text-align: center;">No relief methods logged</div>';
+                return;
+            }
+
+            list.innerHTML = tempReliefMethods.map((relief, index) => {
+                const time = formatTime(new Date(relief.timestamp));
+                return `
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 6px;">
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); min-width: 60px;">${time}</div>
+                        <input type="text" value="${relief.method}" onchange="updateEditReliefMethod(${index}, this.value)"
+                               style="flex: 1; padding: 6px 10px; background: var(--bg-tertiary);
+                                      border: 1px solid var(--border-color); border-radius: 6px;
+                                      color: var(--text-primary); font-size: 0.9rem;">
+                        <button onclick="deleteEditReliefMethod(${index})"
+                                style="background: none; border: none; color: var(--text-secondary);
+                                       cursor: pointer; font-size: 1.1rem; padding: 4px 8px;"
+                                title="Remove">✕</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function addEditReliefMethod() {
+            const input = document.getElementById('new-relief-method');
+            const method = input.value.trim();
+
+            if (!method) return;
+
+            tempReliefMethods.push({
+                method: method,
+                timestamp: new Date().toISOString()
+            });
+
+            input.value = '';
+            renderEditReliefMethods();
+        }
+
+        function updateEditReliefMethod(index, newValue) {
+            if (tempReliefMethods[index]) {
+                tempReliefMethods[index].method = newValue;
+            }
+        }
+
+        function deleteEditReliefMethod(index) {
+            tempReliefMethods.splice(index, 1);
+            renderEditReliefMethods();
         }
 
         function saveEpisodeEdit(id) {
@@ -2636,6 +2742,7 @@
             migraine.medication = medication || null;
             migraine.notes = notes || null;
             migraine.endNotes = endNotes || null;
+            migraine.reliefMethods = tempReliefMethods.length > 0 ? tempReliefMethods : null;
 
             saveData();
             renderHistory();
