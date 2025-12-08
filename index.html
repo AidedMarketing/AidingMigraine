@@ -203,6 +203,16 @@
             flex-wrap: wrap;
         }
 
+        .relief-quick-btn:hover {
+            background: var(--bg-primary) !important;
+            border-color: var(--accent-green) !important;
+            transform: scale(1.02);
+        }
+
+        .relief-quick-btn:active {
+            transform: scale(0.98);
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -1268,6 +1278,63 @@
                             <span id="active-category" class="stat-value">-</span>
                         </div>
                     </div>
+
+                    <!-- Relief Methods Timeline -->
+                    <div id="active-relief-timeline" style="display: none; margin: 20px 0; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                        <div style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">Relief Methods</div>
+                        <div id="relief-timeline-entries" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Timeline entries will be added here -->
+                        </div>
+                    </div>
+
+                    <!-- Add Relief Method Section -->
+                    <div id="add-relief-section" style="margin: 20px 0;">
+                        <button id="add-relief-btn" class="btn btn-secondary" style="width: 100%; margin-bottom: 12px;">
+                            <span>➕ Add Relief Method</span>
+                        </button>
+
+                        <!-- Expandable Relief Method Input -->
+                        <div id="relief-input-section" style="display: none; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 12px;">
+                            <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 12px;">Quick Add:</div>
+
+                            <!-- Quick Action Buttons -->
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px;">
+                                <button class="relief-quick-btn" data-relief="Medication" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <span style="font-size: 1.3rem;">💊</span>
+                                    <span>Medication</span>
+                                </button>
+                                <button class="relief-quick-btn" data-relief="Ice/Cold Therapy" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <span style="font-size: 1.3rem;">🧊</span>
+                                    <span>Ice/Cold</span>
+                                </button>
+                                <button class="relief-quick-btn" data-relief="Hydration/Electrolytes" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <span style="font-size: 1.3rem;">💧</span>
+                                    <span>Hydration</span>
+                                </button>
+                                <button class="relief-quick-btn" data-relief="Dark/Quiet Room" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <span style="font-size: 1.3rem;">🌑</span>
+                                    <span>Dark/Quiet</span>
+                                </button>
+                                <button class="relief-quick-btn" data-relief="Rest/Sleep" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <span style="font-size: 1.3rem;">😴</span>
+                                    <span>Rest/Sleep</span>
+                                </button>
+                                <button class="relief-quick-btn" data-relief="Caffeine" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <span style="font-size: 1.3rem;">☕</span>
+                                    <span>Caffeine</span>
+                                </button>
+                            </div>
+
+                            <div style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px;">Or add custom note:</div>
+                            <input type="text" id="custom-relief-input" placeholder="e.g., Sumatriptan 100mg, warm shower, etc." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 1rem; margin-bottom: 12px;">
+
+                            <div style="display: flex; gap: 10px;">
+                                <button id="save-relief-btn" class="btn btn-primary" style="flex: 1;">Save</button>
+                                <button id="cancel-relief-btn" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="active-actions">
                         <button id="update-pain-btn" class="btn btn-secondary">Update Pain Level</button>
                         <button id="end-episode-btn" class="btn btn-primary">End Episode</button>
@@ -1942,6 +2009,7 @@
             initializeSettings();
             initializeNotifications();
             initWeatherTracking();
+            initializeReliefMethods();
             checkActiveMigraine();
             updateDashboard();
             renderHistory();
@@ -2240,10 +2308,11 @@
 
         function updateActiveMigraineeDisplay() {
             if (!activeMigraine) return;
-            
+
             document.getElementById('active-pain-display').textContent = `${activeMigraine.painLevel}/10`;
             document.getElementById('active-category').textContent = activeMigraine.category;
             updateDuration();
+            updateReliefTimeline();
         }
 
         function startDurationTracking() {
@@ -2261,15 +2330,141 @@
 
         function updateDuration() {
             if (!activeMigraine) return;
-            
+
             const start = new Date(activeMigraine.startTime);
             const now = new Date();
             const diff = now - start;
-            
+
             const hours = Math.floor(diff / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            
+
             document.getElementById('active-duration').textContent = `${hours}h ${minutes}m`;
+        }
+
+        // Relief Method Tracking Functions
+        function initializeReliefMethods() {
+            const addBtn = document.getElementById('add-relief-btn');
+            const inputSection = document.getElementById('relief-input-section');
+            const saveBtn = document.getElementById('save-relief-btn');
+            const cancelBtn = document.getElementById('cancel-relief-btn');
+            const quickBtns = document.querySelectorAll('.relief-quick-btn');
+            const customInput = document.getElementById('custom-relief-input');
+
+            if (!addBtn || !inputSection || !saveBtn || !cancelBtn) return;
+
+            // Toggle relief input section
+            addBtn.addEventListener('click', () => {
+                inputSection.style.display = inputSection.style.display === 'none' ? 'block' : 'none';
+                if (inputSection.style.display === 'block') {
+                    customInput.value = '';
+                    customInput.focus();
+                }
+            });
+
+            // Handle quick button clicks
+            quickBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const reliefMethod = btn.dataset.relief;
+                    addReliefMethod(reliefMethod);
+                    inputSection.style.display = 'none';
+                });
+            });
+
+            // Handle save custom relief
+            saveBtn.addEventListener('click', () => {
+                const customRelief = customInput.value.trim();
+                if (customRelief) {
+                    addReliefMethod(customRelief);
+                    customInput.value = '';
+                    inputSection.style.display = 'none';
+                } else {
+                    showModal('Error', 'Please enter a relief method or use a quick-add button.');
+                }
+            });
+
+            // Handle cancel
+            cancelBtn.addEventListener('click', () => {
+                customInput.value = '';
+                inputSection.style.display = 'none';
+            });
+
+            // Allow Enter key to save
+            customInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveBtn.click();
+                }
+            });
+        }
+
+        function addReliefMethod(method) {
+            if (!activeMigraine) {
+                showModal('Error', 'No active episode found.');
+                return;
+            }
+
+            // Initialize reliefMethods array if it doesn't exist
+            if (!activeMigraine.reliefMethods) {
+                activeMigraine.reliefMethods = [];
+            }
+
+            const reliefEntry = {
+                method: method,
+                timestamp: new Date().toISOString()
+            };
+
+            activeMigraine.reliefMethods.push(reliefEntry);
+            saveData();
+            updateReliefTimeline();
+        }
+
+        function updateReliefTimeline() {
+            if (!activeMigraine || !activeMigraine.reliefMethods || activeMigraine.reliefMethods.length === 0) {
+                document.getElementById('active-relief-timeline').style.display = 'none';
+                return;
+            }
+
+            const timeline = document.getElementById('active-relief-timeline');
+            const entriesContainer = document.getElementById('relief-timeline-entries');
+
+            timeline.style.display = 'block';
+            entriesContainer.innerHTML = '';
+
+            // Sort by timestamp (newest first)
+            const sortedMethods = [...activeMigraine.reliefMethods].sort((a, b) =>
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+
+            sortedMethods.forEach((relief, index) => {
+                const entry = document.createElement('div');
+                entry.style.cssText = 'display: flex; align-items: center; gap: 12px; padding: 10px; background: var(--bg-secondary); border-radius: 6px; border-left: 3px solid var(--accent-green);';
+
+                const time = formatTime(new Date(relief.timestamp));
+                // Find original index in unsorted array for deletion
+                const originalIndex = activeMigraine.reliefMethods.findIndex(r =>
+                    r.timestamp === relief.timestamp && r.method === relief.method
+                );
+
+                entry.innerHTML = `
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); min-width: 60px;">${time}</div>
+                    <div style="flex: 1; font-size: 0.9rem; color: var(--text-primary);">${relief.method}</div>
+                    <button onclick="deleteReliefMethod(${originalIndex})"
+                            style="background: none; border: none; color: var(--text-secondary);
+                                   cursor: pointer; font-size: 1.1rem; padding: 4px 8px;
+                                   transition: var(--transition); line-height: 1;"
+                            title="Remove this entry">✕</button>
+                `;
+
+                entriesContainer.appendChild(entry);
+            });
+        }
+
+        function deleteReliefMethod(index) {
+            if (!activeMigraine || !activeMigraine.reliefMethods) return;
+
+            // Remove the relief method at the specified index
+            activeMigraine.reliefMethods.splice(index, 1);
+            saveData();
+            updateReliefTimeline();
         }
 
         function updateDashboard() {
@@ -2395,21 +2590,35 @@
                 });
                 content += `</ul>`;
             }
-            
+
+            if (migraine.reliefMethods && migraine.reliefMethods.length > 0) {
+                content += `<h3>Relief Methods</h3><ul>`;
+                migraine.reliefMethods.forEach(r => {
+                    content += `<li>${formatTime(new Date(r.timestamp))}: ${r.method}</li>`;
+                });
+                content += `</ul>`;
+            }
+
             if (migraine.notes) {
                 content += `<h3>Notes</h3><p>${migraine.notes}</p>`;
             }
-            
+
             if (migraine.endNotes) {
                 content += `<h3>Resolution Notes</h3><p>${migraine.endNotes}</p>`;
             }
-            
+
             showModal('Episode Details', content);
         }
+
+        // Temporary storage for relief methods being edited
+        let tempReliefMethods = [];
 
         function editEpisode(id) {
             const migraine = migraines.find(m => m.id === id);
             if (!migraine) return;
+
+            // Copy relief methods to temporary storage
+            tempReliefMethods = migraine.reliefMethods ? [...migraine.reliefMethods] : [];
 
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
@@ -2437,6 +2646,17 @@
                                      border: 1px solid var(--border-color); border-radius: 8px;
                                      color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${migraine.endNotes || ''}</textarea>
                 </div>
+                <div class="form-group">
+                    <label>💊🧊 Relief Methods</label>
+                    <div id="edit-relief-methods-list" style="margin-bottom: 12px;"></div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="new-relief-method" placeholder="Add relief method (e.g., Ice pack, Sumatriptan)"
+                               style="flex: 1; padding: 10px; background: var(--bg-tertiary);
+                                      border: 1px solid var(--border-color); border-radius: 8px;
+                                      color: var(--text-primary); font-size: 0.95rem;">
+                        <button onclick="addEditReliefMethod()" class="btn btn-secondary" style="white-space: nowrap;">Add</button>
+                    </div>
+                </div>
             `;
 
             document.getElementById('modal-actions').innerHTML = `
@@ -2446,6 +2666,69 @@
 
             document.getElementById('modal-title').textContent = 'Edit Episode';
             modal.classList.add('active');
+
+            // Render relief methods list
+            renderEditReliefMethods();
+
+            // Allow Enter key to add relief method
+            document.getElementById('new-relief-method').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addEditReliefMethod();
+                }
+            });
+        }
+
+        function renderEditReliefMethods() {
+            const list = document.getElementById('edit-relief-methods-list');
+            if (!list) return;
+
+            if (tempReliefMethods.length === 0) {
+                list.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.9rem; padding: 8px; text-align: center;">No relief methods logged</div>';
+                return;
+            }
+
+            list.innerHTML = tempReliefMethods.map((relief, index) => {
+                const time = formatTime(new Date(relief.timestamp));
+                return `
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 6px;">
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); min-width: 60px;">${time}</div>
+                        <input type="text" value="${relief.method}" onchange="updateEditReliefMethod(${index}, this.value)"
+                               style="flex: 1; padding: 6px 10px; background: var(--bg-tertiary);
+                                      border: 1px solid var(--border-color); border-radius: 6px;
+                                      color: var(--text-primary); font-size: 0.9rem;">
+                        <button onclick="deleteEditReliefMethod(${index})"
+                                style="background: none; border: none; color: var(--text-secondary);
+                                       cursor: pointer; font-size: 1.1rem; padding: 4px 8px;"
+                                title="Remove">✕</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function addEditReliefMethod() {
+            const input = document.getElementById('new-relief-method');
+            const method = input.value.trim();
+
+            if (!method) return;
+
+            tempReliefMethods.push({
+                method: method,
+                timestamp: new Date().toISOString()
+            });
+
+            input.value = '';
+            renderEditReliefMethods();
+        }
+
+        function updateEditReliefMethod(index, newValue) {
+            if (tempReliefMethods[index]) {
+                tempReliefMethods[index].method = newValue;
+            }
+        }
+
+        function deleteEditReliefMethod(index) {
+            tempReliefMethods.splice(index, 1);
+            renderEditReliefMethods();
         }
 
         function saveEpisodeEdit(id) {
@@ -2459,6 +2742,7 @@
             migraine.medication = medication || null;
             migraine.notes = notes || null;
             migraine.endNotes = endNotes || null;
+            migraine.reliefMethods = tempReliefMethods.length > 0 ? tempReliefMethods : null;
 
             saveData();
             renderHistory();
