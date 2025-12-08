@@ -1420,29 +1420,17 @@
                                 <span style="font-size: 1.2rem;">✅</span>
                                 <div>
                                     <div style="font-size: 0.9rem; font-weight: 500; color: var(--accent-green);">Clear Conditions</div>
-                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">No significant pressure changes expected</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">No significant pressure changes</div>
                                 </div>
                             </div>
                         </div>
                         <!-- Pressure Warning State -->
-                        <div id="weather-warning" class="weather-forecast-box" style="display: none; background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 12px 16px; border-radius: 0 8px 8px 0;">
+                        <div id="weather-warning" class="weather-forecast-box" style="display: none; background: rgba(212, 165, 116, 0.12); border-left: 4px solid #d4a574; padding: 12px 16px; border-radius: 0 8px 8px 0;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.2rem;">⚠️</span>
+                                <span style="font-size: 1.2rem;">🌦️</span>
                                 <div>
-                                    <div style="font-size: 0.9rem; font-weight: 500; color: #ffc107;">Pressure Change Detected</div>
-                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;" id="weather-warning-detail">Significant change in last 24h</div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Not Enabled State -->
-                        <div id="weather-disabled" class="weather-forecast-box" style="display: none; background: var(--bg-tertiary); border-left: 4px solid var(--border-color); padding: 12px 16px; border-radius: 0 8px 8px 0;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.2rem;">☁️</span>
-                                <div style="flex: 1;">
-                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary);">Weather Tracking Disabled</div>
-                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">
-                                        Enable in Settings to track pressure changes
-                                    </div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: #d4a574;">Weather May Be a Factor</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;" id="weather-warning-detail">Significant pressure change in last 24h</div>
                                 </div>
                             </div>
                         </div>
@@ -5354,11 +5342,9 @@
             if (!weatherData.enabled || !weatherData.current.pressure) {
                 displayEl.style.display = 'none';
 
-                // Show "disabled" state in forecast indicator
-                forecastIndicator.style.display = 'block';
-                clearBox.style.display = 'none';
-                warningBox.style.display = 'none';
-                disabledBox.style.display = 'block';
+                // Hide forecast indicator when weather tracking is disabled
+                // (reduces cognitive load - user doesn't need "enable this" messages when in pain)
+                forecastIndicator.style.display = 'none';
                 return;
             }
 
@@ -5401,7 +5387,7 @@
 
                     // Update warning detail with specific change
                     const warningDetail = document.getElementById('weather-warning-detail');
-                    warningDetail.textContent = `${trend.text} (${changeText} hPa in 24h) - may trigger migraine`;
+                    warningDetail.textContent = `${trend.text} (${changeText} hPa in 24h)`;
                 } else {
                     // Normal pressure - show clear
                     clearBox.style.display = 'block';
@@ -5413,11 +5399,9 @@
                 document.getElementById('log-pressure-alert').style.display = 'none';
                 document.getElementById('log-weather-note').style.display = 'block';
 
-                // Not enough data yet - show disabled state
-                forecastIndicator.style.display = 'block';
-                clearBox.style.display = 'none';
-                warningBox.style.display = 'none';
-                disabledBox.style.display = 'block';
+                // Not enough data yet - hide forecast indicator to reduce clutter
+                // The weather card above already explains data will be available after 24h
+                forecastIndicator.style.display = 'none';
             }
         }
 
