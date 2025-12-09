@@ -10,9 +10,11 @@ const path = require('path');
 
 const DB_PATH = process.env.DB_PATH || './data/subscriptions.json';
 const FOLLOWUPS_PATH = './data/scheduled-followups.json';
+const ACTIVE_CHECKINS_PATH = './data/scheduled-active-checkins.json';
 
 let subscriptions = [];
 let scheduledFollowups = [];
+let scheduledActiveCheckins = [];
 
 async function initializeDatabase() {
     try {
@@ -48,6 +50,20 @@ async function initializeDatabase() {
                 throw err;
             }
         }
+
+        // Load scheduled active attack check-ins
+        try {
+            const data = await fs.readFile(ACTIVE_CHECKINS_PATH, 'utf8');
+            scheduledActiveCheckins = JSON.parse(data);
+            console.log(`Loaded ${scheduledActiveCheckins.length} scheduled active attack check-ins`);
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                await fs.writeFile(ACTIVE_CHECKINS_PATH, JSON.stringify([], null, 2));
+                console.log('Created new active check-ins database');
+            } else {
+                throw err;
+            }
+        }
     } catch (error) {
         console.error('Database initialization error:', error);
         throw error;
@@ -60,6 +76,10 @@ async function saveSubscriptions() {
 
 async function saveFollowups() {
     await fs.writeFile(FOLLOWUPS_PATH, JSON.stringify(scheduledFollowups, null, 2));
+}
+
+async function saveActiveCheckins() {
+    await fs.writeFile(ACTIVE_CHECKINS_PATH, JSON.stringify(scheduledActiveCheckins, null, 2));
 }
 
 // Subscription management
@@ -162,6 +182,40 @@ function markFollowupAsSent(followupId) {
     }
 }
 
+// Active attack check-in management
+function addScheduledActiveCheckin(checkin) {
+    scheduledActiveCheckins.push({
+        ...checkin,
+        createdAt: new Date().toISOString()
+    });
+    saveActiveCheckins();
+    return checkin;
+}
+
+function getActiveCheckinsDueNow() {
+    const now = new Date();
+    const dueCheckins = scheduledActiveCheckins.filter(c =>
+        new Date(c.scheduledTime) <= now && !c.sent
+    );
+    return dueCheckins;
+}
+
+function markActiveCheckinAsSent(checkinId) {
+    const checkin = scheduledActiveCheckins.find(c => c.id === checkinId);
+    if (checkin) {
+        checkin.sent = true;
+        checkin.sentAt = new Date().toISOString();
+        saveActiveCheckins();
+    }
+}
+
+function cancelActiveCheckin(attackId) {
+    const initialLength = scheduledActiveCheckins.length;
+    scheduledActiveCheckins = scheduledActiveCheckins.filter(c => c.attackId !== attackId);
+    saveActiveCheckins();
+    return initialLength !== scheduledActiveCheckins.length;
+}
+
 module.exports = {
     initializeDatabase,
     addSubscription,
@@ -172,5 +226,9 @@ module.exports = {
     getSubscriptionsForDailyCheckIn,
     addScheduledFollowup,
     getFollowupsDueNow,
-    markFollowupAsSent
+    markFollowupAsSent,
+    addScheduledActiveCheckin,
+    getActiveCheckinsDueNow,
+    markActiveCheckinAsSent,
+    cancelActiveCheckin
 };

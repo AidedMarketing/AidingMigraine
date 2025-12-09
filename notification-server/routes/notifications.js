@@ -4,7 +4,11 @@
 
 const express = require('express');
 const router = express.Router();
-const { addScheduledFollowup } = require('../database');
+const {
+    addScheduledFollowup,
+    addScheduledActiveCheckin,
+    cancelActiveCheckin
+} = require('../database');
 const { sendWebPushNotification } = require('../fcm');
 
 /**
@@ -86,6 +90,80 @@ router.post('/send-test', async (req, res) => {
         console.error('Send test error:', error);
         res.status(500).json({
             error: 'Failed to send test notification',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/notifications/schedule-active-checkin
+ * Schedule an active attack check-in notification
+ */
+router.post('/schedule-active-checkin', async (req, res) => {
+    try {
+        const { attackId, checkInTime, subscriptionEndpoint } = req.body;
+
+        if (!attackId || !checkInTime || !subscriptionEndpoint) {
+            return res.status(400).json({
+                error: 'attackId, checkInTime, and subscriptionEndpoint are required'
+            });
+        }
+
+        const checkin = {
+            id: `active-checkin-${attackId}`,
+            attackId,
+            scheduledTime: checkInTime,
+            subscriptionEndpoint,
+            sent: false
+        };
+
+        const result = addScheduledActiveCheckin(checkin);
+
+        res.status(201).json({
+            success: true,
+            message: 'Active attack check-in scheduled successfully',
+            checkin: result
+        });
+    } catch (error) {
+        console.error('Schedule active check-in error:', error);
+        res.status(500).json({
+            error: 'Failed to schedule active attack check-in',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/notifications/cancel-active-checkin
+ * Cancel an active attack check-in notification
+ */
+router.post('/cancel-active-checkin', async (req, res) => {
+    try {
+        const { attackId, subscriptionEndpoint } = req.body;
+
+        if (!attackId || !subscriptionEndpoint) {
+            return res.status(400).json({
+                error: 'attackId and subscriptionEndpoint are required'
+            });
+        }
+
+        const canceled = cancelActiveCheckin(attackId);
+
+        if (canceled) {
+            res.json({
+                success: true,
+                message: 'Active attack check-in canceled successfully'
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: 'No active check-in found for this attack'
+            });
+        }
+    } catch (error) {
+        console.error('Cancel active check-in error:', error);
+        res.status(500).json({
+            error: 'Failed to cancel active attack check-in',
             message: error.message
         });
     }
