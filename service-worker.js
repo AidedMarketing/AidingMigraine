@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.7.6 - Relief Method Editing
+// Version 1.7.7 - Notification Enable/Disable Fix
 
-const CACHE_NAME = 'aiding-migraine-v1.7.6';
+const CACHE_NAME = 'aiding-migraine-v1.7.7';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
