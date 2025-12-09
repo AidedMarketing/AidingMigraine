@@ -9,12 +9,15 @@ const {
     getSubscriptionsForDailyCheckIn,
     getFollowupsDueNow,
     markFollowupAsSent,
+    getActiveCheckinsDueNow,
+    markActiveCheckinAsSent,
     getSubscriptionByEndpoint
 } = require('./database');
 const {
     sendWebPushNotification,
     createDailyCheckInPayload,
-    createFollowUpPayload
+    createFollowUpPayload,
+    createActiveCheckinPayload
 } = require('./fcm');
 
 function initializeScheduler() {
@@ -39,18 +42,19 @@ function initializeScheduler() {
         }
     });
 
-    // Also check every 15 minutes for follow-ups (more responsive)
+    // Also check every 15 minutes for follow-ups and active check-ins (more responsive)
     const followupJob = schedule.scheduleJob('*/15 * * * *', async () => {
         try {
             await processScheduledFollowUps();
+            await processActiveCheckins();
         } catch (error) {
-            console.error('❌ Error in follow-up check:', error);
+            console.error('❌ Error in follow-up/active check-in check:', error);
         }
     });
 
     console.log('✅ Scheduler initialized');
     console.log('   - Hourly job for daily check-ins');
-    console.log('   - Every 15 minutes for follow-ups');
+    console.log('   - Every 15 minutes for follow-ups and active check-ins');
 
     return { hourlyJob, followupJob };
 }
@@ -143,8 +147,55 @@ async function processScheduledFollowUps() {
     console.log(`   ✅ Follow-ups sent: ${sent}, Failed: ${failed}`);
 }
 
+async function processActiveCheckins() {
+    console.log('⚡ Checking for active attack check-ins...');
+
+    const checkins = getActiveCheckinsDueNow();
+
+    if (checkins.length === 0) {
+        console.log('   No active check-ins due at this time');
+        return;
+    }
+
+    console.log(`   Found ${checkins.length} active check-ins to send`);
+
+    let sent = 0;
+    let failed = 0;
+
+    for (const checkin of checkins) {
+        try {
+            const subscription = getSubscriptionByEndpoint(checkin.subscriptionEndpoint);
+
+            if (!subscription) {
+                console.log(`   Subscription not found for check-in ${checkin.id}`);
+                markActiveCheckinAsSent(checkin.id); // Mark as sent to avoid retrying
+                failed++;
+                continue;
+            }
+
+            const payload = createActiveCheckinPayload(checkin.attackId);
+            const result = await sendWebPushNotification(subscription, payload);
+
+            if (result.success) {
+                markActiveCheckinAsSent(checkin.id);
+                sent++;
+                console.log(`   ✅ Active check-in sent for attack ${checkin.attackId}`);
+            } else {
+                failed++;
+                console.log(`   ❌ Failed to send active check-in for attack ${checkin.attackId}`);
+            }
+        } catch (error) {
+            console.error(`   Error processing active check-in ${checkin.id}:`, error);
+            failed++;
+        }
+    }
+
+    console.log(`   ✅ Active check-ins sent: ${sent}, Failed: ${failed}`);
+}
+
 module.exports = {
     initializeScheduler,
     processDailyCheckIns,
-    processScheduledFollowUps
+    processScheduledFollowUps,
+    processActiveCheckins
 };

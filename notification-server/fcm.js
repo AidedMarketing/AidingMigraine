@@ -124,10 +124,27 @@ function createFollowUpPayload(attackId) {
     };
 }
 
+/**
+ * Create notification payload for active attack check-in
+ */
+function createActiveCheckinPayload(attackId) {
+    return {
+        title: 'Aiding Migraine',
+        body: 'How is your migraine? Update your pain level or add relief methods',
+        icon: './icons/icon-192x192.png',
+        badge: './icons/icon-72x72.png',
+        tag: `active-checkin-${attackId}`,
+        url: './?action=active-checkin',
+        type: 'active-attack-checkin',
+        attackId: attackId
+    };
+}
+
 module.exports = {
     initializeFCM,
     sendWebPushNotification,
     sendBulkNotifications,
     createDailyCheckInPayload,
-    createFollowUpPayload
+    createFollowUpPayload,
+    createActiveCheckinPayload
 };
