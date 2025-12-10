@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.7.7 - Notification Enable/Disable Fix
+// Version 1.7.8 - Recurring Active Attack Check-ins
 
-const CACHE_NAME = 'aiding-migraine-v1.7.7';
+const CACHE_NAME = 'aiding-migraine-v1.7.8';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

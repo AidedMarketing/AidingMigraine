@@ -5122,68 +5122,82 @@
                 return;
             }
 
-            const delayMs = notificationPreferences.activeAttackCheckIn.delayHours * 60 * 60 * 1000;
-            const checkInTime = new Date(Date.now() + delayMs);
+            const delayHours = notificationPreferences.activeAttackCheckIn.delayHours;
 
-            // Store scheduled notification locally
+            // Schedule multiple recurring check-ins (up to 24 hours worth)
+            const maxCheckIns = Math.floor(24 / delayHours); // e.g., if delayHours=2, schedule 12 check-ins
             const scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications') || '[]');
-            scheduledNotifications.push({
-                id: `active-checkin-${attackId}`,
-                attackId: attackId,
-                scheduledTime: checkInTime.toISOString(),
-                type: 'active-attack-checkin'
-            });
-            localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
 
-            console.log(`⚡ Scheduled active attack check-in notification for ${checkInTime.toLocaleString()}`);
+            for (let i = 1; i <= maxCheckIns; i++) {
+                const delayMs = delayHours * i * 60 * 60 * 1000;
+                const checkInTime = new Date(Date.now() + delayMs);
 
-            // Send to server if push subscription exists
-            if (notificationPreferences.pushSubscription) {
-                try {
-                    const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
-                    const response = await fetch(`${SERVER_URL}/api/notifications/schedule-active-checkin`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            attackId: attackId,
-                            checkInTime: checkInTime.toISOString(),
-                            subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
-                        })
-                    });
+                // Store scheduled notification locally with unique ID including sequence number
+                scheduledNotifications.push({
+                    id: `active-checkin-${attackId}-${i}`,
+                    attackId: attackId,
+                    scheduledTime: checkInTime.toISOString(),
+                    type: 'active-attack-checkin',
+                    sequence: i
+                });
 
-                    if (response.ok) {
-                        console.log('✅ Active attack check-in scheduled on server');
-                    } else {
-                        console.error('Failed to schedule active attack check-in on server');
+                // Send to server if push subscription exists
+                if (notificationPreferences.pushSubscription) {
+                    try {
+                        const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
+                        const response = await fetch(`${SERVER_URL}/api/notifications/schedule-active-checkin`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                attackId: `${attackId}-${i}`, // Unique ID for each check-in
+                                checkInTime: checkInTime.toISOString(),
+                                subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
+                            })
+                        });
+
+                        if (!response.ok) {
+                            console.error(`Failed to schedule active attack check-in #${i} on server`);
+                        }
+                    } catch (error) {
+                        console.error(`Error scheduling active attack check-in #${i}:`, error);
                     }
-                } catch (error) {
-                    console.error('Error scheduling active attack check-in:', error);
                 }
             }
+
+            localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
+            console.log(`⚡ Scheduled ${maxCheckIns} recurring active attack check-ins (every ${delayHours}h for 24h)`);
         }
 
         function cancelActiveAttackCheckIn(attackId) {
-            // Remove from local scheduled notifications
+            // Remove ALL scheduled check-ins for this attack (they have IDs like active-checkin-${attackId}-1, -2, etc.)
             let scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications') || '[]');
-            scheduledNotifications = scheduledNotifications.filter(n => n.id !== `active-checkin-${attackId}`);
+            const toCancel = scheduledNotifications.filter(n => n.attackId === attackId && n.type === 'active-attack-checkin');
+            scheduledNotifications = scheduledNotifications.filter(n => !(n.attackId === attackId && n.type === 'active-attack-checkin'));
             localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
 
-            console.log(`🚫 Canceled active attack check-in notification for attack ${attackId}`);
+            console.log(`🚫 Canceled ${toCancel.length} active attack check-in notifications for attack ${attackId}`);
 
             // Cancel on server if push subscription exists
-            if (notificationPreferences.pushSubscription) {
+            if (notificationPreferences.pushSubscription && toCancel.length > 0) {
                 try {
                     const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
-                    fetch(`${SERVER_URL}/api/notifications/cancel-active-checkin`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            attackId: attackId,
-                            subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
-                        })
-                    }).catch(error => console.error('Error canceling active attack check-in on server:', error));
+
+                    // Cancel each check-in on the server
+                    for (const checkin of toCancel) {
+                        const sequence = checkin.sequence || '';
+                        const serverAttackId = sequence ? `${attackId}-${sequence}` : attackId;
+
+                        fetch(`${SERVER_URL}/api/notifications/cancel-active-checkin`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                attackId: serverAttackId,
+                                subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
+                            })
+                        }).catch(error => console.error(`Error canceling active attack check-in ${serverAttackId} on server:`, error));
+                    }
                 } catch (error) {
-                    console.error('Error canceling active attack check-in:', error);
+                    console.error('Error canceling active attack check-ins:', error);
                 }
             }
         }
