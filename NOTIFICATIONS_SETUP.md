@@ -7,6 +7,7 @@ Complete guide to setting up the PWA notification system for migraine tracking.
 The Aiding Migraine PWA now includes a comprehensive notification system that sends:
 1. **Daily Check-in Reminders** - Prompt users to log their daily migraine status (default: 7 PM)
 2. **Post-Attack Follow-ups** - Check in 2-4 hours after a migraine attack is logged
+3. **Active Attack Check-ins** - Regular check-ins during ongoing migraines to monitor pain levels and relief needs
 
 ## Architecture
 
@@ -54,7 +55,8 @@ The PWA includes:
 2. Click "Enable Notifications" (triggers permission request)
 3. Configure daily check-in time and frequency
 4. Configure post-attack follow-up delay
-5. Test with "Send Test Notification" button
+5. Configure active attack check-in interval
+6. Test with "Send Test Notification" button
 
 ### 2. Server-Side Setup
 
@@ -293,6 +295,12 @@ navigator.serviceWorker.ready.then(reg => {
 2. Server receives the schedule request
 3. After configured delay (2 hours default), notification sends
 
+**Active Attack Check-in:**
+1. Log a migraine attack in the PWA (attack becomes "active")
+2. Server receives the schedule request
+3. Notification sends at configured interval (e.g., every 4 hours)
+4. Check-in automatically cancels when attack is marked as ended
+
 ## Deployment Checklist
 
 ### Development
@@ -370,6 +378,13 @@ For issues or questions:
 5. Check browser console for errors
 
 ## Next Steps
+
+**Implemented Features:**
+- ✅ Daily check-in reminders
+- ✅ Post-attack follow-ups
+- ✅ Active attack check-ins
+- ✅ Timezone-aware scheduling
+- ✅ iOS and Android support
 
 **Phase 2 Features (Future):**
 - Medication reminders (daily preventive meds)

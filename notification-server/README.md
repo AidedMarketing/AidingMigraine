@@ -1,11 +1,12 @@
 # Aiding Migraine - Notification Server
 
-Push notification server for the Aiding Migraine PWA. Handles scheduled daily check-ins and post-attack follow-up notifications.
+Push notification server for the Aiding Migraine PWA. Handles scheduled daily check-ins, post-attack follow-ups, and active attack check-ins.
 
 ## Features
 
 - ✅ Daily check-in notifications (user-configurable time)
 - ✅ Post-attack follow-up notifications (2-4 hours after attack logged)
+- ✅ Active attack check-in notifications (regular check-ins during ongoing migraines)
 - ✅ Web Push Protocol with VAPID authentication
 - ✅ Firebase Cloud Messaging (FCM) integration
 - ✅ Timezone-aware scheduling
