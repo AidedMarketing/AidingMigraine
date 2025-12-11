@@ -3476,7 +3476,7 @@
             if (startedToday.length > 0) {
                 content += startedToday.map(m => `
                     <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; position: relative;">
-                        <button onclick="editAttack(${m.id}); event.stopPropagation();" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
+                        <button onclick="editAttack(${m.id})" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
                             ✏️ Edit
                         </button>
                         <p><strong>Started: ${formatTime(new Date(m.startTime))}</strong></p>
@@ -3492,7 +3492,7 @@
             if (ongoingToday.length > 0) {
                 content += ongoingToday.map(m => `
                     <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-blue); position: relative;">
-                        <button onclick="editAttack(${m.id}); event.stopPropagation();" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
+                        <button onclick="editAttack(${m.id})" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
                             ✏️ Edit
                         </button>
                         <p><strong>Ongoing Attack</strong></p>
@@ -4124,8 +4124,8 @@
             const BOM = '\uFEFF';
             let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa)\n';
 
-            // Sort by date (oldest first)
-            const sorted = activeMigraines.sort((a, b) =>
+            // Sort by date (oldest first) - use slice() to avoid mutating original array
+            const sorted = activeMigraines.slice().sort((a, b) =>
                 new Date(a.startTime) - new Date(b.startTime)
             );
 
@@ -4293,7 +4293,7 @@
 
                         // Create migraine object
                         const migraine = {
-                            id: Date.now() + i, // Unique ID
+                            id: Date.now() * 1000 + Math.floor(Math.random() * 1000) + i, // Unique ID with randomness
                             startTime: startDateTime.toISOString(),
                             painLevel: pain,
                             category: getPainCategory(pain),
