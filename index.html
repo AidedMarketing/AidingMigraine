@@ -1397,10 +1397,13 @@
                         </button>
                         <div id="optional-details-content" class="optional-details-content" style="display: none;">
                             <div class="form-group">
-                                <label>💊 Medication (optional)</label>
-                                <input type="text" id="medication-input" placeholder="e.g. Sumatriptan 100mg" />
+                                <label>💊 Medication Taken (optional)</label>
+                                <div id="medications-list" style="margin-bottom: 12px;"></div>
+                                <button type="button" id="add-medication-btn" class="btn btn-secondary" style="width: 100%; padding: 10px;">
+                                    + Add Medication
+                                </button>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label>Quick Notes (optional)</label>
                                 <textarea id="notes-input" placeholder="Add any notes about this episode..." rows="3"></textarea>
@@ -2009,6 +2012,7 @@
         // Medication Library
         let medicationLibrary = [];
         let userMedications = [];
+        let currentEpisodeMedications = []; // Temporary storage for medications being logged
 
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
@@ -2123,6 +2127,174 @@
             localStorage.setItem('userMedications', JSON.stringify(userMedications));
         }
 
+        function showAddMedicationModal() {
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            body.innerHTML = `
+                <div class="form-group">
+                    <label>Search Medication</label>
+                    <input type="text" id="med-search" placeholder="Type to search..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;" autofocus>
+                </div>
+
+                <div id="med-search-results" style="max-height: 300px; overflow-y: auto; margin-bottom: 16px;">
+                    <p style="color: var(--text-secondary); text-align: center; padding: 20px;">Type to search medications...</p>
+                </div>
+
+                <div style="border-top: 1px solid var(--border-color); padding-top: 16px;">
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">Or enter custom medication:</p>
+                    <input type="text" id="custom-med-name" placeholder="Medication name" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); margin-bottom: 8px;">
+                    <button class="btn btn-secondary" id="add-custom-med-btn" style="width: 100%;">Add Custom Medication</button>
+                </div>
+            `;
+
+            document.getElementById('modal-actions').innerHTML = `
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Add Medication';
+            modal.classList.add('active');
+
+            // Search functionality
+            const searchInput = document.getElementById('med-search');
+            searchInput.addEventListener('input', (e) => {
+                searchMedications(e.target.value);
+            });
+
+            // Custom medication
+            document.getElementById('add-custom-med-btn').addEventListener('click', () => {
+                const customName = document.getElementById('custom-med-name').value.trim();
+                if (customName) {
+                    addMedicationToEpisode({ name: customName, custom: true });
+                }
+            });
+        }
+
+        function searchMedications(query) {
+            const resultsDiv = document.getElementById('med-search-results');
+
+            if (!query || query.length < 2) {
+                resultsDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Type at least 2 characters...</p>';
+                return;
+            }
+
+            const matches = medicationLibrary.filter(med =>
+                med.name.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (matches.length === 0) {
+                resultsDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No medications found. Try adding a custom medication below.</p>';
+                return;
+            }
+
+            resultsDiv.innerHTML = matches.slice(0, 10).map(med => `
+                <div class="med-result-item" onclick="selectMedication('${med.name}')" style="padding: 12px; margin-bottom: 8px; background: var(--bg-tertiary); border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
+                    <div style="font-weight: 600;">${med.name}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
+                        ${med.type === 'abortive' ? '🎯 Abortive' : '🛡️ Preventive'} • ${med.category}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectMedication(medName) {
+            const med = medicationLibrary.find(m => m.name === medName);
+            if (!med) return;
+
+            // Show dosage/form selection modal
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            body.innerHTML = `
+                <h3 style="margin-bottom: 16px;">${med.name}</h3>
+
+                <div class="form-group">
+                    <label>Dosage</label>
+                    <select id="med-dosage" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                        ${med.dosages ? med.dosages.map(d => `<option value="${d}">${d}</option>`).join('') : '<option value="">Not specified</option>'}
+                        <option value="custom">Custom...</option>
+                    </select>
+                    <input type="text" id="custom-dosage" placeholder="Enter custom dosage" style="width: 100%; padding: 10px; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); display: none;">
+                </div>
+
+                <div class="form-group">
+                    <label>Form</label>
+                    <select id="med-form" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                        ${med.forms ? med.forms.map(f => `<option value="${f}">${f}</option>`).join('') : '<option value="tablet">Tablet</option>'}
+                    </select>
+                </div>
+            `;
+
+            document.getElementById('modal-actions').innerHTML = `
+                <button class="btn btn-secondary" onclick="showAddMedicationModal()">Back</button>
+                <button class="btn btn-primary" id="confirm-add-med">Add to Episode</button>
+            `;
+
+            // Show custom dosage input if selected
+            document.getElementById('med-dosage').addEventListener('change', (e) => {
+                const customInput = document.getElementById('custom-dosage');
+                customInput.style.display = e.target.value === 'custom' ? 'block' : 'none';
+            });
+
+            document.getElementById('confirm-add-med').addEventListener('click', () => {
+                const dosageSelect = document.getElementById('med-dosage');
+                let dosage = dosageSelect.value;
+                if (dosage === 'custom') {
+                    dosage = document.getElementById('custom-dosage').value.trim();
+                }
+                const form = document.getElementById('med-form').value;
+
+                addMedicationToEpisode({
+                    name: med.name,
+                    dosage: dosage,
+                    formulation: form,
+                    type: med.type,
+                    category: med.category
+                });
+            });
+        }
+
+        function addMedicationToEpisode(medData) {
+            const medication = {
+                name: medData.name,
+                dosage: medData.dosage || null,
+                formulation: medData.formulation || null,
+                type: medData.type || null,
+                category: medData.category || null,
+                timeTaken: new Date().toISOString()
+            };
+
+            currentEpisodeMedications.push(medication);
+            renderMedicationsList();
+            closeModal();
+        }
+
+        function removeMedicationFromEpisode(index) {
+            currentEpisodeMedications.splice(index, 1);
+            renderMedicationsList();
+        }
+
+        function renderMedicationsList() {
+            const listDiv = document.getElementById('medications-list');
+
+            if (currentEpisodeMedications.length === 0) {
+                listDiv.innerHTML = '';
+                return;
+            }
+
+            listDiv.innerHTML = currentEpisodeMedications.map((med, index) => `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--accent-blue);">
+                    <div>
+                        <div style="font-weight: 600;">${med.name}${med.dosage ? ` ${med.dosage}` : ''}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                            ${med.formulation || 'Not specified'} • ${new Date(med.timeTaken).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                    </div>
+                    <button onclick="removeMedicationFromEpisode(${index})" style="background: var(--pain-moderate); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem;">Remove</button>
+                </div>
+            `).join('');
+        }
+
         function initializeTheme() {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             applyTheme(savedTheme);
@@ -2222,8 +2394,10 @@
         function initializeLogging() {
             document.getElementById('log-btn').addEventListener('click', logEpisode);
             document.getElementById('clear-btn').addEventListener('click', clearForm);
+            document.getElementById('add-medication-btn').addEventListener('click', showAddMedicationModal);
             document.getElementById('update-pain-btn')?.addEventListener('click', updateActivePain);
             document.getElementById('end-episode-btn')?.addEventListener('click', endActiveMigraine);
+            renderMedicationsList(); // Initialize empty medication list
         }
 
         function logEpisode() {
@@ -2237,7 +2411,6 @@
                 return;
             }
 
-            const medication = document.getElementById('medication-input').value.trim();
             const notes = document.getElementById('notes-input').value.trim();
 
             const migraine = {
@@ -2247,7 +2420,11 @@
                 painHistory: [{ timestamp: new Date().toISOString(), level: selectedPain }],
                 status: 'active',
                 notes: notes,
-                medication: medication || null,
+                medications: currentEpisodeMedications.length > 0 ? [...currentEpisodeMedications] : null,
+                // Keep old medication field for backwards compatibility
+                medication: currentEpisodeMedications.length > 0
+                    ? currentEpisodeMedications.map(m => `${m.name}${m.dosage ? ' ' + m.dosage : ''}`).join(', ')
+                    : null,
                 weather: getCurrentWeatherForEntry(),
                 category: getPainCategory(selectedPain)
             };
@@ -2273,7 +2450,8 @@
             selectedPain = null;
             document.querySelectorAll('.pain-btn').forEach(b => b.classList.remove('selected'));
             document.getElementById('notes-input').value = '';
-            document.getElementById('medication-input').value = '';
+            currentEpisodeMedications = [];
+            renderMedicationsList();
         }
 
         function updateActivePain() {
