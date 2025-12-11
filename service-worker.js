@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.7.8 - Recurring Active Attack Check-ins
+// Version 1.8.0 - Entry Editing Feature
 
-const CACHE_NAME = 'aiding-migraine-v1.7.8';
+const CACHE_NAME = 'aiding-migraine-v1.8.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
