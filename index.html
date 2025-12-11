@@ -2295,6 +2295,176 @@
             `).join('');
         }
 
+        function showMedicationEffectivenessModal(completedMigraine) {
+            // Check if migraine has medications to rate
+            if (!completedMigraine.medications || completedMigraine.medications.length === 0) {
+                return false; // No medications to rate
+            }
+
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            let currentMedIndex = 0;
+            const medications = completedMigraine.medications;
+
+            function showMedicationRating(index) {
+                if (index >= medications.length) {
+                    // All medications rated, save and close
+                    saveData();
+                    closeModal();
+                    showModal('Episode Ended', 'Your migraine episode and medication effectiveness have been saved.');
+                    return;
+                }
+
+                const med = medications[index];
+
+                document.getElementById('modal-title').textContent = 'Rate Medication Effectiveness';
+                body.innerHTML = `
+                    <p style="margin-bottom: 20px; color: var(--text-secondary);">
+                        Medication ${index + 1} of ${medications.length}
+                    </p>
+
+                    <h3 style="margin-bottom: 24px;">${med.name}${med.dosage ? ' ' + med.dosage : ''}</h3>
+
+                    <div class="form-group">
+                        <label>How effective was this medication?</label>
+                        <div id="effectiveness-stars" style="display: flex; gap: 8px; font-size: 2rem; margin-top: 8px;">
+                            ${[1, 2, 3, 4, 5].map(star => `
+                                <span class="star-rating" data-rating="${star}" style="cursor: pointer; color: var(--text-tertiary);">⭐</span>
+                            `).join('')}
+                        </div>
+                        <div id="effectiveness-label" style="margin-top: 8px; color: var(--text-secondary); font-size: 0.9rem; min-height: 20px;"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label>Time to relief (optional)</label>
+                        <select id="time-to-relief" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                            <option value="">Not sure / No relief</option>
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="60">1 hour</option>
+                            <option value="120">2 hours</option>
+                            <option value="240">4 hours</option>
+                            <option value="480">8+ hours</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label>Any side effects? (optional)</label>
+                        <div id="side-effects" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" value="nausea" style="width: 18px; height: 18px;">
+                                <span>Nausea</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" value="dizziness" style="width: 18px; height: 18px;">
+                                <span>Dizziness</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" value="drowsiness" style="width: 18px; height: 18px;">
+                                <span>Drowsiness</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" value="fatigue" style="width: 18px; height: 18px;">
+                                <span>Fatigue</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" value="chest-tightness" style="width: 18px; height: 18px;">
+                                <span>Chest Tightness</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" value="dry-mouth" style="width: 18px; height: 18px;">
+                                <span>Dry Mouth</span>
+                            </label>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('modal-actions').innerHTML = `
+                    <button class="btn btn-secondary" id="skip-rating">Skip</button>
+                    <button class="btn btn-primary" id="save-rating" disabled>Save & ${index < medications.length - 1 ? 'Next' : 'Finish'}</button>
+                `;
+
+                // Star rating interaction
+                let selectedRating = 0;
+                const stars = document.querySelectorAll('.star-rating');
+                const label = document.getElementById('effectiveness-label');
+                const saveBtn = document.getElementById('save-rating');
+
+                const ratingLabels = {
+                    1: '⭐ No relief',
+                    2: '⭐⭐ Slight relief',
+                    3: '⭐⭐⭐ Moderate relief',
+                    4: '⭐⭐⭐⭐ Good relief',
+                    5: '⭐⭐⭐⭐⭐ Complete relief'
+                };
+
+                stars.forEach(star => {
+                    star.addEventListener('click', () => {
+                        selectedRating = parseInt(star.dataset.rating);
+
+                        // Update star colors
+                        stars.forEach(s => {
+                            const rating = parseInt(s.dataset.rating);
+                            s.style.color = rating <= selectedRating ? 'var(--accent-gold)' : 'var(--text-tertiary)';
+                        });
+
+                        // Update label
+                        label.textContent = ratingLabels[selectedRating];
+                        saveBtn.disabled = false;
+                    });
+
+                    // Hover effect
+                    star.addEventListener('mouseenter', () => {
+                        const rating = parseInt(star.dataset.rating);
+                        stars.forEach(s => {
+                            const r = parseInt(s.dataset.rating);
+                            s.style.color = r <= rating ? 'var(--accent-gold)' : 'var(--text-tertiary)';
+                        });
+                    });
+                });
+
+                document.getElementById('effectiveness-stars').addEventListener('mouseleave', () => {
+                    // Restore selected rating
+                    stars.forEach(s => {
+                        const rating = parseInt(s.dataset.rating);
+                        s.style.color = rating <= selectedRating ? 'var(--accent-gold)' : 'var(--text-tertiary)';
+                    });
+                });
+
+                // Skip button
+                document.getElementById('skip-rating').addEventListener('click', () => {
+                    currentMedIndex++;
+                    showMedicationRating(currentMedIndex);
+                });
+
+                // Save button
+                document.getElementById('save-rating').addEventListener('click', () => {
+                    const timeToRelief = document.getElementById('time-to-relief').value;
+                    const sideEffects = Array.from(document.querySelectorAll('#side-effects input:checked'))
+                        .map(cb => cb.value);
+
+                    // Save effectiveness data to medication
+                    medications[index].effectiveness = selectedRating;
+                    if (timeToRelief) {
+                        medications[index].timeToRelief = parseInt(timeToRelief);
+                    }
+                    if (sideEffects.length > 0) {
+                        medications[index].sideEffects = sideEffects;
+                    }
+
+                    currentMedIndex++;
+                    showMedicationRating(currentMedIndex);
+                });
+            }
+
+            // Start rating the first medication
+            modal.classList.add('active');
+            showMedicationRating(0);
+
+            return true; // Indicates effectiveness modal was shown
+        }
+
         function initializeTheme() {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             applyTheme(savedTheme);
@@ -2536,6 +2706,7 @@
                 activeMigraine.endWeather = getCurrentWeatherForEntry();
 
                 const completedMigraineId = activeMigraine.id;
+                const completedMigraine = activeMigraine; // Store reference for effectiveness modal
                 migraines.push(activeMigraine);
                 activeMigraine = null;
 
@@ -2548,9 +2719,15 @@
                 updateDashboard();
                 renderHistory();
                 renderCalendar();
-                closeModal();
-                
-                showModal('Episode Ended', 'Your migraine episode has been saved to history.');
+
+                // Show effectiveness modal if medications were taken
+                const showedEffectivenessModal = showMedicationEffectivenessModal(completedMigraine);
+
+                // If no medications to rate, close and show success message
+                if (!showedEffectivenessModal) {
+                    closeModal();
+                    showModal('Episode Ended', 'Your migraine episode has been saved to history.');
+                }
             });
         }
 
