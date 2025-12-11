@@ -2341,6 +2341,207 @@
             document.getElementById('active-duration').textContent = `${hours}h ${minutes}m`;
         }
 
+        // ============================================
+        // ENTRY EDITING FUNCTIONS
+        // ============================================
+
+        function editAttack(attackId) {
+            // Find the attack to edit (check both completed and active)
+            let attack = migraines.find(m => m.id === attackId);
+            const isActive = activeMigraine && activeMigraine.id === attackId;
+
+            if (isActive) {
+                attack = activeMigraine;
+            }
+
+            if (!attack) {
+                showModal('Error', 'Episode not found.');
+                return;
+            }
+
+            closeModal(); // Close the day details modal
+
+            // Create edit modal
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            // Parse start and end times
+            const startDate = new Date(attack.startTime);
+            const startDateStr = startDate.toISOString().split('T')[0];
+            const startTimeStr = startDate.toTimeString().slice(0, 5);
+
+            let endDateStr = '';
+            let endTimeStr = '';
+            if (attack.endTime) {
+                const endDate = new Date(attack.endTime);
+                endDateStr = endDate.toISOString().split('T')[0];
+                endTimeStr = endDate.toTimeString().slice(0, 5);
+            }
+
+            body.innerHTML = `
+                <div style="max-height: 60vh; overflow-y: auto;">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Start Date & Time</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="date" id="edit-start-date" value="${startDateStr}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                            <input type="time" id="edit-start-time" value="${startTimeStr}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                        </div>
+                    </div>
+
+                    ${attack.status === 'completed' ? `
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">End Date & Time</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="date" id="edit-end-date" value="${endDateStr}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                            <input type="time" id="edit-end-time" value="${endTimeStr}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Pain Level</label>
+                        <div class="pain-scale" style="display: grid; grid-template-columns: repeat(11, 1fr); gap: 8px;">
+                            ${[0,1,2,3,4,5,6,7,8,9,10].map(i =>
+                                `<button class="pain-btn ${attack.painLevel === i ? 'selected' : ''}" data-pain="${i}" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 1.1rem; font-weight: 600;">${i}</button>`
+                            ).join('')}
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="edit-medication" style="display: block; margin-bottom: 8px; font-weight: 600;">Medication</label>
+                        <input type="text" id="edit-medication" value="${attack.medication || ''}" placeholder="e.g., Sumatriptan 100mg" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="edit-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Notes</label>
+                        <textarea id="edit-notes" rows="4" placeholder="Any additional details..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${attack.notes || ''}</textarea>
+                    </div>
+
+                    ${attack.endNotes ? `
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="edit-end-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Resolution Notes</label>
+                        <textarea id="edit-end-notes" rows="3" placeholder="How did it resolve?" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${attack.endNotes || ''}</textarea>
+                    </div>
+                    ` : ''}
+
+                    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green); font-size: 0.9rem; color: var(--text-secondary);">
+                        ℹ️ Weather data and attack ID will be preserved
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-actions').innerHTML = `
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="save-edit-btn">Save Changes</button>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Edit Migraine Episode';
+            modal.classList.add('active');
+
+            // Pain level selection
+            body.querySelectorAll('.pain-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    body.querySelectorAll('.pain-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                });
+            });
+
+            // Save button handler
+            document.getElementById('save-edit-btn').addEventListener('click', () => {
+                saveEditedAttack(attack, isActive);
+            });
+        }
+
+        function saveEditedAttack(originalAttack, isActive) {
+            const startDate = document.getElementById('edit-start-date').value;
+            const startTime = document.getElementById('edit-start-time').value;
+            const selectedPainBtn = document.querySelector('.pain-btn.selected');
+            const medication = document.getElementById('edit-medication').value.trim();
+            const notes = document.getElementById('edit-notes').value.trim();
+
+            if (!startDate || !startTime) {
+                showModal('Error', 'Please provide start date and time.');
+                return;
+            }
+
+            if (!selectedPainBtn) {
+                showModal('Error', 'Please select a pain level.');
+                return;
+            }
+
+            const painLevel = parseInt(selectedPainBtn.dataset.pain);
+            const startDateTime = new Date(`${startDate}T${startTime}`);
+
+            // Validation: can't set future dates
+            if (startDateTime > new Date()) {
+                showModal('Error', 'Cannot set future dates.');
+                return;
+            }
+
+            // Handle end date for completed attacks
+            let endDateTime = null;
+            let duration = null;
+            if (originalAttack.status === 'completed') {
+                const endDate = document.getElementById('edit-end-date').value;
+                const endTime = document.getElementById('edit-end-time').value;
+
+                if (endDate && endTime) {
+                    endDateTime = new Date(`${endDate}T${endTime}`);
+
+                    // Validation: end must be after start
+                    if (endDateTime <= startDateTime) {
+                        showModal('Error', 'End time must be after start time.');
+                        return;
+                    }
+
+                    duration = Math.floor((endDateTime - startDateTime) / 1000);
+                }
+            }
+
+            // Get end notes if present
+            const endNotesElement = document.getElementById('edit-end-notes');
+            const endNotes = endNotesElement ? endNotesElement.value.trim() : originalAttack.endNotes;
+
+            // Update the attack object
+            const updatedAttack = {
+                ...originalAttack,
+                startTime: startDateTime.toISOString(),
+                painLevel: painLevel,
+                category: getPainCategory(painLevel),
+                medication: medication || null,
+                notes: notes,
+                lastModified: new Date().toISOString(),
+                editCount: (originalAttack.editCount || 0) + 1
+            };
+
+            if (endDateTime) {
+                updatedAttack.endTime = endDateTime.toISOString();
+                updatedAttack.duration = duration;
+            }
+
+            if (endNotes) {
+                updatedAttack.endNotes = endNotes;
+            }
+
+            // Save to the appropriate location
+            if (isActive) {
+                activeMigraine = updatedAttack;
+            } else {
+                const index = migraines.findIndex(m => m.id === originalAttack.id);
+                if (index !== -1) {
+                    migraines[index] = updatedAttack;
+                }
+            }
+
+            saveData();
+            updateDashboard();
+            renderCalendar();
+            renderHistory();
+
+            closeModal();
+            showModal('Success', 'Episode updated successfully!');
+        }
+
         // Relief Method Tracking Functions
         function initializeReliefMethods() {
             const addBtn = document.getElementById('add-relief-btn');
@@ -3265,7 +3466,10 @@
 
             if (startedToday.length > 0) {
                 content += startedToday.map(m => `
-                    <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; position: relative;">
+                        <button onclick="editAttack(${m.id}); event.stopPropagation();" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
+                            ✏️ Edit
+                        </button>
                         <p><strong>Started: ${formatTime(new Date(m.startTime))}</strong></p>
                         <p>Pain: ${m.painLevel}/10 (${m.category})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
@@ -3278,7 +3482,10 @@
 
             if (ongoingToday.length > 0) {
                 content += ongoingToday.map(m => `
-                    <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-blue);">
+                    <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-blue); position: relative;">
+                        <button onclick="editAttack(${m.id}); event.stopPropagation();" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
+                            ✏️ Edit
+                        </button>
                         <p><strong>Ongoing Attack</strong></p>
                         <p>Started: ${formatTime(new Date(m.startTime))}</p>
                         <p>Pain: ${m.painLevel}/10 (${m.category})</p>
