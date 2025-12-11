@@ -2006,9 +2006,14 @@
         let currentMonth = new Date();
         let currentPage = 'log';
 
+        // Medication Library
+        let medicationLibrary = [];
+        let userMedications = [];
+
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
             purgeOldDeletedEpisodes();
+            initializeMedicationLibrary();
             initializeTheme();
             initializeNavigation();
             initializePainScale();
@@ -2044,6 +2049,78 @@
             } else {
                 localStorage.removeItem('activeMigraine');
             }
+        }
+
+        // ============================================
+        // MEDICATION LIBRARY SYSTEM
+        // ============================================
+
+        function initializeMedicationLibrary() {
+            // Load user-added medications
+            const stored = localStorage.getItem('userMedications');
+            if (stored) {
+                userMedications = JSON.parse(stored);
+            }
+
+            // Pre-populated medication library (common migraine medications)
+            medicationLibrary = [
+                // Triptans (Abortive)
+                { name: "Sumatriptan", type: "abortive", category: "triptan", dosages: ["25mg", "50mg", "100mg"], forms: ["tablet", "nasal spray", "injection"] },
+                { name: "Rizatriptan", type: "abortive", category: "triptan", dosages: ["5mg", "10mg"], forms: ["tablet", "disintegrating tablet"] },
+                { name: "Eletriptan", type: "abortive", category: "triptan", dosages: ["20mg", "40mg"], forms: ["tablet"] },
+                { name: "Zolmitriptan", type: "abortive", category: "triptan", dosages: ["2.5mg", "5mg"], forms: ["tablet", "nasal spray"] },
+                { name: "Almotriptan", type: "abortive", category: "triptan", dosages: ["6.25mg", "12.5mg"], forms: ["tablet"] },
+                { name: "Naratriptan", type: "abortive", category: "triptan", dosages: ["1mg", "2.5mg"], forms: ["tablet"] },
+
+                // NSAIDs (Abortive)
+                { name: "Ibuprofen", type: "abortive", category: "nsaid", dosages: ["200mg", "400mg", "600mg", "800mg"], forms: ["tablet", "liquid gel"] },
+                { name: "Naproxen", type: "abortive", category: "nsaid", dosages: ["220mg", "375mg", "500mg"], forms: ["tablet"] },
+                { name: "Aspirin", type: "abortive", category: "nsaid", dosages: ["325mg", "500mg", "650mg"], forms: ["tablet"] },
+                { name: "Diclofenac", type: "abortive", category: "nsaid", dosages: ["50mg", "75mg"], forms: ["tablet"] },
+                { name: "Indomethacin", type: "abortive", category: "nsaid", dosages: ["25mg", "50mg"], forms: ["capsule"] },
+
+                // Combination Drugs (Abortive)
+                { name: "Excedrin Migraine", type: "abortive", category: "combination", dosages: ["2 tablets"], forms: ["tablet"] },
+                { name: "Fioricet", type: "abortive", category: "combination", dosages: ["1-2 tablets"], forms: ["tablet"] },
+                { name: "Treximet", type: "abortive", category: "combination", dosages: ["85mg/500mg"], forms: ["tablet"] },
+
+                // CGRP Antagonists (Abortive)
+                { name: "Ubrogepant", type: "abortive", category: "cgrp", dosages: ["50mg", "100mg"], forms: ["tablet"] },
+                { name: "Rimegepant", type: "abortive", category: "cgrp", dosages: ["75mg"], forms: ["disintegrating tablet"] },
+
+                // Preventive - Beta Blockers
+                { name: "Propranolol", type: "preventive", category: "beta-blocker", dosages: ["40mg", "80mg", "120mg"], forms: ["tablet", "extended release"] },
+                { name: "Metoprolol", type: "preventive", category: "beta-blocker", dosages: ["25mg", "50mg", "100mg"], forms: ["tablet"] },
+                { name: "Timolol", type: "preventive", category: "beta-blocker", dosages: ["10mg", "20mg"], forms: ["tablet"] },
+
+                // Preventive - Antidepressants
+                { name: "Amitriptyline", type: "preventive", category: "antidepressant", dosages: ["10mg", "25mg", "50mg", "75mg"], forms: ["tablet"] },
+                { name: "Venlafaxine", type: "preventive", category: "antidepressant", dosages: ["37.5mg", "75mg", "150mg"], forms: ["capsule"] },
+                { name: "Duloxetine", type: "preventive", category: "antidepressant", dosages: ["30mg", "60mg"], forms: ["capsule"] },
+
+                // Preventive - Anticonvulsants
+                { name: "Topiramate", type: "preventive", category: "anticonvulsant", dosages: ["25mg", "50mg", "100mg"], forms: ["tablet"] },
+                { name: "Valproate", type: "preventive", category: "anticonvulsant", dosages: ["250mg", "500mg"], forms: ["tablet"] },
+
+                // Preventive - CGRP Monoclonal Antibodies
+                { name: "Erenumab (Aimovig)", type: "preventive", category: "cgrp-mab", dosages: ["70mg", "140mg"], forms: ["injection"] },
+                { name: "Fremanezumab (Ajovy)", type: "preventive", category: "cgrp-mab", dosages: ["225mg"], forms: ["injection"] },
+                { name: "Galcanezumab (Emgality)", type: "preventive", category: "cgrp-mab", dosages: ["120mg"], forms: ["injection"] },
+
+                // Other
+                { name: "Acetaminophen", type: "abortive", category: "other", dosages: ["325mg", "500mg", "650mg"], forms: ["tablet", "liquid"] },
+                { name: "Caffeine", type: "abortive", category: "other", dosages: ["100mg", "200mg"], forms: ["tablet", "liquid"] },
+                { name: "Magnesium", type: "preventive", category: "supplement", dosages: ["400mg", "500mg"], forms: ["tablet", "capsule"] },
+                { name: "Riboflavin (B2)", type: "preventive", category: "supplement", dosages: ["400mg"], forms: ["tablet"] },
+                { name: "CoQ10", type: "preventive", category: "supplement", dosages: ["100mg", "300mg"], forms: ["capsule"] }
+            ];
+
+            // Combine with user medications
+            medicationLibrary = [...medicationLibrary, ...userMedications];
+        }
+
+        function saveMedicationLibrary() {
+            localStorage.setItem('userMedications', JSON.stringify(userMedications));
         }
 
         function initializeTheme() {
