@@ -1636,6 +1636,10 @@
                         <span>📤 Export as JSON</span>
                         <span class="btn-subtitle">Full backup</span>
                     </button>
+                    <button class="settings-btn" id="export-csv-btn">
+                        <span>📊 Export as CSV</span>
+                        <span class="btn-subtitle">Excel/Sheets compatible</span>
+                    </button>
                     <button class="settings-btn" id="export-pdf-btn">
                         <span>📄 Export as PDF</span>
                         <span class="btn-subtitle">Doctor report</span>
@@ -1644,8 +1648,13 @@
                         <span>📥 Import from JSON</span>
                         <span class="btn-subtitle">Restore backup</span>
                     </button>
+                    <button class="settings-btn" id="import-csv-btn">
+                        <span>📥 Import from CSV</span>
+                        <span class="btn-subtitle">Migrate from other apps</span>
+                    </button>
                 </div>
                 <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                <input type="file" id="import-csv-input" accept=".csv" style="display: none;">
             </div>
 
             <div class="section-card">
@@ -3505,13 +3514,21 @@
 
             document.getElementById('export-json-btn').addEventListener('click', exportJSON);
 
+            document.getElementById('export-csv-btn').addEventListener('click', exportCSV);
+
             document.getElementById('export-pdf-btn').addEventListener('click', showPDFDateRangeModal);
 
             document.getElementById('import-json-btn').addEventListener('click', () => {
                 document.getElementById('import-file-input').click();
             });
 
+            document.getElementById('import-csv-btn').addEventListener('click', () => {
+                document.getElementById('import-csv-input').click();
+            });
+
             document.getElementById('import-file-input').addEventListener('change', handleImport);
+
+            document.getElementById('import-csv-input').addEventListener('change', handleCSVImport);
 
             document.getElementById('view-trash-btn').addEventListener('click', viewTrash);
 
@@ -4089,6 +4106,329 @@
 
             closeModal();
             showModal('Import Complete', `Successfully imported ${newEpisodes.length} episodes.`);
+        }
+
+        // ============================================
+        // CSV EXPORT/IMPORT FUNCTIONS
+        // ============================================
+
+        function exportCSV() {
+            const activeMigraines = getActiveMigraines();
+
+            if (activeMigraines.length === 0) {
+                showModal('No Data', 'You have no migraine episodes to export.');
+                return;
+            }
+
+            // CSV Header with BOM for Excel compatibility
+            const BOM = '\uFEFF';
+            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa)\n';
+
+            // Sort by date (oldest first)
+            const sorted = activeMigraines.sort((a, b) =>
+                new Date(a.startTime) - new Date(b.startTime)
+            );
+
+            // Convert each migraine to CSV row
+            sorted.forEach(m => {
+                const startDate = new Date(m.startTime);
+                const date = startDate.toISOString().split('T')[0];
+                const startTime = startDate.toTimeString().slice(0, 5);
+
+                let endTime = '';
+                let durationHours = '';
+                if (m.endTime && m.duration) {
+                    const endDate = new Date(m.endTime);
+                    endTime = endDate.toTimeString().slice(0, 5);
+                    durationHours = (m.duration / 3600).toFixed(2);
+                }
+
+                const medication = (m.medication || '').replace(/"/g, '""'); // Escape quotes
+                const notes = (m.notes || '').replace(/"/g, '""');
+                const resolution = (m.endNotes || '').replace(/"/g, '""');
+                const pressure = m.weather && m.weather.pressure ? m.weather.pressure.toFixed(1) : '';
+
+                // Quote fields that might contain commas
+                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure}\n`;
+            });
+
+            // Create and download file
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `aiding-migraine-export-${formatDateFile(new Date())}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showModal('Export Complete', `Successfully exported ${activeMigraines.length} episodes to CSV.`);
+        }
+
+        function handleCSVImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.name.endsWith('.csv')) {
+                showModal('Invalid File Type', 'Please select a CSV file (.csv).');
+                e.target.value = '';
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                showModal('File Too Large', 'The selected CSV file is too large. Maximum size is 5MB.');
+                e.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                try {
+                    const csvText = event.target.result;
+
+                    if (!csvText || csvText.trim().length === 0) {
+                        showModal('Empty File', 'The CSV file is empty.');
+                        e.target.value = '';
+                        return;
+                    }
+
+                    // Parse CSV
+                    const parsed = parseCSV(csvText);
+
+                    if (!parsed.success) {
+                        showModal('Parse Error', parsed.error);
+                        e.target.value = '';
+                        return;
+                    }
+
+                    if (parsed.entries.length === 0) {
+                        showModal('No Data', 'No valid migraine entries found in the CSV file.');
+                        e.target.value = '';
+                        return;
+                    }
+
+                    // Show preview modal
+                    showCSVImportPreview(parsed.entries);
+
+                } catch (error) {
+                    showModal('Import Error', 'Failed to read the CSV file. Please check the file format.');
+                    console.error('CSV import error:', error);
+                }
+
+                e.target.value = '';
+            };
+
+            reader.readAsText(file);
+        }
+
+        function parseCSV(csvText) {
+            try {
+                // Remove BOM if present
+                csvText = csvText.replace(/^\uFEFF/, '');
+
+                // Split into lines
+                const lines = csvText.split(/\r?\n/).filter(line => line.trim());
+
+                if (lines.length < 2) {
+                    return { success: false, error: 'CSV file must have at least a header row and one data row.' };
+                }
+
+                // Parse header
+                const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+
+                // Find column indices
+                const dateIdx = header.findIndex(h => h.includes('date'));
+                const timeIdx = header.findIndex(h => h.includes('time') && h.includes('start'));
+                const painIdx = header.findIndex(h => h.includes('pain'));
+
+                if (dateIdx === -1 || timeIdx === -1 || painIdx === -1) {
+                    return { success: false, error: 'CSV must have Date, Start Time, and Pain Level columns.' };
+                }
+
+                // Optional columns
+                const endTimeIdx = header.findIndex(h => h.includes('end') && h.includes('time'));
+                const medicationIdx = header.findIndex(h => h.includes('medication') || h.includes('med'));
+                const notesIdx = header.findIndex(h => h.includes('note'));
+
+                // Parse data rows
+                const entries = [];
+                const errors = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    try {
+                        // Simple CSV parser (handles quoted fields)
+                        const row = parseCSVLine(lines[i]);
+
+                        const date = row[dateIdx];
+                        const time = row[timeIdx];
+                        const painStr = row[painIdx];
+
+                        if (!date || !time || !painStr) {
+                            errors.push(`Row ${i + 1}: Missing required fields`);
+                            continue;
+                        }
+
+                        // Validate pain level
+                        const pain = parseInt(painStr);
+                        if (isNaN(pain) || pain < 0 || pain > 10) {
+                            errors.push(`Row ${i + 1}: Invalid pain level "${painStr}"`);
+                            continue;
+                        }
+
+                        // Create start time
+                        const startDateTime = new Date(`${date}T${time}`);
+                        if (isNaN(startDateTime.getTime())) {
+                            errors.push(`Row ${i + 1}: Invalid date/time`);
+                            continue;
+                        }
+
+                        // Don't import future dates
+                        if (startDateTime > new Date()) {
+                            errors.push(`Row ${i + 1}: Future date not allowed`);
+                            continue;
+                        }
+
+                        // Create migraine object
+                        const migraine = {
+                            id: Date.now() + i, // Unique ID
+                            startTime: startDateTime.toISOString(),
+                            painLevel: pain,
+                            category: getPainCategory(pain),
+                            status: 'completed',
+                            medication: medicationIdx !== -1 ? row[medicationIdx] : null,
+                            notes: notesIdx !== -1 ? row[notesIdx] : null,
+                            importedAt: new Date().toISOString(),
+                            importSource: 'csv'
+                        };
+
+                        // Add end time if present
+                        if (endTimeIdx !== -1 && row[endTimeIdx]) {
+                            const endDateTime = new Date(`${date}T${row[endTimeIdx]}`);
+                            if (!isNaN(endDateTime.getTime()) && endDateTime > startDateTime) {
+                                migraine.endTime = endDateTime.toISOString();
+                                migraine.duration = Math.floor((endDateTime - startDateTime) / 1000);
+                            }
+                        }
+
+                        entries.push(migraine);
+                    } catch (rowError) {
+                        errors.push(`Row ${i + 1}: ${rowError.message}`);
+                    }
+                }
+
+                if (entries.length === 0 && errors.length > 0) {
+                    return {
+                        success: false,
+                        error: `No valid entries found. Errors:\n${errors.slice(0, 5).join('\n')}`
+                    };
+                }
+
+                return { success: true, entries, warnings: errors };
+
+            } catch (error) {
+                return { success: false, error: `Parse error: ${error.message}` };
+            }
+        }
+
+        function parseCSVLine(line) {
+            // Simple CSV line parser that handles quoted fields
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+
+                if (char === '"') {
+                    if (inQuotes && line[i + 1] === '"') {
+                        // Escaped quote
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+
+            return result;
+        }
+
+        function showCSVImportPreview(entries) {
+            // Check for duplicates
+            const existing = getActiveMigraines();
+            const duplicates = entries.filter(newEntry => {
+                return existing.some(existing => {
+                    const timeDiff = Math.abs(new Date(newEntry.startTime) - new Date(existing.startTime));
+                    return timeDiff < 60000 && newEntry.painLevel === existing.painLevel; // Within 1 minute
+                });
+            });
+
+            const toImport = entries.filter(e => !duplicates.some(d => d.id === e.id));
+
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            const preview = entries.slice(0, 5).map(e => {
+                const date = new Date(e.startTime);
+                return `📅 ${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})} - Pain: ${e.painLevel}/10`;
+            }).join('<br>');
+
+            body.innerHTML = `
+                <p style="margin-bottom: 16px;">Found <strong>${entries.length}</strong> entries in CSV file.</p>
+
+                <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <p style="font-weight: 600; margin-bottom: 8px;">Preview (first 5):</p>
+                    ${preview}
+                </div>
+
+                ${duplicates.length > 0 ? `
+                <div style="background: rgba(212, 165, 116, 0.1); border-left: 3px solid #d4a574; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
+                    <p>⚠️ <strong>${duplicates.length}</strong> duplicate${duplicates.length > 1 ? 's' : ''} detected (will be skipped)</p>
+                </div>
+                ` : ''}
+
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    Imported entries will be merged with your existing data.
+                </p>
+            `;
+
+            document.getElementById('modal-actions').innerHTML = `
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="confirm-csv-import">Import ${toImport.length} ${toImport.length === 1 ? 'Entry' : 'Entries'}</button>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Import Preview';
+            modal.classList.add('active');
+
+            document.getElementById('confirm-csv-import').addEventListener('click', () => {
+                importCSVEntries(toImport);
+                closeModal();
+            });
+        }
+
+        function importCSVEntries(entries) {
+            // Add entries to migraines array
+            entries.forEach(entry => {
+                migraines.push(entry);
+            });
+
+            // Save and update UI
+            saveData();
+            updateDashboard();
+            renderCalendar();
+            renderHistory();
+            updateStorageInfo();
+
+            showModal('Import Complete', `Successfully imported ${entries.length} ${entries.length === 1 ? 'episode' : 'episodes'} from CSV.`);
         }
 
         function showPDFDateRangeModal() {

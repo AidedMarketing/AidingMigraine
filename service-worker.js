@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.8.0 - Entry Editing Feature
+// Version 1.8.1 - Entry Editing + CSV Export/Import
 
-const CACHE_NAME = 'aiding-migraine-v1.8.0';
+const CACHE_NAME = 'aiding-migraine-v1.8.1';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
