@@ -1587,6 +1587,41 @@
                     Red vertical bars indicate migraine days • Dotted line shows clinical threshold (±5 hPa change)
                 </div>
             </div>
+
+            <!-- Medication Effectiveness -->
+            <div id="medication-effectiveness-card" class="section-card" style="display: none;">
+                <h2>💊 Medication Effectiveness</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Average effectiveness ratings for each medication</p>
+                <div id="medication-effectiveness-content"></div>
+            </div>
+
+            <!-- Medication Usage & MOH Warning -->
+            <div id="medication-usage-card" class="section-card" style="display: none;">
+                <h2>💊 Medication Usage</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Tracking medication usage frequency</p>
+                <div id="moh-warning" style="display: none; margin-bottom: 24px; padding: 20px; background: rgba(220, 38, 38, 0.15); border-left: 4px solid #dc2626; border-radius: 8px;">
+                    <h3 style="color: #dc2626; margin-bottom: 12px;">⚠️ MEDICATION OVERUSE WARNING</h3>
+                    <p style="margin-bottom: 12px;">
+                        You've used abortive medication on <strong id="moh-days-this-month">0</strong> days this month.
+                    </p>
+                    <p style="margin-bottom: 12px; color: var(--text-secondary);">
+                        Using medication >10 days/month for >3 months can cause Medication Overuse Headache (MOH), making migraines worse.
+                    </p>
+                    <div style="margin: 16px 0; padding: 12px; background: var(--bg-tertiary); border-radius: 6px;">
+                        <strong>📅 Usage Last 3 Months:</strong>
+                        <div id="moh-three-months" style="margin-top: 8px;"></div>
+                    </div>
+                    <div style="margin-top: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 6px;">
+                        <strong>📞 Action Required:</strong>
+                        <ul style="margin: 8px 0 0 20px; color: var(--text-secondary);">
+                            <li>Consult your doctor immediately</li>
+                            <li>Discuss preventive medication options</li>
+                            <li>Don't stop medications suddenly</li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="medication-usage-content"></div>
+            </div>
         </div>
 
         <div id="settings-page" class="page">
@@ -6717,6 +6752,9 @@
                 document.getElementById('weather-correlation-card').style.display = 'none';
                 document.getElementById('pressure-chart-card').style.display = 'none';
             }
+
+            // Render medication analytics if any medication data exists
+            renderMedicationAnalytics(filteredData);
         }
 
         function updateAnalyticsMetrics(data, startDate, endDate) {
@@ -7254,6 +7292,260 @@
                     }
                 }
             });
+        }
+
+        // ============================================
+        // MEDICATION ANALYTICS
+        // ============================================
+
+        function renderMedicationAnalytics(data) {
+            // Calculate medication statistics
+            const stats = calculateMedicationStats(data);
+
+            if (stats.totalMedications === 0) {
+                // Hide medication analytics if no medication data
+                document.getElementById('medication-effectiveness-card').style.display = 'none';
+                document.getElementById('medication-usage-card').style.display = 'none';
+                return;
+            }
+
+            // Show and render medication analytics
+            document.getElementById('medication-effectiveness-card').style.display = 'block';
+            document.getElementById('medication-usage-card').style.display = 'block';
+
+            renderMedicationEffectiveness(stats);
+            renderMedicationUsage(stats);
+        }
+
+        function calculateMedicationStats(data) {
+            const medicationStats = {};
+            let totalMedications = 0;
+
+            // Process all migraines with medications
+            data.forEach(migraine => {
+                if (!migraine.medications || migraine.medications.length === 0) return;
+
+                migraine.medications.forEach(med => {
+                    const medName = med.name;
+                    totalMedications++;
+
+                    if (!medicationStats[medName]) {
+                        medicationStats[medName] = {
+                            name: medName,
+                            type: med.type || 'unknown',
+                            category: med.category || 'unknown',
+                            uses: 0,
+                            effectivenessRatings: [],
+                            timeToReliefValues: [],
+                            sideEffects: {},
+                            daysUsed: new Set() // Track unique days for MOH
+                        };
+                    }
+
+                    const stat = medicationStats[medName];
+                    stat.uses++;
+
+                    // Track day used for MOH calculation
+                    const dayUsed = migraine.startTime.split('T')[0];
+                    stat.daysUsed.add(dayUsed);
+
+                    // Add effectiveness rating if exists
+                    if (med.effectiveness) {
+                        stat.effectivenessRatings.push(med.effectiveness);
+                    }
+
+                    // Add time to relief if exists
+                    if (med.timeToRelief) {
+                        stat.timeToReliefValues.push(med.timeToRelief);
+                    }
+
+                    // Track side effects
+                    if (med.sideEffects && med.sideEffects.length > 0) {
+                        med.sideEffects.forEach(effect => {
+                            stat.sideEffects[effect] = (stat.sideEffects[effect] || 0) + 1;
+                        });
+                    }
+                });
+            });
+
+            // Calculate averages
+            Object.values(medicationStats).forEach(stat => {
+                stat.avgEffectiveness = stat.effectivenessRatings.length > 0
+                    ? (stat.effectivenessRatings.reduce((sum, val) => sum + val, 0) / stat.effectivenessRatings.length)
+                    : null;
+
+                stat.avgTimeToRelief = stat.timeToReliefValues.length > 0
+                    ? (stat.timeToReliefValues.reduce((sum, val) => sum + val, 0) / stat.timeToReliefValues.length)
+                    : null;
+            });
+
+            // Calculate MOH risk (medication overuse headache)
+            const mohStats = calculateMOHRisk(data);
+
+            return {
+                totalMedications,
+                medications: Object.values(medicationStats),
+                mohRisk: mohStats
+            };
+        }
+
+        function calculateMOHRisk(data) {
+            // Calculate medication usage days per month for last 3 months
+            const now = new Date();
+            const months = [];
+
+            for (let i = 0; i < 3; i++) {
+                const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+                months.push({
+                    key: monthKey,
+                    name: monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+                    daysUsed: new Set()
+                });
+            }
+
+            // Count days with abortive medication use
+            data.forEach(migraine => {
+                if (!migraine.medications || migraine.medications.length === 0) return;
+
+                const hasAbortive = migraine.medications.some(med => med.type === 'abortive');
+                if (!hasAbortive) return;
+
+                const migraineDate = new Date(migraine.startTime);
+                const monthKey = `${migraineDate.getFullYear()}-${String(migraineDate.getMonth() + 1).padStart(2, '0')}`;
+                const dayKey = migraine.startTime.split('T')[0];
+
+                const month = months.find(m => m.key === monthKey);
+                if (month) {
+                    month.daysUsed.add(dayKey);
+                }
+            });
+
+            // Convert Sets to counts
+            months.forEach(month => {
+                month.count = month.daysUsed.size;
+            });
+
+            // Check if at risk (>10 days/month for 3 months)
+            const atRisk = months.filter(m => m.count > 10).length >= 2;
+            const currentMonthCount = months[0].count;
+
+            return {
+                atRisk,
+                currentMonth: months[0],
+                lastThreeMonths: months,
+                threshold: 10
+            };
+        }
+
+        function renderMedicationEffectiveness(stats) {
+            const content = document.getElementById('medication-effectiveness-content');
+
+            // Sort medications by average effectiveness (highest first)
+            const sortedMeds = stats.medications
+                .filter(med => med.avgEffectiveness !== null)
+                .sort((a, b) => b.avgEffectiveness - a.avgEffectiveness);
+
+            if (sortedMeds.length === 0) {
+                content.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No effectiveness ratings yet. Rate medications after ending an episode to see analytics here.</p>';
+                return;
+            }
+
+            const colors = getChartColors();
+
+            content.innerHTML = sortedMeds.map(med => {
+                const effectiveness = med.avgEffectiveness.toFixed(1);
+                const percentage = (effectiveness / 5) * 100;
+                const stars = '⭐'.repeat(Math.round(effectiveness));
+                const avgRelief = med.avgTimeToRelief
+                    ? `${Math.round(med.avgTimeToRelief)} min`
+                    : 'N/A';
+
+                return `
+                    <div style="margin-bottom: 24px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-purple)'};">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 1.1rem;">${med.name}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+                                    ${med.type === 'abortive' ? '🎯 Abortive' : '🛡️ Preventive'} • ${med.uses} uses
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.3rem;">${stars}</div>
+                                <div style="font-size: 0.9rem; color: var(--text-secondary);">${effectiveness}/5</div>
+                            </div>
+                        </div>
+
+                        <div style="height: 8px; background: var(--bg-primary); border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
+                            <div style="height: 100%; width: ${percentage}%; background: var(--accent-gold); transition: width 0.3s;"></div>
+                        </div>
+
+                        <div style="display: flex; gap: 24px; font-size: 0.9rem; color: var(--text-secondary);">
+                            <div>
+                                <strong>Avg time to relief:</strong> ${avgRelief}
+                            </div>
+                            ${Object.keys(med.sideEffects).length > 0 ? `
+                                <div>
+                                    <strong>Common side effects:</strong> ${Object.keys(med.sideEffects).slice(0, 2).join(', ')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderMedicationUsage(stats) {
+            const content = document.getElementById('medication-usage-content');
+            const mohWarning = document.getElementById('moh-warning');
+
+            // Check MOH risk and show warning if necessary
+            if (stats.mohRisk.atRisk || stats.mohRisk.currentMonth.count > 10) {
+                mohWarning.style.display = 'block';
+                document.getElementById('moh-days-this-month').textContent = stats.mohRisk.currentMonth.count;
+
+                const monthsHTML = stats.mohRisk.lastThreeMonths.map(month => {
+                    const isWarning = month.count > 10;
+                    return `<div style="color: ${isWarning ? '#dc2626' : 'var(--text-secondary)'}; padding: 4px 0;">
+                        ${month.name}: <strong>${month.count} days</strong> ${isWarning ? '⚠️' : ''}
+                    </div>`;
+                }).join('');
+
+                document.getElementById('moh-three-months').innerHTML = monthsHTML;
+            } else {
+                mohWarning.style.display = 'none';
+            }
+
+            // Show medication usage list
+            const sortedByUse = [...stats.medications].sort((a, b) => b.uses - a.uses);
+
+            content.innerHTML = `
+                <div style="margin-top: 16px;">
+                    <h3 style="margin-bottom: 16px;">Medication Usage Frequency</h3>
+                    ${sortedByUse.map(med => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 6px; margin-bottom: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-purple)'};">
+                            <div>
+                                <div style="font-weight: 600;">${med.name}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
+                                    ${med.type === 'abortive' ? '🎯 Abortive' : '🛡️ Preventive'}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 600; font-size: 1.1rem;">${med.uses} uses</div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">${med.daysUsed.size} days</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="margin-top: 24px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--border-color);">
+                    <strong>ℹ️ About Medication Overuse Headache (MOH):</strong>
+                    <p style="margin-top: 8px; color: var(--text-secondary); font-size: 0.9rem;">
+                        Using abortive medication >10 days/month for >3 months can cause medication overuse headaches,
+                        making migraines worse. If you're seeing this warning, please consult your doctor about preventive options.
+                    </p>
+                </div>
+            `;
         }
     </script>
 
