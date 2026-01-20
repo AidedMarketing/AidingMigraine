@@ -3858,19 +3858,29 @@
                         const prevEntry = weatherData.history.find(w => w.date.startsWith(prevDateStr));
 
                         if (prevEntry) {
-                            const change = weatherEntry.pressure - prevEntry.pressure;
-                            let icon = '→';
-                            let color = 'var(--text-secondary)';
+                            // Use dailyAvg or fallback to pressure for old data
+                            const todayPressure = weatherEntry.dailyAvg || weatherEntry.pressure;
+                            const yesterdayPressure = prevEntry.dailyAvg || prevEntry.pressure;
 
-                            if (change > 5) {
-                                icon = '↑';
-                                color = 'var(--accent-green)';
-                            } else if (change < -5) {
-                                icon = '↓';
-                                color = 'var(--pain-moderate)';
+                            if (todayPressure && yesterdayPressure) {
+                                const change = todayPressure - yesterdayPressure;
+                                let icon = '→';
+                                let color = 'var(--text-secondary)';
+
+                                // Show rapid change indicator if available
+                                if (weatherEntry.maxChange3h && weatherEntry.maxChange3h >= 3) {
+                                    icon = '⚡';
+                                    color = 'var(--accent-red)';
+                                } else if (change > 5) {
+                                    icon = '↑';
+                                    color = 'var(--accent-green)';
+                                } else if (change < -5) {
+                                    icon = '↓';
+                                    color = 'var(--pain-moderate)';
+                                }
+
+                                pressureIndicator = `<span class="pressure-indicator" style="color: ${color}">${icon}</span>`;
                             }
-
-                            pressureIndicator = `<span class="pressure-indicator" style="color: ${color}">${icon}</span>`;
                         }
                     }
                 }
@@ -3915,17 +3925,35 @@
                     const prevDateStr = prevDate.toISOString().split('T')[0];
                     const prevEntry = weatherData.history.find(w => w.date.startsWith(prevDateStr));
 
-                    if (prevEntry) {
-                        const change = weatherEntry.pressure - prevEntry.pressure;
-                        const changeText = change > 0 ? `+${change.toFixed(1)}` : change.toFixed(1);
-                        const trend = change > 5 ? '↑ Rising' : change < -5 ? '↓ Falling' : '→ Stable';
+                    // Use dailyAvg or fallback to pressure for old data
+                    const todayPressure = weatherEntry.dailyAvg || weatherEntry.pressure;
+                    const yesterdayPressure = prevEntry ? (prevEntry.dailyAvg || prevEntry.pressure) : null;
+
+                    if (todayPressure) {
+                        let changeInfo = '';
+                        if (yesterdayPressure) {
+                            const change = todayPressure - yesterdayPressure;
+                            const changeText = change > 0 ? `+${change.toFixed(1)}` : change.toFixed(1);
+                            const trend = change > 5 ? '↑ Rising' : change < -5 ? '↓ Falling' : '→ Stable';
+
+                            changeInfo = `
+                                <p>24h Change: ${changeText} hPa (${trend})</p>
+                                ${Math.abs(change) > 5 ? `<p style="color: var(--pain-moderate); margin-top: 4px;">⚠️ Significant 24h change</p>` : ''}
+                            `;
+                        }
+
+                        // Show rapid change info if available
+                        let rapidChangeInfo = '';
+                        if (weatherEntry.maxChange3h && weatherEntry.maxChange3h >= 3) {
+                            rapidChangeInfo = `<p style="color: var(--accent-red); margin-top: 4px;">⚡ Rapid change: ${weatherEntry.maxChange3h} hPa in 3h</p>`;
+                        }
 
                         weatherContent = `
                             <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green);">
                                 <p><strong>☁️ Weather Conditions</strong></p>
-                                <p>Pressure: ${weatherEntry.pressure.toFixed(1)} hPa</p>
-                                <p>24h Change: ${changeText} hPa (${trend})</p>
-                                ${Math.abs(change) > 5 ? `<p style="color: var(--pain-moderate); margin-top: 4px;">⚠️ Significant pressure change</p>` : ''}
+                                <p>Pressure: ${todayPressure.toFixed(1)} hPa</p>
+                                ${changeInfo}
+                                ${rapidChangeInfo}
                             </div>
                         `;
                     }
@@ -6222,6 +6250,7 @@
 
         // Weather data structure (stored in localStorage)
         let weatherData = {
+            version: 2,             // Data structure version for migrations
             enabled: false,
             location: {
                 query: '',      // User's input (ZIP or city)
@@ -6234,10 +6263,58 @@
                 temperature: null,  // Temperature in °C
                 timestamp: null     // When fetched
             },
-            forecast: [],           // 24-hour forecast
-            history: [],            // 30 days of pressure readings
+            forecast: [],           // 48-hour hourly forecast with full data
+            history: [],            // 30 days of detailed pressure readings
             lastFetch: null         // Last API call timestamp
         };
+
+        // Migrate weather data from old versions
+        function migrateWeatherData(data) {
+            if (!data || data.version === 2) {
+                return data; // Already migrated or new installation
+            }
+
+            console.log('📦 Migrating weather data to v2...');
+
+            // Migrate from v1 (or unversioned) to v2
+            const migrated = {
+                version: 2,
+                enabled: data.enabled || false,
+                location: data.location || { query: '', city: '', lat: null, lon: null },
+                current: data.current || { pressure: null, temperature: null, timestamp: null },
+                forecast: data.forecast || [],
+                history: [],
+                lastFetch: data.lastFetch || null
+            };
+
+            // Convert old history format (simple daily readings) to new format (detailed with hourly data)
+            if (data.history && Array.isArray(data.history)) {
+                migrated.history = data.history.map(oldEntry => {
+                    // Old format: { date, pressure, hadMigraine }
+                    // New format: { date, readings: [{time, pressure}], dailyAvg, maxChange3h, maxChange24h }
+
+                    if (oldEntry.readings) {
+                        // Already in new format somehow
+                        return oldEntry;
+                    }
+
+                    return {
+                        date: oldEntry.date,
+                        readings: [{
+                            time: oldEntry.date + 'T12:00:00Z', // Assume noon for old data
+                            pressure: oldEntry.pressure || 1013.25
+                        }],
+                        dailyAvg: oldEntry.pressure || 1013.25,
+                        maxChange3h: null,  // Unknown for old data
+                        maxChange24h: null, // Will be calculated from history
+                        hadMigraine: oldEntry.hadMigraine || false
+                    };
+                });
+            }
+
+            console.log('✅ Weather data migrated successfully');
+            return migrated;
+        }
 
         // Initialize weather tracking
         function initWeatherTracking() {
@@ -6245,7 +6322,13 @@
             const saved = localStorage.getItem('weatherData');
             if (saved) {
                 try {
-                    weatherData = JSON.parse(saved);
+                    const loaded = JSON.parse(saved);
+                    weatherData = migrateWeatherData(loaded);
+
+                    // Save migrated data
+                    if (loaded.version !== 2) {
+                        saveWeatherData();
+                    }
                 } catch (e) {
                     console.error('Error loading weather data:', e);
                 }
@@ -6350,6 +6433,29 @@
             }
         }
 
+        // Calculate maximum 3-hour pressure change from readings
+        function calculateMax3hChange(readings) {
+            if (!readings || readings.length < 4) {
+                return 0; // Need at least 4 hourly readings for 3-hour window
+            }
+
+            let maxChange = 0;
+
+            // Slide a 3-hour window through the readings
+            for (let i = 0; i < readings.length - 3; i++) {
+                const windowPressures = readings.slice(i, i + 4).map(r => r.pressure);
+                const windowMax = Math.max(...windowPressures);
+                const windowMin = Math.min(...windowPressures);
+                const change = windowMax - windowMin;
+
+                if (change > maxChange) {
+                    maxChange = change;
+                }
+            }
+
+            return Math.round(maxChange * 10) / 10;
+        }
+
         // Fetch weather data from Open-Meteo
         async function fetchWeatherData(forced = false) {
             if (!weatherData.location.lat || !weatherData.location.lon) {
@@ -6369,7 +6475,7 @@
 
             try {
                 // Open-Meteo API - Free, no key required
-                // Get current + 24h forecast of surface pressure
+                // Get current + 48h forecast of surface pressure (hourly data)
                 const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${weatherData.location.lat}&longitude=${weatherData.location.lon}&current=surface_pressure,temperature_2m&hourly=surface_pressure&timezone=auto&forecast_days=2`;
 
                 const response = await fetch(weatherUrl);
@@ -6379,33 +6485,66 @@
                     throw new Error('Invalid weather data received');
                 }
 
+                const currentTime = new Date();
+                const currentPressure = Math.round(data.current.surface_pressure * 10) / 10;
+
                 // Store current weather
                 weatherData.current = {
-                    pressure: Math.round(data.current.surface_pressure * 10) / 10, // hPa, 1 decimal
+                    pressure: currentPressure,
                     temperature: Math.round(data.current.temperature_2m * 10) / 10,
                     timestamp: Date.now()
                 };
 
-                // Store 24-hour forecast
-                weatherData.forecast = data.hourly.time.slice(0, 24).map((time, i) => ({
+                // Store 48-hour hourly forecast
+                weatherData.forecast = data.hourly.time.map((time, i) => ({
                     time: time,
                     pressure: Math.round(data.hourly.surface_pressure[i] * 10) / 10
                 }));
 
-                // Add to history (keep last 30 days)
+                // Update history with new reading
                 const today = new Date().toISOString().split('T')[0];
-                const historyEntry = {
-                    date: today,
-                    pressure: weatherData.current.pressure,
-                    hadMigraine: false // Will be updated when migraine is logged
+                const newReading = {
+                    time: currentTime.toISOString(),
+                    pressure: currentPressure
                 };
 
-                // Update or add today's entry
-                const existingIndex = weatherData.history.findIndex(h => h.date === today);
-                if (existingIndex >= 0) {
-                    weatherData.history[existingIndex].pressure = weatherData.current.pressure;
-                } else {
-                    weatherData.history.push(historyEntry);
+                // Find or create today's entry
+                let todayEntry = weatherData.history.find(h => h.date === today);
+
+                if (!todayEntry) {
+                    // Create new entry for today
+                    todayEntry = {
+                        date: today,
+                        readings: [],
+                        dailyAvg: 0,
+                        maxChange3h: 0,
+                        maxChange24h: null
+                    };
+                    weatherData.history.push(todayEntry);
+                }
+
+                // Add new reading (keep multiple readings per day)
+                todayEntry.readings.push(newReading);
+
+                // Keep only last 24 hours of readings per day (one per hour max)
+                if (todayEntry.readings.length > 24) {
+                    todayEntry.readings = todayEntry.readings.slice(-24);
+                }
+
+                // Calculate daily average from all readings
+                const pressureSum = todayEntry.readings.reduce((sum, r) => sum + r.pressure, 0);
+                todayEntry.dailyAvg = Math.round((pressureSum / todayEntry.readings.length) * 10) / 10;
+
+                // Calculate max 3-hour change for today
+                todayEntry.maxChange3h = calculateMax3hChange(todayEntry.readings);
+
+                // Calculate 24h change if we have yesterday's data
+                if (weatherData.history.length >= 2) {
+                    const sorted = [...weatherData.history].sort((a, b) => new Date(b.date) - new Date(a.date));
+                    const yesterday = sorted[1];
+                    if (yesterday && yesterday.dailyAvg) {
+                        todayEntry.maxChange24h = Math.round((todayEntry.dailyAvg - yesterday.dailyAvg) * 10) / 10;
+                    }
                 }
 
                 // Keep only last 30 days
@@ -6419,7 +6558,9 @@
                 displayCurrentWeather();
                 updateLogWeatherDisplay();
 
-                console.log('✅ Weather data updated:', weatherData.current.pressure, 'hPa');
+                console.log('✅ Weather data updated:', currentPressure, 'hPa');
+                console.log('   3h max change:', todayEntry.maxChange3h, 'hPa');
+                console.log('   24h change:', todayEntry.maxChange24h, 'hPa');
 
             } catch (error) {
                 console.error('Weather fetch error:', error);
@@ -6477,30 +6618,79 @@
             }
         }
 
-        // Get 24-hour pressure change
+        // Get 24-hour pressure change (uses historical daily averages for accuracy)
         function getPressureChange24h() {
-            if (!weatherData.current.pressure || weatherData.history.length < 2) {
+            if (weatherData.history.length < 2) {
                 return null;
             }
 
-            // Find yesterday's pressure
-            const today = new Date().toISOString().split('T')[0];
-            const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            // Sort history to get last two days
+            const sorted = [...weatherData.history]
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            const yesterdayData = weatherData.history.find(h => h.date === yesterday);
-            if (!yesterdayData) {
+            if (sorted.length < 2) {
                 return null;
             }
 
-            const change = weatherData.current.pressure - yesterdayData.pressure;
+            const today = sorted[0];
+            const yesterday = sorted[1];
+
+            // Use daily averages for consistent comparison
+            if (!today.dailyAvg || !yesterday.dailyAvg) {
+                return null;
+            }
+
+            const change = today.dailyAvg - yesterday.dailyAvg;
             return Math.round(change * 10) / 10; // 1 decimal place
+        }
+
+        // Detect rapid pressure changes in forecast (next 24 hours)
+        // Research shows 3+ hPa in 3 hours can trigger migraines
+        function detectRapidForecastChanges() {
+            if (!weatherData.forecast || weatherData.forecast.length < 4) {
+                return [];
+            }
+
+            const rapidChanges = [];
+            const now = new Date();
+            const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+            // Check 3-hour windows in the next 24 hours
+            for (let i = 0; i < Math.min(weatherData.forecast.length - 3, 24); i++) {
+                const window = weatherData.forecast.slice(i, i + 4);
+                const windowTime = new Date(window[0].time);
+
+                // Only check forecast (future times)
+                if (windowTime <= now || windowTime > next24h) {
+                    continue;
+                }
+
+                const pressures = window.map(r => r.pressure);
+                const maxPressure = Math.max(...pressures);
+                const minPressure = Math.min(...pressures);
+                const change = maxPressure - minPressure;
+
+                // Clinical threshold: 3+ hPa in 3 hours is significant
+                if (change >= 3) {
+                    const hoursFromNow = Math.round((windowTime - now) / (1000 * 60 * 60));
+                    rapidChanges.push({
+                        startTime: window[0].time,
+                        endTime: window[3].time,
+                        change: Math.round(change * 10) / 10,
+                        hoursFromNow: hoursFromNow,
+                        direction: pressures[3] < pressures[0] ? 'falling' : 'rising'
+                    });
+                }
+            }
+
+            return rapidChanges;
         }
 
         // Get pressure trend description
         function getPressureTrend() {
             const change24h = getPressureChange24h();
             if (change24h === null) {
-                return { text: 'Unknown', icon: '?' };
+                return { text: 'Unknown', icon: '?', significant: false };
             }
 
             if (change24h > 5) {
@@ -6522,9 +6712,14 @@
                 return null;
             }
 
+            // Get today's entry if it exists for additional data
+            const today = new Date().toISOString().split('T')[0];
+            const todayEntry = weatherData.history.find(h => h.date === today);
+
             return {
                 pressure: weatherData.current.pressure,
                 change24h: getPressureChange24h(),
+                maxChange3h: todayEntry ? todayEntry.maxChange3h : null,
                 trend: getPressureTrend(),
                 timestamp: weatherData.current.timestamp
             };
@@ -6546,34 +6741,48 @@
             const change24h = getPressureChange24h();
             const trend = getPressureTrend();
 
-            // Only show indicator if we have 24h of data
-            if (change24h !== null) {
-                // Format change with + or - sign
-                const changeText = change24h > 0 ? `+${change24h.toFixed(1)}` : change24h.toFixed(1);
+            // Check for rapid changes in upcoming forecast
+            const rapidChanges = detectRapidForecastChanges();
+            const hasRapidChanges = rapidChanges.length > 0;
 
-                // Show forecast indicator
-                forecastIndicator.style.display = 'block';
+            // Show indicator if we have any data
+            forecastIndicator.style.display = 'block';
 
-                if (trend.significant) {
-                    // Significant pressure change - show warning
-                    clearBox.style.display = 'none';
-                    warningBox.style.display = 'block';
+            // Determine warning state: show warning if significant 24h change OR rapid forecast changes
+            const showWarning = (trend.significant && change24h !== null) || hasRapidChanges;
 
-                    // Update warning detail with specific change
-                    const warningDetail = document.getElementById('weather-warning-detail');
-                    warningDetail.textContent = `${trend.text} (${changeText} hPa in 24h)`;
-                } else {
-                    // Normal pressure - show clear
-                    clearBox.style.display = 'block';
-                    warningBox.style.display = 'none';
+            if (showWarning) {
+                // Significant pressure change or rapid forecast change - show warning
+                clearBox.style.display = 'none';
+                warningBox.style.display = 'block';
+
+                // Update warning detail with specific information
+                const warningDetail = document.getElementById('weather-warning-detail');
+                let warningText = '';
+
+                if (trend.significant && change24h !== null) {
+                    const changeText = change24h > 0 ? `+${change24h.toFixed(1)}` : change24h.toFixed(1);
+                    warningText = `${trend.text} (${changeText} hPa in 24h)`;
                 }
+
+                if (hasRapidChanges) {
+                    const nextChange = rapidChanges[0];
+                    if (warningText) warningText += ' • ';
+                    warningText += `Rapid ${nextChange.direction} (${nextChange.change} hPa in 3h) in ${nextChange.hoursFromNow}h`;
+                }
+
+                warningDetail.textContent = warningText;
+            } else if (change24h !== null) {
+                // Normal pressure - show clear
+                clearBox.style.display = 'block';
+                warningBox.style.display = 'none';
             } else {
                 // Not enough data yet - hide forecast indicator
                 forecastIndicator.style.display = 'none';
             }
         }
 
-        // Calculate weather correlation for analytics
+        // Calculate weather correlation for analytics (improved accuracy)
         function calculateWeatherCorrelation() {
             if (!weatherData.enabled || weatherData.history.length < 7) {
                 return null;
@@ -6581,75 +6790,128 @@
 
             const migraines = getActiveMigraines();
 
-            // Count migraines during significant pressure changes
+            // Count significant pressure changes and associated migraines
             let significantChangeDays = 0;
             let migrainesOnChangeDays = 0;
             let totalMigraineDays = 0;
+            let rapidChangeDays = 0; // Track 3h rapid changes
+            let migrainesOnRapidChangeDays = 0;
 
-            weatherData.history.forEach((day, index) => {
-                if (index === weatherData.history.length - 1) return; // Skip oldest (no previous day)
+            // Sort history chronologically for proper analysis
+            const sortedHistory = [...weatherData.history]
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                const nextDay = weatherData.history[index + 1];
-                const pressureChange = Math.abs(day.pressure - nextDay.pressure);
+            sortedHistory.forEach((day, index) => {
+                if (index === 0) return; // Skip first day (no previous day to compare)
 
-                // Clinical threshold: >5 hPa change is significant
-                if (pressureChange > 5) {
+                const yesterday = sortedHistory[index - 1];
+                const dayDate = new Date(day.date);
+
+                // Calculate 24h change using daily averages
+                let change24h = 0;
+                if (day.dailyAvg && yesterday.dailyAvg) {
+                    change24h = Math.abs(day.dailyAvg - yesterday.dailyAvg);
+                } else if (day.pressure && yesterday.pressure) {
+                    // Fallback for old data format
+                    change24h = Math.abs((day.pressure || day.dailyAvg) - (yesterday.pressure || yesterday.dailyAvg));
+                }
+
+                // Check for significant 24h change (>5 hPa clinical threshold)
+                const hasSignificantChange = change24h > 5;
+
+                // Check for rapid 3h changes (>3 hPa clinical threshold)
+                const hasRapidChange = day.maxChange3h && day.maxChange3h >= 3;
+
+                if (hasSignificantChange) {
                     significantChangeDays++;
+                }
 
-                    // Check if user had migraine on this day
-                    const hadMigraine = migraines.some(m => {
-                        const migraineDate = new Date(m.startTime).toISOString().split('T')[0];
-                        return migraineDate === day.date;
-                    });
+                if (hasRapidChange) {
+                    rapidChangeDays++;
+                }
 
-                    if (hadMigraine) {
-                        migrainesOnChangeDays++;
-                    }
+                // Check for migraines within ±12 hours of this day (accounting for lag)
+                const windowStart = new Date(dayDate.getTime() - 12 * 60 * 60 * 1000);
+                const windowEnd = new Date(dayDate.getTime() + 36 * 60 * 60 * 1000); // +36h to cover full day + 12h
+
+                const hadMigraineInWindow = migraines.some(m => {
+                    const migraineTime = new Date(m.startTime);
+                    return migraineTime >= windowStart && migraineTime <= windowEnd;
+                });
+
+                if (hasSignificantChange && hadMigraineInWindow) {
+                    migrainesOnChangeDays++;
+                }
+
+                if (hasRapidChange && hadMigraineInWindow) {
+                    migrainesOnRapidChangeDays++;
                 }
 
                 // Count total migraine days in tracked period
-                const dayHadMigraine = migraines.some(m => {
+                const hadMigraineThisDay = migraines.some(m => {
                     const migraineDate = new Date(m.startTime).toISOString().split('T')[0];
                     return migraineDate === day.date;
                 });
 
-                if (dayHadMigraine) {
+                if (hadMigraineThisDay) {
                     totalMigraineDays++;
                 }
             });
 
-            if (significantChangeDays === 0) {
+            // Use whichever correlation is stronger (24h or 3h)
+            let primaryCorrelation = 0;
+            let primaryType = '24h';
+
+            if (significantChangeDays === 0 && rapidChangeDays === 0) {
                 return {
-                    correlation: 0,
+                    percentage: 0,
                     significantChangeDays: 0,
                     migrainesOnChangeDays: 0,
-                    correlationLevel: 'insufficient',
+                    level: 'insufficient',
                     message: 'Not enough significant pressure changes recorded yet.'
                 };
             }
 
-            // Calculate correlation percentage
-            const correlationPercent = Math.round((migrainesOnChangeDays / significantChangeDays) * 100);
+            // Calculate both correlations
+            const correlation24h = significantChangeDays > 0 ?
+                Math.round((migrainesOnChangeDays / significantChangeDays) * 100) : 0;
 
-            let correlationLevel, message;
-            if (correlationPercent >= 70) {
-                correlationLevel = 'strong';
-                message = 'Strong correlation detected. Pressure changes appear to be a significant trigger for you.';
-            } else if (correlationPercent >= 40) {
-                correlationLevel = 'moderate';
-                message = 'Moderate correlation. Pressure changes may affect your migraines.';
+            const correlation3h = rapidChangeDays > 0 ?
+                Math.round((migrainesOnRapidChangeDays / rapidChangeDays) * 100) : 0;
+
+            // Use the stronger correlation for classification
+            if (correlation3h > correlation24h) {
+                primaryCorrelation = correlation3h;
+                primaryType = '3h rapid';
             } else {
-                correlationLevel = 'weak';
-                message = 'Low correlation. Pressure changes don\'t appear to be a major trigger for you.';
+                primaryCorrelation = correlation24h;
+                primaryType = '24h';
+            }
+
+            let level, message;
+            if (primaryCorrelation >= 70) {
+                level = 'strong';
+                message = `Strong correlation detected with ${primaryType} pressure changes. This appears to be a significant trigger for you.`;
+            } else if (primaryCorrelation >= 40) {
+                level = 'moderate';
+                message = `Moderate correlation with ${primaryType} pressure changes. May affect your migraines.`;
+            } else {
+                level = 'weak';
+                message = `Low correlation with pressure changes. Other triggers may be more significant.`;
             }
 
             return {
-                correlation: correlationPercent,
+                percentage: primaryCorrelation,
+                correlation24h: correlation24h,
+                correlation3h: correlation3h,
                 significantChangeDays: significantChangeDays,
+                rapidChangeDays: rapidChangeDays,
                 migrainesOnChangeDays: migrainesOnChangeDays,
+                migrainesOnRapidChangeDays: migrainesOnRapidChangeDays,
                 totalMigraineDays: totalMigraineDays,
-                correlationLevel: correlationLevel,
-                message: message
+                level: level,
+                message: message,
+                primaryType: primaryType
             };
         }
 
@@ -7154,11 +7416,15 @@
             sortedHistory.forEach((entry, index) => {
                 const date = new Date(entry.date);
                 labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                pressureData.push(entry.pressure);
+
+                // Use dailyAvg or fallback to pressure for old data
+                const pressure = entry.dailyAvg || entry.pressure || 1013.25;
+                pressureData.push(pressure);
 
                 // Calculate 24h change
                 if (index > 0) {
-                    const change = entry.pressure - sortedHistory[index - 1].pressure;
+                    const prevPressure = sortedHistory[index - 1].dailyAvg || sortedHistory[index - 1].pressure || 1013.25;
+                    const change = pressure - prevPressure;
                     changeData.push(change);
                 } else {
                     changeData.push(0);
@@ -7166,7 +7432,7 @@
 
                 // Check if there was a migraine this day
                 const dateKey = entry.date.split('T')[0];
-                migraineIndicators.push(migraineDays.has(dateKey) ? entry.pressure : null);
+                migraineIndicators.push(migraineDays.has(dateKey) ? pressure : null);
             });
 
             const colors = getChartColors();
