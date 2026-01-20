@@ -18,7 +18,7 @@ const {
     createDailyCheckInPayload,
     createFollowUpPayload,
     createActiveCheckinPayload
-} = require('./fcm');
+} = require('./push-notifications');
 
 function initializeScheduler() {
     console.log('🕐 Initializing notification scheduler...');

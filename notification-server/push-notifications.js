@@ -1,31 +1,17 @@
 /**
- * Firebase Cloud Messaging integration
+ * Push Notification Service
  *
- * This module handles sending push notifications via FCM and Web Push
+ * This module handles sending push notifications via Web Push Protocol
  */
 
-const admin = require('firebase-admin');
 const webPush = require('web-push');
 
-let fcmInitialized = false;
+let pushInitialized = false;
 
-function initializeFCM() {
-    if (fcmInitialized) return;
+function initializePushService() {
+    if (pushInitialized) return;
 
     try {
-        // Initialize Firebase Admin SDK
-        const serviceAccount = {
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL
-        };
-
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
-        });
-
-        console.log('✅ Firebase Admin SDK initialized');
-
         // Configure Web Push VAPID details
         webPush.setVapidDetails(
             process.env.VAPID_SUBJECT,
@@ -35,9 +21,9 @@ function initializeFCM() {
 
         console.log('✅ Web Push VAPID configured');
 
-        fcmInitialized = true;
+        pushInitialized = true;
     } catch (error) {
-        console.error('❌ FCM initialization failed:', error);
+        console.error('❌ Web Push initialization failed:', error);
         throw error;
     }
 }
@@ -48,8 +34,8 @@ function initializeFCM() {
  * @param {Object} payload - Notification payload
  */
 async function sendWebPushNotification(subscription, payload) {
-    if (!fcmInitialized) {
-        initializeFCM();
+    if (!pushInitialized) {
+        initializePushService();
     }
 
     try {
@@ -141,7 +127,7 @@ function createActiveCheckinPayload(attackId) {
 }
 
 module.exports = {
-    initializeFCM,
+    initializePushService,
     sendWebPushNotification,
     sendBulkNotifications,
     createDailyCheckInPayload,

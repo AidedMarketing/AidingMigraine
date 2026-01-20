@@ -9,7 +9,7 @@ const {
     addScheduledActiveCheckin,
     cancelActiveCheckin
 } = require('../database');
-const { sendWebPushNotification } = require('../fcm');
+const { sendWebPushNotification } = require('../push-notifications');
 
 /**
  * POST /api/notifications/schedule-followup
