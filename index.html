@@ -2273,13 +2273,13 @@
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
 
-            body.innerHTML = `
-                <h3 style="margin-bottom: 16px;">${med.name}</h3>
+            body.innerHTML = safeHTML(`
+                <h3 style="margin-bottom: 16px;">${safeText(med.name)}</h3>
 
                 <div class="form-group">
                     <label>Dosage</label>
                     <select id="med-dosage" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
-                        ${med.dosages ? med.dosages.map(d => `<option value="${d}">${d}</option>`).join('') : '<option value="">Not specified</option>'}
+                        ${med.dosages ? med.dosages.map(d => `<option value="${safeText(d)}">${safeText(d)}</option>`).join('') : '<option value="">Not specified</option>'}
                         <option value="custom">Custom...</option>
                     </select>
                     <input type="text" id="custom-dosage" placeholder="Enter custom dosage" style="width: 100%; padding: 10px; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); display: none;">
@@ -2288,10 +2288,10 @@
                 <div class="form-group">
                     <label>Form</label>
                     <select id="med-form" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
-                        ${med.forms ? med.forms.map(f => `<option value="${f}">${f}</option>`).join('') : '<option value="tablet">Tablet</option>'}
+                        ${med.forms ? med.forms.map(f => `<option value="${safeText(f)}">${safeText(f)}</option>`).join('') : '<option value="tablet">Tablet</option>'}
                     </select>
                 </div>
-            `;
+            `);
 
             document.getElementById('modal-actions').innerHTML = `
                 <button class="btn btn-secondary" onclick="showAddMedicationModal()">Back</button>
@@ -3154,15 +3154,15 @@
                     r.timestamp === relief.timestamp && r.method === relief.method
                 );
 
-                entry.innerHTML = `
+                entry.innerHTML = safeHTML(`
                     <div style="font-size: 0.85rem; color: var(--text-secondary); min-width: 60px;">${time}</div>
-                    <div style="flex: 1; font-size: 0.9rem; color: var(--text-primary);">${relief.method}</div>
+                    <div style="flex: 1; font-size: 0.9rem; color: var(--text-primary);">${safeText(relief.method)}</div>
                     <button onclick="deleteReliefMethod(${originalIndex})"
                             style="background: none; border: none; color: var(--text-secondary);
                                    cursor: pointer; font-size: 1.1rem; padding: 4px 8px;
                                    transition: var(--transition); line-height: 1;"
                             title="Remove this entry">✕</button>
-                `;
+                `);
 
                 entriesContainer.appendChild(entry);
             });
@@ -8413,7 +8413,7 @@
 
             const colors = getChartColors();
 
-            content.innerHTML = sortedMeds.map(med => {
+            content.innerHTML = safeHTML(sortedMeds.map(med => {
                 const effectiveness = med.avgEffectiveness.toFixed(1);
                 const percentage = (effectiveness / 5) * 100;
                 const stars = '⭐'.repeat(Math.round(effectiveness));
@@ -8425,7 +8425,7 @@
                     <div style="margin-bottom: 24px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-purple)'};">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                             <div>
-                                <div style="font-weight: 600; font-size: 1.1rem;">${med.name}</div>
+                                <div style="font-weight: 600; font-size: 1.1rem;">${safeText(med.name)}</div>
                                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
                                     ${med.type === 'abortive' ? '🎯 Abortive' : '🛡️ Preventive'} • ${med.uses} uses
                                 </div>
