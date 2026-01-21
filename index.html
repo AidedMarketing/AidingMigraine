@@ -22,6 +22,9 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512x512.png">
 
+    <!-- DOMPurify for XSS Protection -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" integrity="sha384-6qTYr0wXOLpD6bIvADnY2rPGDgTUwRx3W9F4LdO6F7SiXP2w3lDdwb9YhXu7hQ7G" crossorigin="anonymous"></script>
+
     <style>
         /* ============================================
            AIDING MIGRAINE v1.6.0 - WEEK 3 POLISH
@@ -2050,6 +2053,35 @@
         let userMedications = [];
         let currentEpisodeMedications = []; // Temporary storage for medications being logged
 
+        // XSS Protection Helper
+        // Sanitizes HTML to prevent XSS attacks when using innerHTML
+        function safeHTML(html) {
+            if (typeof DOMPurify !== 'undefined') {
+                return DOMPurify.sanitize(html, {
+                    ALLOWED_TAGS: ['div', 'span', 'p', 'b', 'i', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'a', 'button', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+                    ALLOWED_ATTR: ['class', 'style', 'onclick', 'href', 'target', 'id'],
+                    ALLOW_DATA_ATTR: false
+                });
+            }
+            // Fallback: basic escaping if DOMPurify not available
+            return String(html)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Safe text rendering - escapes all HTML
+        function safeText(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
             purgeOldDeletedEpisodes();
@@ -2223,14 +2255,14 @@
                 return;
             }
 
-            resultsDiv.innerHTML = matches.slice(0, 10).map(med => `
-                <div class="med-result-item" onclick="selectMedication('${med.name}')" style="padding: 12px; margin-bottom: 8px; background: var(--bg-tertiary); border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
-                    <div style="font-weight: 600;">${med.name}</div>
+            resultsDiv.innerHTML = safeHTML(matches.slice(0, 10).map(med => `
+                <div class="med-result-item" onclick="selectMedication('${safeText(med.name).replace(/'/g, '\\\'')}')" style="padding: 12px; margin-bottom: 8px; background: var(--bg-tertiary); border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
+                    <div style="font-weight: 600;">${safeText(med.name)}</div>
                     <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
-                        ${med.type === 'abortive' ? '🎯 Abortive' : '🛡️ Preventive'} • ${med.category}
+                        ${med.type === 'abortive' ? '🎯 Abortive' : '🛡️ Preventive'} • ${safeText(med.category)}
                     </div>
                 </div>
-            `).join('');
+            `).join(''));
         }
 
         function selectMedication(medName) {
@@ -2318,17 +2350,17 @@
                 return;
             }
 
-            listDiv.innerHTML = currentEpisodeMedications.map((med, index) => `
+            listDiv.innerHTML = safeHTML(currentEpisodeMedications.map((med, index) => `
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--accent-blue);">
                     <div>
-                        <div style="font-weight: 600;">${med.name}${med.dosage ? ` ${med.dosage}` : ''}</div>
+                        <div style="font-weight: 600;">${safeText(med.name)}${med.dosage ? ` ${safeText(med.dosage)}` : ''}</div>
                         <div style="font-size: 0.85rem; color: var(--text-secondary);">
-                            ${med.formulation || 'Not specified'} • ${new Date(med.timeTaken).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            ${safeText(med.formulation || 'Not specified')} • ${new Date(med.timeTaken).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </div>
                     </div>
                     <button onclick="removeMedicationFromEpisode(${index})" style="background: var(--pain-moderate); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem;">Remove</button>
                 </div>
-            `).join('');
+            `).join(''));
         }
 
         function showMedicationEffectivenessModal(completedMigraine) {
@@ -3365,12 +3397,12 @@
                 return;
             }
 
-            list.innerHTML = tempReliefMethods.map((relief, index) => {
+            list.innerHTML = safeHTML(tempReliefMethods.map((relief, index) => {
                 const time = formatTime(new Date(relief.timestamp));
                 return `
                     <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 6px;">
                         <div style="font-size: 0.8rem; color: var(--text-secondary); min-width: 60px;">${time}</div>
-                        <input type="text" value="${relief.method}" onchange="updateEditReliefMethod(${index}, this.value)"
+                        <input type="text" value="${safeText(relief.method)}" onchange="updateEditReliefMethod(${index}, this.value)"
                                style="flex: 1; padding: 6px 10px; background: var(--bg-tertiary);
                                       border: 1px solid var(--border-color); border-radius: 6px;
                                       color: var(--text-primary); font-size: 0.9rem;">
@@ -3380,7 +3412,7 @@
                                 title="Remove">✕</button>
                     </div>
                 `;
-            }).join('');
+            }).join(''));
         }
 
         function addEditReliefMethod() {

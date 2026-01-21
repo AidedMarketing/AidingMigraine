@@ -7,13 +7,20 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": ["pwa", "notifications", "push", "migraine"],
+  "keywords": [
+    "pwa",
+    "notifications",
+    "push",
+    "migraine"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
     "node-schedule": "^2.1.1",
     "web-push": "^3.6.6"
   },

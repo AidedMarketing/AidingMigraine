@@ -8,9 +8,25 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-const DB_PATH = process.env.DB_PATH || './data/subscriptions.json';
-const FOLLOWUPS_PATH = './data/scheduled-followups.json';
-const ACTIVE_CHECKINS_PATH = './data/scheduled-active-checkins.json';
+// Secure path validation - prevents path traversal attacks
+function validateDataPath(relativePath) {
+    const dataDir = path.resolve(__dirname, 'data');
+    const fullPath = path.resolve(dataDir, relativePath);
+
+    // Ensure the resolved path is within the data directory
+    if (!fullPath.startsWith(dataDir)) {
+        throw new Error('Path traversal attack detected');
+    }
+
+    return fullPath;
+}
+
+// Secure database paths - all validated to stay within data directory
+const DB_PATH = validateDataPath(
+    process.env.DB_PATH ? path.basename(process.env.DB_PATH) : 'subscriptions.json'
+);
+const FOLLOWUPS_PATH = validateDataPath('scheduled-followups.json');
+const ACTIVE_CHECKINS_PATH = validateDataPath('scheduled-active-checkins.json');
 
 let subscriptions = [];
 let scheduledFollowups = [];
