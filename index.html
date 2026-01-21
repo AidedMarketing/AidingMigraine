@@ -6253,7 +6253,7 @@
 
         // Weather data structure (stored in localStorage)
         let weatherData = {
-            version: 2,             // Data structure version for migrations
+            version: 3,             // Data structure version for migrations (updated for ML features)
             enabled: false,
             location: {
                 query: '',      // User's input (ZIP or city)
@@ -6268,54 +6268,131 @@
             },
             forecast: [],           // 48-hour hourly forecast with full data
             history: [],            // 30 days of detailed pressure readings
-            lastFetch: null         // Last API call timestamp
+            lastFetch: null,        // Last API call timestamp
+
+            // PERSONAL PROFILE & ML FEATURES (NEW in v3)
+            personalProfile: {
+                threshold24h: null,         // Learned 24h threshold (null = use default 5)
+                thresholdRapid: null,       // Learned rapid change threshold
+                sensitivityLevel: 'standard', // 'sensitive', 'standard', 'conservative', 'custom'
+                customThreshold24h: null,   // User's custom threshold if selected
+                customThresholdRapid: null, // User's custom rapid threshold
+
+                // Direction sensitivity
+                dropSensitive: true,        // Triggered by pressure drops
+                riseSensitive: false,       // Triggered by pressure rises
+                dropPercentage: 0,          // % of migraines during drops
+                risePercentage: 0,          // % of migraines during rises
+
+                // Absolute pressure sensitivity
+                lowPressureSensitive: false, // Triggered by low absolute pressure
+                avgTriggerPressure: null,    // Average pressure when migraines occur
+
+                // Multi-day patterns
+                cumulativeSensitive: false,  // Reacts to multi-day cumulative changes
+                avgDaysToTrigger: 1,         // Average days from pressure change to migraine
+
+                // Seasonal patterns
+                seasonalVariation: {},       // {spring: 1.2, summer: 0.8, fall: 1.3, winter: 0.9}
+
+                // Learning metadata
+                lastAnalyzed: null,          // When personal profile was last calculated
+                sampleSize: 0,               // Number of migraines analyzed
+                confidenceLevel: 'low'       // 'low', 'medium', 'high' based on sample size
+            },
+
+            // ML Model data
+            mlModel: {
+                enabled: false,
+                weights: null,              // Model weights for logistic regression
+                features: [],               // Feature names
+                accuracy: 0,                // Model accuracy (0-100%)
+                lastTrained: null,          // When model was last trained
+                predictions: []             // Recent predictions for validation
+            }
         };
 
         // Migrate weather data from old versions
         function migrateWeatherData(data) {
-            if (!data || data.version === 2) {
+            if (!data || data.version === 3) {
                 return data; // Already migrated or new installation
             }
 
-            console.log('📦 Migrating weather data to v2...');
+            let migrated = data;
 
-            // Migrate from v1 (or unversioned) to v2
-            const migrated = {
-                version: 2,
-                enabled: data.enabled || false,
-                location: data.location || { query: '', city: '', lat: null, lon: null },
-                current: data.current || { pressure: null, temperature: null, timestamp: null },
-                forecast: data.forecast || [],
-                history: [],
-                lastFetch: data.lastFetch || null
-            };
+            // Migrate v1 → v2 (if needed)
+            if (!data.version || data.version < 2) {
+                console.log('📦 Migrating weather data v1 → v2...');
+                migrated = {
+                    version: 2,
+                    enabled: data.enabled || false,
+                    location: data.location || { query: '', city: '', lat: null, lon: null },
+                    current: data.current || { pressure: null, temperature: null, timestamp: null },
+                    forecast: data.forecast || [],
+                    history: [],
+                    lastFetch: data.lastFetch || null
+                };
 
-            // Convert old history format (simple daily readings) to new format (detailed with hourly data)
-            if (data.history && Array.isArray(data.history)) {
-                migrated.history = data.history.map(oldEntry => {
-                    // Old format: { date, pressure, hadMigraine }
-                    // New format: { date, readings: [{time, pressure}], dailyAvg, maxChange3h, maxChange24h }
+                // Convert old history format (simple daily readings) to new format (detailed with hourly data)
+                if (data.history && Array.isArray(data.history)) {
+                    migrated.history = data.history.map(oldEntry => {
+                        // Old format: { date, pressure, hadMigraine }
+                        // New format: { date, readings: [{time, pressure}], dailyAvg, maxChange3h, maxChange24h }
 
-                    if (oldEntry.readings) {
-                        // Already in new format somehow
-                        return oldEntry;
-                    }
+                        if (oldEntry.readings) {
+                            // Already in new format somehow
+                            return oldEntry;
+                        }
 
-                    return {
-                        date: oldEntry.date,
-                        readings: [{
-                            time: oldEntry.date + 'T12:00:00Z', // Assume noon for old data
-                            pressure: oldEntry.pressure || 1013.25
-                        }],
-                        dailyAvg: oldEntry.pressure || 1013.25,
-                        maxChange3h: null,  // Unknown for old data
-                        maxChange24h: null, // Will be calculated from history
-                        hadMigraine: oldEntry.hadMigraine || false
-                    };
-                });
+                        return {
+                            date: oldEntry.date,
+                            readings: [{
+                                time: oldEntry.date + 'T12:00:00Z', // Assume noon for old data
+                                pressure: oldEntry.pressure || 1013.25
+                            }],
+                            dailyAvg: oldEntry.pressure || 1013.25,
+                            maxChange3h: null,  // Unknown for old data
+                            maxChange24h: null, // Will be calculated from history
+                            hadMigraine: oldEntry.hadMigraine || false
+                        };
+                    });
+                }
             }
 
-            console.log('✅ Weather data migrated successfully');
+            // Migrate v2 → v3 (add personal profile and ML features)
+            if (migrated.version === 2) {
+                console.log('📦 Migrating weather data v2 → v3 (adding ML features)...');
+                migrated.version = 3;
+                migrated.personalProfile = {
+                    threshold24h: null,
+                    thresholdRapid: null,
+                    sensitivityLevel: 'standard',
+                    customThreshold24h: null,
+                    customThresholdRapid: null,
+                    dropSensitive: true,
+                    riseSensitive: false,
+                    dropPercentage: 0,
+                    risePercentage: 0,
+                    lowPressureSensitive: false,
+                    avgTriggerPressure: null,
+                    cumulativeSensitive: false,
+                    avgDaysToTrigger: 1,
+                    seasonalVariation: {},
+                    lastAnalyzed: null,
+                    sampleSize: 0,
+                    confidenceLevel: 'low'
+                };
+                migrated.mlModel = {
+                    enabled: false,
+                    weights: null,
+                    features: [],
+                    accuracy: 0,
+                    lastTrained: null,
+                    predictions: []
+                };
+            }
+
+            console.log('✅ Weather data migrated successfully to v3');
             return migrated;
         }
 
@@ -6329,8 +6406,13 @@
                     weatherData = migrateWeatherData(loaded);
 
                     // Save migrated data
-                    if (loaded.version !== 2) {
+                    if (loaded.version !== 3) {
                         saveWeatherData();
+                    }
+
+                    // Analyze personal patterns if we have enough data
+                    if (weatherData.enabled && weatherData.history.length >= 7) {
+                        analyzePersonalWeatherProfile();
                     }
                 } catch (e) {
                     console.error('Error loading weather data:', e);
@@ -6963,6 +7045,536 @@
                 message: message,
                 primaryType: primaryType
             };
+        }
+
+        // ============================================
+        // PERSONAL PROFILING & MACHINE LEARNING
+        // ============================================
+
+        // Main function to analyze user's personal weather sensitivity profile
+        function analyzePersonalWeatherProfile() {
+            if (!weatherData.enabled || weatherData.history.length < 7) {
+                return; // Need at least 7 days of data
+            }
+
+            const migraines = getActiveMigraines();
+            if (migraines.length < 3) {
+                return; // Need at least 3 migraines for meaningful analysis
+            }
+
+            console.log('🧠 Analyzing personal weather sensitivity profile...');
+
+            const profile = weatherData.personalProfile;
+
+            // 1. Calculate personal thresholds
+            const thresholds = calculatePersonalThresholds(migraines);
+            profile.threshold24h = thresholds.threshold24h;
+            profile.thresholdRapid = thresholds.thresholdRapid;
+
+            // 2. Analyze direction sensitivity (drops vs rises)
+            const direction = analyzeDirectionSensitivity(migraines);
+            profile.dropSensitive = direction.dropSensitive;
+            profile.riseSensitive = direction.riseSensitive;
+            profile.dropPercentage = direction.dropPercentage;
+            profile.risePercentage = direction.risePercentage;
+
+            // 3. Analyze absolute pressure sensitivity
+            const absolute = analyzeAbsolutePressureSensitivity(migraines);
+            profile.lowPressureSensitive = absolute.lowPressureSensitive;
+            profile.avgTriggerPressure = absolute.avgTriggerPressure;
+
+            // 4. Detect multi-day cumulative patterns
+            const cumulative = detectMultiDayPatterns(migraines);
+            profile.cumulativeSensitive = cumulative.cumulativeSensitive;
+            profile.avgDaysToTrigger = cumulative.avgDaysToTrigger;
+
+            // 5. Analyze seasonal patterns
+            profile.seasonalVariation = analyzeSeasonalPatterns(migraines);
+
+            // Update metadata
+            profile.lastAnalyzed = Date.now();
+            profile.sampleSize = migraines.length;
+            profile.confidenceLevel = migraines.length >= 10 ? 'high' :
+                                      migraines.length >= 5 ? 'medium' : 'low';
+
+            saveWeatherData();
+
+            console.log('✅ Personal profile analyzed:', {
+                threshold24h: profile.threshold24h,
+                thresholdRapid: profile.thresholdRapid,
+                dropSensitive: profile.dropSensitive,
+                confidence: profile.confidenceLevel,
+                sampleSize: profile.sampleSize
+            });
+
+            // Train ML model if enough data
+            if (migraines.length >= 10 && weatherData.history.length >= 14) {
+                trainMigrainePredictionModel(migraines);
+            }
+        }
+
+        // Calculate user's personal trigger thresholds based on actual migraine history
+        function calculatePersonalThresholds(migraines) {
+            const changes24h = [];
+            const changesRapid = [];
+
+            migraines.forEach(migraine => {
+                const migraineDate = new Date(migraine.startTime).toISOString().split('T')[0];
+
+                // Find weather data for days around the migraine
+                for (let daysBack = 0; daysBack <= 2; daysBack++) {
+                    const checkDate = new Date(migraine.startTime);
+                    checkDate.setDate(checkDate.getDate() - daysBack);
+                    const checkDateStr = checkDate.toISOString().split('T')[0];
+
+                    const weatherEntry = weatherData.history.find(h => h.date === checkDateStr);
+                    if (weatherEntry) {
+                        // Record 24h change if available
+                        if (weatherEntry.maxChange24h && Math.abs(weatherEntry.maxChange24h) > 0) {
+                            changes24h.push(Math.abs(weatherEntry.maxChange24h));
+                        }
+
+                        // Record rapid change if available
+                        if (weatherEntry.maxChange3h && weatherEntry.maxChange3h > 0) {
+                            changesRapid.push(weatherEntry.maxChange3h);
+                        }
+                    }
+                }
+            });
+
+            // Calculate median (more robust than mean for outliers)
+            const median = arr => {
+                if (arr.length === 0) return null;
+                const sorted = [...arr].sort((a, b) => a - b);
+                const mid = Math.floor(sorted.length / 2);
+                return sorted.length % 2 === 0 ?
+                    (sorted[mid - 1] + sorted[mid]) / 2 :
+                    sorted[mid];
+            };
+
+            // Use 25th percentile (more sensitive - catches more triggers)
+            const percentile25 = arr => {
+                if (arr.length === 0) return null;
+                const sorted = [...arr].sort((a, b) => a - b);
+                const index = Math.floor(sorted.length * 0.25);
+                return sorted[index];
+            };
+
+            return {
+                threshold24h: percentile25(changes24h) || 5,  // Default to 5 if no data
+                thresholdRapid: percentile25(changesRapid) || 5
+            };
+        }
+
+        // Analyze if user is sensitive to pressure drops vs rises
+        function analyzeDirectionSensitivity(migraines) {
+            let dropsCount = 0;
+            let risesCount = 0;
+            let totalWithData = 0;
+
+            migraines.forEach(migraine => {
+                const migraineDate = new Date(migraine.startTime).toISOString().split('T')[0];
+
+                // Check 1-2 days before migraine
+                for (let daysBack = 1; daysBack <= 2; daysBack++) {
+                    const checkDate = new Date(migraine.startTime);
+                    checkDate.setDate(checkDate.getDate() - daysBack);
+                    const checkDateStr = checkDate.toISOString().split('T')[0];
+
+                    const weatherEntry = weatherData.history.find(h => h.date === checkDateStr);
+                    if (weatherEntry && weatherEntry.maxChange24h !== null) {
+                        totalWithData++;
+                        if (weatherEntry.maxChange24h < -2) { // Significant drop
+                            dropsCount++;
+                        } else if (weatherEntry.maxChange24h > 2) { // Significant rise
+                            risesCount++;
+                        }
+                    }
+                }
+            });
+
+            const dropPercentage = totalWithData > 0 ? Math.round((dropsCount / totalWithData) * 100) : 0;
+            const risePercentage = totalWithData > 0 ? Math.round((risesCount / totalWithData) * 100) : 0;
+
+            return {
+                dropSensitive: dropPercentage >= 40,
+                riseSensitive: risePercentage >= 40,
+                dropPercentage: dropPercentage,
+                risePercentage: risePercentage
+            };
+        }
+
+        // Analyze sensitivity to absolute low pressure
+        function analyzeAbsolutePressureSensitivity(migraines) {
+            const pressuresAtMigraine = [];
+
+            migraines.forEach(migraine => {
+                const migraineDate = new Date(migraine.startTime).toISOString().split('T')[0];
+                const weatherEntry = weatherData.history.find(h => h.date === migraineDate);
+
+                if (weatherEntry) {
+                    const pressure = weatherEntry.dailyAvg || weatherEntry.pressure;
+                    if (pressure) {
+                        pressuresAtMigraine.push(pressure);
+                    }
+                }
+            });
+
+            if (pressuresAtMigraine.length === 0) {
+                return { lowPressureSensitive: false, avgTriggerPressure: null };
+            }
+
+            const avgPressure = pressuresAtMigraine.reduce((a, b) => a + b, 0) / pressuresAtMigraine.length;
+            const lowPressureCount = pressuresAtMigraine.filter(p => p < 1007).length;
+            const lowPressurePercent = (lowPressureCount / pressuresAtMigraine.length) * 100;
+
+            return {
+                lowPressureSensitive: lowPressurePercent >= 40,
+                avgTriggerPressure: Math.round(avgPressure * 10) / 10
+            };
+        }
+
+        // Detect if user reacts to cumulative multi-day pressure changes
+        function detectMultiDayPatterns(migraines) {
+            let cumulativeCount = 0;
+            let totalAnalyzed = 0;
+            const daysToTrigger = [];
+
+            migraines.forEach(migraine => {
+                const migraineDate = new Date(migraine.startTime);
+
+                // Look back 5 days to find pressure change patterns
+                let cumulativeChange = 0;
+                let daysSinceChange = null;
+
+                for (let daysBack = 1; daysBack <= 5; daysBack++) {
+                    const checkDate = new Date(migraineDate);
+                    checkDate.setDate(checkDate.getDate() - daysBack);
+                    const checkDateStr = checkDate.toISOString().split('T')[0];
+
+                    const weatherEntry = weatherData.history.find(h => h.date === checkDateStr);
+                    if (weatherEntry && weatherEntry.maxChange24h !== null) {
+                        cumulativeChange += weatherEntry.maxChange24h;
+
+                        // If cumulative drop > 8 hPa over multiple days
+                        if (cumulativeChange < -8) {
+                            cumulativeCount++;
+                            daysSinceChange = daysBack;
+                            daysToTrigger.push(daysBack);
+                            totalAnalyzed++;
+                            break;
+                        }
+                    }
+                }
+
+                if (daysSinceChange === null) {
+                    totalAnalyzed++;
+                }
+            });
+
+            const avgDays = daysToTrigger.length > 0 ?
+                daysToTrigger.reduce((a, b) => a + b, 0) / daysToTrigger.length : 1;
+
+            return {
+                cumulativeSensitive: totalAnalyzed > 0 && (cumulativeCount / totalAnalyzed) >= 0.3,
+                avgDaysToTrigger: Math.round(avgDays * 10) / 10
+            };
+        }
+
+        // Analyze seasonal variation in weather sensitivity
+        function analyzeSeasonalPatterns(migraines) {
+            const seasons = { winter: [], spring: [], summer: [], fall: [] };
+            const weatherMigraines = [];
+
+            migraines.forEach(migraine => {
+                const migraineDate = new Date(migraine.startTime);
+                const month = migraineDate.getMonth();
+                const season = month <= 2 ? 'winter' :
+                              month <= 5 ? 'spring' :
+                              month <= 8 ? 'summer' : 'fall';
+
+                // Check if weather-related (significant pressure change 0-2 days before)
+                let wasWeatherRelated = false;
+                for (let daysBack = 0; daysBack <= 2; daysBack++) {
+                    const checkDate = new Date(migraineDate);
+                    checkDate.setDate(checkDate.getDate() - daysBack);
+                    const checkDateStr = checkDate.toISOString().split('T')[0];
+
+                    const weatherEntry = weatherData.history.find(h => h.date === checkDateStr);
+                    if (weatherEntry && weatherEntry.maxChange24h && Math.abs(weatherEntry.maxChange24h) > 5) {
+                        wasWeatherRelated = true;
+                        break;
+                    }
+                }
+
+                seasons[season].push(wasWeatherRelated ? 1 : 0);
+            });
+
+            // Calculate weather-sensitivity ratio per season
+            const seasonalRatios = {};
+            let avgRatio = 0;
+            let seasonCount = 0;
+
+            for (const season in seasons) {
+                if (seasons[season].length > 0) {
+                    const weatherCount = seasons[season].filter(x => x === 1).length;
+                    const ratio = weatherCount / seasons[season].length;
+                    seasonalRatios[season] = ratio;
+                    avgRatio += ratio;
+                    seasonCount++;
+                }
+            }
+
+            avgRatio = seasonCount > 0 ? avgRatio / seasonCount : 1;
+
+            // Normalize to show relative sensitivity (1.0 = average)
+            const normalized = {};
+            for (const season in seasonalRatios) {
+                normalized[season] = avgRatio > 0 ?
+                    Math.round((seasonalRatios[season] / avgRatio) * 10) / 10 : 1.0;
+            }
+
+            return normalized;
+        }
+
+        // Get effective threshold based on user settings and learned thresholds
+        function getEffectiveThreshold(type = '24h') {
+            const profile = weatherData.personalProfile;
+
+            // Check user's sensitivity setting
+            if (profile.sensitivityLevel === 'custom') {
+                return type === '24h' ?
+                    (profile.customThreshold24h || 5) :
+                    (profile.customThresholdRapid || 5);
+            }
+
+            // Use learned threshold if confidence is high
+            if (profile.confidenceLevel === 'high') {
+                const learned = type === '24h' ? profile.threshold24h : profile.thresholdRapid;
+                if (learned !== null) {
+                    // Apply sensitivity level multiplier
+                    const multiplier = profile.sensitivityLevel === 'sensitive' ? 0.7 :
+                                      profile.sensitivityLevel === 'conservative' ? 1.3 : 1.0;
+                    return Math.round(learned * multiplier * 10) / 10;
+                }
+            }
+
+            // Fall back to standard thresholds with sensitivity adjustment
+            const standard = type === '24h' ? 5 : 5;
+            const multiplier = profile.sensitivityLevel === 'sensitive' ? 0.6 :
+                              profile.sensitivityLevel === 'conservative' ? 1.5 : 1.0;
+            return Math.round(standard * multiplier * 10) / 10;
+        }
+
+        // Generate predictive alerts based on forecast and personal profile
+        function generatePredictiveAlerts() {
+            if (!weatherData.enabled || !weatherData.forecast || weatherData.forecast.length < 12) {
+                return [];
+            }
+
+            const alerts = [];
+            const profile = weatherData.personalProfile;
+            const threshold24h = getEffectiveThreshold('24h');
+            const thresholdRapid = getEffectiveThreshold('rapid');
+
+            // Analyze next 24 hours of forecast
+            const now = new Date();
+            for (let i = 0; i < Math.min(weatherData.forecast.length - 6, 24); i++) {
+                const window = weatherData.forecast.slice(i, i + 7);
+                const startTime = new Date(window[0].time);
+
+                if (startTime <= now) continue; // Only future predictions
+
+                const pressures = window.map(r => r.pressure);
+                const currentPressure = pressures[0];
+                const avgChange = (pressures[6] - pressures[0]) / 6; // hPa per hour
+                const totalChange = pressures[6] - pressures[0];
+                const rapidChange = Math.max(...pressures) - Math.min(...pressures);
+
+                // Check if this matches user's trigger pattern
+                let triggerProbability = 0;
+                const triggers = [];
+
+                // Check rapid change
+                if (rapidChange >= thresholdRapid) {
+                    triggerProbability += 30;
+                    triggers.push(`Rapid ${totalChange < 0 ? 'drop' : 'rise'} (${rapidChange.toFixed(1)} hPa in 6h)`);
+                }
+
+                // Check if direction matches user's sensitivity
+                if (totalChange < 0 && profile.dropSensitive) {
+                    triggerProbability += 20;
+                } else if (totalChange > 0 && profile.riseSensitive) {
+                    triggerProbability += 15;
+                }
+
+                // Check absolute low pressure
+                if (profile.lowPressureSensitive && currentPressure < 1007) {
+                    triggerProbability += 25;
+                    triggers.push(`Low absolute pressure (${currentPressure.toFixed(1)} hPa)`);
+                }
+
+                // Check 24h projection
+                if (i + 24 < weatherData.forecast.length) {
+                    const pressure24hLater = weatherData.forecast[i + 24].pressure;
+                    const change24h = Math.abs(pressure24hLater - currentPressure);
+                    if (change24h >= threshold24h) {
+                        triggerProbability += 25;
+                        triggers.push(`24h ${pressure24hLater < currentPressure ? 'drop' : 'rise'} (${change24h.toFixed(1)} hPa)`);
+                    }
+                }
+
+                // If probability high enough, create alert
+                if (triggerProbability >= 40) {
+                    const hoursUntil = Math.round((startTime - now) / (1000 * 60 * 60));
+                    alerts.push({
+                        time: startTime.toISOString(),
+                        hoursUntil: hoursUntil,
+                        probability: Math.min(triggerProbability, 95), // Cap at 95%
+                        triggers: triggers,
+                        pressure: currentPressure,
+                        change: totalChange,
+                        recommendation: getPredictiveRecommendation(triggerProbability, hoursUntil)
+                    });
+                }
+            }
+
+            // Return only the most imminent high-probability alerts
+            return alerts
+                .filter(a => a.probability >= 50)
+                .sort((a, b) => b.probability - a.probability)
+                .slice(0, 3);
+        }
+
+        // Get recommendation based on prediction
+        function getPredictiveRecommendation(probability, hoursUntil) {
+            if (probability >= 75) {
+                if (hoursUntil <= 6) {
+                    return 'HIGH RISK - Consider taking preventive medication now';
+                } else {
+                    return 'High risk predicted - Plan ahead and have medication ready';
+                }
+            } else if (probability >= 60) {
+                return 'Moderate risk - Monitor symptoms and be prepared';
+            } else {
+                return 'Elevated risk - Stay aware of potential triggers';
+            }
+        }
+
+        // Simple ML model: Logistic Regression for migraine probability
+        function trainMigrainePredictionModel(migraines) {
+            console.log('🤖 Training migraine prediction model...');
+
+            const trainingData = [];
+            const labels = [];
+
+            // Build training dataset from last 30 days
+            const sortedHistory = [...weatherData.history]
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .slice(-30);
+
+            sortedHistory.forEach(day => {
+                const dayDate = new Date(day.date);
+
+                // Features
+                const features = [
+                    day.dailyAvg || day.pressure || 1013, // Absolute pressure
+                    day.maxChange24h || 0,                 // 24h change
+                    day.maxChange3h || 0,                  // Rapid change
+                    dayDate.getDay(),                      // Day of week (0-6)
+                    dayDate.getMonth(),                    // Month (0-11)
+                    day.dailyAvg < 1007 ? 1 : 0,          // Low pressure flag
+                    (day.maxChange24h || 0) < 0 ? 1 : 0   // Dropping flag
+                ];
+
+                // Label: Did migraine occur on this day?
+                const hadMigraine = migraines.some(m => {
+                    const mDate = new Date(m.startTime).toISOString().split('T')[0];
+                    return mDate === day.date;
+                });
+
+                trainingData.push(features);
+                labels.push(hadMigraine ? 1 : 0);
+            });
+
+            // Simple logistic regression (gradient descent)
+            const weights = simpleLogisticRegression(trainingData, labels);
+
+            // Calculate accuracy
+            let correct = 0;
+            trainingData.forEach((features, i) => {
+                const prediction = sigmoid(dotProduct(weights, features)) > 0.5 ? 1 : 0;
+                if (prediction === labels[i]) correct++;
+            });
+            const accuracy = Math.round((correct / trainingData.length) * 100);
+
+            weatherData.mlModel = {
+                enabled: accuracy >= 60, // Only enable if reasonably accurate
+                weights: weights,
+                features: ['pressure', 'change24h', 'changeRapid', 'dayOfWeek', 'month', 'lowPressure', 'dropping'],
+                accuracy: accuracy,
+                lastTrained: Date.now(),
+                predictions: []
+            };
+
+            saveWeatherData();
+
+            console.log(`✅ Model trained - Accuracy: ${accuracy}%`,
+                        accuracy >= 60 ? '(enabled)' : '(disabled - low accuracy)');
+        }
+
+        // Simple logistic regression implementation
+        function simpleLogisticRegression(X, y, learningRate = 0.01, iterations = 1000) {
+            const m = X.length;
+            const n = X[0].length;
+            let weights = new Array(n).fill(0);
+
+            for (let iter = 0; iter < iterations; iter++) {
+                const gradients = new Array(n).fill(0);
+
+                for (let i = 0; i < m; i++) {
+                    const prediction = sigmoid(dotProduct(weights, X[i]));
+                    const error = prediction - y[i];
+
+                    for (let j = 0; j < n; j++) {
+                        gradients[j] += error * X[i][j];
+                    }
+                }
+
+                for (let j = 0; j < n; j++) {
+                    weights[j] -= (learningRate / m) * gradients[j];
+                }
+            }
+
+            return weights;
+        }
+
+        function sigmoid(z) {
+            return 1 / (1 + Math.exp(-z));
+        }
+
+        function dotProduct(a, b) {
+            return a.reduce((sum, val, i) => sum + val * b[i], 0);
+        }
+
+        // Predict migraine probability using ML model
+        function predictMigraineProbability(pressureFeatures) {
+            if (!weatherData.mlModel.enabled || !weatherData.mlModel.weights) {
+                return null;
+            }
+
+            const features = [
+                pressureFeatures.pressure,
+                pressureFeatures.change24h || 0,
+                pressureFeatures.changeRapid || 0,
+                new Date().getDay(),
+                new Date().getMonth(),
+                pressureFeatures.pressure < 1007 ? 1 : 0,
+                (pressureFeatures.change24h || 0) < 0 ? 1 : 0
+            ];
+
+            const probability = sigmoid(dotProduct(weatherData.mlModel.weights, features));
+            return Math.round(probability * 100);
         }
 
         // ============================================
