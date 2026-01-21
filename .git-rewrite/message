@@ -1,0 +1,35 @@
+UX: Consolidate weather displays into single migraine-friendly indicator
+
+Removed redundant weather information to reduce cognitive load:
+
+**What Changed:**
+1. Removed detailed "Current Conditions" card (was above pain selector)
+2. Kept only simple forecast indicator (moved to top, before pain selector)
+3. Removed 80+ lines of unused CSS
+4. Simplified JavaScript function (removed references to old elements)
+
+**New Structure:**
+```
+Log New Episode
+  [Weather Forecast Indicator] ← Only shows if significant change or clear
+  Pain Intensity [0-10]
+  Optional Details...
+```
+
+**Migraine-Friendly Benefits:**
+- ✅ One simple message instead of two weather sections
+- ✅ Context before action (see "Weather May Be a Factor" THEN log pain)
+- ✅ Less visual clutter and cognitive load
+- ✅ Glanceable information (2 states: clear or warning)
+- ✅ Auto-hides when no data (no "enable this" prompts during pain)
+
+**Code Cleanup:**
+- Removed weather-info-card, weather-header, weather-stats CSS (unused)
+- Removed weather-stat, weather-label, weather-value CSS (unused)
+- Removed weather-unit, weather-trend, weather-alert CSS (unused)
+- Simplified updateLogWeatherDisplay() from 70 lines to 40 lines
+
+Version: 1.7.3 → 1.7.4
+
+Someone experiencing a migraine now sees ONE clear piece of weather context
+instead of multiple detailed displays competing for their attention.

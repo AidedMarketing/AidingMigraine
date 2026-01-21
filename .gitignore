@@ -1,0 +1,42 @@
+# Environment Variables (CRITICAL - Contains secrets)
+.env
+.env.local
+.env.production
+.env.development
+*.env
+
+# Dependencies
+node_modules/
+notification-server/node_modules/
+
+# Database (Contains user data)
+notification-server/data/
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Service worker cache
+sw-cache/

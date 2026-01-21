@@ -109,7 +109,19 @@ self.addEventListener('push', (event) => {
     // Parse push data if available
     if (event.data) {
         try {
-            data = { ...data, ...event.data.json() };
+            const pushData = event.data.json();
+            // Security: Validate and sanitize incoming data
+            data = {
+                ...data,
+                title: String(pushData.title || data.title).substring(0, 100),
+                body: String(pushData.body || data.body).substring(0, 500),
+                icon: String(pushData.icon || data.icon),
+                badge: String(pushData.badge || data.badge),
+                tag: String(pushData.tag || data.tag),
+                url: String(pushData.url || data.url),
+                type: String(pushData.type || data.type),
+                attackId: pushData.attackId
+            };
         } catch (e) {
             console.error('Error parsing push data:', e);
         }
@@ -123,7 +135,7 @@ self.addEventListener('push', (event) => {
         requireInteraction: true,
         vibrate: [200, 100, 200],
         data: {
-            url: data.url,
+            url: data.url, // Will be validated in notificationclick handler
             type: data.type,
             attackId: data.attackId
         },
@@ -157,11 +169,42 @@ self.addEventListener('notificationclick', (event) => {
     const notificationData = event.notification.data;
     let urlToOpen = notificationData.url || './';
 
+    // Security: Validate URL to prevent XSS and malicious redirects
+    function validateUrl(url) {
+        try {
+            // Only allow relative URLs starting with ./ or /
+            if (url.startsWith('./') || url.startsWith('/')) {
+                // Prevent javascript:, data:, and other dangerous schemes
+                if (url.toLowerCase().includes('javascript:') ||
+                    url.toLowerCase().includes('data:') ||
+                    url.toLowerCase().includes('vbscript:')) {
+                    return './'; // Default to safe URL
+                }
+                return url;
+            }
+            // For absolute URLs, only allow same origin
+            const parsedUrl = new URL(url, self.location.origin);
+            if (parsedUrl.origin === self.location.origin) {
+                return parsedUrl.pathname + parsedUrl.search + parsedUrl.hash;
+            }
+            // Reject all other URLs
+            return './';
+        } catch (e) {
+            // Invalid URL, return safe default
+            return './';
+        }
+    }
+
+    // Validate and sanitize the URL
+    urlToOpen = validateUrl(urlToOpen);
+
     // Handle action buttons
     if (event.action === 'log') {
         urlToOpen = './?action=log';
     } else if (event.action === 'update' && notificationData.attackId) {
-        urlToOpen = `./?action=update&attackId=${notificationData.attackId}`;
+        // Sanitize attackId to prevent injection
+        const sanitizedId = encodeURIComponent(String(notificationData.attackId || ''));
+        urlToOpen = `./?action=update&attackId=${sanitizedId}`;
     } else if (event.action === 'dismiss') {
         return;
     }

@@ -11,12 +11,17 @@ const {
     getSubscriptionByEndpoint,
     getAllSubscriptions
 } = require('../database');
+const {
+    requireAdminAuth,
+    validateEndpoint,
+    validatePreferences
+} = require('../middleware/auth');
 
 /**
  * POST /api/subscriptions/subscribe
  * Subscribe a user to push notifications
  */
-router.post('/subscribe', async (req, res) => {
+router.post('/subscribe', validateEndpoint, validatePreferences, async (req, res) => {
     try {
         const { subscription, preferences } = req.body;
 
@@ -62,7 +67,7 @@ router.post('/subscribe', async (req, res) => {
  * POST /api/subscriptions/unsubscribe
  * Unsubscribe a user from push notifications
  */
-router.post('/unsubscribe', async (req, res) => {
+router.post('/unsubscribe', validateEndpoint, async (req, res) => {
     try {
         const { endpoint } = req.body;
 
@@ -97,7 +102,7 @@ router.post('/unsubscribe', async (req, res) => {
  * POST /api/subscriptions/update-preferences
  * Update user notification preferences
  */
-router.post('/update-preferences', async (req, res) => {
+router.post('/update-preferences', validateEndpoint, validatePreferences, async (req, res) => {
     try {
         const { endpoint, preferences } = req.body;
 
@@ -131,9 +136,9 @@ router.post('/update-preferences', async (req, res) => {
 
 /**
  * GET /api/subscriptions
- * Get all subscriptions (admin only - add auth in production)
+ * Get all subscriptions (admin only - requires API key)
  */
-router.get('/', async (req, res) => {
+router.get('/', requireAdminAuth, async (req, res) => {
     try {
         const subscriptions = getAllSubscriptions();
         res.json({

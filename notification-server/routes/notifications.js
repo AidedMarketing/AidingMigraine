@@ -10,12 +10,13 @@ const {
     cancelActiveCheckin
 } = require('../database');
 const { sendWebPushNotification } = require('../push-notifications');
+const { validateEndpoint } = require('../middleware/auth');
 
 /**
  * POST /api/notifications/schedule-followup
  * Schedule a post-attack follow-up notification
  */
-router.post('/schedule-followup', async (req, res) => {
+router.post('/schedule-followup', validateEndpoint, async (req, res) => {
     try {
         const { attackId, followUpTime, subscriptionEndpoint } = req.body;
 
@@ -99,7 +100,7 @@ router.post('/send-test', async (req, res) => {
  * POST /api/notifications/schedule-active-checkin
  * Schedule an active attack check-in notification
  */
-router.post('/schedule-active-checkin', async (req, res) => {
+router.post('/schedule-active-checkin', validateEndpoint, async (req, res) => {
     try {
         const { attackId, checkInTime, subscriptionEndpoint } = req.body;
 
@@ -137,7 +138,7 @@ router.post('/schedule-active-checkin', async (req, res) => {
  * POST /api/notifications/cancel-active-checkin
  * Cancel an active attack check-in notification
  */
-router.post('/cancel-active-checkin', async (req, res) => {
+router.post('/cancel-active-checkin', validateEndpoint, async (req, res) => {
     try {
         const { attackId, subscriptionEndpoint } = req.body;
 
