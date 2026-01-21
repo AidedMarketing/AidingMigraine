@@ -1,0 +1,46 @@
+tree 5e95d319b09c8e9db18d40a0b6db0e2620b871a5
+parent bc49cae692656bd7a0153bd75605abac30333298
+author Claude <noreply@anthropic.com> 1765172093 +0000
+committer Claude <noreply@anthropic.com> 1765172093 +0000
+gpgsig -----BEGIN SSH SIGNATURE-----
+ U1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgrLzsfFISF4by8Q+FKz27YpkK1USsBB+m
+ amu1QkJnbDsAAAADZ2l0AAAAAAAAAAZzaGE1MTIAAABTAAAAC3NzaC1lZDI1NTE5AAAAQPvohl0u
+ i1hzBo0hc7ZkLoVRMv62U/17XeNcajoy81zwViQM3ggQZDo6XqvEuBLxhRm1bCI4PaVne9Dt/wa0
+ oAo=
+ -----END SSH SIGNATURE-----
+
+UX: Consolidate weather displays into single migraine-friendly indicator
+
+Removed redundant weather information to reduce cognitive load:
+
+**What Changed:**
+1. Removed detailed "Current Conditions" card (was above pain selector)
+2. Kept only simple forecast indicator (moved to top, before pain selector)
+3. Removed 80+ lines of unused CSS
+4. Simplified JavaScript function (removed references to old elements)
+
+**New Structure:**
+```
+Log New Episode
+  [Weather Forecast Indicator] ← Only shows if significant change or clear
+  Pain Intensity [0-10]
+  Optional Details...
+```
+
+**Migraine-Friendly Benefits:**
+- ✅ One simple message instead of two weather sections
+- ✅ Context before action (see "Weather May Be a Factor" THEN log pain)
+- ✅ Less visual clutter and cognitive load
+- ✅ Glanceable information (2 states: clear or warning)
+- ✅ Auto-hides when no data (no "enable this" prompts during pain)
+
+**Code Cleanup:**
+- Removed weather-info-card, weather-header, weather-stats CSS (unused)
+- Removed weather-stat, weather-label, weather-value CSS (unused)
+- Removed weather-unit, weather-trend, weather-alert CSS (unused)
+- Simplified updateLogWeatherDisplay() from 70 lines to 40 lines
+
+Version: 1.7.3 → 1.7.4
+
+Someone experiencing a migraine now sees ONE clear piece of weather context
+instead of multiple detailed displays competing for their attention.
