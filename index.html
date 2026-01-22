@@ -2058,8 +2058,8 @@
         function safeHTML(html) {
             if (typeof DOMPurify !== 'undefined') {
                 return DOMPurify.sanitize(html, {
-                    ALLOWED_TAGS: ['div', 'span', 'p', 'b', 'i', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'a', 'button', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
-                    ALLOWED_ATTR: ['class', 'style', 'onclick', 'href', 'target', 'id'],
+                    ALLOWED_TAGS: ['div', 'span', 'p', 'b', 'i', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'a', 'button', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'select', 'option', 'input', 'label', 'textarea', 'form'],
+                    ALLOWED_ATTR: ['class', 'style', 'onclick', 'href', 'target', 'id', 'value', 'type', 'placeholder', 'onchange', 'checked', 'selected', 'disabled', 'name', 'for'],
                     ALLOW_DATA_ATTR: false
                 });
             }
