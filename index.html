@@ -12,6 +12,7 @@
 
     <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AidMigraine">
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
@@ -23,7 +24,7 @@
     <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512x512.png">
 
     <!-- DOMPurify for XSS Protection -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" integrity="sha384-cwS6YdhLI7XS60eoDiC+egV0qHp8zI+Cms46R0nbn8JrmoAzV9uFL60etMZhAnSu" crossorigin="anonymous"></script>
 
     <style>
         /* ============================================
@@ -1408,7 +1409,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Quick Notes (optional)</label>
+                                <label for="notes-input">Quick Notes (optional)</label>
                                 <textarea id="notes-input" placeholder="Add any notes about this episode..." rows="3"></textarea>
                             </div>
                         </div>
@@ -1770,11 +1771,11 @@
                             </p>
                             <div id="daily-checkin-settings">
                                 <div style="margin-bottom: 12px;">
-                                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Reminder Time</label>
+                                    <label for="daily-checkin-time" style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Reminder Time</label>
                                     <input type="time" id="daily-checkin-time" value="19:00" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;">
                                 </div>
                                 <div>
-                                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Frequency</label>
+                                    <label for="daily-checkin-frequency" style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Frequency</label>
                                     <select id="daily-checkin-frequency" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;">
                                         <option value="daily">Every day</option>
                                         <option value="every-other-day">Every other day</option>
@@ -1797,7 +1798,7 @@
                             </p>
                             <div id="active-checkin-settings">
                                 <div>
-                                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Check-in After</label>
+                                    <label for="active-checkin-delay" style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Check-in After</label>
                                     <select id="active-checkin-delay" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;">
                                         <option value="1">1 hour</option>
                                         <option value="2" selected>2 hours</option>
@@ -1822,7 +1823,7 @@
                             </p>
                             <div id="followup-settings">
                                 <div>
-                                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Check-in After</label>
+                                    <label for="followup-delay" style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Check-in After</label>
                                     <select id="followup-delay" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;">
                                         <option value="2">2 hours</option>
                                         <option value="3">3 hours</option>
@@ -1867,7 +1868,7 @@
                 <div id="weather-settings" style="display: none;">
                     <!-- Location Entry -->
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">📍 Your Location</label>
+                        <label for="weather-location-input" style="display: block; margin-bottom: 8px; font-weight: 500;">📍 Your Location</label>
                         <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 10px;">
                             Enter your ZIP/postal code or city name to fetch local weather data.
                         </p>
@@ -2201,7 +2202,7 @@
 
             body.innerHTML = `
                 <div class="form-group">
-                    <label>Search Medication</label>
+                    <label for="med-search">Search Medication</label>
                     <input type="text" id="med-search" placeholder="Type to search..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;" autofocus>
                 </div>
 
@@ -2277,7 +2278,7 @@
                 <h3 style="margin-bottom: 16px;">${safeText(med.name)}</h3>
 
                 <div class="form-group">
-                    <label>Dosage</label>
+                    <label for="med-dosage">Dosage</label>
                     <select id="med-dosage" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
                         ${med.dosages ? med.dosages.map(d => `<option value="${safeText(d)}">${safeText(d)}</option>`).join('') : '<option value="">Not specified</option>'}
                         <option value="custom">Custom...</option>
@@ -2286,7 +2287,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Form</label>
+                    <label for="med-form">Form</label>
                     <select id="med-form" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
                         ${med.forms ? med.forms.map(f => `<option value="${safeText(f)}">${safeText(f)}</option>`).join('') : '<option value="tablet">Tablet</option>'}
                     </select>
@@ -2405,7 +2406,7 @@
                     </div>
 
                     <div class="form-group" style="margin-top: 24px;">
-                        <label>Time to relief (optional)</label>
+                        <label for="time-to-relief">Time to relief (optional)</label>
                         <select id="time-to-relief" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
                             <option value="">Not sure / No relief</option>
                             <option value="15">15 minutes</option>
