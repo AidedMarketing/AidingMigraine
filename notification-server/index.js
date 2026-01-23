@@ -77,12 +77,7 @@ const strictLimiter = rateLimit({
     message: 'Too many requests, please slow down'
 });
 
-// Middleware
-app.use(cors(corsOptions));
-app.use(express.json({ limit: '10kb' })); // Limit request body size to 10KB
-app.use(limiter);
-
-// Health check endpoint
+// Health check endpoint (before CORS to allow public access)
 app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
@@ -90,6 +85,25 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
+
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        name: 'Aiding Migraine Notification Server',
+        version: '2.0.0',
+        status: 'running',
+        endpoints: {
+            health: '/health',
+            subscriptions: '/api/subscriptions',
+            notifications: '/api/notifications'
+        }
+    });
+});
+
+// Middleware
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10kb' })); // Limit request body size to 10KB
+app.use(limiter);
 
 // Routes
 app.use('/api/subscriptions', subscriptionRoutes);
