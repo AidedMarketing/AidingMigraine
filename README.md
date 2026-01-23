@@ -20,6 +20,8 @@ A Progressive Web App for tracking migraines, identifying patterns, and improvin
 - 📈 **Analytics dashboard** with 4 research-backed charts
 - 💾 **PDF export** for doctor visits with clinical interpretations
 - 🌙 **Dark mode** support (automatic system theme detection)
+- ✏️ **Entry editing** - Modify past entries without deleting
+- 📥📤 **CSV import/export** for data portability
 
 ### Smart Notifications
 - ⏰ **Daily check-in reminders** (customizable time, timezone-aware)
@@ -28,11 +30,28 @@ A Progressive Web App for tracking migraines, identifying patterns, and improvin
 - 🌍 **Timezone conversion** ensures notifications arrive at correct local time
 - 🚨 **Active attack check-ins** during ongoing migraines
 
+### Medication Tracking (NEW in v2.0)
+- 💊 **Comprehensive medication library** (200+ abortive & preventive medications)
+- ⭐ **Effectiveness tracking** (5-star rating system)
+- ⏱️ **Time to relief** monitoring
+- 🔍 **Side effect tracking** (6 common side effects)
+- 📊 **Medication analytics** - See which treatments work best
+- 🧪 **Custom medications** - Track any treatment not in the library
+
+### Machine Learning & Personalization (NEW in v2.0)
+- 🧠 **Personal threshold learning** - App learns YOUR specific triggers
+- 📈 **Adaptive sensitivity detection** - Discovers if you react to pressure drops, rises, or both
+- 🎯 **Individual risk profiles** - Personalized warnings based on your history
+- 📊 **Confidence scoring** - See how reliable predictions are (requires 5+ tracked migraines)
+- ⚡ **Smart pattern detection** - Identifies your unique migraine patterns
+
 ### Weather Tracking
-- 🌦️ **Barometric pressure correlation** (2-level tracking system)
-- 📍 **ZIP code-based weather data**
-- 📊 **Automatic weather pattern analysis**
-- 🎯 **Identify weather-triggered migraines**
+- 🌦️ **Barometric pressure correlation** (2-level tracking: 24h & 6h changes)
+- 📍 **ZIP code-based weather data** (automatic weather API integration)
+- 📊 **Automatic weather pattern analysis** with ML-powered insights
+- 🎯 **Personalized weather triggers** - Learns which conditions affect YOU
+- 🌡️ **Absolute pressure monitoring** - Low pressure storm system warnings
+- 📉 **Direction sensitivity** - Tracks if you're sensitive to drops, rises, or both
 
 ### Privacy First
 - 🔒 **All data stays on YOUR device** (local storage only)
@@ -40,6 +59,7 @@ A Progressive Web App for tracking migraines, identifying patterns, and improvin
 - ✅ **Works completely offline**
 - 💪 **No account required**
 - 🔐 **Open source** for transparency
+- 🛡️ **Enterprise-grade security** (XSS protection, rate limiting, authentication)
 
 ---
 
@@ -123,13 +143,32 @@ Existing apps often:
 ## 🛠️ Technical Details
 
 **Built with:**
-- Vanilla JavaScript (no heavy frameworks)
+- Vanilla JavaScript (no heavy frameworks - fast & lightweight)
 - Progressive Web App (PWA) standards
 - Service Workers (offline support + update management)
-- Web Push API (notifications)
-- LocalStorage (data persistence)
-- Firebase Cloud Messaging (notification delivery)
+- Web Push API (notifications via VAPID protocol)
+- LocalStorage (data persistence, fully encrypted in browser)
 - Chart.js 4.4.1 (analytics visualizations)
+- DOMPurify 3.0.6 (XSS protection)
+
+**Backend (Notification Server):**
+- Node.js + Express (lightweight REST API)
+- Web Push library (VAPID authentication)
+- Helmet.js (security headers: CSP, HSTS, X-Frame-Options)
+- express-rate-limit (DDoS protection)
+- CORS whitelist (origin validation)
+- API key authentication (admin endpoints)
+- JSON file storage (easily upgradeable to PostgreSQL/MongoDB)
+
+**Security Features:**
+- ✅ XSS Protection (DOMPurify sanitization)
+- ✅ Rate Limiting (100 req/15min general, 10 req/min sensitive endpoints)
+- ✅ CORS Whitelist (configurable allowed origins)
+- ✅ Input Validation (comprehensive endpoint validation)
+- ✅ Security Headers (helmet.js: CSP, HSTS, X-Frame-Options)
+- ✅ Path Traversal Protection (sandboxed file system)
+- ✅ API Authentication (API keys for admin access)
+- ✅ No secrets in git (automated credential rotation)
 
 **Browser Support:**
 | Browser | Support |
@@ -138,18 +177,17 @@ Existing apps often:
 | Chrome (Desktop/Android) | ✅ Full support |
 | Edge (Desktop/Android) | ✅ Full support |
 | Firefox (Desktop/Android) | ✅ Full support |
-| Chrome (iOS) | ⚠️ Limited - can't install as PWA |
+| Chrome (iOS) | ⚠️ Limited - can't install as PWA (Apple restriction) |
 
 **Hosting:**
-- **App:** GitHub Pages (static hosting)
-- **Notification Server:** Render.com (free tier)
+- **App:** GitHub Pages (static hosting, global CDN)
+- **Notification Server:** Render.com / Heroku / Railway (Node.js hosting)
 
 ---
 
 ## 📖 Documentation
 
-Complete documentation available:
-
+### User Documentation
 - [📚 Help Center](https://aidedmarketing.github.io/AidingMigraine/help/) - All documentation in one place
 - [🚀 Quick Start Guide](https://aidedmarketing.github.io/AidingMigraine/help/quick-start.html) - Get started in minutes
 - [🔔 iOS Notification Setup](https://aidedmarketing.github.io/AidingMigraine/help/notifications-ios.html) - Detailed iOS setup and troubleshooting
@@ -157,9 +195,27 @@ Complete documentation available:
 - [💡 FAQ](https://aidedmarketing.github.io/AidingMigraine/help/faq.html) - Common questions and answers
 - [🔒 Privacy Policy](https://aidedmarketing.github.io/AidingMigraine/help/privacy.html) - How we protect your data
 
+### Technical Documentation
+- [🧠 Machine Learning Features](./ML_FEATURES_DOCUMENTATION.md) - Personal threshold learning, pattern detection
+- [💊 Medication Tracking](./MEDICATION_TRACKING_SPEC.md) - Medication library, effectiveness tracking
+- [✏️ Entry Editing](./ENTRY_EDITING_SPEC.md) - Modify past migraine entries
+- [📥 CSV Import/Export](./CSV_EXPORT_IMPORT_SPEC.md) - Data portability features
+- [🔔 Notifications Setup](./NOTIFICATIONS_SETUP.md) - Server setup and configuration
+- [🔐 Security Remediation](./SECURITY_REMEDIATION.md) - Comprehensive security audit & fixes
+- [📦 Dependency Audit](./DEPENDENCY_AUDIT.md) - 55% dependency reduction analysis
+
 ---
 
 ## 🔐 Privacy & Security
+
+### Enterprise-Grade Security (v2.0+)
+- 🔒 **XSS Protection** - DOMPurify sanitization for all user input
+- 🛡️ **Security Headers** - Helmet.js with CSP, HSTS, X-Frame-Options
+- 🔑 **API Authentication** - Admin endpoints protected with API keys
+- ⚡ **Rate Limiting** - Multi-tier protection against abuse (100 req/15min)
+- 🚫 **CORS Whitelist** - Configurable allowed origins only
+- ✅ **Input Validation** - Comprehensive validation on all endpoints
+- 🔐 **Path Traversal Protection** - Sandboxed file system access
 
 ### What We Collect
 - ✅ **Notification preferences only** (time, timezone, anonymous push token)
@@ -170,7 +226,7 @@ Complete documentation available:
 - ❌ **No personal information** (name, email, etc.)
 - ❌ **No tracking or analytics**
 - ❌ **No advertising IDs**
-- ❌ **No location data** (beyond timezone)
+- ❌ **No location data** (beyond ZIP/postal code for weather)
 
 ### Your Rights
 - **Access:** Your data is on your device, accessible anytime
@@ -202,7 +258,7 @@ See [Contributing Guidelines](#contributing) below
 
 ## 🚧 Roadmap
 
-**Current (v1.6.0):**
+**Current (v2.0.0):**
 - ✅ Core tracking and calendar
 - ✅ Analytics dashboard with 4 charts
 - ✅ Notification system (timezone-aware)
@@ -212,20 +268,27 @@ See [Contributing Guidelines](#contributing) below
 - ✅ **Weather tracking** with barometric pressure correlation
 - ✅ **Active attack check-in notifications**
 - ✅ **Motion sensitivity accessibility support**
+- ✅ **Medication tracking** with effectiveness analysis
+- ✅ **Machine learning & personalization** (personal thresholds, direction sensitivity)
+- ✅ **Entry editing** (modify past entries)
+- ✅ **CSV import/export** for data portability
+- ✅ **Enterprise-grade security** (XSS protection, rate limiting, authentication)
+- ✅ **55% dependency reduction** (improved performance & security)
 
-**Coming Soon (v1.7.0):**
+**Coming Soon (v2.1.0):**
 - 🔄 **Cloud sync via Google Drive** (optional, privacy-preserving)
-- 💊 **Medication tracking improvements**
-- 🎯 **Enhanced trigger pattern detection**
-- ✏️ **Entry editing** (fix mistakes without deleting)
-- 📥 **CSV import/export**
+- 📊 **Enhanced medication analytics** with comparative effectiveness charts
+- 🎯 **Multi-trigger correlation** (weather + medication + lifestyle)
+- 🔔 **Smart notification timing** based on your migraine patterns
+- 📱 **Progressive disclosure UI** for complex features
 
 **Long-term:**
-- Multi-device sync
+- Multi-device sync (encrypted peer-to-peer)
 - Wear OS / Apple Watch companion
 - Symptom tracking enhancements
 - Custom export templates
-- Community features
+- Symptom pattern recognition (aura, prodrome detection)
+- Community features (anonymous pattern sharing)
 
 ---
 
@@ -284,25 +347,44 @@ npm start
 
 ```
 AidingMigraine/
-├── index.html              # Main PWA application
-├── service-worker.js       # Service worker (offline + notifications)
-├── manifest.json           # PWA manifest
-├── icons/                  # App icons
-├── help/                   # Documentation pages
-│   ├── index.html         # Help center
-│   ├── quick-start.html   # Getting started guide
-│   ├── notifications-ios.html  # iOS notification setup
-│   ├── analytics.html     # Analytics guide
-│   ├── faq.html          # Frequently asked questions
-│   ├── privacy.html      # Privacy policy
-│   └── styles.css        # Shared documentation styles
-├── notification-server/    # Push notification server
-│   ├── index.js          # Express server
-│   ├── database.js       # Subscription storage
-│   ├── fcm.js            # Firebase Cloud Messaging
-│   ├── scheduler.js      # Notification scheduler
-│   └── routes/           # API endpoints
-└── README.md             # This file
+├── index.html                      # Main PWA application (~8,500 lines)
+├── service-worker.js               # Service worker (offline + notifications + URL validation)
+├── manifest.json                   # PWA manifest (app metadata, icons, shortcuts)
+├── .gitignore                      # Prevents secrets from being committed
+├── icons/                          # App icons (PWA installable assets)
+│   ├── favicon-*.png              # Various favicon sizes
+│   ├── icon-*.png                 # PWA install icons (72px - 512px)
+│   └── *-maskable.png             # Adaptive icons for Android
+├── help/                           # Documentation pages
+│   ├── index.html                 # Help center
+│   ├── quick-start.html           # Getting started guide
+│   ├── notifications-ios.html     # iOS notification setup
+│   ├── analytics.html             # Analytics guide
+│   ├── faq.html                   # Frequently asked questions
+│   ├── privacy.html               # Privacy policy
+│   └── styles.css                 # Shared documentation styles
+├── notification-server/            # Push notification server (Node.js/Express)
+│   ├── index.js                   # Express server with security middleware
+│   ├── database.js                # Subscription storage (JSON/upgradeable)
+│   ├── scheduler.js               # Notification scheduler (cron jobs)
+│   ├── middleware/
+│   │   └── auth.js                # Authentication & validation middleware
+│   ├── routes/
+│   │   ├── subscriptions.js       # Subscription management API
+│   │   └── notifications.js       # Notification sending API
+│   ├── .env.example               # Environment template (NEVER commit .env!)
+│   ├── rotate-credentials.sh      # Automated credential rotation script
+│   ├── package.json               # Dependencies & scripts
+│   └── README.md                  # Notification server documentation
+├── SECURITY_REMEDIATION.md         # Comprehensive security audit & fixes
+├── SECURITY_COMPLETION_SUMMARY.md  # Security implementation summary
+├── DEPENDENCY_AUDIT.md             # Dependency reduction analysis
+├── ML_FEATURES_DOCUMENTATION.md    # Machine learning features documentation
+├── MEDICATION_TRACKING_SPEC.md     # Medication tracking specification
+├── ENTRY_EDITING_SPEC.md           # Entry editing specification
+├── CSV_EXPORT_IMPORT_SPEC.md       # CSV import/export specification
+├── NOTIFICATIONS_SETUP.md          # Notification setup guide
+└── README.md                       # This file
 ```
 
 ---

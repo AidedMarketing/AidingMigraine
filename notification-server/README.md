@@ -1,22 +1,35 @@
 # Aiding Migraine - Notification Server
 
+**Version:** 2.0.0
+**Status:** Production Ready with Enterprise-Grade Security
+
 Push notification server for the Aiding Migraine PWA. Handles scheduled daily check-ins, post-attack follow-ups, and active attack check-ins.
 
 ## Features
 
+### Core Notifications
 - ✅ Daily check-in notifications (user-configurable time)
 - ✅ Post-attack follow-up notifications (2-4 hours after attack logged)
 - ✅ Active attack check-in notifications (regular check-ins during ongoing migraines)
-- ✅ Web Push Protocol with VAPID authentication
-- ✅ Firebase Cloud Messaging (FCM) integration
-- ✅ Timezone-aware scheduling
+- ✅ Web Push Protocol with VAPID authentication (no Firebase dependency!)
+- ✅ Timezone-aware scheduling (accurate delivery worldwide)
 - ✅ Persistent storage (JSON file for development, easily extendable to databases)
+
+### Security Features (NEW in v2.0)
+- 🔐 **API Key Authentication** - Admin endpoints protected
+- 🛡️ **Security Headers** - Helmet.js with CSP, HSTS, X-Frame-Options
+- ⚡ **Rate Limiting** - Multi-tier protection (100 req/15min, 10 req/min strict)
+- 🚫 **CORS Whitelist** - Configurable allowed origins only
+- ✅ **Input Validation** - Comprehensive endpoint validation
+- 🔒 **Path Traversal Protection** - Sandboxed file system access
+- 🔑 **Automated Credential Rotation** - Built-in rotation script
+- 📊 **Production-Ready Logging** - Environment-based error handling
 
 ## Prerequisites
 
-1. **Node.js** (v14 or higher)
-2. **Firebase Project** with Cloud Messaging enabled
-3. **VAPID Keys** for Web Push
+1. **Node.js** (v18 or higher recommended)
+2. **VAPID Keys** for Web Push (no Firebase required!)
+3. **Admin API Key** (auto-generated during setup)
 
 ## Setup Instructions
 
@@ -27,31 +40,23 @@ cd notification-server
 npm install
 ```
 
-### 2. Configure Firebase Cloud Messaging
+### 2. Generate VAPID Keys & Admin API Key
 
-#### Step 2.1: Create a Firebase Project
+**Option A: Automated (Recommended)**
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Click "Add project" or select an existing project
-3. Follow the setup wizard
+Use the built-in credential rotation script:
+```bash
+cd notification-server
+./rotate-credentials.sh
+```
 
-#### Step 2.2: Enable Cloud Messaging
+This will:
+- Generate new VAPID keys automatically
+- Generate a secure Admin API key
+- Create a `.env` file template
+- Provide step-by-step instructions
 
-1. In Firebase Console, go to **Project Settings** (gear icon)
-2. Navigate to **Cloud Messaging** tab
-3. Note your **Server Key** (you won't need this for Web Push, but good to have)
-
-#### Step 2.3: Generate Service Account Key
-
-1. In Firebase Console, go to **Project Settings** > **Service Accounts**
-2. Click **Generate New Private Key**
-3. Save the JSON file as `firebase-service-account.json` (DO NOT commit this!)
-4. Extract the following values for your `.env`:
-   - `project_id`
-   - `private_key`
-   - `client_email`
-
-### 3. Generate VAPID Keys
+**Option B: Manual**
 
 VAPID (Voluntary Application Server Identification) keys are required for Web Push.
 
@@ -71,7 +76,7 @@ UUxI4O8DildjgE6hHXAovpkQQPdKfPrNccGwdJO7dUU
 
 Copy these keys to your `.env` file.
 
-### 4. Configure Environment Variables
+### 3. Configure Environment Variables
 
 Create a `.env` file in the `notification-server` directory:
 
@@ -79,103 +84,49 @@ Create a `.env` file in the `notification-server` directory:
 cp .env.example .env
 ```
 
-Edit `.env` with your actual values:
+Or create manually with these values:
 
 ```env
 # Server Configuration
 PORT=3000
 NODE_ENV=development
 
-# Firebase Cloud Messaging
-FIREBASE_PROJECT_ID=your-project-id-here
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour private key from firebase-service-account.json\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
-
-# VAPID Keys (from npx web-push generate-vapid-keys)
-VAPID_PUBLIC_KEY=BEl62iUYgUivxIkv69yViEuiBIa...
-VAPID_PRIVATE_KEY=UUxI4O8DildjgE6hHXAovpkQQP...
+# VAPID Keys for Web Push (from npx web-push generate-vapid-keys)
 VAPID_SUBJECT=mailto:your-email@example.com
+VAPID_PUBLIC_KEY=BHVugOyMNYtN5lftKJrKO10dSl7XPSGB1fWJ2eRrfAhnx-dtqY44AllB0tiTUnZaouhvzZdRADqf4C6MVW4oKdM
+VAPID_PRIVATE_KEY=6F-ixbgK_2sEpZ-HsxXvgebLoOe2Fk03tWOvZfiDUe0
 
-# Database
+# Admin API Key (from node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+ADMIN_API_KEY=a5b2c4013eea5f05c33e706360fc97872ede64a07cc0c005142fdd240c4ed8c3
+
+# CORS Allowed Origins (comma-separated)
+ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
+
+# Database Configuration
 DB_TYPE=json
 DB_PATH=./data/subscriptions.json
 ```
 
-**Important Notes:**
-- Replace all placeholder values with your actual credentials
-- The `FIREBASE_PRIVATE_KEY` should include the full key with `\n` for line breaks
-- Keep your `.env` file secure and never commit it to version control
+**Important Security Notes:**
+- ⚠️ **NEVER commit your `.env` file to git** (already in `.gitignore`)
+- 🔑 Replace all placeholder values with actual credentials from step 2
+- 🔒 Keep your Admin API key secret (required for admin endpoints)
+- 🌍 Update `ALLOWED_ORIGINS` for production deployment
+- 🔐 Set `NODE_ENV=production` when deploying to production
 
-### 5. Update PWA with VAPID Public Key
+### 4. Update PWA with VAPID Public Key
 
 You need to add the VAPID public key to your PWA so it can subscribe to push notifications.
 
-In `index.html`, update the `enableNotifications` function:
+In `index.html`, find the line with `VAPID_PUBLIC_KEY` (around line 5929):
 
 ```javascript
-async function enableNotifications() {
-    try {
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-            alert('Notification permission denied.');
-            return;
-        }
-
-        const registration = await navigator.serviceWorker.ready;
-
-        // Subscribe to push notifications with VAPID public key
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array('YOUR_VAPID_PUBLIC_KEY_HERE')
-        });
-
-        // Send subscription to server
-        await fetch('http://localhost:3000/api/subscriptions/subscribe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                subscription: subscription,
-                preferences: {
-                    dailyCheckIn: {
-                        enabled: notificationPreferences.dailyCheckIn.enabled,
-                        time: notificationPreferences.dailyCheckIn.time,
-                        frequency: notificationPreferences.dailyCheckIn.frequency
-                    },
-                    postAttackFollowUp: {
-                        enabled: notificationPreferences.postAttackFollowUp.enabled,
-                        delayHours: notificationPreferences.postAttackFollowUp.delayHours
-                    }
-                }
-            })
-        });
-
-        notificationPreferences.enabled = true;
-        notificationPreferences.pushSubscription = subscription;
-        localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
-
-        alert('✅ Notifications enabled successfully!');
-        updateNotificationUI();
-
-    } catch (error) {
-        console.error('Error enabling notifications:', error);
-        alert('Failed to enable notifications.');
-    }
-}
-
-// Helper function to convert VAPID key
-function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-        .replace(/\\-/g, '+')
-        .replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-}
+const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
 ```
+
+Replace with your VAPID public key from step 2.
+
+**That's it!** The PWA already has all the necessary subscription code built-in.
 
 ## Running the Server
 
@@ -193,6 +144,34 @@ npm start
 
 The server will start on port 3000 (or the port specified in `.env`).
 
+## Security Features
+
+### Authentication
+- **Admin Endpoints:** Protected with API key authentication (`x-api-key` header)
+- **Public Endpoints:** Rate limited but no authentication required
+
+### Rate Limiting
+- **General:** 100 requests per 15 minutes per IP
+- **Strict (sensitive endpoints):** 10 requests per minute per IP
+- Automatically blocks excessive requests with 429 status
+
+### Security Headers (Helmet.js)
+- **Content-Security-Policy (CSP):** Prevents XSS attacks
+- **HTTP Strict Transport Security (HSTS):** Forces HTTPS
+- **X-Frame-Options:** Prevents clickjacking
+- **X-Content-Type-Options:** Prevents MIME sniffing
+
+### Input Validation
+- **Endpoint URLs:** HTTPS required in production, domain whitelist
+- **Time Format:** Validated with regex (HH:MM)
+- **Preferences:** Type and range validation
+- **Request Size:** Limited to 10KB
+
+### CORS Protection
+- Whitelist-based origin validation
+- Configurable via `ALLOWED_ORIGINS` environment variable
+- Blocks requests from unauthorized domains
+
 ## API Endpoints
 
 ### Health Check
@@ -201,7 +180,10 @@ The server will start on port 3000 (or the port specified in `.env`).
 GET /health
 ```
 
-Returns server status.
+Returns server status and version.
+
+**Authentication:** None required
+**Rate Limit:** General (100/15min)
 
 ### Subscribe to Notifications
 
@@ -334,34 +316,251 @@ The PWA automatically detects iOS and shows installation instructions if needed.
 - These are normal when users uninstall the PWA or clear browser data
 - The server automatically handles these and should remove invalid subscriptions
 
-## Security Considerations
+## Production Deployment
 
-**For Production:**
-1. Add authentication to API endpoints
-2. Use HTTPS for all communication
-3. Store credentials in secure environment variables or secrets manager
-4. Implement rate limiting
-5. Add input validation and sanitization
-6. Use a proper database with backups
-7. Monitor for suspicious activity
+### Pre-Deployment Checklist
 
-## Deployment
+#### 1. Security (CRITICAL)
+- [ ] **Run credential rotation** - `./rotate-credentials.sh`
+- [ ] **Update .env with production values**
+  - Set `NODE_ENV=production`
+  - Update `ALLOWED_ORIGINS` to production domains (e.g., `https://yourdomain.com`)
+  - Use new VAPID keys (never reuse development keys!)
+  - Use new Admin API key
+- [ ] **Update PWA with new VAPID public key** (in `index.html`)
+- [ ] **Verify .env is in .gitignore** (never commit secrets!)
 
-For production deployment, consider:
-- **Hosting**: Deploy to Heroku, AWS, Google Cloud, or similar
-- **Database**: Migrate from JSON to PostgreSQL/MongoDB
-- **Process Manager**: Use PM2 or similar to keep server running
-- **Logging**: Implement proper logging (Winston, Bunyan)
-- **Monitoring**: Set up alerts for errors and downtime
+#### 2. Infrastructure
+- [ ] **Enable HTTPS** (required for Web Push)
+- [ ] **Configure reverse proxy** (nginx/Apache)
+- [ ] **Set up SSL/TLS certificates** (Let's Encrypt recommended)
+- [ ] **Configure firewall** (only allow ports 80, 443)
 
-Example deployment to Heroku:
+#### 3. Monitoring & Logging
+- [ ] **Set up error logging** (consider Sentry, LogRocket)
+- [ ] **Configure uptime monitoring** (UptimeRobot, Pingdom)
+- [ ] **Enable rate limit alerts**
+- [ ] **Monitor failed authentication attempts**
+
+### Deployment Options
+
+#### Option 1: Render.com (Recommended - Free Tier Available)
 ```bash
-heroku create aiding-migraine-notifications
-heroku config:set FIREBASE_PROJECT_ID=...
-heroku config:set VAPID_PUBLIC_KEY=...
-# ... set all environment variables
-git push heroku main
+# 1. Create account at render.com
+# 2. Connect your GitHub repository
+# 3. Create a new Web Service
+# 4. Configure:
+#    - Build Command: cd notification-server && npm install
+#    - Start Command: cd notification-server && npm start
+#    - Environment: Node
+# 5. Add environment variables from .env (via Render dashboard)
+# 6. Deploy!
 ```
+
+**Advantages:**
+- Free tier available
+- Automatic HTTPS
+- Git-based deployment
+- Built-in monitoring
+
+#### Option 2: Railway.app
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login
+railway login
+
+# Initialize project
+cd notification-server
+railway init
+
+# Add environment variables
+railway variables set VAPID_PUBLIC_KEY=...
+railway variables set VAPID_PRIVATE_KEY=...
+railway variables set ADMIN_API_KEY=...
+railway variables set ALLOWED_ORIGINS=...
+railway variables set NODE_ENV=production
+
+# Deploy
+railway up
+```
+
+#### Option 3: Heroku
+```bash
+# Create Heroku app
+heroku create aiding-migraine-notifications
+
+# Set environment variables
+heroku config:set NODE_ENV=production
+heroku config:set VAPID_PUBLIC_KEY=...
+heroku config:set VAPID_PRIVATE_KEY=...
+heroku config:set VAPID_SUBJECT=mailto:your-email@example.com
+heroku config:set ADMIN_API_KEY=...
+heroku config:set ALLOWED_ORIGINS=https://yourdomain.com
+
+# Deploy
+git push heroku main
+
+# Check logs
+heroku logs --tail
+```
+
+#### Option 4: Self-Hosted (VPS/Dedicated Server)
+```bash
+# On your server (Ubuntu/Debian example):
+
+# 1. Install Node.js
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# 2. Clone repository
+git clone https://github.com/yourusername/AidingMigraine.git
+cd AidingMigraine/notification-server
+
+# 3. Install dependencies
+npm install --production
+
+# 4. Set up environment variables
+nano .env
+# (paste your production .env values)
+
+# 5. Install PM2 (process manager)
+sudo npm install -g pm2
+
+# 6. Start server with PM2
+pm2 start index.js --name aiding-migraine-notifications
+
+# 7. Configure PM2 to start on boot
+pm2 startup
+pm2 save
+
+# 8. Set up nginx reverse proxy (see nginx config below)
+sudo apt-get install nginx
+sudo nano /etc/nginx/sites-available/aiding-migraine
+```
+
+**Nginx Configuration Example:**
+```nginx
+server {
+    listen 80;
+    server_name notifications.yourdomain.com;
+
+    # Redirect HTTP to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name notifications.yourdomain.com;
+
+    # SSL Configuration (Let's Encrypt)
+    ssl_certificate /etc/letsencrypt/live/notifications.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/notifications.yourdomain.com/privkey.pem;
+
+    # Security Headers
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Post-Deployment Verification
+
+1. **Test Health Endpoint**
+   ```bash
+   curl https://your-notification-server.com/health
+   # Should return: {"status":"ok","uptime":...}
+   ```
+
+2. **Test CORS Protection**
+   ```bash
+   curl -H "Origin: https://malicious-site.com" https://your-notification-server.com/health
+   # Should be blocked or return CORS error
+   ```
+
+3. **Test Rate Limiting**
+   ```bash
+   # Send 101 requests rapidly
+   for i in {1..101}; do curl https://your-notification-server.com/health; done
+   # Request 101 should return 429 (Too Many Requests)
+   ```
+
+4. **Test Admin Authentication**
+   ```bash
+   # Without API key (should fail)
+   curl https://your-notification-server.com/api/subscriptions
+   # Should return 401 Unauthorized
+
+   # With API key (should succeed)
+   curl -H "x-api-key: your-admin-api-key" https://your-notification-server.com/api/subscriptions
+   # Should return subscription list
+   ```
+
+5. **Test Push Notifications**
+   - Install PWA on test device
+   - Enable notifications
+   - Wait for scheduled notification or send test notification
+   - Verify notification arrives
+
+### Database Migration (Production)
+
+For production, consider migrating from JSON to a proper database:
+
+**PostgreSQL Example:**
+```bash
+# Install PostgreSQL client
+npm install pg
+
+# Update database.js to use PostgreSQL
+# Create subscriptions table:
+CREATE TABLE subscriptions (
+    endpoint VARCHAR(512) PRIMARY KEY,
+    keys JSONB NOT NULL,
+    preferences JSONB NOT NULL,
+    timezone VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**MongoDB Example:**
+```bash
+# Install MongoDB client
+npm install mongodb
+
+# Update database.js to use MongoDB
+# No schema required - uses same JSON structure
+```
+
+### Monitoring & Maintenance
+
+**Set up monitoring for:**
+- Server uptime
+- API response times
+- Error rates
+- Rate limit violations
+- Failed authentication attempts
+- Notification delivery success rate
+
+**Regular maintenance:**
+- Review logs weekly
+- Rotate credentials every 90 days
+- Update dependencies monthly (`npm audit`)
+- Back up subscription database daily
+- Monitor server resources (CPU, RAM, disk)
 
 ## License
 
