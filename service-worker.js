@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 1.8.2 - Enhanced Medication Tracking (In Progress)
+// Version 2.0.0 - Render Notification Server Integration
 
-const CACHE_NAME = 'aiding-migraine-v1.8.2';
+const CACHE_NAME = 'aiding-migraine-v2.0.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
