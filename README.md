@@ -7,8 +7,31 @@ A Progressive Web App for tracking migraines, identifying patterns, and improvin
 [![PWA](https://img.shields.io/badge/PWA-enabled-blueviolet)](https://web.dev/progressive-web-apps/)
 [![Privacy First](https://img.shields.io/badge/Privacy-First-green)](./help/privacy.html)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-3.1.0-blue)](./CHANGELOG.md)
 
-[Live Demo](https://aidedmarketing.github.io/AidingMigraine/) | [Documentation](https://aidedmarketing.github.io/AidingMigraine/help/) | [Report Bug](https://github.com/AidedMarketing/AidingMigraine/issues)
+[Live Demo](https://aidedmarketing.github.io/AidingMigraine/) | [Documentation](https://aidedmarketing.github.io/AidingMigraine/help/) | [Report Bug](https://github.com/AidedMarketing/AidingMigraine/issues) | [Changelog](./CHANGELOG.md)
+
+---
+
+## 🆕 What's New in v3.1.0
+
+### Phase 2: Enhanced Data Management
+- **IndexedDB Storage** - Unlimited migraine history (no more 5-10MB localStorage limits!)
+- **Automatic Migration** - Seamless upgrade from localStorage to IndexedDB
+- **Storage Quota Management** - Visual display of storage usage with warnings
+- **Background Sync API** - Offline changes automatically sync when online
+- **Auto-Archive** - Archive old migraines (12+ months) to save space
+- **Dual Storage** - localStorage backup maintained for safety
+
+### Phase 1: Advanced PWA Features (v3.0.0)
+- **Screen Wake Lock** - Keep screen awake during migraine episodes
+- **Voice Logging** - Hands-free migraine logging ("Log migraine pain level 7")
+- **Biometric Auth** - Secure data with fingerprint/Face ID
+- **Auto-Lock** - Lock app after inactivity for privacy
+- **Offline Indicators** - Clear status when offline/online
+- **Custom Install Prompt** - Smart prompting after 3 logged migraines
+
+📖 **[Full Phase 1 Documentation](./PHASE_1_FEATURES.md)** | **[Complete Changelog](./CHANGELOG.md)**
 
 ---
 
