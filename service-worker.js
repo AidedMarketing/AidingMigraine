@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 2.0.0 - Render Notification Server Integration
+// Version 3.0.0 - Phase 1: Advanced PWA Features
 
-const CACHE_NAME = 'aiding-migraine-v2.0.0';
+const CACHE_NAME = 'aiding-migraine-v3.0.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
