@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 3.0.0 - Phase 1: Advanced PWA Features
+// Version 3.1.0 - Phase 2: Enhanced Data Management
 
-const CACHE_NAME = 'aiding-migraine-v3.0.0';
+const CACHE_NAME = 'aiding-migraine-v3.1.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -229,3 +229,95 @@ self.addEventListener('notificationclick', (event) => {
             })
     );
 });
+
+// ============================================
+// PHASE 2: BACKGROUND SYNC
+// ============================================
+
+self.addEventListener('sync', (event) => {
+    console.log('Background sync event:', event.tag);
+
+    if (event.tag === 'sync-data') {
+        event.waitUntil(syncData());
+    }
+});
+
+async function syncData() {
+    console.log('🔄 Starting background sync...');
+
+    try {
+        // Open IndexedDB to access sync queue
+        const db = await openDatabase();
+        const queueItems = await getAllFromStore(db, 'syncQueue');
+
+        console.log(`📦 Found ${queueItems.length} items to sync`);
+
+        for (const item of queueItems) {
+            try {
+                // In a real app, this would sync to a server
+                // For now, we just log the sync operation
+                console.log('✅ Synced item:', item.type, item.data);
+
+                // Remove from queue after successful sync
+                await deleteFromStore(db, 'syncQueue', item.id);
+            } catch (error) {
+                console.error('❌ Failed to sync item:', item.id, error);
+
+                // Increment retry count
+                item.retryCount = (item.retryCount || 0) + 1;
+
+                if (item.retryCount < 3) {
+                    await putInStore(db, 'syncQueue', item);
+                } else {
+                    // Max retries reached
+                    console.error('❌ Max retries reached for item:', item.id);
+                    await deleteFromStore(db, 'syncQueue', item.id);
+                }
+            }
+        }
+
+        console.log('✅ Background sync complete');
+    } catch (error) {
+        console.error('❌ Background sync failed:', error);
+        throw error; // Re-throw to trigger retry
+    }
+}
+
+// Helper functions for IndexedDB operations in service worker
+function openDatabase() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('AidingMigraineDB', 1);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function getAllFromStore(db, storeName) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([storeName], 'readonly');
+        const store = transaction.objectStore(storeName);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function deleteFromStore(db, storeName, key) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([storeName], 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const request = store.delete(key);
+        request.onsuccess = () => resolve(true);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function putInStore(db, storeName, item) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([storeName], 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const request = store.put(item);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}

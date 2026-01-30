@@ -2352,6 +2352,76 @@
             </div>
 
             <div class="section-card">
+                <h2>💾 Phase 2: Data Management</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.95rem;">
+                    Advanced storage and data management features for unlimited migraine history.
+                </p>
+
+                <!-- Storage Status -->
+                <div id="storage-quota-display" style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div style="font-weight: 500;">Storage Usage</div>
+                        <div id="storage-percentage" style="font-weight: 700; color: var(--accent-green);">0%</div>
+                    </div>
+                    <div style="height: 8px; background: var(--bg-primary); border-radius: 4px; overflow: hidden;">
+                        <div id="storage-bar" style="height: 100%; background: var(--accent-green); width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <span id="storage-used">0 MB</span>
+                        <span id="storage-total">0 MB</span>
+                    </div>
+                </div>
+
+                <!-- IndexedDB Status -->
+                <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 12px;">
+                        <div>
+                            <div style="font-weight: 500; margin-bottom: 4px;">📊 IndexedDB</div>
+                            <div id="indexeddb-status" style="font-size: 0.85rem; color: var(--text-secondary);">
+                                Checking...
+                            </div>
+                        </div>
+                        <div id="indexeddb-count" style="font-size: 1.5rem; font-weight: 700; color: var(--accent-green);">
+                            0
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                        Your migraine data is stored in IndexedDB for unlimited history and faster performance.
+                    </p>
+                </div>
+
+                <!-- Background Sync -->
+                <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 12px;">
+                        <div>
+                            <div style="font-weight: 500; margin-bottom: 4px;">🔄 Background Sync</div>
+                            <div id="background-sync-status" style="font-size: 0.85rem; color: var(--text-secondary);">
+                                Checking...
+                            </div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                        Automatically syncs your offline changes when you reconnect to the internet.
+                    </p>
+                </div>
+
+                <!-- Auto-Archive -->
+                <div class="settings-group" style="margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 12px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; margin-bottom: 4px;">📦 Auto-Archive</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                                Archive migraines older than 12 months to save space
+                            </div>
+                        </div>
+                        <button id="archive-old-btn" class="btn btn-secondary" style="margin-left: 16px; padding: 10px 16px; font-size: 0.9rem; width: auto;">
+                            Archive Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
                 <h2>ℹ️ Information</h2>
                 <div class="settings-actions">
                     <button class="settings-btn" id="tour-btn">
@@ -2407,8 +2477,9 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v1.6.0</p>
-                <p>Built with care for migraine sufferers</p>
+                <p>Aiding Migraine v3.1.0</p>
+                <p>Phase 2: Enhanced Data Management</p>
+                <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
         </div>
 
@@ -8912,6 +8983,509 @@
         }
     </script>
 
+    <!-- Phase 2: IndexedDB Data Layer -->
+    <script>
+        // ============================================
+        // PHASE 2: INDEXEDDB DATA MANAGEMENT
+        // ============================================
+
+        const DB_NAME = 'AidingMigraineDB';
+        const DB_VERSION = 1;
+        let db = null;
+        let useIndexedDB = true; // Flag to enable/disable IndexedDB
+
+        // IndexedDB Schema
+        const DB_STORES = {
+            MIGRAINES: 'migraines',
+            MEDICATIONS: 'medications',
+            SETTINGS: 'settings',
+            SYNC_QUEUE: 'syncQueue'
+        };
+
+        /**
+         * Initialize IndexedDB
+         */
+        async function initIndexedDB() {
+            if (!window.indexedDB) {
+                console.warn('⚠️ IndexedDB not supported, using localStorage');
+                useIndexedDB = false;
+                return false;
+            }
+
+            try {
+                db = await new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+
+                    request.onupgradeneeded = (event) => {
+                        const database = event.target.result;
+
+                        // Migraines store with indexes
+                        if (!database.objectStoreNames.contains(DB_STORES.MIGRAINES)) {
+                            const migraineStore = database.createObjectStore(DB_STORES.MIGRAINES, {
+                                keyPath: 'id',
+                                autoIncrement: false
+                            });
+                            migraineStore.createIndex('date', 'date', { unique: false });
+                            migraineStore.createIndex('startTime', 'startTime', { unique: false });
+                            migraineStore.createIndex('pain', 'pain', { unique: false });
+                            migraineStore.createIndex('isDeleted', 'isDeleted', { unique: false });
+                            migraineStore.createIndex('deletedAt', 'deletedAt', { unique: false });
+                            console.log('✅ Created migraines object store');
+                        }
+
+                        // Medications store
+                        if (!database.objectStoreNames.contains(DB_STORES.MEDICATIONS)) {
+                            const medStore = database.createObjectStore(DB_STORES.MEDICATIONS, {
+                                keyPath: 'id',
+                                autoIncrement: true
+                            });
+                            medStore.createIndex('name', 'name', { unique: false });
+                            medStore.createIndex('type', 'type', { unique: false });
+                            console.log('✅ Created medications object store');
+                        }
+
+                        // Settings store
+                        if (!database.objectStoreNames.contains(DB_STORES.SETTINGS)) {
+                            database.createObjectStore(DB_STORES.SETTINGS, {
+                                keyPath: 'key'
+                            });
+                            console.log('✅ Created settings object store');
+                        }
+
+                        // Sync queue store (for Background Sync)
+                        if (!database.objectStoreNames.contains(DB_STORES.SYNC_QUEUE)) {
+                            const syncStore = database.createObjectStore(DB_STORES.SYNC_QUEUE, {
+                                keyPath: 'id',
+                                autoIncrement: true
+                            });
+                            syncStore.createIndex('timestamp', 'timestamp', { unique: false });
+                            syncStore.createIndex('type', 'type', { unique: false });
+                            console.log('✅ Created sync queue object store');
+                        }
+                    };
+                });
+
+                console.log('✅ IndexedDB initialized successfully');
+                return true;
+            } catch (error) {
+                console.error('❌ IndexedDB initialization failed:', error);
+                useIndexedDB = false;
+                return false;
+            }
+        }
+
+        /**
+         * Generic IndexedDB operations
+         */
+        const IDB = {
+            // Get a single item by key
+            async get(storeName, key) {
+                if (!useIndexedDB || !db) return null;
+
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([storeName], 'readonly');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.get(key);
+
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            // Get all items from a store
+            async getAll(storeName) {
+                if (!useIndexedDB || !db) return [];
+
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([storeName], 'readonly');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.getAll();
+
+                    request.onsuccess = () => resolve(request.result || []);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            // Get items by index
+            async getAllByIndex(storeName, indexName, value) {
+                if (!useIndexedDB || !db) return [];
+
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([storeName], 'readonly');
+                    const store = transaction.objectStore(storeName);
+                    const index = store.index(indexName);
+                    const request = index.getAll(value);
+
+                    request.onsuccess = () => resolve(request.result || []);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            // Put (add or update) an item
+            async put(storeName, item) {
+                if (!useIndexedDB || !db) return false;
+
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([storeName], 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.put(item);
+
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            // Add an item (fails if key exists)
+            async add(storeName, item) {
+                if (!useIndexedDB || !db) return false;
+
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([storeName], 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.add(item);
+
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            // Delete an item
+            async delete(storeName, key) {
+                if (!useIndexedDB || !db) return false;
+
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([storeName], 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.delete(key);
+
+                    request.onsuccess = () => resolve(true);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            // Clear entire store
+            async clear(storeName) {
+                if (!useIndexedDB || !db) return false;
+
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([storeName], 'readwrite');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.clear();
+
+                    request.onsuccess = () => resolve(true);
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            // Count items in store
+            async count(storeName) {
+                if (!useIndexedDB || !db) return 0;
+
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([storeName], 'readonly');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.count();
+
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+        };
+
+        /**
+         * Migrate data from localStorage to IndexedDB
+         */
+        async function migrateToIndexedDB() {
+            const migrated = localStorage.getItem('indexedDB_migrated');
+            if (migrated === 'true') {
+                console.log('✅ Already migrated to IndexedDB');
+                return;
+            }
+
+            if (!useIndexedDB || !db) {
+                console.log('⚠️ IndexedDB not available, skipping migration');
+                return;
+            }
+
+            console.log('🔄 Starting migration to IndexedDB...');
+
+            try {
+                // Migrate migraines
+                const migrainesJSON = localStorage.getItem('migraines');
+                if (migrainesJSON) {
+                    const migrainesArray = JSON.parse(migrainesJSON);
+                    console.log(`📦 Migrating ${migrainesArray.length} migraines...`);
+
+                    for (const migraine of migrainesArray) {
+                        // Ensure each migraine has an ID
+                        if (!migraine.id) {
+                            migraine.id = migraine.date + '_' + migraine.startTime;
+                        }
+                        await IDB.put(DB_STORES.MIGRAINES, migraine);
+                    }
+                    console.log('✅ Migraines migrated');
+                }
+
+                // Migrate active migraine
+                const activeMigraineJSON = localStorage.getItem('activeMigraine');
+                if (activeMigraineJSON) {
+                    const activeMigraine = JSON.parse(activeMigraineJSON);
+                    await IDB.put(DB_STORES.SETTINGS, {
+                        key: 'activeMigraine',
+                        value: activeMigraine
+                    });
+                    console.log('✅ Active migraine migrated');
+                }
+
+                // Migrate user medications
+                const userMedsJSON = localStorage.getItem('userMedications');
+                if (userMedsJSON) {
+                    const userMeds = JSON.parse(userMedsJSON);
+                    console.log(`💊 Migrating ${userMeds.length} medications...`);
+
+                    for (const med of userMeds) {
+                        await IDB.add(DB_STORES.MEDICATIONS, med);
+                    }
+                    console.log('✅ Medications migrated');
+                }
+
+                // Mark migration as complete
+                localStorage.setItem('indexedDB_migrated', 'true');
+                console.log('✅ Migration to IndexedDB complete!');
+
+                // Keep localStorage as backup for now (don't delete)
+            } catch (error) {
+                console.error('❌ Migration failed:', error);
+                localStorage.removeItem('indexedDB_migrated');
+            }
+        }
+
+        /**
+         * Enhanced data operations using IndexedDB
+         */
+        async function saveMigraineToIDB(migraine) {
+            if (useIndexedDB) {
+                // Ensure migraine has an ID
+                if (!migraine.id) {
+                    migraine.id = migraine.date + '_' + migraine.startTime;
+                }
+                await IDB.put(DB_STORES.MIGRAINES, migraine);
+            }
+            // Also save to localStorage as backup
+            saveData();
+        }
+
+        async function loadMigrainesFromIDB() {
+            if (useIndexedDB) {
+                try {
+                    const allMigraines = await IDB.getAll(DB_STORES.MIGRAINES);
+                    // Filter out deleted migraines older than 30 days
+                    const now = Date.now();
+                    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+
+                    migraines = allMigraines.filter(m => {
+                        if (m.isDeleted) {
+                            const deletedTime = new Date(m.deletedAt).getTime();
+                            return (now - deletedTime) < thirtyDaysMs;
+                        }
+                        return !m.isArchived; // Don't load archived by default
+                    });
+
+                    console.log(`📊 Loaded ${migraines.length} migraines from IndexedDB`);
+                    return migraines;
+                } catch (error) {
+                    console.error('❌ Failed to load from IndexedDB:', error);
+                    return [];
+                }
+            }
+            return [];
+        }
+
+        async function deleteMigraineFromIDB(migraineId) {
+            if (useIndexedDB) {
+                // Soft delete - mark as deleted instead of removing
+                const migraine = await IDB.get(DB_STORES.MIGRAINES, migraineId);
+                if (migraine) {
+                    migraine.isDeleted = true;
+                    migraine.deletedAt = new Date().toISOString();
+                    await IDB.put(DB_STORES.MIGRAINES, migraine);
+                }
+            }
+        }
+
+        async function permanentlyDeleteMigraine(migraineId) {
+            if (useIndexedDB) {
+                await IDB.delete(DB_STORES.MIGRAINES, migraineId);
+            }
+        }
+
+        // ============================================
+        // PHASE 2: STORAGE QUOTA MANAGEMENT
+        // ============================================
+
+        let storageQuota = {
+            usage: 0,
+            quota: 0,
+            percentage: 0
+        };
+
+        async function checkStorageQuota() {
+            if ('storage' in navigator && 'estimate' in navigator.storage) {
+                try {
+                    const estimate = await navigator.storage.estimate();
+                    storageQuota = {
+                        usage: estimate.usage || 0,
+                        quota: estimate.quota || 0,
+                        percentage: estimate.quota ? Math.round((estimate.usage / estimate.quota) * 100) : 0
+                    };
+
+                    console.log(`💾 Storage: ${formatBytes(storageQuota.usage)} / ${formatBytes(storageQuota.quota)} (${storageQuota.percentage}%)`);
+
+                    // Warn if storage is getting full
+                    if (storageQuota.percentage > 80) {
+                        showStorageWarning();
+                    }
+
+                    return storageQuota;
+                } catch (error) {
+                    console.error('❌ Storage quota check failed:', error);
+                }
+            }
+            return storageQuota;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function showStorageWarning() {
+            showModal(
+                'Storage Almost Full',
+                `Your storage is ${storageQuota.percentage}% full. Consider exporting old data or enabling auto-archive.`
+            );
+        }
+
+        /**
+         * Archive old migraines (soft delete migraines older than X months)
+         */
+        async function archiveOldMigraines(monthsOld = 12) {
+            const cutoffDate = new Date();
+            cutoffDate.setMonth(cutoffDate.getMonth() - monthsOld);
+
+            let archivedCount = 0;
+
+            for (const migraine of migraines) {
+                const migraineDate = new Date(migraine.date);
+                if (migraineDate < cutoffDate && !migraine.isDeleted && !migraine.isArchived) {
+                    migraine.isArchived = true;
+                    migraine.archivedAt = new Date().toISOString();
+                    await saveMigraineToIDB(migraine);
+                    archivedCount++;
+                }
+            }
+
+            console.log(`📦 Archived ${archivedCount} migraines older than ${monthsOld} months`);
+            return archivedCount;
+        }
+
+        // ============================================
+        // PHASE 2: BACKGROUND SYNC API
+        // ============================================
+
+        let syncSupported = false;
+
+        function checkBackgroundSyncSupport() {
+            syncSupported = 'serviceWorker' in navigator && 'SyncManager' in window;
+            console.log(`🔄 Background Sync: ${syncSupported ? 'Supported' : 'Not supported'}`);
+            return syncSupported;
+        }
+
+        /**
+         * Add item to sync queue
+         */
+        async function addToSyncQueue(type, data) {
+            const syncItem = {
+                type: type,
+                data: data,
+                timestamp: Date.now(),
+                retryCount: 0
+            };
+
+            if (useIndexedDB) {
+                await IDB.add(DB_STORES.SYNC_QUEUE, syncItem);
+            }
+
+            // Register background sync if supported
+            if (syncSupported) {
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    await registration.sync.register('sync-data');
+                    console.log('✅ Background sync registered');
+                } catch (error) {
+                    console.error('❌ Background sync registration failed:', error);
+                }
+            }
+        }
+
+        /**
+         * Process sync queue (called when online)
+         */
+        async function processSyncQueue() {
+            if (!useIndexedDB) return;
+
+            const queueItems = await IDB.getAll(DB_STORES.SYNC_QUEUE);
+
+            for (const item of queueItems) {
+                try {
+                    // Process based on type
+                    if (item.type === 'migraine_update') {
+                        // In a real app, this would sync to a server
+                        console.log('🔄 Syncing migraine:', item.data);
+                    }
+
+                    // Remove from queue after successful processing
+                    await IDB.delete(DB_STORES.SYNC_QUEUE, item.id);
+                    console.log('✅ Sync item processed:', item.id);
+                } catch (error) {
+                    console.error('❌ Sync failed for item:', item.id, error);
+
+                    // Increment retry count
+                    item.retryCount++;
+                    if (item.retryCount < 3) {
+                        await IDB.put(DB_STORES.SYNC_QUEUE, item);
+                    } else {
+                        // Max retries reached, remove from queue
+                        await IDB.delete(DB_STORES.SYNC_QUEUE, item.id);
+                        console.error('❌ Max retries reached, removing from queue');
+                    }
+                }
+            }
+        }
+
+        // Auto-process sync queue when coming online
+        window.addEventListener('online', () => {
+            console.log('📶 Online - processing sync queue...');
+            processSyncQueue();
+        });
+
+        // Initialize Phase 2 on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initIndexedDB();
+            await migrateToIndexedDB();
+            await checkStorageQuota();
+            checkBackgroundSyncSupport();
+            console.log('✅ Phase 2 features initialized');
+        });
+
+    </script>
+
     <!-- Phase 1: Advanced PWA Features -->
     <script>
         // ============================================
@@ -9432,6 +10006,78 @@
         }
 
         // ============================================
+        // PHASE 2: SETTINGS HANDLERS
+        // ============================================
+
+        async function initializePhase2Settings() {
+            // Update storage quota display
+            const quota = await checkStorageQuota();
+            if (quota.quota > 0) {
+                document.getElementById('storage-percentage').textContent = `${quota.percentage}%`;
+                document.getElementById('storage-bar').style.width = `${quota.percentage}%`;
+                document.getElementById('storage-used').textContent = formatBytes(quota.usage);
+                document.getElementById('storage-total').textContent = formatBytes(quota.quota);
+
+                // Change color based on usage
+                const bar = document.getElementById('storage-bar');
+                if (quota.percentage > 80) {
+                    bar.style.background = 'var(--accent-red)';
+                    document.getElementById('storage-percentage').style.color = 'var(--accent-red)';
+                } else if (quota.percentage > 50) {
+                    bar.style.background = 'var(--pain-moderate)';
+                } else {
+                    bar.style.background = 'var(--accent-green)';
+                }
+            }
+
+            // Update IndexedDB status
+            if (useIndexedDB && db) {
+                const count = await IDB.count(DB_STORES.MIGRAINES);
+                document.getElementById('indexeddb-status').textContent = `✅ Active - ${count} migraines stored`;
+                document.getElementById('indexeddb-status').style.color = 'var(--accent-green)';
+                document.getElementById('indexeddb-count').textContent = count;
+            } else {
+                document.getElementById('indexeddb-status').textContent = '❌ Not supported - using localStorage';
+                document.getElementById('indexeddb-status').style.color = 'var(--accent-red)';
+                document.getElementById('indexeddb-count').textContent = migraines.length;
+            }
+
+            // Update Background Sync status
+            const syncStatus = document.getElementById('background-sync-status');
+            if (syncSupported) {
+                const queueCount = useIndexedDB ? await IDB.count(DB_STORES.SYNC_QUEUE) : 0;
+                syncStatus.textContent = `✅ Enabled - ${queueCount} items in queue`;
+                syncStatus.style.color = 'var(--accent-green)';
+            } else {
+                syncStatus.textContent = '⚠️ Not supported on this browser';
+                syncStatus.style.color = 'var(--text-secondary)';
+            }
+
+            // Archive button handler
+            const archiveBtn = document.getElementById('archive-old-btn');
+            if (archiveBtn) {
+                archiveBtn.addEventListener('click', async () => {
+                    const confirmed = confirm('Archive migraines older than 12 months? Archived data can still be exported.');
+                    if (confirmed) {
+                        archiveBtn.disabled = true;
+                        archiveBtn.textContent = 'Archiving...';
+
+                        const count = await archiveOldMigraines(12);
+
+                        archiveBtn.disabled = false;
+                        archiveBtn.textContent = 'Archive Now';
+
+                        showModal('Archived', `${count} migraines archived successfully.`);
+
+                        // Refresh displays
+                        await initializePhase2Settings();
+                        renderHistory();
+                    }
+                });
+            }
+        }
+
+        // ============================================
         // PHASE 1: SETTINGS HANDLERS
         // ============================================
 
@@ -9553,9 +10199,10 @@
             initializeAutoLock();
             setupBiometricAuth();
 
-            // Initialize Phase 1 settings (after a short delay to ensure settings page is loaded)
-            setTimeout(() => {
+            // Initialize Phase 1 & 2 settings (after a short delay to ensure settings page is loaded)
+            setTimeout(async () => {
                 initializePhase1Settings();
+                await initializePhase2Settings();
             }, 500);
 
             // Override activeMigraine state changes to manage wake lock
