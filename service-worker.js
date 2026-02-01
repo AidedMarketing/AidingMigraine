@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 3.2.1 - Bug Fixes: Stats, Notifications, Weather Initialization
+// Version 3.2.2 - Critical Fix: Data Loading localStorage Fallback
 
-const CACHE_NAME = 'aiding-migraine-v3.2.1';
+const CACHE_NAME = 'aiding-migraine-v3.2.2';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

@@ -5,6 +5,53 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.2] - 2026-02-01
+
+### Fixed - Critical Data Loading Bug
+
+#### The Issue
+- **Stats showing zero**: Dashboard displayed 0 episodes even when data existed
+- **Calendar not loading**: Calendar showed "-" for migraine days
+- **Root Cause**: v3.2.1's `loadData()` function returned early if IndexedDB existed, even when it contained no data, preventing localStorage fallback
+
+#### The Fix
+- **Smart Fallback**: `loadData()` now only returns early if IndexedDB actually contains data
+- **Defensive Loading**: Added `dataLoaded` flag to track if data was successfully loaded from IndexedDB
+- **localStorage Rescue**: Falls back to localStorage if IndexedDB is empty or unavailable
+- **Enhanced Logging**: Added console messages to track data loading source and status
+
+### Changed
+- Service worker version: 3.2.1 → 3.2.2
+- App version: 3.2.1 → 3.2.2
+
+### Technical Details
+**Before (v3.2.1)**:
+```javascript
+if (useIndexedDB && db) {
+    // Load from IndexedDB
+    return; // ❌ Returns even if no data found!
+}
+// localStorage code never reached
+```
+
+**After (v3.2.2)**:
+```javascript
+if (useIndexedDB && db) {
+    // Load from IndexedDB
+    if (dataLoaded) {
+        return; // ✅ Only return if data was actually found
+    }
+}
+// Falls back to localStorage if IndexedDB was empty
+```
+
+### Impact
+- Users who had data in localStorage can now access it again
+- Stats and calendar will display correctly
+- No data loss - existing data is preserved
+
+---
+
 ## [3.2.1] - 2026-02-01
 
 ### Fixed - Critical Bug Fixes

@@ -2415,7 +2415,7 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v3.2.1</p>
+                <p>Aiding Migraine v3.2.2</p>
                 <p>Phase 2 Refinements: Weather + UX</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -2521,6 +2521,8 @@
         }
 
         async function loadData() {
+            let dataLoaded = false;
+
             // Try IndexedDB first
             if (useIndexedDB && db) {
                 try {
@@ -2529,6 +2531,9 @@
                     if (migrainesFromDB && migrainesFromDB.length > 0) {
                         migraines = migrainesFromDB;
                         console.log(`✅ Loaded ${migraines.length} migraines from IndexedDB`);
+                        dataLoaded = true;
+                    } else {
+                        console.log('ℹ️ No migraines found in IndexedDB');
                     }
 
                     // Load active migraine from settings store
@@ -2538,18 +2543,24 @@
                         console.log('✅ Loaded active migraine from IndexedDB');
                     }
 
-                    return; // Successfully loaded from IndexedDB
+                    // If we found data in IndexedDB, we're done
+                    if (dataLoaded) {
+                        return;
+                    }
                 } catch (error) {
                     console.error('❌ Error loading from IndexedDB:', error);
                     // Fall through to localStorage
                 }
             }
 
-            // Fallback to localStorage
+            // Fallback to localStorage (if IndexedDB not available or had no data)
+            console.log('ℹ️ Attempting to load from localStorage...');
             const stored = localStorage.getItem('migraines');
             if (stored) {
                 migraines = JSON.parse(stored);
                 console.log(`✅ Loaded ${migraines.length} migraines from localStorage`);
+            } else {
+                console.log('ℹ️ No migraines found in localStorage either');
             }
             const active = localStorage.getItem('activeMigraine');
             if (active) {
