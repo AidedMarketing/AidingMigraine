@@ -1960,51 +1960,6 @@
                 <a href="./help/index.html" class="help-icon" title="Help & Documentation">?</a>
             </h1>
 
-            <!-- Diagnostic Panel -->
-            <div class="section-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 20px;">
-                <h2 style="color: white; display: flex; align-items: center; gap: 8px;">
-                    🔍 System Diagnostics
-                    <span style="font-size: 0.7rem; background: rgba(255,255,255,0.3); padding: 4px 8px; border-radius: 4px;">v3.2.4</span>
-                </h2>
-                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 16px; margin-top: 12px;">
-                    <div style="display: grid; gap: 8px; font-size: 0.9rem;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>📦 Data Source:</span>
-                            <strong id="diag-data-source">Checking...</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>📊 Episodes Loaded:</span>
-                            <strong id="diag-episodes-count">0</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>💾 IndexedDB:</span>
-                            <strong id="diag-indexeddb-status">Unknown</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>💿 localStorage:</span>
-                            <strong id="diag-localstorage-status">Unknown</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>⚡ Initialization:</span>
-                            <strong id="diag-init-status">In Progress...</strong>
-                        </div>
-                        <div id="diag-error-container" style="display: none; margin-top: 8px; padding: 12px; background: rgba(255,0,0,0.3); border-radius: 6px; border-left: 4px solid #ff4444;">
-                            <div style="font-weight: bold; margin-bottom: 4px;">⚠️ Error Detected:</div>
-                            <div id="diag-error-message" style="font-size: 0.85rem; font-family: monospace;"></div>
-                        </div>
-                    </div>
-                </div>
-                <p style="font-size: 0.75rem; margin-top: 12px; opacity: 0.8;">
-                    This panel shows real-time data loading status. If you see issues, screenshot this for debugging.
-                </p>
-                <button id="emergency-restore-btn" onclick="emergencyRestoreAllEpisodes()"
-                        style="width: 100%; margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.9);
-                               color: #667eea; border: none; border-radius: 8px; font-weight: bold;
-                               font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">
-                    🔧 Emergency: Restore All Episodes
-                </button>
-            </div>
-
             <div class="section-card">
                 <h2>📊 Storage & Backup</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
@@ -2460,9 +2415,52 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v3.2.6-dashboard-fix</p>
-                <p>Phase 2 Refinements: Weather + UX</p>
+                <p id="app-version" style="cursor: pointer; user-select: none;">Aiding Migraine v3.3.0</p>
+                <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
+            </div>
+        </div>
+
+        <!-- Hidden Debug Modal -->
+        <div id="debug-modal" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width: 600px;">
+                <h2>🔍 Developer Diagnostics</h2>
+                <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; margin: 16px 0;">
+                    <div style="display: grid; gap: 12px; font-size: 0.9rem;">
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
+                            <span>📦 Data Source:</span>
+                            <strong id="debug-data-source">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
+                            <span>📊 Total Episodes:</span>
+                            <strong id="debug-total-episodes">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
+                            <span>✅ Active Episodes:</span>
+                            <strong id="debug-active-episodes">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
+                            <span>🗑️ Deleted Episodes:</span>
+                            <strong id="debug-deleted-episodes">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
+                            <span>💾 IndexedDB Status:</span>
+                            <strong id="debug-indexeddb">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
+                            <span>💿 localStorage Status:</span>
+                            <strong id="debug-localstorage">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
+                            <span>📱 App Version:</span>
+                            <strong>v3.3.0 Production</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeDebugModal()">Close</button>
+                    <button class="btn btn-primary" onclick="copyDebugInfo()">📋 Copy Debug Info</button>
+                </div>
             </div>
         </div>
 
@@ -2539,59 +2537,9 @@
                 .replace(/'/g, '&#039;');
         }
 
-        // Update diagnostic panel
-        function updateDiagnostics(updates) {
-            // Update data source
-            if (updates.dataSource) {
-                const elem = document.getElementById('diag-data-source');
-                if (elem) elem.textContent = updates.dataSource;
-            }
-
-            // Update episodes count
-            if (updates.episodesCount !== undefined) {
-                const elem = document.getElementById('diag-episodes-count');
-                if (elem) elem.textContent = updates.episodesCount;
-            }
-
-            // Update IndexedDB status
-            if (updates.indexedDBStatus) {
-                const elem = document.getElementById('diag-indexeddb-status');
-                if (elem) elem.textContent = updates.indexedDBStatus;
-            }
-
-            // Update localStorage status
-            if (updates.localStorageStatus) {
-                const elem = document.getElementById('diag-localstorage-status');
-                if (elem) elem.textContent = updates.localStorageStatus;
-            }
-
-            // Update initialization status
-            if (updates.initStatus) {
-                const elem = document.getElementById('diag-init-status');
-                if (elem) elem.textContent = updates.initStatus;
-            }
-
-            // Show error if present
-            if (updates.error) {
-                const container = document.getElementById('diag-error-container');
-                const message = document.getElementById('diag-error-message');
-                if (container && message) {
-                    container.style.display = 'block';
-                    message.textContent = updates.error;
-                }
-            }
-
-            console.log('🔍 Diagnostics updated:', updates);
-        }
-
         // Main app initialization (called after IndexedDB is ready)
         async function initApp() {
-            console.log('🚀 Initializing app...');
-            console.log('⏱️ Time:', new Date().toISOString());
-            updateDiagnostics({ initStatus: 'Loading data...' });
-
             await loadData();
-            console.log('📊 After loadData(), migraines.length:', migraines.length);
             purgeOldDeletedEpisodes();
             initializeMedicationLibrary();
             initializeTheme();
@@ -2609,133 +2557,50 @@
             renderHistory();
             renderCalendar();
             checkFirstTimeUser();
-
-            console.log('✅ App initialized');
-            updateDiagnostics({ initStatus: `✅ Ready (${migraines.length} episodes)` });
         }
 
         async function loadData() {
-            console.log('📂 loadData() called');
-            console.log('🔍 Checking environment:', {
-                useIndexedDB,
-                dbExists: !!db,
-                IDBExists: typeof IDB !== 'undefined',
-                DB_STORESExists: typeof DB_STORES !== 'undefined'
-            });
-
             let dataLoaded = false;
-            let dataSource = 'None';
-
-            // Check IndexedDB status
-            if (useIndexedDB && db) {
-                updateDiagnostics({ indexedDBStatus: '✅ Available' });
-            } else {
-                updateDiagnostics({ indexedDBStatus: '❌ Not Available' });
-            }
 
             // Try IndexedDB first
             if (useIndexedDB && db) {
-                console.log('💾 Attempting IndexedDB load...');
                 try {
-                    // Load migraines from IndexedDB
                     const migrainesFromDB = await IDB.getAll(DB_STORES.MIGRAINES);
-                    console.log('📊 IndexedDB result:', migrainesFromDB);
 
                     if (migrainesFromDB && migrainesFromDB.length > 0) {
                         migraines = migrainesFromDB;
-                        console.log(`✅ Loaded ${migraines.length} migraines from IndexedDB`);
                         dataLoaded = true;
-                        dataSource = 'IndexedDB';
-                        updateDiagnostics({
-                            dataSource: 'IndexedDB',
-                            episodesCount: migraines.length
-                        });
-                    } else {
-                        console.log('ℹ️ No migraines found in IndexedDB (empty or null)');
                     }
 
                     // Load active migraine from settings store
                     const activeMigraineData = await IDB.get(DB_STORES.SETTINGS, 'activeMigraine');
                     if (activeMigraineData) {
                         activeMigraine = activeMigraineData.value;
-                        console.log('✅ Loaded active migraine from IndexedDB');
                     }
 
-                    // If we found data in IndexedDB, we're done
                     if (dataLoaded) {
-                        console.log('✅ loadData() completed from IndexedDB');
-                        updateDiagnostics({ initStatus: 'Data loaded successfully!' });
                         return;
                     }
                 } catch (error) {
-                    console.error('❌ Error loading from IndexedDB:', error);
-                    console.error('Error stack:', error.stack);
-                    updateDiagnostics({ error: `IndexedDB error: ${error.message}` });
+                    console.error('Error loading from IndexedDB:', error);
                     // Fall through to localStorage
                 }
-            } else {
-                console.log('⚠️ IndexedDB not available:', { useIndexedDB, dbExists: !!db });
             }
 
             // Fallback to localStorage (if IndexedDB not available or had no data)
-            console.log('💿 Attempting to load from localStorage...');
-
             try {
-                // Check localStorage status first
                 const stored = localStorage.getItem('migraines');
-                const storedLength = stored ? stored.length : 0;
-
-                if (stored) {
-                    updateDiagnostics({ localStorageStatus: `✅ ${storedLength} chars` });
-                } else {
-                    updateDiagnostics({ localStorageStatus: '❌ Empty' });
-                }
-
-                console.log('📦 localStorage migraines data:', stored ? `${storedLength} characters` : 'null');
 
                 if (stored && !dataLoaded) {
                     migraines = JSON.parse(stored);
-                    console.log(`✅ Loaded ${migraines.length} migraines from localStorage`);
-                    console.log('📋 Sample migraine:', migraines[0]);
-                    dataSource = 'localStorage';
-                    updateDiagnostics({
-                        dataSource: 'localStorage',
-                        episodesCount: migraines.length,
-                        initStatus: 'Data loaded successfully!'
-                    });
-                } else if (!stored && !dataLoaded) {
-                    console.log('ℹ️ No migraines found in localStorage (null/empty)');
-                    updateDiagnostics({
-                        dataSource: 'None (New User)',
-                        episodesCount: 0,
-                        initStatus: 'No data found - New user'
-                    });
                 }
 
                 const active = localStorage.getItem('activeMigraine');
-                console.log('🔄 localStorage activeMigraine:', active ? 'exists' : 'null');
-
                 if (active) {
                     activeMigraine = JSON.parse(active);
-                    console.log('✅ Loaded active migraine from localStorage');
                 }
             } catch (error) {
-                console.error('❌ Error loading from localStorage:', error);
-                console.error('Error stack:', error.stack);
-                updateDiagnostics({ error: `localStorage error: ${error.message}` });
-            }
-
-            // Final diagnostic check - analyze the loaded data
-            console.log('✅ loadData() completed. Final migraines count:', migraines.length);
-
-            if (migraines.length > 0) {
-                const deletedCount = migraines.filter(m => m.deleted).length;
-                const activeCount = migraines.filter(m => !m.deleted).length;
-                console.log(`📊 Breakdown: ${activeCount} active, ${deletedCount} deleted`);
-
-                updateDiagnostics({
-                    episodesCount: `${migraines.length} total (${activeCount} active, ${deletedCount} deleted)`
-                });
+                console.error('Error loading from localStorage:', error);
             }
         }
 
@@ -3828,22 +3693,7 @@
         }
 
         function updateDashboard() {
-            console.log('📊 updateDashboard() called');
-            console.log('📦 Total migraines array length:', migraines.length);
-
             const activeMigraines = getActiveMigraines();
-            const deletedCount = migraines.length - activeMigraines.length;
-
-            console.log(`✅ Active migraines (non-deleted): ${activeMigraines.length}`);
-            console.log(`🗑️ Deleted migraines: ${deletedCount}`);
-
-            if (migraines.length > 0 && activeMigraines.length === 0) {
-                console.warn('⚠️ WARNING: All episodes are marked as deleted!');
-                updateDiagnostics({
-                    error: `All ${migraines.length} episodes marked as deleted - check Trash`
-                });
-            }
-
             const total = activeMigraines.length;
             const avgPain = total > 0
                 ? (activeMigraines.reduce((sum, m) => sum + m.painLevel, 0) / total).toFixed(1)
@@ -4809,6 +4659,104 @@
             document.getElementById('privacy-btn').addEventListener('click', showPrivacy);
 
             document.getElementById('clear-all-btn').addEventListener('click', clearAllData);
+
+            // Initialize hidden debug mode (tap version 7 times)
+            initializeDebugMode();
+        }
+
+        // ============================================
+        // HIDDEN DEBUG MODE (Production Safe)
+        // ============================================
+
+        let versionTapCount = 0;
+        let versionTapTimer = null;
+
+        function initializeDebugMode() {
+            const versionElement = document.getElementById('app-version');
+            if (!versionElement) return;
+
+            versionElement.addEventListener('click', () => {
+                versionTapCount++;
+
+                // Reset counter after 2 seconds of inactivity
+                clearTimeout(versionTapTimer);
+                versionTapTimer = setTimeout(() => {
+                    versionTapCount = 0;
+                }, 2000);
+
+                // Show debug modal after 7 taps
+                if (versionTapCount === 7) {
+                    versionTapCount = 0;
+                    showDebugModal();
+                }
+            });
+        }
+
+        function showDebugModal() {
+            const modal = document.getElementById('debug-modal');
+            if (!modal) return;
+
+            // Populate debug information
+            const activeMigraines = getActiveMigraines();
+            const deletedMigraines = getDeletedMigraines();
+
+            // Determine data source
+            let dataSource = 'Unknown';
+            if (useIndexedDB && db) {
+                dataSource = 'IndexedDB';
+            } else if (localStorage.getItem('migraines')) {
+                dataSource = 'localStorage';
+            }
+
+            // Check localStorage size
+            let localStorageStatus = 'Empty';
+            const storedData = localStorage.getItem('migraines');
+            if (storedData) {
+                const sizeKB = (storedData.length / 1024).toFixed(1);
+                localStorageStatus = `${sizeKB} KB`;
+            }
+
+            // Update debug modal content
+            document.getElementById('debug-data-source').textContent = dataSource;
+            document.getElementById('debug-total-episodes').textContent = migraines.length;
+            document.getElementById('debug-active-episodes').textContent = activeMigraines.length;
+            document.getElementById('debug-deleted-episodes').textContent = deletedMigraines.length;
+            document.getElementById('debug-indexeddb').textContent = (useIndexedDB && db) ? '✅ Available' : '❌ Not Available';
+            document.getElementById('debug-localstorage').textContent = localStorageStatus;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeDebugModal() {
+            const modal = document.getElementById('debug-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function copyDebugInfo() {
+            const activeMigraines = getActiveMigraines();
+            const deletedMigraines = getDeletedMigraines();
+
+            const debugInfo = `Aiding Migraine v3.3.0 - Debug Information
+Generated: ${new Date().toISOString()}
+
+Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
+Total Episodes: ${migraines.length}
+Active Episodes: ${activeMigraines.length}
+Deleted Episodes: ${deletedMigraines.length}
+IndexedDB: ${(useIndexedDB && db) ? 'Available' : 'Not Available'}
+localStorage: ${localStorage.getItem('migraines') ? 'Has Data' : 'Empty'}
+
+Browser: ${navigator.userAgent}
+`;
+
+            navigator.clipboard.writeText(debugInfo).then(() => {
+                alert('✅ Debug information copied to clipboard!');
+            }).catch((err) => {
+                console.error('Failed to copy:', err);
+                alert('❌ Failed to copy. Please check console.');
+            });
         }
 
         function updateStorageInfo() {
@@ -9796,27 +9744,14 @@
 
         // Initialize Phase 2 and app on DOMContentLoaded
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🎯 DOM Content Loaded - Starting Phase 2 initialization');
-            console.log('⏱️ Timestamp:', new Date().toISOString());
-
             // Phase 2: Initialize IndexedDB and data management
-            console.log('💾 Initializing IndexedDB...');
             await initIndexedDB();
-            console.log('✅ IndexedDB initialized. db:', !!db, 'useIndexedDB:', useIndexedDB);
-
-            console.log('🔄 Starting migration...');
             await migrateToIndexedDB();
-
-            console.log('📊 Checking storage quota...');
             await checkStorageQuota();
-
             checkBackgroundSyncSupport();
-            console.log('✅ Phase 2 features initialized');
 
             // Initialize main app (now that IndexedDB is ready)
-            console.log('🚀 Starting main app initialization...');
             await initApp();
-            console.log('✅✅✅ EVERYTHING INITIALIZED ✅✅✅');
         });
 
     </script>

@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 3.2.6 - Dashboard Display Fix
+// Version 3.3.0 - Production Release
 
-const CACHE_NAME = 'aiding-migraine-v3.2.6';
+const CACHE_NAME = 'aiding-migraine-v3.3.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
