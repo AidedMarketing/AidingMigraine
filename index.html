@@ -2675,11 +2675,19 @@
             console.log('💿 Attempting to load from localStorage...');
 
             try {
+                // Check localStorage status first
                 const stored = localStorage.getItem('migraines');
-                console.log('📦 localStorage migraines data:', stored ? `${stored.length} characters` : 'null');
+                const storedLength = stored ? stored.length : 0;
 
                 if (stored) {
-                    updateDiagnostics({ localStorageStatus: `✅ ${stored.length} chars` });
+                    updateDiagnostics({ localStorageStatus: `✅ ${storedLength} chars` });
+                } else {
+                    updateDiagnostics({ localStorageStatus: '❌ Empty' });
+                }
+
+                console.log('📦 localStorage migraines data:', stored ? `${storedLength} characters` : 'null');
+
+                if (stored && !dataLoaded) {
                     migraines = JSON.parse(stored);
                     console.log(`✅ Loaded ${migraines.length} migraines from localStorage`);
                     console.log('📋 Sample migraine:', migraines[0]);
@@ -2689,10 +2697,9 @@
                         episodesCount: migraines.length,
                         initStatus: 'Data loaded successfully!'
                     });
-                } else {
+                } else if (!stored && !dataLoaded) {
                     console.log('ℹ️ No migraines found in localStorage (null/empty)');
                     updateDiagnostics({
-                        localStorageStatus: '❌ Empty',
                         dataSource: 'None (New User)',
                         episodesCount: 0,
                         initStatus: 'No data found - New user'
@@ -2712,8 +2719,18 @@
                 updateDiagnostics({ error: `localStorage error: ${error.message}` });
             }
 
+            // Final diagnostic check - analyze the loaded data
             console.log('✅ loadData() completed. Final migraines count:', migraines.length);
-            updateDiagnostics({ episodesCount: migraines.length });
+
+            if (migraines.length > 0) {
+                const deletedCount = migraines.filter(m => m.deleted).length;
+                const activeCount = migraines.filter(m => !m.deleted).length;
+                console.log(`📊 Breakdown: ${activeCount} active, ${deletedCount} deleted`);
+
+                updateDiagnostics({
+                    episodesCount: `${migraines.length} total (${activeCount} active, ${deletedCount} deleted)`
+                });
+            }
         }
 
         async function saveData() {
@@ -3804,12 +3821,20 @@
 
         function updateDashboard() {
             console.log('📊 updateDashboard() called');
-            console.log('📦 Current migraines array:', migraines);
-            console.log('📈 migraines.length:', migraines.length);
+            console.log('📦 Total migraines array length:', migraines.length);
 
             const activeMigraines = getActiveMigraines();
-            console.log('✅ Active migraines (non-deleted):', activeMigraines);
-            console.log('📊 Active count:', activeMigraines.length);
+            const deletedCount = migraines.length - activeMigraines.length;
+
+            console.log(`✅ Active migraines (non-deleted): ${activeMigraines.length}`);
+            console.log(`🗑️ Deleted migraines: ${deletedCount}`);
+
+            if (migraines.length > 0 && activeMigraines.length === 0) {
+                console.warn('⚠️ WARNING: All episodes are marked as deleted!');
+                updateDiagnostics({
+                    error: `All ${migraines.length} episodes marked as deleted - check Trash`
+                });
+            }
 
             const total = activeMigraines.length;
             const avgPain = total > 0
