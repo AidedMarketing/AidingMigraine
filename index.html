@@ -1960,6 +1960,45 @@
                 <a href="./help/index.html" class="help-icon" title="Help & Documentation">?</a>
             </h1>
 
+            <!-- Diagnostic Panel -->
+            <div class="section-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 20px;">
+                <h2 style="color: white; display: flex; align-items: center; gap: 8px;">
+                    🔍 System Diagnostics
+                    <span style="font-size: 0.7rem; background: rgba(255,255,255,0.3); padding: 4px 8px; border-radius: 4px;">v3.2.4</span>
+                </h2>
+                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 16px; margin-top: 12px;">
+                    <div style="display: grid; gap: 8px; font-size: 0.9rem;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>📦 Data Source:</span>
+                            <strong id="diag-data-source">Checking...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>📊 Episodes Loaded:</span>
+                            <strong id="diag-episodes-count">0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>💾 IndexedDB:</span>
+                            <strong id="diag-indexeddb-status">Unknown</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>💿 localStorage:</span>
+                            <strong id="diag-localstorage-status">Unknown</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>⚡ Initialization:</span>
+                            <strong id="diag-init-status">In Progress...</strong>
+                        </div>
+                        <div id="diag-error-container" style="display: none; margin-top: 8px; padding: 12px; background: rgba(255,0,0,0.3); border-radius: 6px; border-left: 4px solid #ff4444;">
+                            <div style="font-weight: bold; margin-bottom: 4px;">⚠️ Error Detected:</div>
+                            <div id="diag-error-message" style="font-size: 0.85rem; font-family: monospace;"></div>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size: 0.75rem; margin-top: 12px; opacity: 0.8;">
+                    This panel shows real-time data loading status. If you see issues, screenshot this for debugging.
+                </p>
+            </div>
+
             <div class="section-card">
                 <h2>📊 Storage & Backup</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
@@ -2494,10 +2533,56 @@
                 .replace(/'/g, '&#039;');
         }
 
+        // Update diagnostic panel
+        function updateDiagnostics(updates) {
+            // Update data source
+            if (updates.dataSource) {
+                const elem = document.getElementById('diag-data-source');
+                if (elem) elem.textContent = updates.dataSource;
+            }
+
+            // Update episodes count
+            if (updates.episodesCount !== undefined) {
+                const elem = document.getElementById('diag-episodes-count');
+                if (elem) elem.textContent = updates.episodesCount;
+            }
+
+            // Update IndexedDB status
+            if (updates.indexedDBStatus) {
+                const elem = document.getElementById('diag-indexeddb-status');
+                if (elem) elem.textContent = updates.indexedDBStatus;
+            }
+
+            // Update localStorage status
+            if (updates.localStorageStatus) {
+                const elem = document.getElementById('diag-localstorage-status');
+                if (elem) elem.textContent = updates.localStorageStatus;
+            }
+
+            // Update initialization status
+            if (updates.initStatus) {
+                const elem = document.getElementById('diag-init-status');
+                if (elem) elem.textContent = updates.initStatus;
+            }
+
+            // Show error if present
+            if (updates.error) {
+                const container = document.getElementById('diag-error-container');
+                const message = document.getElementById('diag-error-message');
+                if (container && message) {
+                    container.style.display = 'block';
+                    message.textContent = updates.error;
+                }
+            }
+
+            console.log('🔍 Diagnostics updated:', updates);
+        }
+
         // Main app initialization (called after IndexedDB is ready)
         async function initApp() {
             console.log('🚀 Initializing app...');
             console.log('⏱️ Time:', new Date().toISOString());
+            updateDiagnostics({ initStatus: 'Loading data...' });
 
             await loadData();
             console.log('📊 After loadData(), migraines.length:', migraines.length);
@@ -2520,6 +2605,7 @@
             checkFirstTimeUser();
 
             console.log('✅ App initialized');
+            updateDiagnostics({ initStatus: `✅ Ready (${migraines.length} episodes)` });
         }
 
         async function loadData() {
@@ -2532,6 +2618,14 @@
             });
 
             let dataLoaded = false;
+            let dataSource = 'None';
+
+            // Check IndexedDB status
+            if (useIndexedDB && db) {
+                updateDiagnostics({ indexedDBStatus: '✅ Available' });
+            } else {
+                updateDiagnostics({ indexedDBStatus: '❌ Not Available' });
+            }
 
             // Try IndexedDB first
             if (useIndexedDB && db) {
@@ -2545,6 +2639,11 @@
                         migraines = migrainesFromDB;
                         console.log(`✅ Loaded ${migraines.length} migraines from IndexedDB`);
                         dataLoaded = true;
+                        dataSource = 'IndexedDB';
+                        updateDiagnostics({
+                            dataSource: 'IndexedDB',
+                            episodesCount: migraines.length
+                        });
                     } else {
                         console.log('ℹ️ No migraines found in IndexedDB (empty or null)');
                     }
@@ -2559,11 +2658,13 @@
                     // If we found data in IndexedDB, we're done
                     if (dataLoaded) {
                         console.log('✅ loadData() completed from IndexedDB');
+                        updateDiagnostics({ initStatus: 'Data loaded successfully!' });
                         return;
                     }
                 } catch (error) {
                     console.error('❌ Error loading from IndexedDB:', error);
                     console.error('Error stack:', error.stack);
+                    updateDiagnostics({ error: `IndexedDB error: ${error.message}` });
                     // Fall through to localStorage
                 }
             } else {
@@ -2578,11 +2679,24 @@
                 console.log('📦 localStorage migraines data:', stored ? `${stored.length} characters` : 'null');
 
                 if (stored) {
+                    updateDiagnostics({ localStorageStatus: `✅ ${stored.length} chars` });
                     migraines = JSON.parse(stored);
                     console.log(`✅ Loaded ${migraines.length} migraines from localStorage`);
                     console.log('📋 Sample migraine:', migraines[0]);
+                    dataSource = 'localStorage';
+                    updateDiagnostics({
+                        dataSource: 'localStorage',
+                        episodesCount: migraines.length,
+                        initStatus: 'Data loaded successfully!'
+                    });
                 } else {
                     console.log('ℹ️ No migraines found in localStorage (null/empty)');
+                    updateDiagnostics({
+                        localStorageStatus: '❌ Empty',
+                        dataSource: 'None (New User)',
+                        episodesCount: 0,
+                        initStatus: 'No data found - New user'
+                    });
                 }
 
                 const active = localStorage.getItem('activeMigraine');
@@ -2595,9 +2709,11 @@
             } catch (error) {
                 console.error('❌ Error loading from localStorage:', error);
                 console.error('Error stack:', error.stack);
+                updateDiagnostics({ error: `localStorage error: ${error.message}` });
             }
 
             console.log('✅ loadData() completed. Final migraines count:', migraines.length);
+            updateDiagnostics({ episodesCount: migraines.length });
         }
 
         async function saveData() {
