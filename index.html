@@ -1997,6 +1997,12 @@
                 <p style="font-size: 0.75rem; margin-top: 12px; opacity: 0.8;">
                     This panel shows real-time data loading status. If you see issues, screenshot this for debugging.
                 </p>
+                <button id="emergency-restore-btn" onclick="emergencyRestoreAllEpisodes()"
+                        style="width: 100%; margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.9);
+                               color: #667eea; border: none; border-radius: 8px; font-weight: bold;
+                               font-size: 0.95rem; cursor: pointer; transition: all 0.2s;">
+                    🔧 Emergency: Restore All Episodes
+                </button>
             </div>
 
             <div class="section-card">
@@ -2454,7 +2460,7 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v3.2.4-diagnostic</p>
+                <p>Aiding Migraine v3.2.6-dashboard-fix</p>
                 <p>Phase 2 Refinements: Weather + UX</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3241,6 +3247,8 @@
             } else if (pageName === 'settings') {
                 updateStorageInfo();
             } else if (pageName === 'log') {
+                // Log page contains both the dashboard and the calendar
+                updateDashboard(); // Update dashboard stats
                 renderCalendar();
                 updateLogWeatherDisplay();
             } else if (pageName === 'analytics') {
@@ -3854,11 +3862,22 @@
             const lastEpisode = total > 0
                 ? formatRelativeTime(activeMigraines[activeMigraines.length - 1].startTime)
                 : '-';
-            
-            document.getElementById('total-episodes').textContent = total;
-            document.getElementById('avg-pain').textContent = avgPain;
-            document.getElementById('week-count').textContent = thisWeek;
-            document.getElementById('last-episode').textContent = lastEpisode;
+
+            // Check if dashboard elements exist before updating
+            const totalElem = document.getElementById('total-episodes');
+            const avgPainElem = document.getElementById('avg-pain');
+            const weekCountElem = document.getElementById('week-count');
+            const lastEpisodeElem = document.getElementById('last-episode');
+
+            if (!totalElem || !avgPainElem || !weekCountElem || !lastEpisodeElem) {
+                console.warn('⚠️ Dashboard elements not found in DOM, skipping update');
+                return;
+            }
+
+            totalElem.textContent = total;
+            avgPainElem.textContent = avgPain;
+            weekCountElem.textContent = thisWeek;
+            lastEpisodeElem.textContent = lastEpisode;
             
             const comparison = document.getElementById('week-comparison');
             if (lastWeek > 0) {
@@ -4172,6 +4191,65 @@
             const purgedCount = beforeCount - migraines.length;
             if (purgedCount > 0) {
                 saveData();
+            }
+        }
+
+        // Emergency function to restore ALL episodes, even those older than 30 days
+        async function emergencyRestoreAllEpisodes() {
+            console.log('🔧 Emergency restore initiated...');
+
+            // Count deleted episodes before restore
+            const deletedCount = migraines.filter(m => m.deleted).length;
+
+            if (deletedCount === 0) {
+                alert('✅ No deleted episodes found. All episodes are already active!');
+                return;
+            }
+
+            const confirmed = confirm(
+                `Found ${deletedCount} deleted episode(s).\n\n` +
+                `This will restore ALL deleted episodes, including those older than 30 days.\n\n` +
+                `Do you want to continue?`
+            );
+
+            if (!confirmed) {
+                console.log('❌ Emergency restore cancelled by user');
+                return;
+            }
+
+            // Restore all deleted episodes
+            let restoredCount = 0;
+            migraines.forEach(m => {
+                if (m.deleted) {
+                    m.deleted = false;
+                    delete m.deletedAt; // Remove the deletion timestamp
+                    restoredCount++;
+                }
+            });
+
+            console.log(`✅ Restored ${restoredCount} episode(s)`);
+
+            // Save to database
+            await saveData();
+
+            // Update UI
+            updateDashboard();
+            renderHistory();
+            renderCalendar();
+            updateStorageInfo();
+
+            // Update diagnostics
+            const activeCount = getActiveMigraines().length;
+            updateDiagnostics({
+                episodesCount: `${migraines.length} total (${activeCount} active, 0 deleted)`,
+                initStatus: `✅ Restored ${restoredCount} episodes!`
+            });
+
+            alert(`✅ Success!\n\nRestored ${restoredCount} episode(s).\n\nYour data should now be visible on the dashboard and in History.`);
+
+            // Optionally navigate to History page to show restored data
+            if (restoredCount > 0) {
+                showPage('history');
             }
         }
 
