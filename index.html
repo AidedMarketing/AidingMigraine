@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v3.0.0 - PHASE 1 FEATURES
+           AIDING MIGRAINE v3.2.0 - PHASE 2 REFINEMENTS
            ============================================ */
 
         /* === ROOT VARIABLES (DARK - DEFAULT) === */
@@ -1962,21 +1962,20 @@
 
             <div class="section-card">
                 <h2>📊 Storage & Backup</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
+                    Your data is stored securely on your device. Export regularly for backups.
+                </p>
                 <div class="settings-info">
                     <div class="info-row">
-                        <span class="info-label">Episodes:</span>
+                        <span class="info-label">Total Episodes:</span>
                         <span class="info-value" id="storage-episodes">0</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Storage Used:</span>
-                        <span class="info-value" id="storage-size">0 KB</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">In Trash:</span>
                         <span class="info-value" id="trash-count">0</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Last Backup:</span>
+                        <span class="info-label">Last Export:</span>
                         <span class="info-value" id="last-backup">Never</span>
                     </div>
                 </div>
@@ -2174,103 +2173,63 @@
             </div>
 
             <div class="section-card">
-                <h2>☁️ Weather Tracking (Optional)</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.95rem;">
-                    Track barometric pressure to identify weather-related migraine patterns.
-                    Research shows ~15-20% of migraine sufferers are sensitive to pressure changes.
-                </p>
-
-                <!-- Weather Tracking Toggle -->
-                <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                    <span style="font-weight: 500;">Enable Weather Tracking</span>
-                    <label class="toggle-switch">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                    <div>
+                        <h2 style="margin-bottom: 8px;">☁️ Weather Tracking</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">
+                            Track barometric pressure patterns • 15-20% of sufferers are weather-sensitive
+                        </p>
+                    </div>
+                    <label class="toggle-switch" style="flex-shrink: 0; margin-left: 16px;">
                         <input type="checkbox" id="weather-tracking-enabled">
                         <span class="toggle-slider"></span>
                     </label>
-                </label>
+                </div>
 
                 <!-- Weather Settings (shown when enabled) -->
                 <div id="weather-settings" style="display: none;">
                     <!-- Location Entry -->
-                    <div style="margin-bottom: 20px;">
-                        <label for="weather-location-input" style="display: block; margin-bottom: 8px; font-weight: 500;">📍 Your Location</label>
-                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 10px;">
-                            Enter your ZIP/postal code or city name to fetch local weather data.
-                        </p>
-                        <div style="display: flex; gap: 10px; align-items: stretch;">
+                    <div style="margin-bottom: 16px;">
+                        <label for="weather-location-input" style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">📍 Location</label>
+                        <div style="display: flex; gap: 10px;">
                             <input
                                 type="text"
                                 id="weather-location-input"
-                                placeholder="e.g., 10001 or New York, NY"
-                                style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;"
+                                placeholder="ZIP code or city name"
+                                style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.95rem;"
                             >
-                            <button
-                                id="weather-location-save"
-                                class="btn btn-primary"
-                                style="padding: 12px; width: 70px; white-space: nowrap; font-size: 0.9rem;"
-                            >
+                            <button id="weather-location-save" class="btn btn-primary" style="padding: 10px 16px; font-size: 0.9rem;">
                                 Save
                             </button>
                         </div>
-                        <div id="weather-location-status" style="margin-top: 8px; font-size: 0.85rem;"></div>
+                        <div id="weather-location-status" style="margin-top: 6px; font-size: 0.85rem;"></div>
                     </div>
 
                     <!-- Current Weather Display -->
-                    <div id="weather-current-display" style="display: none; background: var(--bg-tertiary); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div id="weather-current-display" style="display: none; background: var(--bg-tertiary); padding: 14px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <div>
-                                <div style="font-size: 0.85rem; color: var(--text-secondary);">Current Location</div>
-                                <div id="weather-location-display" style="font-weight: 500; margin-top: 4px;">-</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Location</div>
+                                <div id="weather-location-display" style="font-weight: 500; font-size: 0.95rem; margin-top: 2px;">-</div>
                             </div>
-                            <button id="weather-refresh-btn" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+                            <button id="weather-refresh-btn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;">
                                 🔄 Refresh
                             </button>
                         </div>
-                        <div style="border-top: 1px solid var(--border-color); padding-top: 12px;">
-                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">Barometric Pressure</div>
-                            <div style="font-size: 1.8rem; font-weight: 600; color: var(--accent-green);" id="weather-current-pressure">
-                                -
-                            </div>
-                            <div style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;" id="weather-pressure-change">
-                                -
-                            </div>
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 10px;">
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Current Pressure</div>
+                            <div style="font-size: 1.6rem; font-weight: 600; color: var(--accent-green);" id="weather-current-pressure">-</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;" id="weather-pressure-change">-</div>
                         </div>
-                        <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-secondary);" id="weather-last-updated">
+                        <div style="margin-top: 10px; font-size: 0.75rem; color: var(--text-secondary);" id="weather-last-updated">
                             Last updated: Never
                         </div>
                     </div>
 
-                    <!-- Privacy Notice -->
-                    <div class="info-box" style="margin-bottom: 16px; background: var(--bg-tertiary); border-left: 4px solid var(--accent-blue); padding: 12px 16px; border-radius: 0 8px 8px 0;">
-                        <div style="display: flex; align-items: start; gap: 10px;">
-                            <span style="font-size: 1.2rem;">🔒</span>
-                            <div style="font-size: 0.85rem; color: var(--text-secondary);">
-                                <strong style="color: var(--text-primary);">Privacy First:</strong> Your location stays on your device.
-                                We never send it to our servers. Weather data is fetched directly from a free public API.
-                            </div>
-                        </div>
+                    <!-- Privacy & Info -->
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
+                        🔒 Privacy-first • Data stays on your device • <a href="./help/analytics.html#weather" style="color: var(--accent-green); text-decoration: none;">Learn more</a>
                     </div>
-
-                    <!-- How It Works -->
-                    <details style="margin-bottom: 16px; background: var(--bg-tertiary); padding: 12px 16px; border-radius: 8px;">
-                        <summary style="cursor: pointer; font-weight: 500; color: var(--text-primary);">
-                            ℹ️ How does this work?
-                        </summary>
-                        <div style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
-                            <p style="margin-bottom: 8px;">
-                                When enabled, the app fetches barometric pressure data from Open-Meteo
-                                (a free, privacy-friendly weather API) twice per day.
-                            </p>
-                            <p style="margin-bottom: 8px;">
-                                <strong>Clinical threshold:</strong> Pressure changes >5 hPa (millibars) in 24 hours
-                                are considered significant based on migraine research.
-                            </p>
-                            <p>
-                                The app analyzes your migraine patterns alongside pressure data to help identify
-                                if weather is a trigger for you. This information can be valuable for your doctor.
-                            </p>
-                        </div>
-                    </details>
                 </div>
             </div>
 
@@ -2352,73 +2311,52 @@
             </div>
 
             <div class="section-card">
-                <h2>💾 Phase 2: Data Management</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.95rem;">
-                    Advanced storage and data management features for unlimited migraine history.
+                <h2>💾 Advanced Storage</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
+                    IndexedDB storage for unlimited migraine history • Background sync when offline
                 </p>
 
-                <!-- Storage Status -->
-                <div id="storage-quota-display" style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <div style="font-weight: 500;">Storage Usage</div>
-                        <div id="storage-percentage" style="font-weight: 700; color: var(--accent-green);">0%</div>
+                <!-- Storage Quota -->
+                <div id="storage-quota-display" style="background: var(--bg-tertiary); padding: 14px; border-radius: 8px; margin-bottom: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="font-weight: 500; font-size: 0.95rem;">Storage Usage</span>
+                        <span id="storage-percentage" style="font-weight: 700; color: var(--accent-green);">0%</span>
                     </div>
-                    <div style="height: 8px; background: var(--bg-primary); border-radius: 4px; overflow: hidden;">
+                    <div style="height: 6px; background: var(--bg-primary); border-radius: 3px; overflow: hidden;">
                         <div id="storage-bar" style="height: 100%; background: var(--accent-green); width: 0%; transition: width 0.3s ease;"></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                    <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: var(--text-secondary);">
                         <span id="storage-used">0 MB</span>
                         <span id="storage-total">0 MB</span>
                     </div>
                 </div>
 
-                <!-- IndexedDB Status -->
-                <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 12px;">
-                        <div>
-                            <div style="font-weight: 500; margin-bottom: 4px;">📊 IndexedDB</div>
-                            <div id="indexeddb-status" style="font-size: 0.85rem; color: var(--text-secondary);">
-                                Checking...
-                            </div>
-                        </div>
-                        <div id="indexeddb-count" style="font-size: 1.5rem; font-weight: 700; color: var(--accent-green);">
-                            0
+                <!-- Compact Status Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+                    <!-- IndexedDB Status -->
+                    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-green);" id="indexeddb-count">0</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Migraines</div>
+                        <div id="indexeddb-status" style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">
+                            Checking...
                         </div>
                     </div>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem;">
-                        Your migraine data is stored in IndexedDB for unlimited history and faster performance.
-                    </p>
+
+                    <!-- Background Sync Status -->
+                    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-blue);">🔄</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Background Sync</div>
+                        <div id="background-sync-status" style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">
+                            Checking...
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Background Sync -->
-                <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 12px;">
-                        <div>
-                            <div style="font-weight: 500; margin-bottom: 4px;">🔄 Background Sync</div>
-                            <div id="background-sync-status" style="font-size: 0.85rem; color: var(--text-secondary);">
-                                Checking...
-                            </div>
-                        </div>
-                    </div>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem;">
-                        Automatically syncs your offline changes when you reconnect to the internet.
-                    </p>
-                </div>
-
-                <!-- Auto-Archive -->
-                <div class="settings-group" style="margin-bottom: 20px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 12px;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 500; margin-bottom: 4px;">📦 Auto-Archive</div>
-                            <div style="font-size: 0.85rem; color: var(--text-secondary);">
-                                Archive migraines older than 12 months to save space
-                            </div>
-                        </div>
-                        <button id="archive-old-btn" class="btn btn-secondary" style="margin-left: 16px; padding: 10px 16px; font-size: 0.9rem; width: auto;">
-                            Archive Now
-                        </button>
-                    </div>
-                </div>
+                <!-- Archive Action -->
+                <button id="archive-old-btn" class="settings-btn" style="width: 100%;">
+                    <span>📦 Archive Old Data</span>
+                    <span class="btn-subtitle">Archive migraines older than 12 months</span>
+                </button>
             </div>
 
             <div class="section-card">
@@ -2477,8 +2415,8 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v3.1.0</p>
-                <p>Phase 2: Enhanced Data Management</p>
+                <p>Aiding Migraine v3.2.0</p>
+                <p>Phase 2 Refinements: Weather + UX</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
         </div>
@@ -4579,7 +4517,7 @@
         function exportJSON() {
             const activeMigraines = getActiveMigraines();
             const data = {
-                appVersion: '3.0.0',
+                appVersion: '3.2.0',
                 exportDate: new Date().toISOString(),
                 totalEpisodes: activeMigraines.length,
                 migraines: activeMigraines
@@ -6903,25 +6841,48 @@
         }
 
         // Initialize weather tracking
-        function initWeatherTracking() {
-            // Load saved weather data
-            const saved = localStorage.getItem('weatherData');
-            if (saved) {
+        async function initWeatherTracking() {
+            // Load saved weather data (try IndexedDB first, then localStorage)
+            let loaded = null;
+
+            if (useIndexedDB && db) {
                 try {
-                    const loaded = JSON.parse(saved);
-                    weatherData = migrateWeatherData(loaded);
-
-                    // Save migrated data
-                    if (loaded.version !== 3) {
-                        saveWeatherData();
+                    const idbData = await IDB.get(DB_STORES.WEATHER, 'weatherData');
+                    if (idbData) {
+                        loaded = idbData.value;
+                        console.log('✅ Weather data loaded from IndexedDB');
                     }
+                } catch (error) {
+                    console.error('❌ Failed to load weather from IndexedDB:', error);
+                }
+            }
 
-                    // Analyze personal patterns if we have enough data
-                    if (weatherData.enabled && weatherData.history.length >= 7) {
-                        analyzePersonalWeatherProfile();
+            // Fallback to localStorage if IndexedDB didn't have data
+            if (!loaded) {
+                const saved = localStorage.getItem('weatherData');
+                if (saved) {
+                    try {
+                        loaded = JSON.parse(saved);
+                        console.log('✅ Weather data loaded from localStorage');
+                        // Migrate to IndexedDB
+                        await saveWeatherData();
+                    } catch (e) {
+                        console.error('Error loading weather data:', e);
                     }
-                } catch (e) {
-                    console.error('Error loading weather data:', e);
+                }
+            }
+
+            if (loaded) {
+                weatherData = migrateWeatherData(loaded);
+
+                // Save migrated data
+                if (loaded.version !== 3) {
+                    await saveWeatherData();
+                }
+
+                // Analyze personal patterns if we have enough data
+                if (weatherData.enabled && weatherData.history.length >= 7) {
+                    analyzePersonalWeatherProfile();
                 }
             }
 
@@ -6968,8 +6929,21 @@
             }
         }
 
-        // Save weather data to localStorage
-        function saveWeatherData() {
+        // Save weather data to IndexedDB (with localStorage backup)
+        async function saveWeatherData() {
+            if (useIndexedDB && db) {
+                try {
+                    await IDB.put(DB_STORES.WEATHER, {
+                        key: 'weatherData',
+                        value: weatherData,
+                        timestamp: Date.now()
+                    });
+                    console.log('✅ Weather data saved to IndexedDB');
+                } catch (error) {
+                    console.error('❌ Failed to save weather to IndexedDB:', error);
+                }
+            }
+            // Also save to localStorage as backup
             localStorage.setItem('weatherData', JSON.stringify(weatherData));
         }
 
@@ -8990,7 +8964,7 @@
         // ============================================
 
         const DB_NAME = 'AidingMigraineDB';
-        const DB_VERSION = 1;
+        const DB_VERSION = 2; // Incremented for weather store
         let db = null;
         let useIndexedDB = true; // Flag to enable/disable IndexedDB
 
@@ -8999,7 +8973,8 @@
             MIGRAINES: 'migraines',
             MEDICATIONS: 'medications',
             SETTINGS: 'settings',
-            SYNC_QUEUE: 'syncQueue'
+            SYNC_QUEUE: 'syncQueue',
+            WEATHER: 'weather'
         };
 
         /**
@@ -9064,6 +9039,15 @@
                             syncStore.createIndex('timestamp', 'timestamp', { unique: false });
                             syncStore.createIndex('type', 'type', { unique: false });
                             console.log('✅ Created sync queue object store');
+                        }
+
+                        // Weather store (Phase 2 Refinements)
+                        if (!database.objectStoreNames.contains(DB_STORES.WEATHER)) {
+                            const weatherStore = database.createObjectStore(DB_STORES.WEATHER, {
+                                keyPath: 'key'
+                            });
+                            weatherStore.createIndex('timestamp', 'timestamp', { unique: false });
+                            console.log('✅ Created weather object store');
                         }
                     };
                 });
@@ -9250,6 +9234,20 @@
                         await IDB.add(DB_STORES.MEDICATIONS, med);
                     }
                     console.log('✅ Medications migrated');
+                }
+
+                // Migrate weather data
+                const weatherJSON = localStorage.getItem('weatherData');
+                if (weatherJSON) {
+                    const weather = JSON.parse(weatherJSON);
+                    console.log('🌦️ Migrating weather data...');
+
+                    await IDB.put(DB_STORES.WEATHER, {
+                        key: 'weatherData',
+                        value: weather,
+                        timestamp: Date.now()
+                    });
+                    console.log('✅ Weather data migrated');
                 }
 
                 // Mark migration as complete
