@@ -2415,7 +2415,7 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v3.2.2</p>
+                <p>Aiding Migraine v3.2.3</p>
                 <p>Phase 2 Refinements: Weather + UX</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -10306,7 +10306,12 @@
             banner.style.display = 'block';
             container.classList.add('with-update-banner');
 
-            console.log('✨ Update available! Showing banner.');
+            console.log('✨ Update available! Auto-updating in 2 seconds...');
+
+            // Auto-update after 2 seconds (give user time to see the message)
+            setTimeout(() => {
+                updateApp();
+            }, 2000);
         }
 
         function hideUpdateBanner() {
