@@ -5,6 +5,36 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1] - 2026-02-01
+
+### Fixed - Critical Bug Fixes
+
+#### Data Loading Issues
+- **Stats Display**: Fixed broken stats on dashboard - `loadData()` now correctly loads from IndexedDB
+- **Data Persistence**: Updated `saveData()` to save to IndexedDB with localStorage backup
+- **Migration**: Ensured data loaded from IndexedDB after migration completes
+
+#### Async Initialization Issues
+- **Notifications**: Fixed notification system by making `initializeNotifications()` async and awaiting `updateNotificationUI()`
+- **Weather Tracking**: Fixed weather location input visibility by properly awaiting `initWeatherTracking()`
+- **Initialization Order**: Refactored app initialization to ensure IndexedDB is ready before loading data
+
+#### Code Improvements
+- Created `initApp()` function for proper initialization flow
+- Combined DOMContentLoaded handlers to ensure correct initialization order: IndexedDB → Migration → Data Load → UI Setup
+- Removed duplicate `initializeNotifications()` call that could cause conflicts
+
+### Changed
+- Service worker version: 3.2.0 → 3.2.1
+- App version: 3.2.0 → 3.2.1
+
+### Technical Notes
+- **Root Cause**: Phase 2 migration to IndexedDB introduced async functions that weren't being awaited, causing race conditions
+- **Impact**: Users with migrated data couldn't see their stats, notifications failed to initialize, and weather location input wasn't accessible
+- **Solution**: Proper async/await flow ensures IndexedDB operations complete before UI initialization
+
+---
+
 ## [3.1.0] - 2026-01-30
 
 ### Added - Phase 2: Enhanced Data Management
