@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 3.2.3 - Aggressive Update Strategy + Network-First for HTML
+// Version 3.2.4 - Diagnostic Logging for Data Loading Investigation
 
-const CACHE_NAME = 'aiding-migraine-v3.2.3';
+const CACHE_NAME = 'aiding-migraine-v3.2.4';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
