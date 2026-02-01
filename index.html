@@ -2415,7 +2415,7 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v3.2.3</p>
+                <p>Aiding Migraine v3.2.4-diagnostic</p>
                 <p>Phase 2 Refinements: Weather + UX</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -2497,8 +2497,10 @@
         // Main app initialization (called after IndexedDB is ready)
         async function initApp() {
             console.log('🚀 Initializing app...');
+            console.log('⏱️ Time:', new Date().toISOString());
 
             await loadData();
+            console.log('📊 After loadData(), migraines.length:', migraines.length);
             purgeOldDeletedEpisodes();
             initializeMedicationLibrary();
             initializeTheme();
@@ -2521,19 +2523,30 @@
         }
 
         async function loadData() {
+            console.log('📂 loadData() called');
+            console.log('🔍 Checking environment:', {
+                useIndexedDB,
+                dbExists: !!db,
+                IDBExists: typeof IDB !== 'undefined',
+                DB_STORESExists: typeof DB_STORES !== 'undefined'
+            });
+
             let dataLoaded = false;
 
             // Try IndexedDB first
             if (useIndexedDB && db) {
+                console.log('💾 Attempting IndexedDB load...');
                 try {
                     // Load migraines from IndexedDB
                     const migrainesFromDB = await IDB.getAll(DB_STORES.MIGRAINES);
+                    console.log('📊 IndexedDB result:', migrainesFromDB);
+
                     if (migrainesFromDB && migrainesFromDB.length > 0) {
                         migraines = migrainesFromDB;
                         console.log(`✅ Loaded ${migraines.length} migraines from IndexedDB`);
                         dataLoaded = true;
                     } else {
-                        console.log('ℹ️ No migraines found in IndexedDB');
+                        console.log('ℹ️ No migraines found in IndexedDB (empty or null)');
                     }
 
                     // Load active migraine from settings store
@@ -2545,28 +2558,46 @@
 
                     // If we found data in IndexedDB, we're done
                     if (dataLoaded) {
+                        console.log('✅ loadData() completed from IndexedDB');
                         return;
                     }
                 } catch (error) {
                     console.error('❌ Error loading from IndexedDB:', error);
+                    console.error('Error stack:', error.stack);
                     // Fall through to localStorage
                 }
+            } else {
+                console.log('⚠️ IndexedDB not available:', { useIndexedDB, dbExists: !!db });
             }
 
             // Fallback to localStorage (if IndexedDB not available or had no data)
-            console.log('ℹ️ Attempting to load from localStorage...');
-            const stored = localStorage.getItem('migraines');
-            if (stored) {
-                migraines = JSON.parse(stored);
-                console.log(`✅ Loaded ${migraines.length} migraines from localStorage`);
-            } else {
-                console.log('ℹ️ No migraines found in localStorage either');
+            console.log('💿 Attempting to load from localStorage...');
+
+            try {
+                const stored = localStorage.getItem('migraines');
+                console.log('📦 localStorage migraines data:', stored ? `${stored.length} characters` : 'null');
+
+                if (stored) {
+                    migraines = JSON.parse(stored);
+                    console.log(`✅ Loaded ${migraines.length} migraines from localStorage`);
+                    console.log('📋 Sample migraine:', migraines[0]);
+                } else {
+                    console.log('ℹ️ No migraines found in localStorage (null/empty)');
+                }
+
+                const active = localStorage.getItem('activeMigraine');
+                console.log('🔄 localStorage activeMigraine:', active ? 'exists' : 'null');
+
+                if (active) {
+                    activeMigraine = JSON.parse(active);
+                    console.log('✅ Loaded active migraine from localStorage');
+                }
+            } catch (error) {
+                console.error('❌ Error loading from localStorage:', error);
+                console.error('Error stack:', error.stack);
             }
-            const active = localStorage.getItem('activeMigraine');
-            if (active) {
-                activeMigraine = JSON.parse(active);
-                console.log('✅ Loaded active migraine from localStorage');
-            }
+
+            console.log('✅ loadData() completed. Final migraines count:', migraines.length);
         }
 
         async function saveData() {
@@ -3656,7 +3687,14 @@
         }
 
         function updateDashboard() {
+            console.log('📊 updateDashboard() called');
+            console.log('📦 Current migraines array:', migraines);
+            console.log('📈 migraines.length:', migraines.length);
+
             const activeMigraines = getActiveMigraines();
+            console.log('✅ Active migraines (non-deleted):', activeMigraines);
+            console.log('📊 Active count:', activeMigraines.length);
+
             const total = activeMigraines.length;
             const avgPain = total > 0
                 ? (activeMigraines.reduce((sum, m) => sum + m.painLevel, 0) / total).toFixed(1)
@@ -9539,15 +9577,27 @@
 
         // Initialize Phase 2 and app on DOMContentLoaded
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🎯 DOM Content Loaded - Starting Phase 2 initialization');
+            console.log('⏱️ Timestamp:', new Date().toISOString());
+
             // Phase 2: Initialize IndexedDB and data management
+            console.log('💾 Initializing IndexedDB...');
             await initIndexedDB();
+            console.log('✅ IndexedDB initialized. db:', !!db, 'useIndexedDB:', useIndexedDB);
+
+            console.log('🔄 Starting migration...');
             await migrateToIndexedDB();
+
+            console.log('📊 Checking storage quota...');
             await checkStorageQuota();
+
             checkBackgroundSyncSupport();
             console.log('✅ Phase 2 features initialized');
 
             // Initialize main app (now that IndexedDB is ready)
+            console.log('🚀 Starting main app initialization...');
             await initApp();
+            console.log('✅✅✅ EVERYTHING INITIALIZED ✅✅✅');
         });
 
     </script>
