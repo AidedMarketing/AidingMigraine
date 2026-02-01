@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 3.2.5 - Emergency Episode Recovery Function
+// Version 3.2.6 - Dashboard Display Fix
 
-const CACHE_NAME = 'aiding-migraine-v3.2.5';
+const CACHE_NAME = 'aiding-migraine-v3.2.6';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

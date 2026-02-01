@@ -2460,7 +2460,7 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v3.2.5-recovery</p>
+                <p>Aiding Migraine v3.2.6-dashboard-fix</p>
                 <p>Phase 2 Refinements: Weather + UX</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3247,6 +3247,8 @@
             } else if (pageName === 'settings') {
                 updateStorageInfo();
             } else if (pageName === 'log') {
+                // Log page contains both the dashboard and the calendar
+                updateDashboard(); // Update dashboard stats
                 renderCalendar();
                 updateLogWeatherDisplay();
             } else if (pageName === 'analytics') {
@@ -3860,11 +3862,22 @@
             const lastEpisode = total > 0
                 ? formatRelativeTime(activeMigraines[activeMigraines.length - 1].startTime)
                 : '-';
-            
-            document.getElementById('total-episodes').textContent = total;
-            document.getElementById('avg-pain').textContent = avgPain;
-            document.getElementById('week-count').textContent = thisWeek;
-            document.getElementById('last-episode').textContent = lastEpisode;
+
+            // Check if dashboard elements exist before updating
+            const totalElem = document.getElementById('total-episodes');
+            const avgPainElem = document.getElementById('avg-pain');
+            const weekCountElem = document.getElementById('week-count');
+            const lastEpisodeElem = document.getElementById('last-episode');
+
+            if (!totalElem || !avgPainElem || !weekCountElem || !lastEpisodeElem) {
+                console.warn('⚠️ Dashboard elements not found in DOM, skipping update');
+                return;
+            }
+
+            totalElem.textContent = total;
+            avgPainElem.textContent = avgPain;
+            weekCountElem.textContent = thisWeek;
+            lastEpisodeElem.textContent = lastEpisode;
             
             const comparison = document.getElementById('week-comparison');
             if (lastWeek > 0) {
