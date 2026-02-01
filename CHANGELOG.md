@@ -5,6 +5,41 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.3] - 2026-02-01
+
+### Fixed - Aggressive Update Strategy to Fix Caching Issues
+
+#### The Problem
+Even with v3.2.2 deployed, users were still seeing old cached versions due to service worker cache-first strategy.
+
+#### The Solution - Three-Pronged Approach
+
+**1. Network-First for HTML Files**
+- Changed service worker to network-first for HTML, cache-first for assets
+- Ensures users always get latest HTML on reload
+
+**2. Auto-Update Without User Interaction**
+- Update banner now auto-triggers after 2 seconds
+- Automatic reload when new service worker activates
+
+**3. Aggressive Service Worker Activation**
+- Service workers now call `skipWaiting()` immediately after install
+- No waiting for tabs to close
+
+### Changed
+- Service worker caching strategy: Cache-first → Network-first (HTML only)
+- Update behavior: Manual → Automatic (2-second delay)
+- Service worker activation: Waiting → Immediate
+- Service worker version: 3.2.2 → 3.2.3
+- App version: 3.2.2 → 3.2.3
+
+### User Actions to Get This Update
+**On Desktop**: Hard refresh (Ctrl+Shift+R / Cmd+Shift+R)
+**On Mobile**: Close all tabs and reopen, or clear browser cache
+**After this update**: All future updates will auto-apply!
+
+---
+
 ## [3.2.2] - 2026-02-01
 
 ### Fixed - Critical Data Loading Bug

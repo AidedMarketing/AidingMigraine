@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 3.2.2 - Critical Fix: Data Loading localStorage Fallback
+// Version 3.2.3 - Aggressive Update Strategy + Network-First for HTML
 
-const CACHE_NAME = 'aiding-migraine-v3.2.2';
+const CACHE_NAME = 'aiding-migraine-v3.2.3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -32,7 +32,11 @@ self.addEventListener('install', (event) => {
                 console.log('Service Worker: Caching app shell');
                 return cache.addAll(ASSETS_TO_CACHE);
             })
-            // Don't automatically skip waiting - let the user choose when to update
+            .then(() => {
+                // Auto-skip waiting to activate new service worker immediately
+                console.log('Service Worker: Auto-activating new version');
+                return self.skipWaiting();
+            })
     );
 });
 
@@ -61,31 +65,50 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network-first for HTML, cache-first for assets
 self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request)
-            .then((response) => {
-                // Return cached version or fetch from network
-                return response || fetch(event.request)
-                    .then((fetchResponse) => {
-                        // Clone the response
-                        const responseToCache = fetchResponse.clone();
+    const url = new URL(event.request.url);
 
-                        // Cache the new resource
-                        caches.open(CACHE_NAME)
-                            .then((cache) => {
+    // Network-first strategy for HTML files to ensure users get latest version
+    if (event.request.headers.get('accept').includes('text/html') ||
+        url.pathname.endsWith('.html') ||
+        url.pathname === '/' ||
+        url.pathname === '/index.html') {
+
+        event.respondWith(
+            fetch(event.request)
+                .then((fetchResponse) => {
+                    // Clone and cache the new version
+                    const responseToCache = fetchResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseToCache);
+                    });
+                    return fetchResponse;
+                })
+                .catch(() => {
+                    // Fallback to cache if offline
+                    return caches.match(event.request);
+                })
+        );
+    } else {
+        // Cache-first strategy for assets (CSS, JS, images, etc.)
+        event.respondWith(
+            caches.match(event.request)
+                .then((response) => {
+                    return response || fetch(event.request)
+                        .then((fetchResponse) => {
+                            const responseToCache = fetchResponse.clone();
+                            caches.open(CACHE_NAME).then((cache) => {
                                 cache.put(event.request, responseToCache);
                             });
-
-                        return fetchResponse;
-                    });
-            })
-            .catch(() => {
-                // Return offline page if available
-                return caches.match('./index.html');
-            })
-    );
+                            return fetchResponse;
+                        });
+                })
+                .catch(() => {
+                    return caches.match('./index.html');
+                })
+        );
+    }
 });
 
 // ============================================
