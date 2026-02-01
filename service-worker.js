@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 3.2.4 - Diagnostic Logging for Data Loading Investigation
+// Version 3.2.5 - Emergency Episode Recovery Function
 
-const CACHE_NAME = 'aiding-migraine-v3.2.4';
+const CACHE_NAME = 'aiding-migraine-v3.2.5';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
