@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v3.2.0 - PHASE 2 REFINEMENTS
+           AIDING MIGRAINE v3.2.1 - BUG FIXES
            ============================================ */
 
         /* === ROOT VARIABLES (DARK - DEFAULT) === */
@@ -2415,7 +2415,7 @@
             </div>
 
             <div class="app-info">
-                <p>Aiding Migraine v3.2.0</p>
+                <p>Aiding Migraine v3.2.1</p>
                 <p>Phase 2 Refinements: Weather + UX</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -2494,8 +2494,11 @@
                 .replace(/'/g, '&#039;');
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadData();
+        // Main app initialization (called after IndexedDB is ready)
+        async function initApp() {
+            console.log('🚀 Initializing app...');
+
+            await loadData();
             purgeOldDeletedEpisodes();
             initializeMedicationLibrary();
             initializeTheme();
@@ -2505,28 +2508,80 @@
             initializeHistory();
             initializeCalendar();
             initializeSettings();
-            initializeNotifications();
-            initWeatherTracking();
+            await initializeNotifications();
+            await initWeatherTracking();
             initializeReliefMethods();
             checkActiveMigraine();
             updateDashboard();
             renderHistory();
             renderCalendar();
             checkFirstTimeUser();
-        });
 
-        function loadData() {
+            console.log('✅ App initialized');
+        }
+
+        async function loadData() {
+            // Try IndexedDB first
+            if (useIndexedDB && db) {
+                try {
+                    // Load migraines from IndexedDB
+                    const migrainesFromDB = await IDB.getAll(DB_STORES.MIGRAINES);
+                    if (migrainesFromDB && migrainesFromDB.length > 0) {
+                        migraines = migrainesFromDB;
+                        console.log(`✅ Loaded ${migraines.length} migraines from IndexedDB`);
+                    }
+
+                    // Load active migraine from settings store
+                    const activeMigraineData = await IDB.get(DB_STORES.SETTINGS, 'activeMigraine');
+                    if (activeMigraineData) {
+                        activeMigraine = activeMigraineData.value;
+                        console.log('✅ Loaded active migraine from IndexedDB');
+                    }
+
+                    return; // Successfully loaded from IndexedDB
+                } catch (error) {
+                    console.error('❌ Error loading from IndexedDB:', error);
+                    // Fall through to localStorage
+                }
+            }
+
+            // Fallback to localStorage
             const stored = localStorage.getItem('migraines');
             if (stored) {
                 migraines = JSON.parse(stored);
+                console.log(`✅ Loaded ${migraines.length} migraines from localStorage`);
             }
             const active = localStorage.getItem('activeMigraine');
             if (active) {
                 activeMigraine = JSON.parse(active);
+                console.log('✅ Loaded active migraine from localStorage');
             }
         }
 
-        function saveData() {
+        async function saveData() {
+            // Save to IndexedDB if available
+            if (useIndexedDB && db) {
+                try {
+                    // Save all migraines
+                    for (const migraine of migraines) {
+                        await IDB.put(DB_STORES.MIGRAINES, migraine);
+                    }
+
+                    // Save active migraine
+                    if (activeMigraine) {
+                        await IDB.put(DB_STORES.SETTINGS, {
+                            key: 'activeMigraine',
+                            value: activeMigraine
+                        });
+                    } else {
+                        await IDB.delete(DB_STORES.SETTINGS, 'activeMigraine');
+                    }
+                } catch (error) {
+                    console.error('❌ Error saving to IndexedDB:', error);
+                }
+            }
+
+            // Also save to localStorage as backup
             localStorage.setItem('migraines', JSON.stringify(migraines));
             if (activeMigraine) {
                 localStorage.setItem('activeMigraine', JSON.stringify(activeMigraine));
@@ -4486,8 +4541,6 @@
             document.getElementById('privacy-btn').addEventListener('click', showPrivacy);
 
             document.getElementById('clear-all-btn').addEventListener('click', clearAllData);
-
-            initializeNotifications();
         }
 
         function updateStorageInfo() {
@@ -6185,9 +6238,9 @@
             pushSubscription: null
         };
 
-        function initializeNotifications() {
+        async function initializeNotifications() {
             loadNotificationPreferences();
-            updateNotificationUI();
+            await updateNotificationUI();
 
             // Event listeners
             document.getElementById('enable-notifications-btn').addEventListener('click', enableNotifications);
@@ -9473,13 +9526,17 @@
             processSyncQueue();
         });
 
-        // Initialize Phase 2 on DOMContentLoaded
+        // Initialize Phase 2 and app on DOMContentLoaded
         document.addEventListener('DOMContentLoaded', async () => {
+            // Phase 2: Initialize IndexedDB and data management
             await initIndexedDB();
             await migrateToIndexedDB();
             await checkStorageQuota();
             checkBackgroundSyncSupport();
             console.log('✅ Phase 2 features initialized');
+
+            // Initialize main app (now that IndexedDB is ready)
+            await initApp();
         });
 
     </script>

@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 3.2.0 - Phase 2 Refinements: Weather + UX Improvements
+// Version 3.2.1 - Bug Fixes: Stats, Notifications, Weather Initialization
 
-const CACHE_NAME = 'aiding-migraine-v3.2.0';
+const CACHE_NAME = 'aiding-migraine-v3.2.1';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
