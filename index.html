@@ -2415,7 +2415,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none;">Aiding Migraine v3.3.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v3.3.1</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -2553,9 +2553,21 @@
             await initWeatherTracking();
             initializeReliefMethods();
             checkActiveMigraine();
-            updateDashboard();
-            renderHistory();
-            renderCalendar();
+
+            // Force update UI after data loads - retry multiple times to ensure DOM is ready
+            const updateUI = () => {
+                updateDashboard();
+                renderHistory();
+                renderCalendar();
+            };
+
+            // Try updating immediately
+            updateUI();
+
+            // And retry after delays to ensure elements are in DOM
+            setTimeout(updateUI, 150);
+            setTimeout(updateUI, 500);
+
             checkFirstTimeUser();
         }
 
@@ -4673,19 +4685,35 @@
 
         function initializeDebugMode() {
             const versionElement = document.getElementById('app-version');
-            if (!versionElement) return;
+            if (!versionElement) {
+                console.error('Debug mode: app-version element not found');
+                return;
+            }
 
-            versionElement.addEventListener('click', () => {
+            console.log('Debug mode initialized on element:', versionElement);
+
+            versionElement.addEventListener('click', (e) => {
+                e.preventDefault();
                 versionTapCount++;
+
+                // Visual feedback - briefly change color
+                versionElement.style.opacity = '0.5';
+                setTimeout(() => {
+                    versionElement.style.opacity = '1';
+                }, 100);
+
+                console.log(`Debug tap count: ${versionTapCount}/7`);
 
                 // Reset counter after 2 seconds of inactivity
                 clearTimeout(versionTapTimer);
                 versionTapTimer = setTimeout(() => {
+                    console.log('Debug tap counter reset');
                     versionTapCount = 0;
                 }, 2000);
 
                 // Show debug modal after 7 taps
                 if (versionTapCount === 7) {
+                    console.log('Opening debug modal...');
                     versionTapCount = 0;
                     showDebugModal();
                 }
