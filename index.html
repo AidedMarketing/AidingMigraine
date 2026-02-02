@@ -2415,7 +2415,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v3.3.2</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v3.3.3</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -2453,7 +2453,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>📱 App Version:</span>
-                            <strong>v3.3.2 Production</strong>
+                            <strong>v3.3.3 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -2554,7 +2554,11 @@
             initializeReliefMethods();
             checkActiveMigraine();
 
-            // Force update UI after data loads - retry multiple times to ensure DOM is ready
+            // CRITICAL FIX: Ensure log page is shown first so DOM elements are accessible
+            console.log('🔄 Initializing UI - showing log page first');
+            showPage('log');
+
+            // Force update UI after data loads - now that log page is active
             const updateUI = () => {
                 console.log('🔄 Attempting UI update...');
                 updateDashboard();
@@ -2562,24 +2566,41 @@
                 renderCalendar();
             };
 
-            // Use requestAnimationFrame for first paint, then aggressive retries
+            // Use requestAnimationFrame for first paint
             requestAnimationFrame(() => {
                 updateUI();
 
-                // Retry with increasing delays to handle async operations
-                setTimeout(updateUI, 100);
-                setTimeout(updateUI, 300);
-                setTimeout(updateUI, 700);
-                setTimeout(updateUI, 1500);
-
-                // Final attempt after everything settles
+                // One retry after a short delay to ensure everything is settled
                 setTimeout(() => {
-                    console.log('🎯 Final UI update attempt');
+                    console.log('🎯 Final UI update');
                     updateUI();
-                }, 3000);
+                }, 100);
             });
 
             checkFirstTimeUser();
+        }
+
+        // Validate active migraine to prevent stuck states
+        function validateActiveMigraine(migraine) {
+            if (!migraine) return false;
+
+            // Check required fields
+            if (!migraine.id || !migraine.startTime || !migraine.painLevel) {
+                console.warn('⚠️ Active migraine missing required fields');
+                return false;
+            }
+
+            // Check if migraine is too old (more than 7 days)
+            const startTime = new Date(migraine.startTime);
+            const now = new Date();
+            const daysDiff = (now - startTime) / (1000 * 60 * 60 * 24);
+
+            if (daysDiff > 7) {
+                console.warn(`⚠️ Active migraine is ${daysDiff.toFixed(1)} days old, clearing as likely stuck`);
+                return false;
+            }
+
+            return true;
         }
 
         async function loadData() {
@@ -2599,6 +2620,12 @@
                     const activeMigraineData = await IDB.get(DB_STORES.SETTINGS, 'activeMigraine');
                     if (activeMigraineData) {
                         activeMigraine = activeMigraineData.value;
+                        // Validate active migraine
+                        if (!validateActiveMigraine(activeMigraine)) {
+                            console.warn('⚠️ Invalid active migraine found in IndexedDB, clearing...');
+                            activeMigraine = null;
+                            await IDB.delete(DB_STORES.SETTINGS, 'activeMigraine');
+                        }
                     }
 
                     if (dataLoaded) {
@@ -2621,6 +2648,12 @@
                 const active = localStorage.getItem('activeMigraine');
                 if (active) {
                     activeMigraine = JSON.parse(active);
+                    // Validate active migraine
+                    if (!validateActiveMigraine(activeMigraine)) {
+                        console.warn('⚠️ Invalid active migraine found in localStorage, clearing...');
+                        activeMigraine = null;
+                        localStorage.removeItem('activeMigraine');
+                    }
                 }
             } catch (error) {
                 console.error('Error loading from localStorage:', error);
@@ -3134,13 +3167,11 @@
                 renderHistory();
             } else if (pageName === 'settings') {
                 updateStorageInfo();
-                // Ensure debug mode is properly initialized when settings page is shown
+                // Set up UI for settings-specific features when page is shown
                 setTimeout(() => {
-                    const versionElement = document.getElementById('app-version');
-                    if (versionElement && !versionElement.onclick) {
-                        console.log('🔧 Re-initializing debug mode for settings page');
-                        initializeDebugMode();
-                    }
+                    setupWeatherUI();
+                    setupNotificationUI();
+                    initializeDebugMode();
                 }, 100);
             } else if (pageName === 'log') {
                 // Log page contains both the dashboard and the calendar
@@ -3192,7 +3223,38 @@
             }
 
             if (activeMigraine) {
-                showModal('Error', 'You already have an active episode. Please end it first.');
+                // Offer to clear stuck episode
+                showModal(
+                    'Active Episode Detected',
+                    'You already have an active episode. Please end it first, or clear it if you believe this is an error.',
+                    [
+                        {
+                            text: 'End Current Episode',
+                            class: 'btn-primary',
+                            action: () => {
+                                endActiveMigraine();
+                                closeModal();
+                            }
+                        },
+                        {
+                            text: 'Clear Stuck Episode',
+                            class: 'btn-danger',
+                            action: () => {
+                                console.warn('⚠️ User manually cleared stuck active episode');
+                                activeMigraine = null;
+                                saveData();
+                                checkActiveMigraine();
+                                closeModal();
+                                showModal('Success', 'Stuck episode cleared. You can now log a new episode.');
+                            }
+                        },
+                        {
+                            text: 'Cancel',
+                            class: 'btn-secondary',
+                            action: closeModal
+                        }
+                    ]
+                );
                 return;
             }
 
@@ -4715,63 +4777,55 @@
         let versionTapCount = 0;
         let versionTapTimer = null;
 
+        let debugModeInitialized = false;
         function initializeDebugMode() {
-            // Use a retry mechanism to ensure the element is available
-            let retryCount = 0;
-            const maxRetries = 10;
+            if (debugModeInitialized) {
+                console.log('✅ Debug mode already initialized');
+                return;
+            }
 
-            const attachDebugListener = () => {
-                const versionElement = document.getElementById('app-version');
-                if (!versionElement) {
-                    retryCount++;
-                    if (retryCount < maxRetries) {
-                        console.warn(`⚠️ Debug mode: app-version element not found, retry ${retryCount}/${maxRetries}`);
-                        setTimeout(attachDebugListener, 200 * retryCount);
-                    } else {
-                        console.error('❌ Debug mode: app-version element not found after', maxRetries, 'retries');
-                    }
-                    return;
+            const versionElement = document.getElementById('app-version');
+            if (!versionElement) {
+                console.warn('⚠️ Debug mode: app-version element not found, will initialize when settings page is shown');
+                return;
+            }
+
+            console.log('🔧 Initializing debug mode...');
+
+            // Remove any existing listeners to prevent duplicates
+            const newElement = versionElement.cloneNode(true);
+            versionElement.parentNode.replaceChild(newElement, versionElement);
+
+            newElement.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                versionTapCount++;
+
+                console.log(`🔍 Debug tap registered: ${versionTapCount}/7`);
+
+                // Visual feedback - briefly change opacity
+                newElement.style.opacity = '0.5';
+                setTimeout(() => {
+                    newElement.style.opacity = '1';
+                }, 100);
+
+                // Reset counter after 2 seconds of inactivity
+                clearTimeout(versionTapTimer);
+                versionTapTimer = setTimeout(() => {
+                    console.log('🔄 Debug tap counter reset');
+                    versionTapCount = 0;
+                }, 2000);
+
+                // Show debug modal after 7 taps
+                if (versionTapCount === 7) {
+                    console.log('🎯 Opening debug modal...');
+                    versionTapCount = 0;
+                    showDebugModal();
                 }
+            }, { passive: false });
 
-                console.log('✅ Debug mode initialized on element:', versionElement);
-
-                // Remove any existing listeners to prevent duplicates
-                const newElement = versionElement.cloneNode(true);
-                versionElement.parentNode.replaceChild(newElement, versionElement);
-
-                newElement.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    versionTapCount++;
-
-                    console.log(`🔍 Debug tap registered: ${versionTapCount}/7`);
-
-                    // Visual feedback - briefly change opacity
-                    newElement.style.opacity = '0.5';
-                    setTimeout(() => {
-                        newElement.style.opacity = '1';
-                    }, 100);
-
-                    // Reset counter after 2 seconds of inactivity
-                    clearTimeout(versionTapTimer);
-                    versionTapTimer = setTimeout(() => {
-                        console.log('🔄 Debug tap counter reset');
-                        versionTapCount = 0;
-                    }, 2000);
-
-                    // Show debug modal after 7 taps
-                    if (versionTapCount === 7) {
-                        console.log('🎯 Opening debug modal...');
-                        versionTapCount = 0;
-                        showDebugModal();
-                    }
-                }, { passive: false });
-
-                console.log('✅ Debug mode click listener attached successfully');
-            };
-
-            // Start attachment attempts
-            attachDebugListener();
+            debugModeInitialized = true;
+            console.log('✅ Debug mode initialized successfully');
         }
 
         function showDebugModal() {
@@ -4831,7 +4885,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v3.3.2 - Debug Information
+            const debugInfo = `Aiding Migraine v3.3.3 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -6549,24 +6603,56 @@ Browser: ${navigator.userAgent}
 
         async function initializeNotifications() {
             loadNotificationPreferences();
-            await updateNotificationUI();
-
-            // Event listeners
-            document.getElementById('enable-notifications-btn').addEventListener('click', enableNotifications);
-            document.getElementById('disable-notifications-btn').addEventListener('click', disableNotifications);
-            document.getElementById('test-notification-btn').addEventListener('click', sendTestNotification);
-
-            // Preference change listeners
-            document.getElementById('daily-checkin-enabled').addEventListener('change', saveNotificationPreferences);
-            document.getElementById('daily-checkin-time').addEventListener('change', saveNotificationPreferences);
-            document.getElementById('daily-checkin-frequency').addEventListener('change', saveNotificationPreferences);
-            document.getElementById('active-checkin-enabled').addEventListener('change', saveNotificationPreferences);
-            document.getElementById('active-checkin-delay').addEventListener('change', saveNotificationPreferences);
-            document.getElementById('followup-enabled').addEventListener('change', saveNotificationPreferences);
-            document.getElementById('followup-delay').addEventListener('change', saveNotificationPreferences);
-
             // Handle deep links from notification clicks
             handleNotificationDeepLink();
+        }
+
+        // Set up notification UI (called when settings page is shown)
+        let notificationUIInitialized = false;
+        async function setupNotificationUI() {
+            if (notificationUIInitialized) {
+                console.log('✅ Notification UI already initialized');
+                return;
+            }
+
+            console.log('🔧 Setting up Notification UI...');
+
+            // Update UI state
+            await updateNotificationUI();
+
+            // Event listeners - check if elements exist
+            const enableBtn = document.getElementById('enable-notifications-btn');
+            const disableBtn = document.getElementById('disable-notifications-btn');
+            const testBtn = document.getElementById('test-notification-btn');
+
+            if (!enableBtn || !disableBtn || !testBtn) {
+                console.warn('⚠️ Notification UI elements not found, will retry on next settings page visit');
+                return;
+            }
+
+            enableBtn.addEventListener('click', enableNotifications);
+            disableBtn.addEventListener('click', disableNotifications);
+            testBtn.addEventListener('click', sendTestNotification);
+
+            // Preference change listeners
+            const dailyEnabled = document.getElementById('daily-checkin-enabled');
+            const dailyTime = document.getElementById('daily-checkin-time');
+            const dailyFreq = document.getElementById('daily-checkin-frequency');
+            const activeEnabled = document.getElementById('active-checkin-enabled');
+            const activeDelay = document.getElementById('active-checkin-delay');
+            const followupEnabled = document.getElementById('followup-enabled');
+            const followupDelay = document.getElementById('followup-delay');
+
+            if (dailyEnabled) dailyEnabled.addEventListener('change', saveNotificationPreferences);
+            if (dailyTime) dailyTime.addEventListener('change', saveNotificationPreferences);
+            if (dailyFreq) dailyFreq.addEventListener('change', saveNotificationPreferences);
+            if (activeEnabled) activeEnabled.addEventListener('change', saveNotificationPreferences);
+            if (activeDelay) activeDelay.addEventListener('change', saveNotificationPreferences);
+            if (followupEnabled) followupEnabled.addEventListener('change', saveNotificationPreferences);
+            if (followupDelay) followupDelay.addEventListener('change', saveNotificationPreferences);
+
+            notificationUIInitialized = true;
+            console.log('✅ Notification UI initialized successfully');
         }
 
         function loadNotificationPreferences() {
@@ -6583,14 +6669,17 @@ Browser: ${navigator.userAgent}
                     localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
                 }
 
-                // Update UI with stored values
-                document.getElementById('daily-checkin-enabled').checked = notificationPreferences.dailyCheckIn.enabled;
-                document.getElementById('daily-checkin-time').value = notificationPreferences.dailyCheckIn.time;
-                document.getElementById('daily-checkin-frequency').value = notificationPreferences.dailyCheckIn.frequency;
-                document.getElementById('active-checkin-enabled').checked = notificationPreferences.activeAttackCheckIn.enabled;
-                document.getElementById('active-checkin-delay').value = notificationPreferences.activeAttackCheckIn.delayHours;
-                document.getElementById('followup-enabled').checked = notificationPreferences.postAttackFollowUp.enabled;
-                document.getElementById('followup-delay').value = notificationPreferences.postAttackFollowUp.delayHours;
+                // Update UI with stored values (only if elements exist)
+                const dailyEnabled = document.getElementById('daily-checkin-enabled');
+                if (dailyEnabled) {
+                    dailyEnabled.checked = notificationPreferences.dailyCheckIn.enabled;
+                    document.getElementById('daily-checkin-time').value = notificationPreferences.dailyCheckIn.time;
+                    document.getElementById('daily-checkin-frequency').value = notificationPreferences.dailyCheckIn.frequency;
+                    document.getElementById('active-checkin-enabled').checked = notificationPreferences.activeAttackCheckIn.enabled;
+                    document.getElementById('active-checkin-delay').value = notificationPreferences.activeAttackCheckIn.delayHours;
+                    document.getElementById('followup-enabled').checked = notificationPreferences.postAttackFollowUp.enabled;
+                    document.getElementById('followup-delay').value = notificationPreferences.postAttackFollowUp.delayHours;
+                }
             }
         }
 
@@ -7202,7 +7291,7 @@ Browser: ${navigator.userAgent}
             return migrated;
         }
 
-        // Initialize weather tracking
+        // Initialize weather tracking (data loading only)
         async function initWeatherTracking() {
             // Load saved weather data (try IndexedDB first, then localStorage)
             let loaded = null;
@@ -7248,40 +7337,6 @@ Browser: ${navigator.userAgent}
                 }
             }
 
-            // Set up UI
-            const enableToggle = document.getElementById('weather-tracking-enabled');
-            const weatherSettings = document.getElementById('weather-settings');
-
-            if (enableToggle) {
-                enableToggle.checked = weatherData.enabled;
-                weatherSettings.style.display = weatherData.enabled ? 'block' : 'none';
-
-                enableToggle.addEventListener('change', () => {
-                    weatherData.enabled = enableToggle.checked;
-                    weatherSettings.style.display = weatherData.enabled ? 'block' : 'none';
-                    saveWeatherData();
-
-                    if (weatherData.enabled && weatherData.location.lat) {
-                        // Fetch weather immediately when enabled
-                        fetchWeatherData();
-                    }
-                });
-            }
-
-            // Load current location if exists
-            if (weatherData.location.query) {
-                document.getElementById('weather-location-input').value = weatherData.location.query;
-                displayCurrentWeather();
-            }
-
-            // Location save button
-            document.getElementById('weather-location-save')?.addEventListener('click', saveWeatherLocation);
-
-            // Refresh button
-            document.getElementById('weather-refresh-btn')?.addEventListener('click', () => {
-                fetchWeatherData(true);
-            });
-
             // Auto-refresh weather data if enabled and stale (>6 hours old)
             if (weatherData.enabled && weatherData.location.lat) {
                 const sixHoursAgo = Date.now() - (6 * 60 * 60 * 1000);
@@ -7289,6 +7344,65 @@ Browser: ${navigator.userAgent}
                     fetchWeatherData();
                 }
             }
+        }
+
+        // Set up weather UI (called when settings page is shown)
+        let weatherUIInitialized = false;
+        function setupWeatherUI() {
+            if (weatherUIInitialized) {
+                console.log('✅ Weather UI already initialized');
+                return;
+            }
+
+            console.log('🔧 Setting up Weather UI...');
+
+            const enableToggle = document.getElementById('weather-tracking-enabled');
+            const weatherSettings = document.getElementById('weather-settings');
+
+            if (!enableToggle || !weatherSettings) {
+                console.warn('⚠️ Weather UI elements not found, will retry on next settings page visit');
+                return;
+            }
+
+            enableToggle.checked = weatherData.enabled;
+            weatherSettings.style.display = weatherData.enabled ? 'block' : 'none';
+
+            enableToggle.addEventListener('change', () => {
+                weatherData.enabled = enableToggle.checked;
+                weatherSettings.style.display = weatherData.enabled ? 'block' : 'none';
+                saveWeatherData();
+
+                if (weatherData.enabled && weatherData.location.lat) {
+                    // Fetch weather immediately when enabled
+                    fetchWeatherData();
+                }
+            });
+
+            // Load current location if exists
+            if (weatherData.location.query) {
+                const locationInput = document.getElementById('weather-location-input');
+                if (locationInput) {
+                    locationInput.value = weatherData.location.query;
+                    displayCurrentWeather();
+                }
+            }
+
+            // Location save button
+            const saveBtn = document.getElementById('weather-location-save');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', saveWeatherLocation);
+            }
+
+            // Refresh button
+            const refreshBtn = document.getElementById('weather-refresh-btn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    fetchWeatherData(true);
+                });
+            }
+
+            weatherUIInitialized = true;
+            console.log('✅ Weather UI initialized successfully');
         }
 
         // Save weather data to IndexedDB (with localStorage backup)
