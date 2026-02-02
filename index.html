@@ -2415,7 +2415,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v3.3.3</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v3.3.4</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -2566,15 +2566,26 @@
                 renderCalendar();
             };
 
-            // Use requestAnimationFrame for first paint
+            // Wait for page transition animation to complete (0.3s) before updating UI
+            // The page has a 300ms fadeIn animation, so we need to wait for it to finish
             requestAnimationFrame(() => {
-                updateUI();
-
-                // One retry after a short delay to ensure everything is settled
+                // First attempt after next frame
                 setTimeout(() => {
-                    console.log('🎯 Final UI update');
+                    console.log('🔄 First UI update attempt (after 100ms)');
                     updateUI();
                 }, 100);
+
+                // Second attempt after animation completes
+                setTimeout(() => {
+                    console.log('🔄 Second UI update attempt (after 400ms - post animation)');
+                    updateUI();
+                }, 400);
+
+                // Final retry to ensure everything is loaded
+                setTimeout(() => {
+                    console.log('🎯 Final UI update (after 700ms)');
+                    updateUI();
+                }, 700);
             });
 
             checkFirstTimeUser();
@@ -4435,8 +4446,14 @@
             const prevMonthDays = prevMigraineDays.size;
             const difference = currentMonthDays - prevMonthDays;
 
-            // Update display
-            document.getElementById('current-month-days').textContent = currentMonthDays;
+            // Update display - check if elements exist first
+            const monthDaysEl = document.getElementById('current-month-days');
+            if (!monthDaysEl) {
+                console.warn('⚠️ Monthly stats elements not found in DOM');
+                return;
+            }
+
+            monthDaysEl.textContent = currentMonthDays;
 
             // Determine clinical status based on research thresholds
             let status, statusColor;
@@ -6605,6 +6622,9 @@ Browser: ${navigator.userAgent}
             loadNotificationPreferences();
             // Handle deep links from notification clicks
             handleNotificationDeepLink();
+
+            // Attempt to update notification UI early (will succeed once settings page elements are available)
+            await updateNotificationUI();
         }
 
         // Set up notification UI (called when settings page is shown)
@@ -6717,6 +6737,12 @@ Browser: ${navigator.userAgent}
             const enableSection = document.getElementById('notification-enable-section');
             const preferencesSection = document.getElementById('notification-preferences');
             const iosPrompt = document.getElementById('ios-install-prompt');
+
+            // Check if elements exist before updating (settings page might not be loaded yet)
+            if (!statusText || !enableSection || !preferencesSection || !iosPrompt) {
+                console.log('⏳ Notification UI elements not yet available, will update when settings page is shown');
+                return;
+            }
 
             // Check if notifications are supported
             if (!('Notification' in window)) {
@@ -7343,6 +7369,10 @@ Browser: ${navigator.userAgent}
                 if (!weatherData.lastFetch || weatherData.lastFetch < sixHoursAgo) {
                     fetchWeatherData();
                 }
+            }
+
+            // Attempt to set up weather UI early (will succeed once settings page elements are available)
+            setupWeatherUI();
             }
         }
 
