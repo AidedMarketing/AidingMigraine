@@ -2415,7 +2415,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v3.3.1</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v3.3.2</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -2453,7 +2453,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>📱 App Version:</span>
-                            <strong>v3.3.0 Production</strong>
+                            <strong>v3.3.2 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -2556,17 +2556,28 @@
 
             // Force update UI after data loads - retry multiple times to ensure DOM is ready
             const updateUI = () => {
+                console.log('🔄 Attempting UI update...');
                 updateDashboard();
                 renderHistory();
                 renderCalendar();
             };
 
-            // Try updating immediately
-            updateUI();
+            // Use requestAnimationFrame for first paint, then aggressive retries
+            requestAnimationFrame(() => {
+                updateUI();
 
-            // And retry after delays to ensure elements are in DOM
-            setTimeout(updateUI, 150);
-            setTimeout(updateUI, 500);
+                // Retry with increasing delays to handle async operations
+                setTimeout(updateUI, 100);
+                setTimeout(updateUI, 300);
+                setTimeout(updateUI, 700);
+                setTimeout(updateUI, 1500);
+
+                // Final attempt after everything settles
+                setTimeout(() => {
+                    console.log('🎯 Final UI update attempt');
+                    updateUI();
+                }, 3000);
+            });
 
             checkFirstTimeUser();
         }
@@ -3108,23 +3119,32 @@
 
         function showPage(pageName) {
             currentPage = pageName;
-            
+
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(`${pageName}-page`).classList.add('active');
-            
+
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.page === pageName) {
                     btn.classList.add('active');
                 }
             });
-            
+
             if (pageName === 'history') {
                 renderHistory();
             } else if (pageName === 'settings') {
                 updateStorageInfo();
+                // Ensure debug mode is properly initialized when settings page is shown
+                setTimeout(() => {
+                    const versionElement = document.getElementById('app-version');
+                    if (versionElement && !versionElement.onclick) {
+                        console.log('🔧 Re-initializing debug mode for settings page');
+                        initializeDebugMode();
+                    }
+                }, 100);
             } else if (pageName === 'log') {
                 // Log page contains both the dashboard and the calendar
+                console.log('📊 Switching to log page, updating dashboard and calendar');
                 updateDashboard(); // Update dashboard stats
                 renderCalendar();
                 updateLogWeatherDisplay();
@@ -3732,30 +3752,33 @@
             const lastEpisodeElem = document.getElementById('last-episode');
 
             if (!totalElem || !avgPainElem || !weekCountElem || !lastEpisodeElem) {
-                console.warn('⚠️ Dashboard elements not found in DOM, skipping update');
+                console.warn('⚠️ Dashboard elements not found in DOM - total:', !!totalElem, 'avgPain:', !!avgPainElem, 'week:', !!weekCountElem, 'last:', !!lastEpisodeElem);
                 return;
             }
 
+            console.log('✅ Dashboard updated:', total, 'episodes');
             totalElem.textContent = total;
             avgPainElem.textContent = avgPain;
             weekCountElem.textContent = thisWeek;
             lastEpisodeElem.textContent = lastEpisode;
-            
+
             const comparison = document.getElementById('week-comparison');
-            if (lastWeek > 0) {
-                const diff = thisWeek - lastWeek;
-                if (diff > 0) {
-                    comparison.textContent = `↑ +${diff} from last week`;
-                    comparison.style.color = 'var(--accent-red)';
-                } else if (diff < 0) {
-                    comparison.textContent = `↓ ${diff} from last week`;
-                    comparison.style.color = 'var(--accent-green)';
+            if (comparison) {
+                if (lastWeek > 0) {
+                    const diff = thisWeek - lastWeek;
+                    if (diff > 0) {
+                        comparison.textContent = `↑ +${diff} from last week`;
+                        comparison.style.color = 'var(--accent-red)';
+                    } else if (diff < 0) {
+                        comparison.textContent = `↓ ${diff} from last week`;
+                        comparison.style.color = 'var(--accent-green)';
+                    } else {
+                        comparison.textContent = `→ Same as last week`;
+                        comparison.style.color = 'var(--text-secondary)';
+                    }
                 } else {
-                    comparison.textContent = `→ Same as last week`;
-                    comparison.style.color = 'var(--text-secondary)';
+                    comparison.textContent = '';
                 }
-            } else {
-                comparison.textContent = '';
             }
         }
 
@@ -4394,7 +4417,15 @@
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth();
 
-            document.getElementById('current-month').textContent =
+            const currentMonthElem = document.getElementById('current-month');
+            const calendarGridElem = document.getElementById('calendar-grid');
+
+            if (!currentMonthElem || !calendarGridElem) {
+                console.warn('⚠️ Calendar elements not found in DOM');
+                return;
+            }
+
+            currentMonthElem.textContent =
                 new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
             // Update monthly stats
@@ -4520,8 +4551,9 @@
                     ${day}${pressureIndicator}
                 </div>`;
             }
-            
-            document.getElementById('calendar-grid').innerHTML = html;
+
+            calendarGridElem.innerHTML = html;
+            console.log('✅ Calendar rendered for', new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
         }
 
         function showDayDetails(dateStr) {
@@ -4684,75 +4716,108 @@
         let versionTapTimer = null;
 
         function initializeDebugMode() {
-            const versionElement = document.getElementById('app-version');
-            if (!versionElement) {
-                console.error('Debug mode: app-version element not found');
-                return;
-            }
+            // Use a retry mechanism to ensure the element is available
+            let retryCount = 0;
+            const maxRetries = 10;
 
-            console.log('Debug mode initialized on element:', versionElement);
-
-            versionElement.addEventListener('click', (e) => {
-                e.preventDefault();
-                versionTapCount++;
-
-                // Visual feedback - briefly change color
-                versionElement.style.opacity = '0.5';
-                setTimeout(() => {
-                    versionElement.style.opacity = '1';
-                }, 100);
-
-                console.log(`Debug tap count: ${versionTapCount}/7`);
-
-                // Reset counter after 2 seconds of inactivity
-                clearTimeout(versionTapTimer);
-                versionTapTimer = setTimeout(() => {
-                    console.log('Debug tap counter reset');
-                    versionTapCount = 0;
-                }, 2000);
-
-                // Show debug modal after 7 taps
-                if (versionTapCount === 7) {
-                    console.log('Opening debug modal...');
-                    versionTapCount = 0;
-                    showDebugModal();
+            const attachDebugListener = () => {
+                const versionElement = document.getElementById('app-version');
+                if (!versionElement) {
+                    retryCount++;
+                    if (retryCount < maxRetries) {
+                        console.warn(`⚠️ Debug mode: app-version element not found, retry ${retryCount}/${maxRetries}`);
+                        setTimeout(attachDebugListener, 200 * retryCount);
+                    } else {
+                        console.error('❌ Debug mode: app-version element not found after', maxRetries, 'retries');
+                    }
+                    return;
                 }
-            });
+
+                console.log('✅ Debug mode initialized on element:', versionElement);
+
+                // Remove any existing listeners to prevent duplicates
+                const newElement = versionElement.cloneNode(true);
+                versionElement.parentNode.replaceChild(newElement, versionElement);
+
+                newElement.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    versionTapCount++;
+
+                    console.log(`🔍 Debug tap registered: ${versionTapCount}/7`);
+
+                    // Visual feedback - briefly change opacity
+                    newElement.style.opacity = '0.5';
+                    setTimeout(() => {
+                        newElement.style.opacity = '1';
+                    }, 100);
+
+                    // Reset counter after 2 seconds of inactivity
+                    clearTimeout(versionTapTimer);
+                    versionTapTimer = setTimeout(() => {
+                        console.log('🔄 Debug tap counter reset');
+                        versionTapCount = 0;
+                    }, 2000);
+
+                    // Show debug modal after 7 taps
+                    if (versionTapCount === 7) {
+                        console.log('🎯 Opening debug modal...');
+                        versionTapCount = 0;
+                        showDebugModal();
+                    }
+                }, { passive: false });
+
+                console.log('✅ Debug mode click listener attached successfully');
+            };
+
+            // Start attachment attempts
+            attachDebugListener();
         }
 
         function showDebugModal() {
+            console.log('🔍 showDebugModal called');
             const modal = document.getElementById('debug-modal');
-            if (!modal) return;
-
-            // Populate debug information
-            const activeMigraines = getActiveMigraines();
-            const deletedMigraines = getDeletedMigraines();
-
-            // Determine data source
-            let dataSource = 'Unknown';
-            if (useIndexedDB && db) {
-                dataSource = 'IndexedDB';
-            } else if (localStorage.getItem('migraines')) {
-                dataSource = 'localStorage';
+            if (!modal) {
+                console.error('❌ Debug modal element not found!');
+                alert('Debug modal element not found. Please check the console.');
+                return;
             }
 
-            // Check localStorage size
-            let localStorageStatus = 'Empty';
-            const storedData = localStorage.getItem('migraines');
-            if (storedData) {
-                const sizeKB = (storedData.length / 1024).toFixed(1);
-                localStorageStatus = `${sizeKB} KB`;
+            try {
+                // Populate debug information
+                const activeMigraines = getActiveMigraines();
+                const deletedMigraines = getDeletedMigraines();
+
+                // Determine data source
+                let dataSource = 'Unknown';
+                if (useIndexedDB && db) {
+                    dataSource = 'IndexedDB';
+                } else if (localStorage.getItem('migraines')) {
+                    dataSource = 'localStorage';
+                }
+
+                // Check localStorage size
+                let localStorageStatus = 'Empty';
+                const storedData = localStorage.getItem('migraines');
+                if (storedData) {
+                    const sizeKB = (storedData.length / 1024).toFixed(1);
+                    localStorageStatus = `${sizeKB} KB`;
+                }
+
+                // Update debug modal content
+                document.getElementById('debug-data-source').textContent = dataSource;
+                document.getElementById('debug-total-episodes').textContent = migraines.length;
+                document.getElementById('debug-active-episodes').textContent = activeMigraines.length;
+                document.getElementById('debug-deleted-episodes').textContent = deletedMigraines.length;
+                document.getElementById('debug-indexeddb').textContent = (useIndexedDB && db) ? '✅ Available' : '❌ Not Available';
+                document.getElementById('debug-localstorage').textContent = localStorageStatus;
+
+                modal.style.display = 'flex';
+                console.log('✅ Debug modal displayed successfully');
+            } catch (error) {
+                console.error('❌ Error showing debug modal:', error);
+                alert('Error showing debug modal: ' + error.message);
             }
-
-            // Update debug modal content
-            document.getElementById('debug-data-source').textContent = dataSource;
-            document.getElementById('debug-total-episodes').textContent = migraines.length;
-            document.getElementById('debug-active-episodes').textContent = activeMigraines.length;
-            document.getElementById('debug-deleted-episodes').textContent = deletedMigraines.length;
-            document.getElementById('debug-indexeddb').textContent = (useIndexedDB && db) ? '✅ Available' : '❌ Not Available';
-            document.getElementById('debug-localstorage').textContent = localStorageStatus;
-
-            modal.style.display = 'flex';
         }
 
         function closeDebugModal() {
@@ -4766,7 +4831,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v3.3.0 - Debug Information
+            const debugInfo = `Aiding Migraine v3.3.2 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
