@@ -2537,6 +2537,48 @@
                 .replace(/'/g, '&#039;');
         }
 
+        // Robust retry helper for DOM-dependent operations
+        function retryUntilSuccess(fn, checkFn, maxAttempts = 15, delayMs = 10, attemptNum = 1) {
+            // checkFn returns true if we should execute fn
+            if (checkFn()) {
+                console.log(`✅ Executing ${fn.name} (attempt ${attemptNum})`);
+                fn();
+                return;
+            }
+
+            if (attemptNum >= maxAttempts) {
+                console.warn(`⚠️ Max attempts reached for ${fn.name}, giving up`);
+                return;
+            }
+
+            // Aggressive early retries, then exponential backoff
+            // Attempt 1: immediate, 2: 10ms, 3: 20ms, 4: 40ms, 5: 80ms, 6: 160ms, etc.
+            let nextDelay;
+            if (attemptNum === 1) {
+                // First retry happens almost immediately via requestAnimationFrame
+                nextDelay = 0;
+            } else if (attemptNum <= 4) {
+                // Fast retries for first 4 attempts: 10ms, 20ms, 40ms
+                nextDelay = delayMs * Math.pow(2, attemptNum - 2);
+            } else {
+                // Then slower exponential backoff: 80ms, 160ms, 320ms, etc.
+                nextDelay = delayMs * Math.pow(2, attemptNum - 2);
+            }
+
+            console.log(`⏳ ${fn.name} - elements not ready, retrying in ${Math.round(nextDelay)}ms (attempt ${attemptNum}/${maxAttempts})`);
+
+            if (nextDelay === 0) {
+                // Use requestAnimationFrame for the first retry (almost immediate)
+                requestAnimationFrame(() => {
+                    retryUntilSuccess(fn, checkFn, maxAttempts, delayMs, attemptNum + 1);
+                });
+            } else {
+                setTimeout(() => {
+                    retryUntilSuccess(fn, checkFn, maxAttempts, delayMs, attemptNum + 1);
+                }, nextDelay);
+            }
+        }
+
         // Main app initialization (called after IndexedDB is ready)
         async function initApp() {
             await loadData();
@@ -2558,35 +2600,36 @@
             console.log('🔄 Initializing UI - showing log page first');
             showPage('log');
 
-            // Force update UI after data loads - now that log page is active
-            const updateUI = () => {
-                console.log('🔄 Attempting UI update...');
-                updateDashboard();
-                renderHistory();
-                renderCalendar();
-            };
+            // Use robust retry mechanism to ensure UI updates when DOM is ready
+            console.log('🔄 Starting robust UI initialization with retry logic...');
 
-            // Wait for page transition animation to complete (0.3s) before updating UI
-            // The page has a 300ms fadeIn animation, so we need to wait for it to finish
-            requestAnimationFrame(() => {
-                // First attempt after next frame
-                setTimeout(() => {
-                    console.log('🔄 First UI update attempt (after 100ms)');
-                    updateUI();
-                }, 100);
+            // Retry dashboard update until elements are found
+            retryUntilSuccess(
+                updateDashboard,
+                () => {
+                    const totalElem = document.getElementById('total-episodes');
+                    const avgPainElem = document.getElementById('avg-pain');
+                    const weekCountElem = document.getElementById('week-count');
+                    const lastEpisodeElem = document.getElementById('last-episode');
+                    return !!(totalElem && avgPainElem && weekCountElem && lastEpisodeElem);
+                }
+            );
 
-                // Second attempt after animation completes
-                setTimeout(() => {
-                    console.log('🔄 Second UI update attempt (after 400ms - post animation)');
-                    updateUI();
-                }, 400);
+            // Retry calendar render until elements are found
+            retryUntilSuccess(
+                renderCalendar,
+                () => {
+                    const currentMonthElem = document.getElementById('current-month');
+                    const calendarGridElem = document.getElementById('calendar-grid');
+                    return !!(currentMonthElem && calendarGridElem);
+                }
+            );
 
-                // Final retry to ensure everything is loaded
-                setTimeout(() => {
-                    console.log('🎯 Final UI update (after 700ms)');
-                    updateUI();
-                }, 700);
-            });
+            // Retry history render until element is found
+            retryUntilSuccess(
+                renderHistory,
+                () => !!document.getElementById('history-list')
+            );
 
             checkFirstTimeUser();
         }
@@ -3179,17 +3222,50 @@
             } else if (pageName === 'settings') {
                 updateStorageInfo();
                 // Set up UI for settings-specific features when page is shown
+                // Use retry mechanism to ensure elements are ready
+                retryUntilSuccess(
+                    setupWeatherUI,
+                    () => {
+                        const enableToggle = document.getElementById('weather-tracking-enabled');
+                        const weatherSettings = document.getElementById('weather-settings');
+                        return !!(enableToggle && weatherSettings);
+                    }
+                );
+                retryUntilSuccess(
+                    setupNotificationUI,
+                    () => {
+                        const statusText = document.getElementById('notification-status-text');
+                        const enableSection = document.getElementById('notification-enable-section');
+                        return !!(statusText && enableSection);
+                    }
+                );
                 setTimeout(() => {
-                    setupWeatherUI();
-                    setupNotificationUI();
                     initializePhase1Settings();
                     initializeDebugMode();
                 }, 100);
             } else if (pageName === 'log') {
                 // Log page contains both the dashboard and the calendar
                 console.log('📊 Switching to log page, updating dashboard and calendar');
-                updateDashboard(); // Update dashboard stats
-                renderCalendar();
+
+                // Use retry mechanism to ensure elements are ready
+                retryUntilSuccess(
+                    updateDashboard,
+                    () => {
+                        const totalElem = document.getElementById('total-episodes');
+                        const avgPainElem = document.getElementById('avg-pain');
+                        return !!(totalElem && avgPainElem);
+                    }
+                );
+
+                retryUntilSuccess(
+                    renderCalendar,
+                    () => {
+                        const currentMonthElem = document.getElementById('current-month');
+                        const calendarGridElem = document.getElementById('calendar-grid');
+                        return !!(currentMonthElem && calendarGridElem);
+                    }
+                );
+
                 updateLogWeatherDisplay();
             } else if (pageName === 'analytics') {
                 initializeAnalytics();
