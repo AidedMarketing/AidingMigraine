@@ -1,0 +1,32 @@
+{
+  "name": "aiding-migraine",
+  "version": "3.3.5",
+  "description": "A Progressive Web App for tracking migraines, identifying patterns, and improving communication with healthcare providers",
+  "main": "index.html",
+  "scripts": {
+    "test": "npm run test:syntax && npm run test:pwa && npm run test:security",
+    "test:syntax": "node scripts/validate-syntax.js",
+    "test:pwa": "node scripts/validate-pwa.js",
+    "test:security": "node scripts/validate-security.js",
+    "test:all": "npm test",
+    "validate": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AidedMarketing/AidingMigraine.git"
+  },
+  "keywords": [
+    "pwa",
+    "migraine",
+    "health",
+    "tracking",
+    "offline-first",
+    "privacy"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AidedMarketing/AidingMigraine/issues"
+  },
+  "homepage": "https://github.com/AidedMarketing/AidingMigraine#readme"
+}
