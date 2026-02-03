@@ -3182,6 +3182,7 @@
                 setTimeout(() => {
                     setupWeatherUI();
                     setupNotificationUI();
+                    initializePhase1Settings();
                     initializeDebugMode();
                 }, 100);
             } else if (pageName === 'log') {
@@ -6630,15 +6631,16 @@ Browser: ${navigator.userAgent}
         // Set up notification UI (called when settings page is shown)
         let notificationUIInitialized = false;
         async function setupNotificationUI() {
-            if (notificationUIInitialized) {
-                console.log('✅ Notification UI already initialized');
-                return;
-            }
-
             console.log('🔧 Setting up Notification UI...');
 
-            // Update UI state
+            // Always update UI state when settings page is shown
             await updateNotificationUI();
+
+            // If already initialized, skip event listener setup
+            if (notificationUIInitialized) {
+                console.log('✅ Notification UI already initialized (skipping event listeners)');
+                return;
+            }
 
             // Event listeners - check if elements exist
             const enableBtn = document.getElementById('enable-notifications-btn');
@@ -7378,11 +7380,6 @@ Browser: ${navigator.userAgent}
         // Set up weather UI (called when settings page is shown)
         let weatherUIInitialized = false;
         function setupWeatherUI() {
-            if (weatherUIInitialized) {
-                console.log('✅ Weather UI already initialized');
-                return;
-            }
-
             console.log('🔧 Setting up Weather UI...');
 
             const enableToggle = document.getElementById('weather-tracking-enabled');
@@ -7393,8 +7390,15 @@ Browser: ${navigator.userAgent}
                 return;
             }
 
+            // Always update UI state when settings page is shown
             enableToggle.checked = weatherData.enabled;
             weatherSettings.style.display = weatherData.enabled ? 'block' : 'none';
+
+            // If already initialized, skip event listener setup
+            if (weatherUIInitialized) {
+                console.log('✅ Weather UI already initialized (skipping event listeners)');
+                return;
+            }
 
             enableToggle.addEventListener('change', () => {
                 weatherData.enabled = enableToggle.checked;
@@ -10240,10 +10244,13 @@ Browser: ${navigator.userAgent}
 
             // Show voice button
             const voiceBtn = document.getElementById('voice-btn');
-            voiceBtn.style.display = 'flex';
-            voiceBtn.addEventListener('click', toggleVoiceRecognition);
-
-            console.log('✅ Voice recognition initialized');
+            if (voiceBtn) {
+                voiceBtn.style.display = 'flex';
+                voiceBtn.addEventListener('click', toggleVoiceRecognition);
+                console.log('✅ Voice recognition initialized - button shown');
+            } else {
+                console.warn('⚠️ Voice button element not found in DOM');
+            }
         }
 
         function toggleVoiceRecognition() {
@@ -10587,24 +10594,29 @@ Browser: ${navigator.userAgent}
         // PHASE 1: SETTINGS HANDLERS
         // ============================================
 
+        let phase1SettingsInitialized = false;
         function initializePhase1Settings() {
             // Wake Lock toggle
             const wakeLockToggle = document.getElementById('wake-lock-toggle');
             if (wakeLockToggle) {
                 wakeLockToggle.checked = wakeLockEnabled;
-                wakeLockToggle.addEventListener('change', (e) => {
-                    wakeLockEnabled = e.target.checked;
-                    localStorage.setItem('wakeLockEnabled', wakeLockEnabled);
-                    if (wakeLockEnabled && activeMigraine) {
-                        requestWakeLock();
-                    } else if (!wakeLockEnabled) {
-                        releaseWakeLock();
-                    }
-                    console.log(`Wake Lock ${wakeLockEnabled ? 'enabled' : 'disabled'}`);
-                });
+
+                // Only add event listener on first initialization
+                if (!phase1SettingsInitialized) {
+                    wakeLockToggle.addEventListener('change', (e) => {
+                        wakeLockEnabled = e.target.checked;
+                        localStorage.setItem('wakeLockEnabled', wakeLockEnabled);
+                        if (wakeLockEnabled && activeMigraine) {
+                            requestWakeLock();
+                        } else if (!wakeLockEnabled) {
+                            releaseWakeLock();
+                        }
+                        console.log(`Wake Lock ${wakeLockEnabled ? 'enabled' : 'disabled'}`);
+                    });
+                }
             }
 
-            // Voice status check
+            // Voice status check (always update to reflect current state)
             const voiceStatus = document.getElementById('voice-status');
             if (voiceStatus) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -10624,37 +10636,40 @@ Browser: ${navigator.userAgent}
             if (biometricToggle && biometricStatus) {
                 biometricToggle.checked = biometricAuthEnabled;
 
-                // Check biometric availability
-                setupBiometricAuth().then(available => {
-                    if (available) {
-                        biometricStatus.textContent = '✅ Biometric authentication available';
-                        biometricStatus.style.color = 'var(--accent-green)';
+                // Only add event listener on first initialization
+                if (!phase1SettingsInitialized) {
+                    // Check biometric availability
+                    setupBiometricAuth().then(available => {
+                        if (available) {
+                            biometricStatus.textContent = '✅ Biometric authentication available';
+                            biometricStatus.style.color = 'var(--accent-green)';
 
-                        biometricToggle.addEventListener('change', async (e) => {
-                            if (e.target.checked) {
-                                const registered = await registerBiometric();
-                                if (registered) {
-                                    biometricAuthEnabled = true;
-                                    biometricStatus.textContent = '✅ Biometric authentication enabled';
-                                    showModal('Biometric Lock Enabled', 'Your migraine data is now protected with biometric authentication.');
+                            biometricToggle.addEventListener('change', async (e) => {
+                                if (e.target.checked) {
+                                    const registered = await registerBiometric();
+                                    if (registered) {
+                                        biometricAuthEnabled = true;
+                                        biometricStatus.textContent = '✅ Biometric authentication enabled';
+                                        showModal('Biometric Lock Enabled', 'Your migraine data is now protected with biometric authentication.');
+                                    } else {
+                                        e.target.checked = false;
+                                        showModal('Setup Failed', 'Unable to register biometric authentication. Please try again.');
+                                    }
                                 } else {
-                                    e.target.checked = false;
-                                    showModal('Setup Failed', 'Unable to register biometric authentication. Please try again.');
+                                    biometricAuthEnabled = false;
+                                    localStorage.removeItem('biometricCredentialId');
+                                    localStorage.setItem('biometricAuthEnabled', 'false');
+                                    biometricStatus.textContent = '⚠️ Biometric authentication disabled';
+                                    showModal('Biometric Lock Disabled', 'Your app is no longer protected by biometric authentication.');
                                 }
-                            } else {
-                                biometricAuthEnabled = false;
-                                localStorage.removeItem('biometricCredentialId');
-                                localStorage.setItem('biometricAuthEnabled', 'false');
-                                biometricStatus.textContent = '⚠️ Biometric authentication disabled';
-                                showModal('Biometric Lock Disabled', 'Your app is no longer protected by biometric authentication.');
-                            }
-                        });
-                    } else {
-                        biometricStatus.textContent = '❌ Not supported on this device/browser';
-                        biometricStatus.style.color = 'var(--accent-red)';
-                        biometricToggle.disabled = true;
-                    }
-                });
+                            });
+                        } else {
+                            biometricStatus.textContent = '❌ Not supported on this device/browser';
+                            biometricStatus.style.color = 'var(--accent-red)';
+                            biometricToggle.disabled = true;
+                        }
+                    });
+                }
             }
 
             // Auto-lock toggle and delay
@@ -10664,35 +10679,46 @@ Browser: ${navigator.userAgent}
 
             if (autoLockToggle) {
                 autoLockToggle.checked = autoLockEnabled;
-                autoLockToggle.addEventListener('change', (e) => {
-                    autoLockEnabled = e.target.checked;
-                    localStorage.setItem('autoLockEnabled', autoLockEnabled);
-                    autoLockSettings.style.display = autoLockEnabled ? 'block' : 'none';
 
-                    if (autoLockEnabled) {
-                        resetInactivityTimer();
-                    } else if (inactivityTimeout) {
-                        clearTimeout(inactivityTimeout);
-                    }
+                // Only add event listener on first initialization
+                if (!phase1SettingsInitialized) {
+                    autoLockToggle.addEventListener('change', (e) => {
+                        autoLockEnabled = e.target.checked;
+                        localStorage.setItem('autoLockEnabled', autoLockEnabled);
+                        autoLockSettings.style.display = autoLockEnabled ? 'block' : 'none';
 
-                    console.log(`Auto-lock ${autoLockEnabled ? 'enabled' : 'disabled'}`);
-                });
+                        if (autoLockEnabled) {
+                            resetInactivityTimer();
+                        } else if (inactivityTimeout) {
+                            clearTimeout(inactivityTimeout);
+                        }
+
+                        console.log(`Auto-lock ${autoLockEnabled ? 'enabled' : 'disabled'}`);
+                    });
+                }
             }
 
             if (autoLockDelay) {
                 autoLockDelay.value = autoLockDelay;
-                autoLockDelay.addEventListener('change', (e) => {
-                    autoLockDelay = parseInt(e.target.value);
-                    localStorage.setItem('autoLockDelay', autoLockDelay);
-                    resetInactivityTimer();
-                    console.log(`Auto-lock delay set to ${autoLockDelay}ms`);
-                });
+
+                // Only add event listener on first initialization
+                if (!phase1SettingsInitialized) {
+                    autoLockDelay.addEventListener('change', (e) => {
+                        autoLockDelay = parseInt(e.target.value);
+                        localStorage.setItem('autoLockDelay', autoLockDelay);
+                        resetInactivityTimer();
+                        console.log(`Auto-lock delay set to ${autoLockDelay}ms`);
+                    });
+                }
             }
 
             // Show/hide auto-lock settings based on toggle
             if (autoLockSettings) {
                 autoLockSettings.style.display = autoLockEnabled ? 'block' : 'none';
             }
+
+            // Mark as initialized after first run
+            phase1SettingsInitialized = true;
         }
 
         // ============================================
