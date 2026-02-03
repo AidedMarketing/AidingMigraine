@@ -5011,43 +5011,62 @@
         }
 
         function initializeSettings() {
-            updateStorageInfo();
+            // CRITICAL FIX: Wrap in try-catch to prevent initialization failures
+            // Settings DOM elements don't exist until settings page is shown
+            try {
+                // Helper function to safely add event listeners
+                const safeAddListener = (elementId, event, handler) => {
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        element.addEventListener(event, handler);
+                    } else {
+                        console.warn(`⚠️ Element not found during initialization: ${elementId}`);
+                    }
+                };
 
-            document.getElementById('export-json-btn').addEventListener('click', exportJSON);
+                // Only update storage info if elements exist
+                const storageEpisodesElem = document.getElementById('storage-episodes');
+                if (storageEpisodesElem) {
+                    updateStorageInfo();
+                }
 
-            document.getElementById('export-csv-btn').addEventListener('click', exportCSV);
+                // Safely add all event listeners
+                safeAddListener('export-json-btn', 'click', exportJSON);
+                safeAddListener('export-csv-btn', 'click', exportCSV);
+                safeAddListener('export-pdf-btn', 'click', showPDFDateRangeModal);
 
-            document.getElementById('export-pdf-btn').addEventListener('click', showPDFDateRangeModal);
+                safeAddListener('import-json-btn', 'click', () => {
+                    document.getElementById('import-file-input')?.click();
+                });
 
-            document.getElementById('import-json-btn').addEventListener('click', () => {
-                document.getElementById('import-file-input').click();
-            });
+                safeAddListener('import-csv-btn', 'click', () => {
+                    document.getElementById('import-csv-input')?.click();
+                });
 
-            document.getElementById('import-csv-btn').addEventListener('click', () => {
-                document.getElementById('import-csv-input').click();
-            });
+                safeAddListener('import-file-input', 'change', handleImport);
+                safeAddListener('import-csv-input', 'change', handleCSVImport);
+                safeAddListener('view-trash-btn', 'click', viewTrash);
 
-            document.getElementById('import-file-input').addEventListener('change', handleImport);
+                safeAddListener('tour-btn', 'click', () => {
+                    showPage('log');
+                    setTimeout(() => {
+                        startGuidedTour();
+                    }, 400);
+                });
 
-            document.getElementById('import-csv-input').addEventListener('change', handleCSVImport);
+                safeAddListener('how-to-btn', 'click', showHowTo);
+                safeAddListener('about-btn', 'click', showAbout);
+                safeAddListener('privacy-btn', 'click', showPrivacy);
+                safeAddListener('clear-all-btn', 'click', clearAllData);
 
-            document.getElementById('view-trash-btn').addEventListener('click', viewTrash);
+                // Initialize hidden debug mode (will handle missing elements gracefully)
+                initializeDebugMode();
 
-            document.getElementById('tour-btn').addEventListener('click', () => {
-                showPage('log');
-                setTimeout(() => {
-                    startGuidedTour();
-                }, 400);
-            });
-
-            document.getElementById('how-to-btn').addEventListener('click', showHowTo);
-            document.getElementById('about-btn').addEventListener('click', showAbout);
-            document.getElementById('privacy-btn').addEventListener('click', showPrivacy);
-
-            document.getElementById('clear-all-btn').addEventListener('click', clearAllData);
-
-            // Initialize hidden debug mode (tap version 7 times)
-            initializeDebugMode();
+                console.log('✅ Settings initialization completed (deferred mode)');
+            } catch (error) {
+                console.error('❌ Error in initializeSettings:', error);
+                // Don't throw - allow app initialization to continue
+            }
         }
 
         // ============================================
@@ -5187,26 +5206,42 @@ Browser: ${navigator.userAgent}
         }
 
         function updateStorageInfo() {
-            const activeMigraines = getActiveMigraines();
-            const deletedMigraines = getDeletedMigraines();
-            const episodes = activeMigraines.length;
-            const dataStr = JSON.stringify(migraines);
-            const sizeBytes = new Blob([dataStr]).size;
-            const sizeKB = (sizeBytes / 1024).toFixed(2);
-            const lastBackup = localStorage.getItem('lastBackup') || 'Never';
+            try {
+                const activeMigraines = getActiveMigraines();
+                const deletedMigraines = getDeletedMigraines();
+                const episodes = activeMigraines.length;
+                const dataStr = JSON.stringify(migraines);
+                const sizeBytes = new Blob([dataStr]).size;
+                const sizeKB = (sizeBytes / 1024).toFixed(2);
+                const lastBackup = localStorage.getItem('lastBackup') || 'Never';
 
-            document.getElementById('storage-episodes').textContent = episodes;
-            document.getElementById('storage-size').textContent = `${sizeKB} KB`;
-            document.getElementById('last-backup').textContent = lastBackup;
+                // CRITICAL FIX: Add defensive checks for DOM elements
+                const storageEpisodesElem = document.getElementById('storage-episodes');
+                const storageSizeElem = document.getElementById('storage-size');
+                const lastBackupElem = document.getElementById('last-backup');
 
-            const trashCount = document.getElementById('trash-count');
-            const trashSubtitle = document.getElementById('trash-subtitle');
-            if (trashCount) {
-                trashCount.textContent = deletedMigraines.length;
-            }
-            if (trashSubtitle) {
-                const itemText = deletedMigraines.length === 1 ? 'item' : 'items';
-                trashSubtitle.textContent = `${deletedMigraines.length} ${itemText}`;
+                if (storageEpisodesElem) {
+                    storageEpisodesElem.textContent = episodes;
+                }
+                if (storageSizeElem) {
+                    storageSizeElem.textContent = `${sizeKB} KB`;
+                }
+                if (lastBackupElem) {
+                    lastBackupElem.textContent = lastBackup;
+                }
+
+                const trashCount = document.getElementById('trash-count');
+                const trashSubtitle = document.getElementById('trash-subtitle');
+                if (trashCount) {
+                    trashCount.textContent = deletedMigraines.length;
+                }
+                if (trashSubtitle) {
+                    const itemText = deletedMigraines.length === 1 ? 'item' : 'items';
+                    trashSubtitle.textContent = `${deletedMigraines.length} ${itemText}`;
+                }
+            } catch (error) {
+                console.error('❌ Error in updateStorageInfo:', error);
+                // Don't throw - allow operation to continue
             }
         }
 
