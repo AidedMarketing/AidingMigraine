@@ -1,0 +1,276 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, 'claude/**' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-pwa:
+    name: Validate PWA Components
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install -g html-validator-cli jsonlint
+
+      - name: Validate HTML syntax
+        run: |
+          echo "Validating index.html..."
+          node -e "
+          const fs = require('fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+
+          // Check for basic HTML structure
+          if (!html.includes('<!DOCTYPE html>')) {
+            console.error('❌ Missing DOCTYPE declaration');
+            process.exit(1);
+          }
+          if (!html.includes('<html')) {
+            console.error('❌ Missing HTML tag');
+            process.exit(1);
+          }
+          if (!html.includes('</html>')) {
+            console.error('❌ Missing closing HTML tag');
+            process.exit(1);
+          }
+
+          console.log('✅ HTML structure is valid');
+          "
+
+      - name: Validate JavaScript syntax
+        run: |
+          echo "Validating service-worker.js..."
+          node -c service-worker.js
+          echo "✅ Service worker syntax is valid"
+
+          echo "Validating inline JavaScript..."
+          node -e "
+          const fs = require('fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const scriptRegex = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+          let match;
+          let scriptNum = 0;
+          let hasError = false;
+
+          while ((match = scriptRegex.exec(html)) !== null) {
+            scriptNum++;
+            const script = match[1];
+
+            // Skip empty scripts
+            if (!script.trim()) continue;
+
+            // Write to temp file and check syntax
+            const tempFile = '/tmp/temp-script-' + scriptNum + '.js';
+            fs.writeFileSync(tempFile, script);
+
+            try {
+              require('child_process').execSync('node -c ' + tempFile, { stdio: 'pipe' });
+              console.log('✅ Script block ' + scriptNum + ' is valid');
+            } catch (e) {
+              console.error('❌ Script block ' + scriptNum + ' has syntax errors');
+              console.error(e.stderr.toString());
+              hasError = true;
+            }
+          }
+
+          if (hasError) process.exit(1);
+          console.log('✅ All inline JavaScript is valid');
+          "
+
+      - name: Validate PWA manifest
+        run: |
+          echo "Validating manifest.json..."
+          node -e "
+          const fs = require('fs');
+
+          // Check if manifest exists
+          if (!fs.existsSync('manifest.json')) {
+            console.error('❌ manifest.json not found');
+            process.exit(1);
+          }
+
+          // Parse and validate manifest
+          let manifest;
+          try {
+            manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+          } catch (e) {
+            console.error('❌ manifest.json is not valid JSON');
+            console.error(e.message);
+            process.exit(1);
+          }
+
+          // Check required fields
+          const requiredFields = ['name', 'short_name', 'start_url', 'display'];
+          const missingFields = requiredFields.filter(field => !manifest[field]);
+
+          if (missingFields.length > 0) {
+            console.error('❌ Missing required fields in manifest.json:', missingFields.join(', '));
+            process.exit(1);
+          }
+
+          // Check icons
+          if (!manifest.icons || manifest.icons.length === 0) {
+            console.warn('⚠️  Warning: No icons defined in manifest.json');
+          }
+
+          console.log('✅ manifest.json is valid');
+          console.log('   Name:', manifest.name);
+          console.log('   Display:', manifest.display);
+          console.log('   Icons:', manifest.icons ? manifest.icons.length : 0);
+          "
+
+      - name: Validate Service Worker registration
+        run: |
+          echo "Checking service worker registration in HTML..."
+          node -e "
+          const fs = require('fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+
+          // Check if service worker is registered
+          if (!html.includes('serviceWorker.register')) {
+            console.error('❌ No service worker registration found in index.html');
+            process.exit(1);
+          }
+
+          // Check if service worker file is referenced
+          if (!html.includes('service-worker.js')) {
+            console.error('❌ service-worker.js not referenced in index.html');
+            process.exit(1);
+          }
+
+          console.log('✅ Service worker is properly registered');
+          "
+
+      - name: Check PWA requirements
+        run: |
+          echo "Checking PWA requirements..."
+          node -e "
+          const fs = require('fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+
+          let issues = [];
+          let warnings = [];
+
+          // Check for manifest link
+          if (!html.includes('manifest.json')) {
+            issues.push('❌ manifest.json not linked in HTML');
+          }
+
+          // Check for viewport meta tag
+          if (!html.includes('viewport')) {
+            issues.push('❌ Missing viewport meta tag');
+          }
+
+          // Check for theme color
+          if (!html.includes('theme-color')) {
+            warnings.push('⚠️  Missing theme-color meta tag');
+          }
+
+          // Check for icons
+          if (!html.includes('apple-touch-icon')) {
+            warnings.push('⚠️  Missing apple-touch-icon for iOS');
+          }
+
+          // Check for HTTPS requirement note
+          if (!fs.existsSync('service-worker.js')) {
+            issues.push('❌ service-worker.js file not found');
+          }
+
+          if (issues.length > 0) {
+            console.error('PWA Requirements Failed:');
+            issues.forEach(issue => console.error('  ' + issue));
+            process.exit(1);
+          }
+
+          if (warnings.length > 0) {
+            console.warn('PWA Warnings:');
+            warnings.forEach(warning => console.warn('  ' + warning));
+          }
+
+          console.log('✅ PWA requirements met');
+          "
+
+      - name: Validate notification server
+        working-directory: notification-server
+        run: |
+          if [ -f "package.json" ]; then
+            echo "Validating notification server package.json..."
+            node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+
+            if (!pkg.scripts || !pkg.scripts.start) {
+              console.error('❌ Missing start script in notification-server/package.json');
+              process.exit(1);
+            }
+
+            console.log('✅ Notification server configuration is valid');
+            "
+
+            if [ -f "index.js" ]; then
+              echo "Validating notification server code..."
+              node -c index.js
+              echo "✅ Notification server code syntax is valid"
+            fi
+          fi
+
+      - name: Check for common security issues
+        run: |
+          echo "Checking for security issues..."
+          node -e "
+          const fs = require('fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const sw = fs.readFileSync('service-worker.js', 'utf8');
+
+          let warnings = [];
+
+          // Check for inline event handlers (XSS risk)
+          if (html.match(/on(click|load|error|change|submit)=/i)) {
+            warnings.push('⚠️  Found inline event handlers - consider using addEventListener');
+          }
+
+          // Check for eval usage
+          if (html.includes('eval(') || sw.includes('eval(')) {
+            warnings.push('⚠️  Found eval() usage - potential security risk');
+          }
+
+          // Check for innerHTML with variables (potential XSS)
+          const innerHTMLMatches = html.match(/innerHTML\s*=\s*[^'\"]/g);
+          if (innerHTMLMatches && innerHTMLMatches.length > 0) {
+            warnings.push('⚠️  Found dynamic innerHTML assignments - verify XSS protection');
+          }
+
+          if (warnings.length > 0) {
+            console.warn('Security Warnings:');
+            warnings.forEach(warning => console.warn('  ' + warning));
+          } else {
+            console.log('✅ No obvious security issues detected');
+          }
+          "
+
+      - name: Summary
+        run: |
+          echo ""
+          echo "═══════════════════════════════════════════"
+          echo "✅ All PWA validation checks passed!"
+          echo "═══════════════════════════════════════════"
+          echo ""
+          echo "Validated:"
+          echo "  ✓ HTML structure and syntax"
+          echo "  ✓ JavaScript syntax (inline and external)"
+          echo "  ✓ PWA manifest configuration"
+          echo "  ✓ Service worker registration"
+          echo "  ✓ PWA requirements compliance"
+          echo "  ✓ Notification server configuration"
+          echo "  ✓ Security best practices"
+          echo ""
