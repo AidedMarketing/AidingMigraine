@@ -1552,8 +1552,17 @@
         }
 
         .loading-logo {
-            font-size: 64px;
-            margin-bottom: 20px;
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
             animation: pulse 2s ease-in-out infinite;
         }
 
@@ -1632,7 +1641,7 @@
     <!-- App Loading Screen -->
     <div id="app-loading-screen">
         <div class="loading-content">
-            <div class="loading-logo">🧠</div>
+            <div class="loading-logo">AM</div>
             <div class="loading-title">Aiding Migraine</div>
             <div class="loading-subtitle">Initializing your health tracker...</div>
             <div class="loading-spinner"></div>
