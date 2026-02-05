@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aiding Migraine - UI Redesign Mockups</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0c10;
+            color: #e8e6e3;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .mockup-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .mockup-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3a3f47;
+        }
+
+        .mockup-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #7ba68a;
+        }
+
+        .mockup-header p {
+            font-size: 1.1rem;
+            color: #c7c3bb;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .theme-btn {
+            padding: 12px 24px;
+            background: #252930;
+            border: 2px solid #3a3f47;
+            border-radius: 12px;
+            color: #e8e6e3;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-btn:hover {
+            border-color: #7ba68a;
+            transform: translateY(-2px);
+        }
+
+        .theme-btn.active {
+            background: #7ba68a;
+            border-color: #7ba68a;
+            color: #1a1d24;
+            font-weight: 600;
+        }
+
+        .comparison-section {
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #7ba68a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-description {
+            margin-bottom: 30px;
+            color: #c7c3bb;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .mockup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .mockup-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .mockup-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .mockup-label {
+            background: var(--bg-tertiary);
+            padding: 12px 20px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .label-badge {
+            background: #7ba68a;
+            color: #1a1d24;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .badge-old {
+            background: #c96868;
+        }
+
+        .mockup-content {
+            padding: 20px;
+        }
+
+        /* Phone mockup styles */
+        .phone-mockup {
+            background: var(--bg-primary);
+            border-radius: 24px;
+            padding: 16px;
+            max-width: 380px;
+            margin: 0 auto;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .phone-screen {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            overflow: hidden;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .phone-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 550px;
+        }
+
+        /* Navigation styles */
+        .nav-bar {
+            background: var(--bg-secondary);
+            border-top: 2px solid var(--border-color);
+            padding: 8px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            text-decoration: none;
+            color: var(--text-secondary);
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .nav-item.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-green);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .nav-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Button styles */
+        .btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-green);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: var(--bg-primary);
+            font-weight: 600;
+        }
+
+        .btn-icon {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* Section styles */
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .section-icon {
+            width: 20px;
+            height: 20px;
+            stroke: var(--accent-green);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* Input styles */
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+
+        /* Pain scale styles */
+        .pain-scale {
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .pain-scale-old {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .pain-btn {
+            padding: 12px 8px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .pain-btn:hover {
+            border-color: var(--accent-green);
+        }
+
+        .pain-btn.active {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        /* Relief method styles */
+        .relief-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .relief-btn {
+            padding: 14px;
+            border-radius: 10px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .relief-btn:hover {
+            border-color: var(--accent-green);
+            transform: translateY(-2px);
+        }
+
+        .relief-icon {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* Card styles */
+        .card {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .pain-indicator {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .pain-mild {
+            background: #7ba68a;
+            color: #1a1d24;
+        }
+
+        .pain-moderate {
+            background: #d4a574;
+            color: #1a1d24;
+        }
+
+        .pain-severe {
+            background: #c96868;
+            color: #1a1d24;
+        }
+
+        /* Theme variables */
+        :root {
+            --bg-primary: #1a1d24;
+            --bg-secondary: #252930;
+            --bg-tertiary: #2f3339;
+            --text-primary: #e8e6e3;
+            --text-secondary: #c7c3bb;
+            --border-color: #3a3f47;
+            --accent-green: #7ba68a;
+            --accent-red: #b87070;
+            --accent-blue: #6b8bb8;
+        }
+
+        [data-mockup-theme="warm-dark"] {
+            --bg-primary: #1c1815;
+            --bg-secondary: #2a2420;
+            --bg-tertiary: #362f28;
+            --text-primary: #ede8df;
+            --text-secondary: #cfc7b8;
+            --border-color: #4a4237;
+            --accent-green: #8fb394;
+            --accent-red: #c97a6f;
+            --accent-blue: #7a95b8;
+        }
+
+        [data-mockup-theme="cool-dark"] {
+            --bg-primary: #151a1f;
+            --bg-secondary: #1f2730;
+            --bg-tertiary: #293340;
+            --text-primary: #e3e9ed;
+            --text-secondary: #b8c5cf;
+            --border-color: #374250;
+            --accent-green: #6fa889;
+            --accent-red: #b06a6a;
+            --accent-blue: #5e87ba;
+        }
+
+        [data-mockup-theme="warm-light"] {
+            --bg-primary: #f8f6f3;
+            --bg-secondary: #fdfcfb;
+            --bg-tertiary: #f0ede8;
+            --text-primary: #3a3634;
+            --text-secondary: #6b6560;
+            --border-color: #d4cfc8;
+            --accent-green: #4a7c59;
+            --accent-red: #b85050;
+            --accent-blue: #4a6b9e;
+        }
+
+        [data-mockup-theme="cool-light"] {
+            --bg-primary: #f5f7f9;
+            --bg-secondary: #fcfdfe;
+            --bg-tertiary: #e8ecf0;
+            --text-primary: #2d3540;
+            --text-secondary: #5a6570;
+            --border-color: #cbd5e0;
+            --accent-green: #3d7a5d;
+            --accent-red: #b84d4d;
+            --accent-blue: #3d6199;
+        }
+
+        [data-mockup-theme="high-contrast"] {
+            --bg-primary: #000000;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #d0d0d0;
+            --border-color: #555555;
+            --accent-green: #00ff88;
+            --accent-red: #ff4444;
+            --accent-blue: #4488ff;
+        }
+
+        /* Collapsible sections */
+        .collapsible {
+            margin-bottom: 12px;
+        }
+
+        .collapsible-header {
+            background: var(--bg-tertiary);
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .collapsible-header:hover {
+            border-color: var(--accent-green);
+        }
+
+        .collapsible-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .collapsible-arrow {
+            width: 16px;
+            height: 16px;
+            stroke: var(--text-secondary);
+            stroke-width: 2;
+            fill: none;
+            transition: transform 0.2s ease;
+        }
+
+        .collapsible-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.open {
+            max-height: 600px;
+        }
+
+        .collapsible-inner {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            margin-top: -2px;
+        }
+
+        .emoji-example {
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .color-swatch {
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+        }
+
+        .color-block {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .color-label {
+            padding: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .mockup-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .theme-selector {
+                flex-direction: column;
+            }
+
+            .mockup-header h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        .info-box {
+            background: var(--bg-tertiary);
+            border-left: 4px solid var(--accent-green);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box strong {
+            color: var(--accent-green);
+        }
+    </style>
+</head>
+<body data-mockup-theme="current-dark">
+    <div class="mockup-container">
+        <div class="mockup-header">
+            <h1>Aiding Migraine - UI Redesign Mockups</h1>
+            <p>Migraine-friendly interface with reduced visual clutter and improved accessibility</p>
+        </div>
+
+        <div class="theme-selector">
+            <button class="theme-btn active" onclick="setTheme('current-dark')">Current Dark</button>
+            <button class="theme-btn" onclick="setTheme('warm-dark')">Warm Dark</button>
+            <button class="theme-btn" onclick="setTheme('cool-dark')">Cool Dark</button>
+            <button class="theme-btn" onclick="setTheme('warm-light')">Warm Light</button>
+            <button class="theme-btn" onclick="setTheme('cool-light')">Cool Light</button>
+            <button class="theme-btn" onclick="setTheme('high-contrast')">High Contrast</button>
+        </div>
+
+        <!-- Navigation Comparison -->
+        <div class="comparison-section">
+            <h2 class="section-title">1. Navigation Redesign</h2>
+            <p class="section-description">Replacing emoji-heavy navigation with clean icons + text labels for better clarity and screen reader support.</p>
+
+            <div class="mockup-grid">
+                <div class="mockup-card">
+                    <div class="mockup-label">
+                        <span>Current Design</span>
+                        <span class="label-badge badge-old">OLD</span>
+                    </div>
+                    <div class="mockup-content">
+                        <div class="nav-bar">
+                            <div class="nav-item active">
+                                <div class="emoji-example" style="padding: 4px; font-size: 1.3rem;">📝</div>
+                                <span class="nav-label">Log</span>
+                            </div>
+                            <div class="nav-item">
+                                <div class="emoji-example" style="padding: 4px; font-size: 1.3rem;">📊</div>
+                                <span class="nav-label">Analytics</span>
+                            </div>
+                            <div class="nav-item">
+                                <div class="emoji-example" style="padding: 4px; font-size: 1.3rem;">📅</div>
+                                <span class="nav-label">History</span>
+                            </div>
+                            <div class="nav-item">
+                                <div class="emoji-example" style="padding: 4px; font-size: 1.3rem;">⚙️</div>
+                                <span class="nav-label">Settings</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <div class="mockup-label">
+                        <span>Proposed Design</span>
+                        <span class="label-badge">NEW</span>
+                    </div>
+                    <div class="mockup-content">
+                        <div class="nav-bar">
+                            <div class="nav-item active">
+                                <svg class="nav-icon" viewBox="0 0 24 24">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                                <span class="nav-label">Log</span>
+                            </div>
+                            <div class="nav-item">
+                                <svg class="nav-icon" viewBox="0 0 24 24">
+                                    <path d="M18 20V10"></path>
+                                    <path d="M12 20V4"></path>
+                                    <path d="M6 20v-6"></path>
+                                </svg>
+                                <span class="nav-label">Analytics</span>
+                            </div>
+                            <div class="nav-item">
+                                <svg class="nav-icon" viewBox="0 0 24 24">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <span class="nav-label">History</span>
+                            </div>
+                            <div class="nav-item">
+                                <svg class="nav-icon" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M12 1v6m0 6v6m8.66-13.66l-4.24 4.24M9.76 14.24l-4.24 4.24M23 12h-6m-6 0H1m17.66 8.66l-4.24-4.24M9.76 9.76L5.52 5.52"></path>
+                                </svg>
+                                <span class="nav-label">Settings</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Page Comparison -->
+        <div class="comparison-section">
+            <h2 class="section-title">2. Log Page Redesign</h2>
+            <p class="section-description">Simplified layout with collapsible sections to reduce visual overwhelm and button clutter.</p>
+
+            <div class="mockup-grid">
+                <div class="mockup-card">
+                    <div class="mockup-label">
+                        <span>Current Design</span>
+                        <span class="label-badge badge-old">OLD</span>
+                    </div>
+                    <div class="mockup-content">
+                        <div class="phone-mockup">
+                            <div class="phone-screen">
+                                <div class="phone-content">
+                                    <div class="section">
+                                        <div class="section-header">
+                                            <span class="emoji-example" style="padding: 0; margin: 0; font-size: 1.2rem;">⚡</span>
+                                            <span>Pain Intensity</span>
+                                        </div>
+                                        <div class="pain-scale-old">
+                                            <button class="pain-btn">0</button>
+                                            <button class="pain-btn">1</button>
+                                            <button class="pain-btn">2</button>
+                                            <button class="pain-btn">3</button>
+                                            <button class="pain-btn">4</button>
+                                            <button class="pain-btn">5</button>
+                                            <button class="pain-btn active">6</button>
+                                            <button class="pain-btn">7</button>
+                                            <button class="pain-btn">8</button>
+                                            <button class="pain-btn">9</button>
+                                            <button class="pain-btn">10</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="section">
+                                        <div class="section-header">
+                                            <span class="emoji-example" style="padding: 0; margin: 0; font-size: 1.2rem;">💊</span>
+                                            <span>Quick Relief</span>
+                                        </div>
+                                        <div class="relief-grid">
+                                            <button class="relief-btn">💊 Medication</button>
+                                            <button class="relief-btn">🧊 Ice Pack</button>
+                                            <button class="relief-btn">🌑 Dark Room</button>
+                                            <button class="relief-btn">☕ Caffeine</button>
+                                            <button class="relief-btn">😴 Sleep</button>
+                                            <button class="relief-btn">💧 Hydration</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="section">
+                                        <div class="section-header">
+                                            <span class="emoji-example" style="padding: 0; margin: 0; font-size: 1.2rem;">📝</span>
+                                            <span>Notes</span>
+                                        </div>
+                                        <textarea class="input" rows="3" placeholder="Add notes..."></textarea>
+                                    </div>
+
+                                    <button class="btn btn-primary" style="width: 100%;">
+                                        <span>✓ Save Episode</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <div class="mockup-label">
+                        <span>Proposed Design</span>
+                        <span class="label-badge">NEW</span>
+                    </div>
+                    <div class="mockup-content">
+                        <div class="phone-mockup">
+                            <div class="phone-screen">
+                                <div class="phone-content">
+                                    <div class="section">
+                                        <div class="input-group">
+                                            <label class="input-label">Pain Intensity</label>
+                                            <select class="input">
+                                                <option>0 - No pain</option>
+                                                <option>1 - Minimal</option>
+                                                <option>2 - Mild</option>
+                                                <option>3 - Noticeable</option>
+                                                <option>4 - Moderate</option>
+                                                <option>5 - Distracting</option>
+                                                <option selected>6 - Significant</option>
+                                                <option>7 - Very distressing</option>
+                                                <option>8 - Intense</option>
+                                                <option>9 - Severe</option>
+                                                <option>10 - Unable to function</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="collapsible">
+                                        <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                                            <div class="collapsible-title">
+                                                <svg class="section-icon" viewBox="0 0 24 24">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                                </svg>
+                                                <span>Relief Methods</span>
+                                            </div>
+                                            <svg class="collapsible-arrow" viewBox="0 0 24 24">
+                                                <polyline points="6 9 12 15 18 9"></polyline>
+                                            </svg>
+                                        </div>
+                                        <div class="collapsible-content">
+                                            <div class="collapsible-inner">
+                                                <div class="relief-grid">
+                                                    <button class="relief-btn">
+                                                        <svg class="relief-icon" viewBox="0 0 24 24">
+                                                            <circle cx="12" cy="12" r="10"></circle>
+                                                            <circle cx="12" cy="12" r="3"></circle>
+                                                        </svg>
+                                                        Medication
+                                                    </button>
+                                                    <button class="relief-btn">
+                                                        <svg class="relief-icon" viewBox="0 0 24 24">
+                                                            <path d="M12 2v20M17 7l-10 10M7 7l10 10"></path>
+                                                        </svg>
+                                                        Ice Pack
+                                                    </button>
+                                                    <button class="relief-btn">
+                                                        <svg class="relief-icon" viewBox="0 0 24 24">
+                                                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                                        </svg>
+                                                        Dark Room
+                                                    </button>
+                                                    <button class="relief-btn">
+                                                        <svg class="relief-icon" viewBox="0 0 24 24">
+                                                            <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                                            <line x1="6" y1="1" x2="6" y2="4"></line>
+                                                            <line x1="10" y1="1" x2="10" y2="4"></line>
+                                                            <line x1="14" y1="1" x2="14" y2="4"></line>
+                                                        </svg>
+                                                        Caffeine
+                                                    </button>
+                                                    <button class="relief-btn">
+                                                        <svg class="relief-icon" viewBox="0 0 24 24">
+                                                            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                                                        </svg>
+                                                        Sleep
+                                                    </button>
+                                                    <button class="relief-btn">
+                                                        <svg class="relief-icon" viewBox="0 0 24 24">
+                                                            <path d="M7 16.5c2.5 1.5 6.5 1.5 9 0M12 3v1m0 16v1m9-9h-1M3 12H2m16.5-6.5l-.7.7M6.2 17.8l-.7.7m12.5 0l.7-.7M6.2 6.2l.7-.7"></path>
+                                                        </svg>
+                                                        Hydration
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="collapsible">
+                                        <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                                            <div class="collapsible-title">
+                                                <svg class="section-icon" viewBox="0 0 24 24">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                                </svg>
+                                                <span>Notes</span>
+                                            </div>
+                                            <svg class="collapsible-arrow" viewBox="0 0 24 24">
+                                                <polyline points="6 9 12 15 18 9"></polyline>
+                                            </svg>
+                                        </div>
+                                        <div class="collapsible-content">
+                                            <div class="collapsible-inner">
+                                                <textarea class="input" rows="3" placeholder="Add notes about this episode..."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+                                        <svg class="btn-icon" viewBox="0 0 24 24">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                        Save Episode
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Key Improvements:</strong><br>
+                • Pain scale reduced from 11 buttons to single dropdown (easier to use with migraine)<br>
+                • Relief methods hidden in collapsible section (less visual clutter)<br>
+                • Clean SVG icons replace emojis (consistent rendering, better accessibility)<br>
+                • Larger touch targets with better spacing<br>
+                • Progressive disclosure reduces cognitive load
+            </div>
+        </div>
+
+        <!-- History Page Comparison -->
+        <div class="comparison-section">
+            <h2 class="section-title">3. History Cards Redesign</h2>
+            <p class="section-description">Cleaner episode cards with better information hierarchy and reduced emoji usage.</p>
+
+            <div class="mockup-grid">
+                <div class="mockup-card">
+                    <div class="mockup-label">
+                        <span>Current Design</span>
+                        <span class="label-badge badge-old">OLD</span>
+                    </div>
+                    <div class="mockup-content">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">⚡ Active Episode</div>
+                                    <div class="card-meta">Started 2h 34m ago</div>
+                                </div>
+                                <span class="pain-indicator pain-moderate">Pain: 6</span>
+                            </div>
+                            <div style="margin-top: 12px; font-size: 0.9rem; color: var(--text-secondary);">
+                                💊 Ibuprofen (400mg)<br>
+                                🧊 Ice Pack<br>
+                                📝 Stress-related, bright office lights
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">🏁 Feb 3, 2026</div>
+                                    <div class="card-meta">Duration: 4h 12m</div>
+                                </div>
+                                <span class="pain-indicator pain-severe">Pain: 8</span>
+                            </div>
+                            <div style="margin-top: 12px; font-size: 0.9rem; color: var(--text-secondary);">
+                                💊 Sumatriptan (50mg)<br>
+                                🌑 Dark Room • 😴 Sleep<br>
+                                📝 Possible weather trigger
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <div class="mockup-label">
+                        <span>Proposed Design</span>
+                        <span class="label-badge">NEW</span>
+                    </div>
+                    <div class="mockup-content">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                                        <svg style="width: 18px; height: 18px; stroke: var(--accent-green); fill: none; stroke-width: 2;" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                        </svg>
+                                        Active Episode
+                                    </div>
+                                    <div class="card-meta">Started 2h 34m ago</div>
+                                </div>
+                                <span class="pain-indicator pain-moderate">Pain 6</span>
+                            </div>
+                            <div style="margin-top: 12px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <svg style="width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2;" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    Ibuprofen (400mg)
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <svg style="width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2;" viewBox="0 0 24 24">
+                                        <path d="M12 2v20M17 7l-10 10M7 7l10 10"></path>
+                                    </svg>
+                                    Ice Pack
+                                </div>
+                                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                    <svg style="width: 14px; height: 14px; margin-top: 2px; stroke: currentColor; fill: none; stroke-width: 2;" viewBox="0 0 24 24">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                    </svg>
+                                    Stress-related, bright office lights
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                                        <svg style="width: 18px; height: 18px; stroke: var(--text-secondary); fill: none; stroke-width: 2;" viewBox="0 0 24 24">
+                                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                        </svg>
+                                        Feb 3, 2026
+                                    </div>
+                                    <div class="card-meta">Duration: 4h 12m</div>
+                                </div>
+                                <span class="pain-indicator pain-severe">Pain 8</span>
+                            </div>
+                            <div style="margin-top: 12px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <svg style="width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2;" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    Sumatriptan (50mg)
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <svg style="width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2;" viewBox="0 0 24 24">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                    </svg>
+                                    Dark Room
+                                    <span style="margin: 0 4px;">•</span>
+                                    <svg style="width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2;" viewBox="0 0 24 24">
+                                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                                    </svg>
+                                    Sleep
+                                </div>
+                                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                    <svg style="width: 14px; height: 14px; margin-top: 2px; stroke: currentColor; fill: none; stroke-width: 2;" viewBox="0 0 24 24">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                    </svg>
+                                    Possible weather trigger
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Palette Section -->
+        <div class="comparison-section">
+            <h2 class="section-title">4. Color Palette Exploration</h2>
+            <p class="section-description">Use the theme selector above to preview different color variations. All maintain migraine-friendly contrast and muted tones.</p>
+
+            <div class="color-palette">
+                <div class="color-swatch">
+                    <div class="color-block" style="background: var(--bg-primary); color: var(--text-primary);">Primary BG</div>
+                    <div class="color-label">Background</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-block" style="background: var(--bg-secondary); color: var(--text-primary);">Secondary BG</div>
+                    <div class="color-label">Cards</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-block" style="background: var(--bg-tertiary); color: var(--text-primary);">Tertiary BG</div>
+                    <div class="color-label">Buttons</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-block" style="background: var(--accent-green); color: var(--bg-primary);">Accent Green</div>
+                    <div class="color-label">Primary Action</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-block" style="background: var(--accent-red); color: var(--bg-primary);">Accent Red</div>
+                    <div class="color-label">Severe Pain</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-block" style="background: var(--accent-blue); color: var(--bg-primary);">Accent Blue</div>
+                    <div class="color-label">Info</div>
+                </div>
+            </div>
+
+            <div class="info-box" style="margin-top: 30px;">
+                <strong>Theme Recommendations:</strong><br>
+                • <strong>Warm Dark:</strong> Best for evening use, reduces blue light, very comfortable for extended viewing<br>
+                • <strong>Cool Dark:</strong> Professional feel, slightly higher contrast than warm<br>
+                • <strong>Warm Light:</strong> Daytime use, soft and easy on eyes (no harsh whites)<br>
+                • <strong>Cool Light:</strong> Clean and clinical, good for bright environments<br>
+                • <strong>High Contrast:</strong> For users with visual impairments or severe light sensitivity (accessibility mode)
+            </div>
+        </div>
+
+        <!-- Icon Library -->
+        <div class="comparison-section">
+            <h2 class="section-title">5. Proposed Icon Set</h2>
+            <p class="section-description">Minimal, consistent Feather-style icons to replace all emojis.</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Log/Edit</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <path d="M18 20V10"></path>
+                        <path d="M12 20V4"></path>
+                        <path d="M6 20v-6"></path>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Analytics</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Calendar</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m8.66-13.66l-4.24 4.24M9.76 14.24l-4.24 4.24M23 12h-6m-6 0H1m17.66 8.66l-4.24-4.24M9.76 9.76L5.52 5.52"></path>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Settings</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Medication</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <path d="M12 2v20M17 7l-10 10M7 7l10 10"></path>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Ice Pack</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Dark Room</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                        <line x1="6" y1="1" x2="6" y2="4"></line>
+                        <line x1="10" y1="1" x2="10" y2="4"></line>
+                        <line x1="14" y1="1" x2="14" y2="4"></line>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Caffeine</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Sleep</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <path d="M7 16.5c2.5 1.5 6.5 1.5 9 0M12 3v1m0 16v1m9-9h-1M3 12H2m16.5-6.5l-.7.7M6.2 17.8l-.7.7m12.5 0l.7-.7M6.2 6.2l.7-.7"></path>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Hydration</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Notes</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Active</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Complete</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Help</div>
+                </div>
+                <div style="text-align: center;">
+                    <svg style="width: 32px; height: 32px; stroke: var(--accent-green); fill: none; stroke-width: 2; margin: 0 auto 8px;" viewBox="0 0 24 24">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Resolved</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 60px; padding: 30px; background: var(--bg-secondary); border-radius: 16px; border: 2px solid var(--accent-green);">
+            <h3 style="color: var(--accent-green); margin-bottom: 16px; font-size: 1.5rem;">Summary of Changes</h3>
+            <ul style="line-height: 2; color: var(--text-secondary); margin-left: 20px;">
+                <li><strong>Remove all emojis</strong> and replace with minimal SVG icons + text labels</li>
+                <li><strong>Simplify Log page</strong> with dropdown pain scale and collapsible sections</li>
+                <li><strong>Reduce button count</strong> by ~40% through progressive disclosure</li>
+                <li><strong>Offer 6 theme options</strong>: Warm Dark, Cool Dark, Warm Light, Cool Light, High Contrast, Current</li>
+                <li><strong>Improve accessibility</strong> with proper ARIA labels and semantic HTML</li>
+                <li><strong>Increase white space</strong> throughout for reduced cognitive load</li>
+                <li><strong>Consistent icon library</strong> (Feather-style) across entire app</li>
+                <li><strong>Larger font sizes</strong> (16-18px minimum) for easier reading</li>
+                <li><strong>Better information hierarchy</strong> in history cards and analytics</li>
+                <li><strong>No pure white/black</strong> - all colors muted for eye comfort</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function setTheme(theme) {
+            document.body.setAttribute('data-mockup-theme', theme);
+
+            // Update button states
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function toggleCollapsible(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('.collapsible-arrow');
+
+            content.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
+    </script>
+</body>
+</html>
