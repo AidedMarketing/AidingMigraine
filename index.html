@@ -7,7 +7,7 @@
 
     <!-- PWA Configuration -->
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#7ba68a">
+    <meta name="theme-color" content="#8fb394">
     <meta name="description" content="Track and manage your migraine symptoms with ease">
 
     <!-- iOS PWA Support -->
@@ -31,20 +31,20 @@
            AIDING MIGRAINE v3.2.1 - BUG FIXES
            ============================================ */
 
-        /* === ROOT VARIABLES (DARK - DEFAULT) === */
+        /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
         :root {
-            --bg-primary: #1a1d24;
-            --bg-secondary: #252930;
-            --bg-tertiary: #2f3339;
-            --text-primary: #e8e6e3;
-            --text-secondary: #c7c3bb;
-            --border-color: #3a3f47;
-            --accent-green: #7ba68a;
-            --accent-red: #c96868;
-            --accent-blue: #6b8bb8;
-            --pain-mild: #7ba68a;
+            --bg-primary: #1c1815;
+            --bg-secondary: #2a2420;
+            --bg-tertiary: #362f28;
+            --text-primary: #ede8df;
+            --text-secondary: #cfc7b8;
+            --border-color: #4a4237;
+            --accent-green: #8fb394;
+            --accent-red: #c97a6f;
+            --accent-blue: #7a95b8;
+            --pain-mild: #8fb394;
             --pain-moderate: #d4a574;
-            --pain-severe: #c96868;
+            --pain-severe: #c97a6f;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             --radius: 12px;
             --transition: all 0.2s ease;
@@ -146,7 +146,7 @@
             padding: 24px;
             margin-bottom: 20px;
             box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
         }
 
         .active-episode-card {
@@ -226,16 +226,15 @@
             margin-bottom: 8px;
             font-weight: 500;
             color: var(--text-primary);
-            text-align: center;
         }
 
         input[type="text"],
         textarea {
             width: 100%;
-            padding: 12px;
+            padding: 12px 16px;
             background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
             color: var(--text-primary);
             font-size: 1rem;
             font-family: inherit;
@@ -246,6 +245,7 @@
         textarea:focus {
             outline: none;
             border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(143, 179, 148, 0.1);
         }
 
         textarea {
@@ -253,6 +253,44 @@
             min-height: 80px;
         }
 
+        /* Pain Dropdown (replaces button grid) */
+        .pain-dropdown {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23cfc7b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 44px;
+        }
+
+        .pain-dropdown:hover {
+            border-color: var(--accent-green);
+        }
+
+        .pain-dropdown:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(143, 179, 148, 0.1);
+        }
+
+        .pain-dropdown option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 12px;
+        }
+
+        /* Legacy pain scale styles (kept for modals/editing) */
         .pain-scale {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -295,28 +333,58 @@
             margin-top: 4px;
         }
 
+        /* SVG Icon Styles */
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
+
+        .icon-md {
+            width: 20px;
+            height: 20px;
+        }
+
+        .icon-lg {
+            width: 24px;
+            height: 24px;
+        }
+
         .optional-details {
             margin: 20px 0;
         }
 
         .toggle-details-btn {
             width: 100%;
-            padding: 12px;
+            padding: 14px 16px;
             background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
             color: var(--text-primary);
             font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
             text-align: left;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 8px;
         }
 
         .toggle-details-btn:hover {
-            background: var(--bg-secondary);
+            border-color: var(--accent-green);
         }
 
         #details-arrow {
@@ -324,7 +392,7 @@
         }
 
         #details-arrow.rotated {
-            transform: rotate(-90deg);
+            transform: rotate(180deg);
         }
 
         .optional-details-content {
@@ -334,21 +402,24 @@
         .btn {
             padding: 14px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
             width: 100%;
+            font-family: inherit;
         }
 
         .btn-primary {
             background: var(--accent-green);
-            color: white;
+            color: var(--bg-primary);
+            border: 2px solid var(--accent-green);
         }
 
         .btn-primary:hover {
-            background: #6a957a;
+            background: #a5c5ad;
+            border-color: #a5c5ad;
             transform: translateY(-2px);
             box-shadow: var(--shadow);
         }
@@ -356,11 +427,12 @@
         .btn-secondary {
             background: var(--bg-tertiary);
             color: var(--text-primary);
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
         }
 
         .btn-secondary:hover {
-            background: var(--bg-secondary);
+            border-color: var(--accent-green);
+            transform: translateY(-2px);
         }
 
         .action-buttons {
@@ -1717,7 +1789,9 @@
             <div id="active-episode-section" style="display: none;">
                 <div class="active-episode-card">
                     <div class="active-header">
-                        <span class="pulse-indicator">⚡</span>
+                        <svg class="icon icon-lg pulse-indicator" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>
                         <h2>Active Episode</h2>
                     </div>
                     <div class="active-stats">
@@ -1745,8 +1819,12 @@
 
                     <!-- Add Relief Method Section -->
                     <div id="add-relief-section" style="margin: 20px 0;">
-                        <button id="add-relief-btn" class="btn btn-secondary" style="width: 100%; margin-bottom: 12px;">
-                            <span>➕ Add Relief Method</span>
+                        <button id="add-relief-btn" class="btn btn-secondary" style="width: 100%; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Add Relief Method</span>
                         </button>
 
                         <!-- Expandable Relief Method Input -->
@@ -1756,27 +1834,43 @@
                             <!-- Quick Action Buttons -->
                             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px;">
                                 <button class="relief-quick-btn" data-relief="Medication" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">💊</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
                                     <span>Medication</span>
                                 </button>
                                 <button class="relief-quick-btn" data-relief="Ice/Cold Therapy" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">🧊</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <path d="M12 2v20M17 7l-10 10M7 7l10 10"></path>
+                                    </svg>
                                     <span>Ice/Cold</span>
                                 </button>
                                 <button class="relief-quick-btn" data-relief="Hydration/Electrolytes" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">💧</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <path d="M7 16.5c2.5 1.5 6.5 1.5 9 0M12 3v1m0 16v1m9-9h-1M3 12H2m16.5-6.5l-.7.7M6.2 17.8l-.7.7m12.5 0l.7-.7M6.2 6.2l.7-.7"></path>
+                                    </svg>
                                     <span>Hydration</span>
                                 </button>
                                 <button class="relief-quick-btn" data-relief="Dark/Quiet Room" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">🌑</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                    </svg>
                                     <span>Dark/Quiet</span>
                                 </button>
                                 <button class="relief-quick-btn" data-relief="Rest/Sleep" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">😴</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                                    </svg>
                                     <span>Rest/Sleep</span>
                                 </button>
                                 <button class="relief-quick-btn" data-relief="Caffeine" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">☕</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                        <line x1="6" y1="1" x2="6" y2="4"></line>
+                                        <line x1="10" y1="1" x2="10" y2="4"></line>
+                                        <line x1="14" y1="1" x2="14" y2="4"></line>
+                                    </svg>
                                     <span>Caffeine</span>
                                 </button>
                             </div>
@@ -1827,33 +1921,48 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Pain Intensity</label>
-                        <div class="pain-scale">
-                            <button class="pain-btn" data-pain="0">0</button>
-                            <button class="pain-btn" data-pain="1">1</button>
-                            <button class="pain-btn" data-pain="2">2</button>
-                            <button class="pain-btn" data-pain="3">3</button>
-                            <button class="pain-btn" data-pain="4">4</button>
-                            <button class="pain-btn" data-pain="5">5</button>
-                            <button class="pain-btn" data-pain="6">6</button>
-                            <button class="pain-btn" data-pain="7">7</button>
-                            <button class="pain-btn" data-pain="8">8</button>
-                            <button class="pain-btn" data-pain="9">9</button>
-                            <button class="pain-btn" data-pain="10">10</button>
-                        </div>
-                        <div class="pain-labels">
-                            <span>No Pain</span>
-                            <span>Worst Pain</span>
-                        </div>
+                        <label for="pain-select">Pain Intensity</label>
+                        <select id="pain-select" class="pain-dropdown">
+                            <option value="">Select pain level...</option>
+                            <option value="0">0 - No pain</option>
+                            <option value="1">1 - Minimal discomfort</option>
+                            <option value="2">2 - Mild pain, noticeable</option>
+                            <option value="3">3 - Moderate pain, distracting</option>
+                            <option value="4">4 - Moderately strong pain</option>
+                            <option value="5">5 - Strong pain, interferes with tasks</option>
+                            <option value="6">6 - Very strong pain, difficulty concentrating</option>
+                            <option value="7">7 - Severe pain, limits activity significantly</option>
+                            <option value="8">8 - Intense pain, hard to function</option>
+                            <option value="9">9 - Excruciating pain, unable to function</option>
+                            <option value="10">10 - Worst pain imaginable, seek emergency care</option>
+                        </select>
                     </div>
 
                     <div class="optional-details">
                         <button id="toggle-details-btn" class="toggle-details-btn">
-                            <span id="details-arrow">▼</span> Optional Details
+                            <span style="display: flex; align-items: center; gap: 10px;">
+                                <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                                Optional Details
+                            </span>
+                            <svg id="details-arrow" class="icon icon-sm" viewBox="0 0 24 24">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
                         </button>
                         <div id="optional-details-content" class="optional-details-content" style="display: none;">
                             <div class="form-group">
-                                <label>💊 Medication Taken (optional)</label>
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    Medication Taken (optional)
+                                </label>
                                 <div id="medications-list" style="margin-bottom: 12px;"></div>
                                 <button type="button" id="add-medication-btn" class="btn btn-secondary" style="width: 100%; padding: 10px;">
                                     + Add Medication
@@ -3468,6 +3577,16 @@
         }
 
         function initializePainScale() {
+            // Pain dropdown handler for Log page
+            const painDropdown = document.getElementById('pain-select');
+            if (painDropdown) {
+                painDropdown.addEventListener('change', (e) => {
+                    const value = e.target.value;
+                    selectedPain = value === '' ? null : parseInt(value);
+                });
+            }
+
+            // Keep button handler for modals and edit forms
             document.querySelectorAll('.pain-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     selectedPain = parseInt(btn.dataset.pain);
@@ -3578,6 +3697,12 @@
 
         function clearForm() {
             selectedPain = null;
+            // Reset dropdown
+            const painDropdown = document.getElementById('pain-select');
+            if (painDropdown) {
+                painDropdown.value = '';
+            }
+            // Reset buttons (for modals)
             document.querySelectorAll('.pain-btn').forEach(b => b.classList.remove('selected'));
             document.getElementById('notes-input').value = '';
             currentEpisodeMedications = [];
