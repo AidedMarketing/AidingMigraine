@@ -50,14 +50,82 @@
             --transition: all 0.2s ease;
         }
 
-        /* === LIGHT THEME OVERRIDE === */
+        /* === COOL DARK THEME === */
+        :root[data-theme="cool-dark"] {
+            --bg-primary: #151a1f;
+            --bg-secondary: #1f2730;
+            --bg-tertiary: #293340;
+            --text-primary: #e3e9ed;
+            --text-secondary: #b8c5cf;
+            --border-color: #374250;
+            --accent-green: #6fa889;
+            --accent-red: #b06a6a;
+            --accent-blue: #5e87ba;
+            --pain-mild: #6fa889;
+            --pain-moderate: #d4a574;
+            --pain-severe: #b06a6a;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* === WARM LIGHT THEME === */
+        :root[data-theme="warm-light"] {
+            --bg-primary: #f8f6f3;
+            --bg-secondary: #fdfcfb;
+            --bg-tertiary: #f0ede8;
+            --text-primary: #3a3634;
+            --text-secondary: #6b6560;
+            --border-color: #d4cfc8;
+            --accent-green: #4a7c59;
+            --accent-red: #b85050;
+            --accent-blue: #4a6b9e;
+            --pain-mild: #4a7c59;
+            --pain-moderate: #d4a574;
+            --pain-severe: #b85050;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* === COOL LIGHT THEME === */
+        :root[data-theme="cool-light"] {
+            --bg-primary: #f5f7f9;
+            --bg-secondary: #fcfdfe;
+            --bg-tertiary: #e8ecf0;
+            --text-primary: #2d3540;
+            --text-secondary: #5a6570;
+            --border-color: #cbd5e0;
+            --accent-green: #3d7a5d;
+            --accent-red: #b84d4d;
+            --accent-blue: #3d6199;
+            --pain-mild: #3d7a5d;
+            --pain-moderate: #d4a574;
+            --pain-severe: #b84d4d;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* === HIGH CONTRAST THEME === */
+        :root[data-theme="high-contrast"] {
+            --bg-primary: #000000;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #d0d0d0;
+            --border-color: #555555;
+            --accent-green: #00ff88;
+            --accent-red: #ff4444;
+            --accent-blue: #4488ff;
+            --pain-mild: #00ff88;
+            --pain-moderate: #ffaa00;
+            --pain-severe: #ff4444;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        /* === LIGHT THEME (kept for backwards compatibility) === */
         :root[data-theme="light"] {
-            --bg-primary: #f5f5f5;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #e8e8e8;
-            --text-primary: #2a2a2a;
-            --text-secondary: #666666;
-            --border-color: #d0d0d0;
+            --bg-primary: #f8f6f3;
+            --bg-secondary: #fdfcfb;
+            --bg-tertiary: #f0ede8;
+            --text-primary: #3a3634;
+            --text-secondary: #6b6560;
+            --border-color: #d4cfc8;
             --accent-green: #4a7c59;
             --accent-red: #b85050;
             --accent-blue: #4a6b9e;
@@ -2160,17 +2228,36 @@
 
             <!-- Medication Effectiveness -->
             <div id="medication-effectiveness-card" class="section-card" style="display: none;">
-                <h2>💊 Medication Effectiveness</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Medication Effectiveness
+                </h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Average effectiveness ratings for each medication</p>
                 <div id="medication-effectiveness-content"></div>
             </div>
 
             <!-- Medication Usage & MOH Warning -->
             <div id="medication-usage-card" class="section-card" style="display: none;">
-                <h2>💊 Medication Usage</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Medication Usage
+                </h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Tracking medication usage frequency</p>
                 <div id="moh-warning" style="display: none; margin-bottom: 24px; padding: 20px; background: rgba(220, 38, 38, 0.15); border-left: 4px solid #dc2626; border-radius: 8px;">
-                    <h3 style="color: #dc2626; margin-bottom: 12px;">⚠️ MEDICATION OVERUSE WARNING</h3>
+                    <h3 style="color: #dc2626; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke: #dc2626;">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        MEDICATION OVERUSE WARNING
+                    </h3>
                     <p style="margin-bottom: 12px;">
                         You've used abortive medication on <strong id="moh-days-this-month">0</strong> days this month.
                     </p>
@@ -2178,11 +2265,24 @@
                         Using medication >10 days/month for >3 months can cause Medication Overuse Headache (MOH), making migraines worse.
                     </p>
                     <div style="margin: 16px 0; padding: 12px; background: var(--bg-tertiary); border-radius: 6px;">
-                        <strong>📅 Usage Last 3 Months:</strong>
+                        <strong style="display: flex; align-items: center; gap: 6px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            Usage Last 3 Months:
+                        </strong>
                         <div id="moh-three-months" style="margin-top: 8px;"></div>
                     </div>
                     <div style="margin-top: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 6px;">
-                        <strong>📞 Action Required:</strong>
+                        <strong style="display: flex; align-items: center; gap: 6px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                            Action Required:
+                        </strong>
                         <ul style="margin: 8px 0 0 20px; color: var(--text-secondary);">
                             <li>Consult your doctor immediately</li>
                             <li>Discuss preventive medication options</li>
@@ -2201,7 +2301,14 @@
             </h1>
 
             <div class="section-card">
-                <h2>📊 Storage & Backup</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    Storage & Backup
+                </h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
                     Your data is stored securely on your device. Export regularly for backups.
                 </p>
@@ -2237,26 +2344,68 @@
             </div>
 
             <div class="section-card" id="data-management-section">
-                <h2>💾 Data Management</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Data Management
+                </h2>
                 <div class="settings-actions">
                     <button class="settings-btn" id="export-json-btn">
-                        <span>📤 Export as JSON</span>
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Export as JSON
+                        </span>
                         <span class="btn-subtitle">Full backup</span>
                     </button>
                     <button class="settings-btn" id="export-csv-btn">
-                        <span>📊 Export as CSV</span>
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Export as CSV
+                        </span>
                         <span class="btn-subtitle">Excel/Sheets compatible</span>
                     </button>
                     <button class="settings-btn" id="export-pdf-btn">
-                        <span>📄 Export as PDF</span>
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Export as PDF
+                        </span>
                         <span class="btn-subtitle">Doctor report</span>
                     </button>
                     <button class="settings-btn" id="import-json-btn">
-                        <span>📥 Import from JSON</span>
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Import from JSON
+                        </span>
                         <span class="btn-subtitle">Restore backup</span>
                     </button>
                     <button class="settings-btn" id="import-csv-btn">
-                        <span>📥 Import from CSV</span>
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Import from CSV
+                        </span>
                         <span class="btn-subtitle">Migrate from other apps</span>
                     </button>
                 </div>
@@ -2265,28 +2414,106 @@
             </div>
 
             <div class="section-card">
-                <h2>🎨 Appearance</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    Appearance
+                </h2>
                 <div class="settings-group">
-                    <label class="settings-label">Theme</label>
-                    <div class="theme-options">
-                        <button class="theme-btn" data-theme="auto">
-                            <span>🌓</span>
-                            <span>Auto</span>
+                    <label class="settings-label">Color Theme</label>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px;">
+                        Choose a color scheme that's comfortable for your eyes
+                    </p>
+                    <div class="theme-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                        <button class="theme-btn active" data-theme="warm-dark" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--accent-green); border-radius: 10px;">
+                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="5" fill="#d4a574"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3" stroke="#d4a574"></line>
+                                <line x1="12" y1="21" x2="12" y2="23" stroke="#d4a574"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="#d4a574"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="#d4a574"></line>
+                                <line x1="1" y1="12" x2="3" y2="12" stroke="#d4a574"></line>
+                                <line x1="21" y1="12" x2="23" y2="12" stroke="#d4a574"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="#d4a574"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="#d4a574"></line>
+                            </svg>
+                            <span style="font-weight: 600; margin-bottom: 4px;">Warm Dark</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Default</span>
                         </button>
-                        <button class="theme-btn active" data-theme="dark">
-                            <span>🌙</span>
-                            <span>Dark</span>
+                        <button class="theme-btn" data-theme="cool-dark" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--border-color); border-radius: 10px;">
+                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#6b8bb8"></path>
+                            </svg>
+                            <span style="font-weight: 600; margin-bottom: 4px;">Cool Dark</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Professional</span>
                         </button>
-                        <button class="theme-btn" data-theme="light">
-                            <span>☀️</span>
-                            <span>Light</span>
+                        <button class="theme-btn" data-theme="warm-light" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--border-color); border-radius: 10px;">
+                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="5" fill="#4a7c59"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3" stroke="#4a7c59"></line>
+                                <line x1="12" y1="21" x2="12" y2="23" stroke="#4a7c59"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="#4a7c59"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="#4a7c59"></line>
+                                <line x1="1" y1="12" x2="3" y2="12" stroke="#4a7c59"></line>
+                                <line x1="21" y1="12" x2="23" y2="12" stroke="#4a7c59"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="#4a7c59"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="#4a7c59"></line>
+                            </svg>
+                            <span style="font-weight: 600; margin-bottom: 4px;">Warm Light</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Daytime</span>
+                        </button>
+                        <button class="theme-btn" data-theme="cool-light" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--border-color); border-radius: 10px;">
+                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="5" fill="#4a6b9e"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3" stroke="#4a6b9e"></line>
+                                <line x1="12" y1="21" x2="12" y2="23" stroke="#4a6b9e"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="#4a6b9e"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="#4a6b9e"></line>
+                                <line x1="1" y1="12" x2="3" y2="12" stroke="#4a6b9e"></line>
+                                <line x1="21" y1="12" x2="23" y2="12" stroke="#4a6b9e"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="#4a6b9e"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="#4a6b9e"></line>
+                            </svg>
+                            <span style="font-weight: 600; margin-bottom: 4px;">Cool Light</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Clean</span>
+                        </button>
+                        <button class="theme-btn" data-theme="high-contrast" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--border-color); border-radius: 10px;">
+                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" fill="none" stroke="#00ff88" stroke-width="3"></circle>
+                                <path d="M12 2 L12 22 M12 12 L22 12" stroke="#00ff88" stroke-width="2"></path>
+                            </svg>
+                            <span style="font-weight: 600; margin-bottom: 4px;">High Contrast</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Accessibility</span>
+                        </button>
+                        <button class="theme-btn" data-theme="auto" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--border-color); border-radius: 10px;">
+                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor"></circle>
+                                <path d="M12 2 A10 10 0 0 1 12 22 Z" fill="currentColor"></path>
+                            </svg>
+                            <span style="font-weight: 600; margin-bottom: 4px;">Auto</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">System</span>
                         </button>
                     </div>
                 </div>
             </div>
 
             <div class="section-card" id="notification-section">
-                <h2>🔔 Notifications</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    Notifications
+                </h2>
                 <div class="settings-info" style="margin-bottom: 16px;">
                     <div id="notification-status" class="info-banner" style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: var(--bg-tertiary); text-align: center;">
                         <span id="notification-status-text">Loading...</span>
@@ -3520,7 +3747,7 @@
         }
 
         function initializeTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const savedTheme = localStorage.getItem('theme') || 'warm-dark';
             applyTheme(savedTheme);
             
             document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -3545,14 +3772,14 @@
         function applyTheme(theme) {
             if (theme === 'auto') {
                 const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', isDark ? 'warm-dark' : 'warm-light');
             } else {
                 document.documentElement.setAttribute('data-theme', theme);
             }
         }
 
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-            const currentTheme = localStorage.getItem('theme') || 'dark';
+            const currentTheme = localStorage.getItem('theme') || 'warm-dark';
             if (currentTheme === 'auto') {
                 applyTheme('auto');
             }
