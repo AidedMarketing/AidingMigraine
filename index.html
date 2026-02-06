@@ -2813,7 +2813,7 @@
                 <h2>Information</h2>
                 <div class="settings-actions">
                     <button class="settings-btn" id="tour-btn">
-                        <span>[TARGET] Take a Tour</span>
+                        <span>Take a Tour</span>
                         <span class="btn-subtitle">Interactive walkthrough</span>
                     </button>
                     <button class="settings-btn" id="how-to-btn">
@@ -2855,7 +2855,7 @@
             </div>
 
             <div class="section-card">
-                <h2>[WARNING] Advanced</h2>
+                <h2>Advanced</h2>
                 <div class="settings-actions">
                     <button class="settings-btn danger" id="clear-all-btn">
                         <span>Trash Clear All Data</span>
@@ -2865,7 +2865,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v3.3.7</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.0.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3415,7 +3415,7 @@
                 <div class="med-result-item" onclick="selectMedication('${safeText(med.name).replace(/'/g, '\\\'')}')" style="padding: 12px; margin-bottom: 8px; background: var(--bg-tertiary); border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
                     <div style="font-weight: 600;">${safeText(med.name)}</div>
                     <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
-                        ${med.type === 'abortive' ? '[TARGET] Abortive' : 'Preventive Preventive'} • ${safeText(med.category)}
+                        ${med.type === 'abortive' ? 'Abortive' : 'Preventive'} • ${safeText(med.category)}
                     </div>
                 </div>
             `).join(''));
@@ -10040,7 +10040,7 @@ Browser: ${navigator.userAgent}
                             <div>
                                 <div style="font-weight: 600; font-size: 1.1rem;">${safeText(med.name)}</div>
                                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-                                    ${med.type === 'abortive' ? '[TARGET] Abortive' : 'Preventive Preventive'} • ${med.uses} uses
+                                    ${med.type === 'abortive' ? 'Abortive' : 'Preventive'} • ${med.uses} uses
                                 </div>
                             </div>
                             <div style="text-align: right;">
@@ -10100,7 +10100,7 @@ Browser: ${navigator.userAgent}
                             <div>
                                 <div style="font-weight: 600;">${med.name}</div>
                                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
-                                    ${med.type === 'abortive' ? '[TARGET] Abortive' : 'Preventive Preventive'}
+                                    ${med.type === 'abortive' ? 'Abortive' : 'Preventive'}
                                 </div>
                             </div>
                             <div style="text-align: right;">
