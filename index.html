@@ -1946,7 +1946,7 @@
                         <!-- Clear Day State -->
                         <div id="weather-clear" class="weather-forecast-box" style="display: none; background: rgba(123, 166, 138, 0.1); border-left: 4px solid var(--accent-green); padding: 12px 16px; border-radius: 0 8px 8px 0;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.2rem;">[SUCCESS]</span>
+                                <span style="font-size: 1.2rem;">✓</span>
                                 <div>
                                     <div style="font-size: 0.9rem; font-weight: 500; color: var(--accent-green);">Clear Conditions</div>
                                     <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">No significant pressure changes</div>
@@ -2810,7 +2810,7 @@
             </div>
 
             <div class="section-card">
-                <h2>[INFO] Information</h2>
+                <h2>Information</h2>
                 <div class="settings-actions">
                     <button class="settings-btn" id="tour-btn">
                         <span>[TARGET] Take a Tour</span>
@@ -2840,11 +2840,11 @@
                         <span class="btn-subtitle">Fix notification issues</span>
                     </a>
                     <a href="./help/analytics.html" class="settings-btn" style="text-decoration: none; display: block;">
-                        <span>[ANALYTICS] Understanding Analytics</span>
+                        <span>Understanding Analytics</span>
                         <span class="btn-subtitle">Interpret your charts</span>
                     </a>
                     <a href="./help/faq.html" class="settings-btn" style="text-decoration: none; display: block;">
-                        <span>[TIP] FAQ</span>
+                        <span>FAQ</span>
                         <span class="btn-subtitle">Common questions</span>
                     </a>
                     <a href="./help/privacy.html" class="settings-btn" style="text-decoration: none; display: block;">
@@ -2874,7 +2874,7 @@
         <!-- Hidden Debug Modal -->
         <div id="debug-modal" class="modal" style="display: none;">
             <div class="modal-content" style="max-width: 600px;">
-                <h2>[SEARCH] Developer Diagnostics</h2>
+                <h2>Developer Diagnostics</h2>
                 <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; margin: 16px 0;">
                     <div style="display: grid; gap: 12px; font-size: 0.9rem;">
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
@@ -2882,11 +2882,11 @@
                             <strong id="debug-data-source">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                            <span>[ANALYTICS] Total Episodes:</span>
+                            <span>Total Episodes:</span>
                             <strong id="debug-total-episodes">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                            <span>[SUCCESS] Active Episodes:</span>
+                            <span>Active Episodes:</span>
                             <strong id="debug-active-episodes">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
@@ -2903,7 +2903,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v3.3.3 Production</strong>
+                            <strong>v4.0.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -4168,7 +4168,7 @@
                     ` : ''}
 
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green); font-size: 0.9rem; color: var(--text-secondary);">
-                        [INFO] Weather data and attack ID will be preserved
+                        Weather data and attack ID will be preserved
                     </div>
                 </div>
             `;
@@ -4782,7 +4782,7 @@
             const deletedCount = migraines.filter(m => m.deleted).length;
 
             if (deletedCount === 0) {
-                alert('[SUCCESS] No deleted episodes found. All episodes are already active!');
+                alert('Success: No deleted episodes found. All episodes are already active!');
                 return;
             }
 
@@ -4822,10 +4822,10 @@
             const activeCount = getActiveMigraines().length;
             updateDiagnostics({
                 episodesCount: `${migraines.length} total (${activeCount} active, 0 deleted)`,
-                initStatus: `[SUCCESS] Restored ${restoredCount} episodes!`
+                initStatus: ` Restored ${restoredCount} episodes!`
             });
 
-            alert(`[SUCCESS] Success!\n\nRestored ${restoredCount} episode(s).\n\nYour data should now be visible on the dashboard and in History.`);
+            alert(`Success!\n\nRestored ${restoredCount} episode(s).\n\nYour data should now be visible on the dashboard and in History.`);
 
             // Optionally navigate to History page to show restored data
             if (restoredCount > 0) {
@@ -5521,7 +5521,7 @@
                 document.getElementById('debug-total-episodes').textContent = migraines.length;
                 document.getElementById('debug-active-episodes').textContent = activeMigraines.length;
                 document.getElementById('debug-deleted-episodes').textContent = deletedMigraines.length;
-                document.getElementById('debug-indexeddb').textContent = (useIndexedDB && db) ? '[SUCCESS] Available' : '[ERROR] Not Available';
+                document.getElementById('debug-indexeddb').textContent = (useIndexedDB && db) ? 'Available' : 'Not Available';
                 document.getElementById('debug-localstorage').textContent = localStorageStatus;
 
                 modal.style.display = 'flex';
@@ -5543,7 +5543,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v3.3.3 - Debug Information
+            const debugInfo = `Aiding Migraine v4.0.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -5557,10 +5557,10 @@ Browser: ${navigator.userAgent}
 `;
 
             navigator.clipboard.writeText(debugInfo).then(() => {
-                alert('[SUCCESS] Debug information copied to clipboard!');
+                alert('Success: Debug information copied to clipboard!');
             }).catch((err) => {
                 console.error('Failed to copy:', err);
-                alert('[ERROR] Failed to copy. Please check console.');
+                alert('Failed to copy. Please check console.');
             });
         }
 
@@ -5973,7 +5973,7 @@ Browser: ${navigator.userAgent}
                 <p style="margin-bottom: 16px;">Found <strong>${analysis.total} episodes</strong> in backup file:</p>
                 <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
-                        <span>[SUCCESS] New Episodes:</span>
+                        <span>New Episodes:</span>
                         <strong style="color: var(--accent-green);">${analysis.new.length}</strong>
                     </div>
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
@@ -6641,7 +6641,7 @@ Browser: ${navigator.userAgent}
 
             // Headache Frequency Section
             doc.setFont(undefined, 'bold');
-            doc.text('[ANALYTICS] Headache Frequency', 20, yPos);
+            doc.text('Headache Frequency', 20, yPos);
             yPos += 6;
             doc.setFont(undefined, 'normal');
             doc.text(`Migraine Days in Period: ${uniqueMigraineDays} days (out of ${daysInRange} days tracked)`, 20, yPos);
@@ -6906,7 +6906,7 @@ Browser: ${navigator.userAgent}
 
         function clearAllData() {
             const modal = document.getElementById('modal');
-            document.getElementById('modal-title').textContent = '[WARNING] Delete All Data?';
+            document.getElementById('modal-title').textContent = 'Delete All Data?';
             document.getElementById('modal-body').innerHTML = `
                 <p><strong>This will permanently delete ALL ${migraines.length} episodes and cannot be undone.</strong></p>
                 <p style="margin-top: 12px;">We recommend exporting a backup first.</p>
@@ -6963,7 +6963,7 @@ Browser: ${navigator.userAgent}
                         <h3 style="font-size: 1.1rem; margin-bottom: 12px; text-align: center;">Update Key Features</h3>
                         <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 2;">
                             <li>Notes <strong>Easy Logging:</strong> Track pain levels, duration, and medications</li>
-                            <li>[ANALYTICS] <strong>Visual History:</strong> Calendar view and detailed statistics</li>
+                            <li><strong>Visual History:</strong> Calendar view and detailed statistics</li>
                             <li>Document <strong>PDF Reports:</strong> Professional reports for doctor visits</li>
                             <li>Save <strong>Secure Backup:</strong> Import/export your data safely</li>
                             <li>Trash <strong>Smart Recovery:</strong> 30-day trash for deleted episodes</li>
@@ -7404,7 +7404,7 @@ Browser: ${navigator.userAgent}
 
             // Check if notifications are supported
             if (!('Notification' in window)) {
-                statusText.innerHTML = '[ERROR] Notifications not supported on this browser';
+                statusText.innerHTML = 'Notifications not supported on this browser';
                 statusText.parentElement.style.background = 'var(--accent-red)';
                 statusText.parentElement.style.color = 'white';
                 return;
@@ -7433,7 +7433,7 @@ Browser: ${navigator.userAgent}
                 const subscription = await registration.pushManager.getSubscription();
 
                 if (subscription && notificationPreferences.enabled) {
-                    statusText.innerHTML = '[SUCCESS] Notifications enabled';
+                    statusText.innerHTML = ' Notifications enabled';
                     statusText.parentElement.style.background = 'var(--accent-green)';
                     statusText.parentElement.style.color = 'white';
                     enableSection.style.display = 'none';
@@ -7445,7 +7445,7 @@ Browser: ${navigator.userAgent}
                     preferencesSection.style.display = 'none';
                 }
             } else if (permission === 'denied') {
-                statusText.innerHTML = '[ERROR] Notifications blocked - Check browser settings';
+                statusText.innerHTML = 'Notifications blocked - Check browser settings';
                 statusText.parentElement.style.background = 'var(--accent-red)';
                 statusText.parentElement.style.color = 'white';
                 enableSection.style.display = 'none';
@@ -7480,7 +7480,7 @@ Browser: ${navigator.userAgent}
                     // Server not configured yet - use local notifications only
                     notificationPreferences.enabled = true;
                     localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
-                    alert('[SUCCESS] Notifications enabled (local only)!\n\nTo enable server push notifications, configure Firebase and VAPID keys.\nSee NOTIFICATIONS_SETUP.md for details.');
+                    alert('Success: Notifications enabled (local only)!\n\nTo enable server push notifications, configure Firebase and VAPID keys.\nSee NOTIFICATIONS_SETUP.md for details.');
                     updateNotificationUI();
                     return;
                 }
@@ -7533,7 +7533,7 @@ Browser: ${navigator.userAgent}
                 notificationPreferences.pushSubscription = subscription.toJSON();
                 localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
 
-                alert('[SUCCESS] Notifications enabled! You will receive daily check-ins and post-attack follow-ups.');
+                alert('Success: Notifications enabled! You will receive daily check-ins and post-attack follow-ups.');
                 updateNotificationUI();
 
             } catch (error) {
@@ -8122,7 +8122,7 @@ Browser: ${navigator.userAgent}
                 return;
             }
 
-            statusDiv.innerHTML = '<span style="color: var(--accent-blue);">[SEARCH] Looking up location...</span>';
+            statusDiv.innerHTML = '<span style="color: var(--accent-blue);">Looking up location...</span>';
 
             try {
                 // Use Open-Meteo geocoding API (free, no key needed)
@@ -8132,7 +8132,7 @@ Browser: ${navigator.userAgent}
                 const data = await response.json();
 
                 if (!data.results || data.results.length === 0) {
-                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">[ERROR] Location not found. Try a different format (e.g., "New York" or "10001")</span>';
+                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">Location not found. Try a different format (e.g., "New York" or "10001")</span>';
                     return;
                 }
 
@@ -8148,7 +8148,7 @@ Browser: ${navigator.userAgent}
 
                 saveWeatherData();
 
-                statusDiv.innerHTML = `<span style="color: var(--accent-green);">[SUCCESS] Location saved: ${weatherData.location.city}</span>`;
+                statusDiv.innerHTML = `<span style="color: var(--accent-green);">Location saved: ${weatherData.location.city}</span>`;
 
                 // Fetch weather for this location
                 await fetchWeatherData();
@@ -8159,7 +8159,7 @@ Browser: ${navigator.userAgent}
 
             } catch (error) {
                 console.error('Geocoding error:', error);
-                statusDiv.innerHTML = '<span style="color: var(--accent-red);">[ERROR] Error looking up location. Please try again.</span>';
+                statusDiv.innerHTML = '<span style="color: var(--accent-red);">Error looking up location. Please try again.</span>';
             }
         }
 
@@ -8301,7 +8301,7 @@ Browser: ${navigator.userAgent}
                 console.error('Weather fetch error:', error);
                 const statusDiv = document.getElementById('weather-location-status');
                 if (statusDiv) {
-                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">[ERROR] Error fetching weather data. Please try again later.</span>';
+                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">Error fetching weather data. Please try again later.</span>';
                 }
             }
         }
@@ -10112,7 +10112,7 @@ Browser: ${navigator.userAgent}
                 </div>
 
                 <div style="margin-top: 24px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--border-color);">
-                    <strong>[INFO] About Medication Overuse Headache (MOH):</strong>
+                    <strong>About Medication Overuse Headache (MOH):</strong>
                     <p style="margin-top: 8px; color: var(--text-secondary); font-size: 0.9rem;">
                         Using abortive medication >10 days/month for >3 months can cause medication overuse headaches,
                         making migraines worse. If you're seeing this warning, please consult your doctor about preventive options.
@@ -10737,7 +10737,7 @@ Browser: ${navigator.userAgent}
             const container = document.querySelector('.container');
 
             banner.className = 'status-banner offline-banner';
-            banner.textContent = '[WARNING] You\'re offline - Changes will sync when you reconnect';
+            banner.textContent = 'You\'re offline - Changes will sync when you reconnect';
             banner.style.display = 'block';
             container.classList.add('with-status-banner');
 
@@ -11209,11 +11209,11 @@ Browser: ${navigator.userAgent}
             // Update IndexedDB status
             if (useIndexedDB && db) {
                 const count = await IDB.count(DB_STORES.MIGRAINES);
-                document.getElementById('indexeddb-status').textContent = `[SUCCESS] Active - ${count} migraines stored`;
+                document.getElementById('indexeddb-status').textContent = ` Active - ${count} migraines stored`;
                 document.getElementById('indexeddb-status').style.color = 'var(--accent-green)';
                 document.getElementById('indexeddb-count').textContent = count;
             } else {
-                document.getElementById('indexeddb-status').textContent = '[ERROR] Not supported - using localStorage';
+                document.getElementById('indexeddb-status').textContent = 'Not supported - using localStorage';
                 document.getElementById('indexeddb-status').style.color = 'var(--accent-red)';
                 document.getElementById('indexeddb-count').textContent = migraines.length;
             }
@@ -11222,10 +11222,10 @@ Browser: ${navigator.userAgent}
             const syncStatus = document.getElementById('background-sync-status');
             if (syncSupported) {
                 const queueCount = useIndexedDB ? await IDB.count(DB_STORES.SYNC_QUEUE) : 0;
-                syncStatus.textContent = `[SUCCESS] Enabled - ${queueCount} items in queue`;
+                syncStatus.textContent = ` Enabled - ${queueCount} items in queue`;
                 syncStatus.style.color = 'var(--accent-green)';
             } else {
-                syncStatus.textContent = '[WARNING] Not supported on this browser';
+                syncStatus.textContent = 'Not supported on this browser';
                 syncStatus.style.color = 'var(--text-secondary)';
             }
 
@@ -11284,10 +11284,10 @@ Browser: ${navigator.userAgent}
             if (voiceStatus) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 if (SpeechRecognition) {
-                    voiceStatus.textContent = '[SUCCESS] Available - Voice button shown on screen';
+                    voiceStatus.textContent = ' Available - Voice button shown on screen';
                     voiceStatus.style.color = 'var(--accent-green)';
                 } else {
-                    voiceStatus.textContent = '[ERROR] Not supported on this browser';
+                    voiceStatus.textContent = 'Not supported on this browser';
                     voiceStatus.style.color = 'var(--accent-red)';
                 }
             }
@@ -11304,7 +11304,7 @@ Browser: ${navigator.userAgent}
                     // Check biometric availability
                     setupBiometricAuth().then(available => {
                         if (available) {
-                            biometricStatus.textContent = '[SUCCESS] Biometric authentication available';
+                            biometricStatus.textContent = ' Biometric authentication available';
                             biometricStatus.style.color = 'var(--accent-green)';
 
                             biometricToggle.addEventListener('change', async (e) => {
@@ -11312,7 +11312,7 @@ Browser: ${navigator.userAgent}
                                     const registered = await registerBiometric();
                                     if (registered) {
                                         biometricAuthEnabled = true;
-                                        biometricStatus.textContent = '[SUCCESS] Biometric authentication enabled';
+                                        biometricStatus.textContent = ' Biometric authentication enabled';
                                         showModal('Biometric Lock Enabled', 'Your migraine data is now protected with biometric authentication.');
                                     } else {
                                         e.target.checked = false;
@@ -11322,12 +11322,12 @@ Browser: ${navigator.userAgent}
                                     biometricAuthEnabled = false;
                                     localStorage.removeItem('biometricCredentialId');
                                     localStorage.setItem('biometricAuthEnabled', 'false');
-                                    biometricStatus.textContent = '[WARNING] Biometric authentication disabled';
+                                    biometricStatus.textContent = 'Biometric authentication disabled';
                                     showModal('Biometric Lock Disabled', 'Your app is no longer protected by biometric authentication.');
                                 }
                             });
                         } else {
-                            biometricStatus.textContent = '[ERROR] Not supported on this device/browser';
+                            biometricStatus.textContent = 'Not supported on this device/browser';
                             biometricStatus.style.color = 'var(--accent-red)';
                             biometricToggle.disabled = true;
                         }
