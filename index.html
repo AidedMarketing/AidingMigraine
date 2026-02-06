@@ -50,23 +50,6 @@
             --transition: all 0.2s ease;
         }
 
-        /* === COOL DARK THEME === */
-        :root[data-theme="cool-dark"] {
-            --bg-primary: #151a1f;
-            --bg-secondary: #1f2730;
-            --bg-tertiary: #293340;
-            --text-primary: #e3e9ed;
-            --text-secondary: #b8c5cf;
-            --border-color: #374250;
-            --accent-green: #6fa889;
-            --accent-red: #b06a6a;
-            --accent-blue: #5e87ba;
-            --pain-mild: #6fa889;
-            --pain-moderate: #d4a574;
-            --pain-severe: #b06a6a;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }
-
         /* === WARM LIGHT THEME === */
         :root[data-theme="warm-light"] {
             --bg-primary: #f8f6f3;
@@ -81,23 +64,6 @@
             --pain-mild: #4a7c59;
             --pain-moderate: #d4a574;
             --pain-severe: #b85050;
-            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* === COOL LIGHT THEME === */
-        :root[data-theme="cool-light"] {
-            --bg-primary: #f5f7f9;
-            --bg-secondary: #fcfdfe;
-            --bg-tertiary: #e8ecf0;
-            --text-primary: #2d3540;
-            --text-secondary: #5a6570;
-            --border-color: #cbd5e0;
-            --accent-green: #3d7a5d;
-            --accent-red: #b84d4d;
-            --accent-blue: #3d6199;
-            --pain-mild: #3d7a5d;
-            --pain-moderate: #d4a574;
-            --pain-severe: #b84d4d;
             --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
@@ -118,7 +84,7 @@
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
         }
 
-        /* === LIGHT THEME (kept for backwards compatibility) === */
+        /* === LIGHT THEME (backwards compatibility - maps to warm-light) === */
         :root[data-theme="light"] {
             --bg-primary: #f8f6f3;
             --bg-secondary: #fdfcfb;
@@ -1007,17 +973,24 @@
             padding: 16px;
             background: var(--bg-tertiary);
             border: 2px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--text-primary);
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
         .theme-btn:hover {
+            border-color: var(--accent-green);
+            transform: translateY(-2px);
+        }
+
+        .theme-btn.active {
+            border-color: var(--accent-green);
+            border-width: 3px;
             background: var(--bg-secondary);
         }
 
@@ -2433,8 +2406,8 @@
                     <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px;">
                         Choose a color scheme that's comfortable for your eyes
                     </p>
-                    <div class="theme-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
-                        <button class="theme-btn active" data-theme="warm-dark" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--accent-green); border-radius: 10px;">
+                    <div class="theme-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+                        <button class="theme-btn active" data-theme="warm-dark">
                             <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="5" fill="#d4a574"></circle>
                                 <line x1="12" y1="1" x2="12" y2="3" stroke="#d4a574"></line>
@@ -2447,16 +2420,9 @@
                                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="#d4a574"></line>
                             </svg>
                             <span style="font-weight: 600; margin-bottom: 4px;">Warm Dark</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Default</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Evening / Default</span>
                         </button>
-                        <button class="theme-btn" data-theme="cool-dark" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--border-color); border-radius: 10px;">
-                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
-                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#6b8bb8"></path>
-                            </svg>
-                            <span style="font-weight: 600; margin-bottom: 4px;">Cool Dark</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Professional</span>
-                        </button>
-                        <button class="theme-btn" data-theme="warm-light" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--border-color); border-radius: 10px;">
+                        <button class="theme-btn" data-theme="warm-light">
                             <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="5" fill="#4a7c59"></circle>
                                 <line x1="12" y1="1" x2="12" y2="3" stroke="#4a7c59"></line>
@@ -2471,36 +2437,13 @@
                             <span style="font-weight: 600; margin-bottom: 4px;">Warm Light</span>
                             <span style="font-size: 0.75rem; color: var(--text-secondary);">Daytime</span>
                         </button>
-                        <button class="theme-btn" data-theme="cool-light" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--border-color); border-radius: 10px;">
-                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="5" fill="#4a6b9e"></circle>
-                                <line x1="12" y1="1" x2="12" y2="3" stroke="#4a6b9e"></line>
-                                <line x1="12" y1="21" x2="12" y2="23" stroke="#4a6b9e"></line>
-                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="#4a6b9e"></line>
-                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="#4a6b9e"></line>
-                                <line x1="1" y1="12" x2="3" y2="12" stroke="#4a6b9e"></line>
-                                <line x1="21" y1="12" x2="23" y2="12" stroke="#4a6b9e"></line>
-                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="#4a6b9e"></line>
-                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="#4a6b9e"></line>
-                            </svg>
-                            <span style="font-weight: 600; margin-bottom: 4px;">Cool Light</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Clean</span>
-                        </button>
-                        <button class="theme-btn" data-theme="high-contrast" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--border-color); border-radius: 10px;">
+                        <button class="theme-btn" data-theme="high-contrast">
                             <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="10" fill="none" stroke="#00ff88" stroke-width="3"></circle>
                                 <path d="M12 2 L12 22 M12 12 L22 12" stroke="#00ff88" stroke-width="2"></path>
                             </svg>
                             <span style="font-weight: 600; margin-bottom: 4px;">High Contrast</span>
                             <span style="font-size: 0.75rem; color: var(--text-secondary);">Accessibility</span>
-                        </button>
-                        <button class="theme-btn" data-theme="auto" style="flex-direction: column; padding: 16px; background: var(--bg-tertiary); border: 2px solid var(--border-color); border-radius: 10px;">
-                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor"></circle>
-                                <path d="M12 2 A10 10 0 0 1 12 22 Z" fill="currentColor"></path>
-                            </svg>
-                            <span style="font-weight: 600; margin-bottom: 4px;">Auto</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">System</span>
                         </button>
                     </div>
                 </div>
@@ -3770,20 +3713,8 @@
         }
 
         function applyTheme(theme) {
-            if (theme === 'auto') {
-                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.setAttribute('data-theme', isDark ? 'warm-dark' : 'warm-light');
-            } else {
-                document.documentElement.setAttribute('data-theme', theme);
-            }
+            document.documentElement.setAttribute('data-theme', theme);
         }
-
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-            const currentTheme = localStorage.getItem('theme') || 'warm-dark';
-            if (currentTheme === 'auto') {
-                applyTheme('auto');
-            }
-        });
 
         function initializeNavigation() {
             document.querySelectorAll('.nav-btn').forEach(btn => {
