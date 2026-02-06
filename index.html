@@ -2623,7 +2623,7 @@
                                 <div id="weather-location-display" style="font-weight: 500; font-size: 0.95rem; margin-top: 2px;">-</div>
                             </div>
                             <button id="weather-refresh-btn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;">
-                                [RELOAD] Refresh
+                                Refresh
                             </button>
                         </div>
                         <div style="border-top: 1px solid var(--border-color); padding-top: 10px;">
@@ -2794,7 +2794,7 @@
 
                     <!-- Background Sync Status -->
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; text-align: center;">
-                        <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-blue);">[RELOAD]</div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-blue);">⟳</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Background Sync</div>
                         <div id="background-sync-status" style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">
                             Checking...
@@ -5302,7 +5302,7 @@
 
                             changeInfo = `
                                 <p>24h Change: ${changeText} hPa (${trend})</p>
-                                ${Math.abs(change) > 5 ? `<p style="color: var(--pain-moderate); margin-top: 4px;">[WARNING] Significant 24h change</p>` : ''}
+                                ${Math.abs(change) > 5 ? `<p style="color: var(--pain-moderate); margin-top: 4px;">⚠ Significant 24h change</p>` : ''}
                             `;
                         }
 
@@ -5962,7 +5962,7 @@ Browser: ${navigator.userAgent}
             if (storageCheck && storageCheck.warning) {
                 summaryHTML += `
                     <div style="padding: 12px; background: var(--accent-red); color: white; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;">
-                        <strong>[WARNING] Storage Warning</strong><br>
+                        <strong>⚠ Storage Warning</strong><br>
                         You're approaching the storage limit (${storageCheck.totalMB} MB / ${storageCheck.limitMB} MB).
                         Consider deleting old episodes or emptying trash after import.
                     </div>
@@ -5981,7 +5981,7 @@ Browser: ${navigator.userAgent}
                         <strong>${analysis.duplicates.length}</strong>
                     </div>
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
-                        <span>[WARNING] Conflicts:</span>
+                        <span>⚠ Conflicts:</span>
                         <strong style="color: var(--accent-red);">${analysis.conflicts.length}</strong>
                     </div>
                 </div>
@@ -5990,7 +5990,7 @@ Browser: ${navigator.userAgent}
             if (analysis.conflicts.length > 0) {
                 summaryHTML += `
                     <p style="color: var(--accent-red); margin-bottom: 12px;">
-                        <strong>[WARNING] Conflicts Detected</strong><br>
+                        <strong>⚠ Conflicts Detected</strong><br>
                         Some episodes have the same ID or similar timing but different data.
                     </p>
                 `;
@@ -6424,7 +6424,7 @@ Browser: ${navigator.userAgent}
 
                 ${duplicates.length > 0 ? `
                 <div style="background: rgba(212, 165, 116, 0.1); border-left: 3px solid #d4a574; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
-                    <p>[WARNING] <strong>${duplicates.length}</strong> duplicate${duplicates.length > 1 ? 's' : ''} detected (will be skipped)</p>
+                    <p>⚠ <strong>${duplicates.length}</strong> duplicate${duplicates.length > 1 ? 's' : ''} detected (will be skipped)</p>
                 </div>
                 ` : ''}
 
