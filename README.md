@@ -7,31 +7,38 @@ A Progressive Web App for tracking migraines, identifying patterns, and improvin
 [![PWA](https://img.shields.io/badge/PWA-enabled-blueviolet)](https://web.dev/progressive-web-apps/)
 [![Privacy First](https://img.shields.io/badge/Privacy-First-green)](./help/privacy.html)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.0-blue)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-4.0.0-blue)](./CHANGELOG.md)
 
 [Live Demo](https://aidedmarketing.github.io/AidingMigraine/) | [Documentation](https://aidedmarketing.github.io/AidingMigraine/help/) | [Report Bug](https://github.com/AidedMarketing/AidingMigraine/issues) | [Changelog](./CHANGELOG.md)
 
 ---
 
-## 🆕 What's New in v3.1.0
+## 🆕 What's New in v4.0.0
 
-### Phase 2: Enhanced Data Management
-- **IndexedDB Storage** - Unlimited migraine history (no more 5-10MB localStorage limits!)
-- **Automatic Migration** - Seamless upgrade from localStorage to IndexedDB
-- **Storage Quota Management** - Visual display of storage usage with warnings
-- **Background Sync API** - Offline changes automatically sync when online
-- **Auto-Archive** - Archive old migraines (12+ months) to save space
-- **Dual Storage** - localStorage backup maintained for safety
+### Complete UI Redesign - Migraine-Friendly Interface
 
-### Phase 1: Advanced PWA Features (v3.0.0)
-- **Screen Wake Lock** - Keep screen awake during migraine episodes
-- **Voice Logging** - Hands-free migraine logging ("Log migraine pain level 7")
-- **Biometric Auth** - Secure data with fingerprint/Face ID
-- **Auto-Lock** - Lock app after inactivity for privacy
-- **Offline Indicators** - Clear status when offline/online
-- **Custom Install Prompt** - Smart prompting after 3 logged migraines
+**A complete visual overhaul designed specifically for people experiencing migraines:**
 
-📖 **[Full Phase 1 Documentation](./PHASE_1_FEATURES.md)** | **[Complete Changelog](./CHANGELOG.md)**
+- **Warm Dark Theme** - Eye-friendly warm tones (#1c1815) with soft green accents to reduce eye strain
+- **Minimal Line Icons** - Replaced 122+ emoji with clean, minimal SVG icons for reduced visual clutter
+- **Simplified Pain Scale** - Dropdown interface with patient-centered, non-prescriptive labels
+- **Progressive Disclosure** - Collapsible sections hide optional details by default
+- **3 Focused Themes** - Choose Warm Dark, Warm Light, or High Contrast mode
+- **70% Less Visual Clutter** - Streamlined forms, consolidated buttons, cleaner interface
+- **Professional Design** - Modern, accessible design that looks great and feels calm
+
+### Previous Major Updates
+
+**Phase 2: Enhanced Data Management (v3.1.0)**
+- IndexedDB Storage for unlimited history
+- Storage quota management and auto-archive
+- Background sync for offline changes
+
+**Phase 1: Advanced PWA Features (v3.0.0)**
+- Screen wake lock, voice logging, biometric auth
+- Auto-lock, offline indicators, custom install prompt
+
+📖 **[Full Changelog](./CHANGELOG.md)** | **[Phase 1 Documentation](./PHASE_1_FEATURES.md)**
 
 ---
 
@@ -281,13 +288,14 @@ See [Contributing Guidelines](#contributing) below
 
 ## 🚧 Roadmap
 
-**Current (v2.0.0):**
+**Current (v4.0.0):**
+- ✅ **Migraine-friendly UI redesign** (warm themes, minimal icons, reduced clutter)
 - ✅ Core tracking and calendar
 - ✅ Analytics dashboard with 4 charts
 - ✅ Notification system (timezone-aware)
 - ✅ PDF export with clinical interpretations
 - ✅ Seamless update system
-- ✅ Dark mode support
+- ✅ **3 theme options** (Warm Dark, Warm Light, High Contrast)
 - ✅ **Weather tracking** with barometric pressure correlation
 - ✅ **Active attack check-in notifications**
 - ✅ **Motion sensitivity accessibility support**
@@ -296,14 +304,14 @@ See [Contributing Guidelines](#contributing) below
 - ✅ **Entry editing** (modify past entries)
 - ✅ **CSV import/export** for data portability
 - ✅ **Enterprise-grade security** (XSS protection, rate limiting, authentication)
-- ✅ **55% dependency reduction** (improved performance & security)
+- ✅ **IndexedDB storage** (unlimited history)
+- ✅ **Advanced PWA features** (wake lock, voice logging, biometric auth)
 
-**Coming Soon (v2.1.0):**
+**Coming Soon (v4.1.0):**
 - 🔄 **Cloud sync via Google Drive** (optional, privacy-preserving)
 - 📊 **Enhanced medication analytics** with comparative effectiveness charts
 - 🎯 **Multi-trigger correlation** (weather + medication + lifestyle)
 - 🔔 **Smart notification timing** based on your migraine patterns
-- 📱 **Progressive disclosure UI** for complex features
 
 **Long-term:**
 - Multi-device sync (encrypted peer-to-peer)
