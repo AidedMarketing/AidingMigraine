@@ -7,7 +7,7 @@
 
     <!-- PWA Configuration -->
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#7ba68a">
+    <meta name="theme-color" content="#8fb394">
     <meta name="description" content="Track and manage your migraine symptoms with ease">
 
     <!-- iOS PWA Support -->
@@ -31,33 +31,67 @@
            AIDING MIGRAINE v3.2.1 - BUG FIXES
            ============================================ */
 
-        /* === ROOT VARIABLES (DARK - DEFAULT) === */
+        /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
         :root {
-            --bg-primary: #1a1d24;
-            --bg-secondary: #252930;
-            --bg-tertiary: #2f3339;
-            --text-primary: #e8e6e3;
-            --text-secondary: #c7c3bb;
-            --border-color: #3a3f47;
-            --accent-green: #7ba68a;
-            --accent-red: #c96868;
-            --accent-blue: #6b8bb8;
-            --pain-mild: #7ba68a;
+            --bg-primary: #1c1815;
+            --bg-secondary: #2a2420;
+            --bg-tertiary: #362f28;
+            --text-primary: #ede8df;
+            --text-secondary: #cfc7b8;
+            --border-color: #4a4237;
+            --accent-green: #8fb394;
+            --accent-red: #c97a6f;
+            --accent-blue: #7a95b8;
+            --pain-mild: #8fb394;
             --pain-moderate: #d4a574;
-            --pain-severe: #c96868;
+            --pain-severe: #c97a6f;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             --radius: 12px;
             --transition: all 0.2s ease;
         }
 
-        /* === LIGHT THEME OVERRIDE === */
+        /* === WARM LIGHT THEME === */
+        :root[data-theme="warm-light"] {
+            --bg-primary: #f8f6f3;
+            --bg-secondary: #fdfcfb;
+            --bg-tertiary: #f0ede8;
+            --text-primary: #3a3634;
+            --text-secondary: #6b6560;
+            --border-color: #d4cfc8;
+            --accent-green: #4a7c59;
+            --accent-red: #b85050;
+            --accent-blue: #4a6b9e;
+            --pain-mild: #4a7c59;
+            --pain-moderate: #d4a574;
+            --pain-severe: #b85050;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* === HIGH CONTRAST THEME === */
+        :root[data-theme="high-contrast"] {
+            --bg-primary: #000000;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #d0d0d0;
+            --border-color: #555555;
+            --accent-green: #00ff88;
+            --accent-red: #ff4444;
+            --accent-blue: #4488ff;
+            --pain-mild: #00ff88;
+            --pain-moderate: #ffaa00;
+            --pain-severe: #ff4444;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        /* === LIGHT THEME (backwards compatibility - maps to warm-light) === */
         :root[data-theme="light"] {
-            --bg-primary: #f5f5f5;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #e8e8e8;
-            --text-primary: #2a2a2a;
-            --text-secondary: #666666;
-            --border-color: #d0d0d0;
+            --bg-primary: #f8f6f3;
+            --bg-secondary: #fdfcfb;
+            --bg-tertiary: #f0ede8;
+            --text-primary: #3a3634;
+            --text-secondary: #6b6560;
+            --border-color: #d4cfc8;
             --accent-green: #4a7c59;
             --accent-red: #b85050;
             --accent-blue: #4a6b9e;
@@ -146,7 +180,7 @@
             padding: 24px;
             margin-bottom: 20px;
             box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
         }
 
         .active-episode-card {
@@ -226,16 +260,15 @@
             margin-bottom: 8px;
             font-weight: 500;
             color: var(--text-primary);
-            text-align: center;
         }
 
         input[type="text"],
         textarea {
             width: 100%;
-            padding: 12px;
+            padding: 12px 16px;
             background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
             color: var(--text-primary);
             font-size: 1rem;
             font-family: inherit;
@@ -246,6 +279,7 @@
         textarea:focus {
             outline: none;
             border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(143, 179, 148, 0.1);
         }
 
         textarea {
@@ -253,6 +287,44 @@
             min-height: 80px;
         }
 
+        /* Pain Dropdown (replaces button grid) */
+        .pain-dropdown {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23cfc7b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 44px;
+        }
+
+        .pain-dropdown:hover {
+            border-color: var(--accent-green);
+        }
+
+        .pain-dropdown:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(143, 179, 148, 0.1);
+        }
+
+        .pain-dropdown option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 12px;
+        }
+
+        /* Legacy pain scale styles (kept for modals/editing) */
         .pain-scale {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -295,28 +367,58 @@
             margin-top: 4px;
         }
 
+        /* SVG Icon Styles */
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
+
+        .icon-md {
+            width: 20px;
+            height: 20px;
+        }
+
+        .icon-lg {
+            width: 24px;
+            height: 24px;
+        }
+
         .optional-details {
             margin: 20px 0;
         }
 
         .toggle-details-btn {
             width: 100%;
-            padding: 12px;
+            padding: 14px 16px;
             background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
             color: var(--text-primary);
             font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
             text-align: left;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 8px;
         }
 
         .toggle-details-btn:hover {
-            background: var(--bg-secondary);
+            border-color: var(--accent-green);
         }
 
         #details-arrow {
@@ -324,7 +426,7 @@
         }
 
         #details-arrow.rotated {
-            transform: rotate(-90deg);
+            transform: rotate(180deg);
         }
 
         .optional-details-content {
@@ -334,21 +436,24 @@
         .btn {
             padding: 14px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
             width: 100%;
+            font-family: inherit;
         }
 
         .btn-primary {
             background: var(--accent-green);
-            color: white;
+            color: var(--bg-primary);
+            border: 2px solid var(--accent-green);
         }
 
         .btn-primary:hover {
-            background: #6a957a;
+            background: #a5c5ad;
+            border-color: #a5c5ad;
             transform: translateY(-2px);
             box-shadow: var(--shadow);
         }
@@ -356,11 +461,12 @@
         .btn-secondary {
             background: var(--bg-tertiary);
             color: var(--text-primary);
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
         }
 
         .btn-secondary:hover {
-            background: var(--bg-secondary);
+            border-color: var(--accent-green);
+            transform: translateY(-2px);
         }
 
         .action-buttons {
@@ -667,7 +773,7 @@
         }
 
         .calendar-day.active-indicator::after {
-            content: '⚡';
+            content: '•';
             position: absolute;
             top: 2px;
             right: 2px;
@@ -867,17 +973,24 @@
             padding: 16px;
             background: var(--bg-tertiary);
             border: 2px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--text-primary);
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
         .theme-btn:hover {
+            border-color: var(--accent-green);
+            transform: translateY(-2px);
+        }
+
+        .theme-btn.active {
+            border-color: var(--accent-green);
+            border-width: 3px;
             background: var(--bg-secondary);
         }
 
@@ -984,7 +1097,11 @@
         }
 
         .nav-icon {
-            font-size: 1.5rem;
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
         }
 
         .nav-label {
@@ -1655,10 +1772,10 @@
     <!-- Update Available Banner -->
     <div id="update-banner" class="update-banner" style="display: none;">
         <div class="update-content">
-            <span class="update-icon">✨</span>
+            <span class="update-icon">Update</span>
             <span class="update-text">New version available!</span>
             <button id="update-btn" class="update-btn">Update Now</button>
-            <button id="dismiss-update-btn" class="dismiss-update-btn">×</button>
+            <button id="dismiss-update-btn" class="dismiss-update-btn">✕</button>
         </div>
     </div>
 
@@ -1669,7 +1786,7 @@
     <div id="install-prompt" class="install-prompt" style="display: none;">
         <div class="install-prompt-content">
             <div class="install-prompt-header">
-                <span class="install-prompt-icon">📱</span>
+                <span class="install-prompt-icon">Install</span>
                 <div class="install-prompt-text">
                     <div class="install-prompt-title">Install Aiding Migraine</div>
                     <div class="install-prompt-desc">Get quick access and track migraines offline</div>
@@ -1684,7 +1801,7 @@
 
     <!-- Wake Lock Indicator -->
     <div id="wake-lock-indicator" class="wake-lock-indicator" style="display: none;">
-        <span class="wake-lock-icon">☀️</span>
+        <span class="wake-lock-icon">Awake</span>
         <span>Screen staying awake</span>
     </div>
 
@@ -1701,7 +1818,7 @@
 
     <!-- Lock Screen -->
     <div id="lock-screen" class="lock-screen" style="display: none;">
-        <div class="lock-screen-icon">🔒</div>
+        <div class="lock-screen-icon">Lock</div>
         <div class="lock-screen-title">App Locked</div>
         <div class="lock-screen-subtitle">Unlock to access your migraine data</div>
         <button id="unlock-btn" class="unlock-btn">Unlock</button>
@@ -1717,7 +1834,9 @@
             <div id="active-episode-section" style="display: none;">
                 <div class="active-episode-card">
                     <div class="active-header">
-                        <span class="pulse-indicator">⚡</span>
+                        <svg class="icon icon-lg pulse-indicator" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>
                         <h2>Active Episode</h2>
                     </div>
                     <div class="active-stats">
@@ -1745,8 +1864,12 @@
 
                     <!-- Add Relief Method Section -->
                     <div id="add-relief-section" style="margin: 20px 0;">
-                        <button id="add-relief-btn" class="btn btn-secondary" style="width: 100%; margin-bottom: 12px;">
-                            <span>➕ Add Relief Method</span>
+                        <button id="add-relief-btn" class="btn btn-secondary" style="width: 100%; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Add Relief Method</span>
                         </button>
 
                         <!-- Expandable Relief Method Input -->
@@ -1756,27 +1879,43 @@
                             <!-- Quick Action Buttons -->
                             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px;">
                                 <button class="relief-quick-btn" data-relief="Medication" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">💊</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
                                     <span>Medication</span>
                                 </button>
                                 <button class="relief-quick-btn" data-relief="Ice/Cold Therapy" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">🧊</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <path d="M12 2v20M17 7l-10 10M7 7l10 10"></path>
+                                    </svg>
                                     <span>Ice/Cold</span>
                                 </button>
                                 <button class="relief-quick-btn" data-relief="Hydration/Electrolytes" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">💧</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <path d="M7 16.5c2.5 1.5 6.5 1.5 9 0M12 3v1m0 16v1m9-9h-1M3 12H2m16.5-6.5l-.7.7M6.2 17.8l-.7.7m12.5 0l.7-.7M6.2 6.2l.7-.7"></path>
+                                    </svg>
                                     <span>Hydration</span>
                                 </button>
                                 <button class="relief-quick-btn" data-relief="Dark/Quiet Room" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">🌑</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                    </svg>
                                     <span>Dark/Quiet</span>
                                 </button>
                                 <button class="relief-quick-btn" data-relief="Rest/Sleep" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">😴</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                                    </svg>
                                     <span>Rest/Sleep</span>
                                 </button>
                                 <button class="relief-quick-btn" data-relief="Caffeine" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">☕</span>
+                                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                                        <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                        <line x1="6" y1="1" x2="6" y2="4"></line>
+                                        <line x1="10" y1="1" x2="10" y2="4"></line>
+                                        <line x1="14" y1="1" x2="14" y2="4"></line>
+                                    </svg>
                                     <span>Caffeine</span>
                                 </button>
                             </div>
@@ -1807,7 +1946,7 @@
                         <!-- Clear Day State -->
                         <div id="weather-clear" class="weather-forecast-box" style="display: none; background: rgba(123, 166, 138, 0.1); border-left: 4px solid var(--accent-green); padding: 12px 16px; border-radius: 0 8px 8px 0;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.2rem;">✅</span>
+                                <span style="font-size: 1.2rem;">✓</span>
                                 <div>
                                     <div style="font-size: 0.9rem; font-weight: 500; color: var(--accent-green);">Clear Conditions</div>
                                     <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">No significant pressure changes</div>
@@ -1827,33 +1966,48 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Pain Intensity</label>
-                        <div class="pain-scale">
-                            <button class="pain-btn" data-pain="0">0</button>
-                            <button class="pain-btn" data-pain="1">1</button>
-                            <button class="pain-btn" data-pain="2">2</button>
-                            <button class="pain-btn" data-pain="3">3</button>
-                            <button class="pain-btn" data-pain="4">4</button>
-                            <button class="pain-btn" data-pain="5">5</button>
-                            <button class="pain-btn" data-pain="6">6</button>
-                            <button class="pain-btn" data-pain="7">7</button>
-                            <button class="pain-btn" data-pain="8">8</button>
-                            <button class="pain-btn" data-pain="9">9</button>
-                            <button class="pain-btn" data-pain="10">10</button>
-                        </div>
-                        <div class="pain-labels">
-                            <span>No Pain</span>
-                            <span>Worst Pain</span>
-                        </div>
+                        <label for="pain-select">How would you rate your pain?</label>
+                        <select id="pain-select" class="pain-dropdown">
+                            <option value="">Select level...</option>
+                            <option value="0">0 - No pain</option>
+                            <option value="1">1 - Minimal</option>
+                            <option value="2">2 - Mild</option>
+                            <option value="3">3 - Uncomfortable</option>
+                            <option value="4">4 - Moderate</option>
+                            <option value="5">5 - Distracting</option>
+                            <option value="6">6 - Distressing</option>
+                            <option value="7">7 - Severe</option>
+                            <option value="8">8 - Intense</option>
+                            <option value="9">9 - Nearly unbearable</option>
+                            <option value="10">10 - Worst imaginable</option>
+                        </select>
                     </div>
 
                     <div class="optional-details">
                         <button id="toggle-details-btn" class="toggle-details-btn">
-                            <span id="details-arrow">▼</span> Optional Details
+                            <span style="display: flex; align-items: center; gap: 10px;">
+                                <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                                Optional Details
+                            </span>
+                            <svg id="details-arrow" class="icon icon-sm" viewBox="0 0 24 24">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
                         </button>
                         <div id="optional-details-content" class="optional-details-content" style="display: none;">
                             <div class="form-group">
-                                <label>💊 Medication Taken (optional)</label>
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    Medication Taken (optional)
+                                </label>
                                 <div id="medications-list" style="margin-bottom: 12px;"></div>
                                 <button type="button" id="add-medication-btn" class="btn btn-secondary" style="width: 100%; padding: 10px;">
                                     + Add Medication
@@ -2001,7 +2155,7 @@
 
             <!-- Weather Correlation (if enabled) -->
             <div id="weather-correlation-card" class="section-card" style="display: none;">
-                <h2>☁️ Weather Correlation</h2>
+                <h2>Weather Correlation</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Relationship between barometric pressure changes and migraines</p>
 
                 <div class="correlation-summary">
@@ -2047,17 +2201,36 @@
 
             <!-- Medication Effectiveness -->
             <div id="medication-effectiveness-card" class="section-card" style="display: none;">
-                <h2>💊 Medication Effectiveness</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Medication Effectiveness
+                </h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Average effectiveness ratings for each medication</p>
                 <div id="medication-effectiveness-content"></div>
             </div>
 
             <!-- Medication Usage & MOH Warning -->
             <div id="medication-usage-card" class="section-card" style="display: none;">
-                <h2>💊 Medication Usage</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Medication Usage
+                </h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Tracking medication usage frequency</p>
                 <div id="moh-warning" style="display: none; margin-bottom: 24px; padding: 20px; background: rgba(220, 38, 38, 0.15); border-left: 4px solid #dc2626; border-radius: 8px;">
-                    <h3 style="color: #dc2626; margin-bottom: 12px;">⚠️ MEDICATION OVERUSE WARNING</h3>
+                    <h3 style="color: #dc2626; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke: #dc2626;">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        MEDICATION OVERUSE WARNING
+                    </h3>
                     <p style="margin-bottom: 12px;">
                         You've used abortive medication on <strong id="moh-days-this-month">0</strong> days this month.
                     </p>
@@ -2065,11 +2238,24 @@
                         Using medication >10 days/month for >3 months can cause Medication Overuse Headache (MOH), making migraines worse.
                     </p>
                     <div style="margin: 16px 0; padding: 12px; background: var(--bg-tertiary); border-radius: 6px;">
-                        <strong>📅 Usage Last 3 Months:</strong>
+                        <strong style="display: flex; align-items: center; gap: 6px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            Usage Last 3 Months:
+                        </strong>
                         <div id="moh-three-months" style="margin-top: 8px;"></div>
                     </div>
                     <div style="margin-top: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 6px;">
-                        <strong>📞 Action Required:</strong>
+                        <strong style="display: flex; align-items: center; gap: 6px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                            Action Required:
+                        </strong>
                         <ul style="margin: 8px 0 0 20px; color: var(--text-secondary);">
                             <li>Consult your doctor immediately</li>
                             <li>Discuss preventive medication options</li>
@@ -2088,7 +2274,14 @@
             </h1>
 
             <div class="section-card">
-                <h2>📊 Storage & Backup</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    Storage & Backup
+                </h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
                     Your data is stored securely on your device. Export regularly for backups.
                 </p>
@@ -2109,7 +2302,7 @@
             </div>
 
             <div class="section-card">
-                <h2>🗑️ Recently Deleted</h2>
+                <h2>Recently Deleted</h2>
                 <div class="settings-info" style="margin-bottom: 16px;">
                     <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
                         Deleted episodes are kept for 30 days before being permanently removed.
@@ -2117,33 +2310,75 @@
                 </div>
                 <div class="settings-actions">
                     <button class="settings-btn" id="view-trash-btn">
-                        <span>🗑️ View Trash</span>
+                        <span>View Trash</span>
                         <span class="btn-subtitle" id="trash-subtitle">0 items</span>
                     </button>
                 </div>
             </div>
 
             <div class="section-card" id="data-management-section">
-                <h2>💾 Data Management</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Data Management
+                </h2>
                 <div class="settings-actions">
                     <button class="settings-btn" id="export-json-btn">
-                        <span>📤 Export as JSON</span>
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Export as JSON
+                        </span>
                         <span class="btn-subtitle">Full backup</span>
                     </button>
                     <button class="settings-btn" id="export-csv-btn">
-                        <span>📊 Export as CSV</span>
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Export as CSV
+                        </span>
                         <span class="btn-subtitle">Excel/Sheets compatible</span>
                     </button>
                     <button class="settings-btn" id="export-pdf-btn">
-                        <span>📄 Export as PDF</span>
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Export as PDF
+                        </span>
                         <span class="btn-subtitle">Doctor report</span>
                     </button>
                     <button class="settings-btn" id="import-json-btn">
-                        <span>📥 Import from JSON</span>
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Import from JSON
+                        </span>
                         <span class="btn-subtitle">Restore backup</span>
                     </button>
                     <button class="settings-btn" id="import-csv-btn">
-                        <span>📥 Import from CSV</span>
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Import from CSV
+                        </span>
                         <span class="btn-subtitle">Migrate from other apps</span>
                     </button>
                 </div>
@@ -2152,28 +2387,76 @@
             </div>
 
             <div class="section-card">
-                <h2>🎨 Appearance</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    Appearance
+                </h2>
                 <div class="settings-group">
-                    <label class="settings-label">Theme</label>
-                    <div class="theme-options">
-                        <button class="theme-btn" data-theme="auto">
-                            <span>🌓</span>
-                            <span>Auto</span>
+                    <label class="settings-label">Color Theme</label>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px;">
+                        Choose a color scheme that's comfortable for your eyes
+                    </p>
+                    <div class="theme-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+                        <button class="theme-btn active" data-theme="warm-dark">
+                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="5" fill="#d4a574"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3" stroke="#d4a574"></line>
+                                <line x1="12" y1="21" x2="12" y2="23" stroke="#d4a574"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="#d4a574"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="#d4a574"></line>
+                                <line x1="1" y1="12" x2="3" y2="12" stroke="#d4a574"></line>
+                                <line x1="21" y1="12" x2="23" y2="12" stroke="#d4a574"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="#d4a574"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="#d4a574"></line>
+                            </svg>
+                            <span style="font-weight: 600; margin-bottom: 4px;">Warm Dark</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Evening / Default</span>
                         </button>
-                        <button class="theme-btn active" data-theme="dark">
-                            <span>🌙</span>
-                            <span>Dark</span>
+                        <button class="theme-btn" data-theme="warm-light">
+                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="5" fill="#4a7c59"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3" stroke="#4a7c59"></line>
+                                <line x1="12" y1="21" x2="12" y2="23" stroke="#4a7c59"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="#4a7c59"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="#4a7c59"></line>
+                                <line x1="1" y1="12" x2="3" y2="12" stroke="#4a7c59"></line>
+                                <line x1="21" y1="12" x2="23" y2="12" stroke="#4a7c59"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="#4a7c59"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="#4a7c59"></line>
+                            </svg>
+                            <span style="font-weight: 600; margin-bottom: 4px;">Warm Light</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Daytime</span>
                         </button>
-                        <button class="theme-btn" data-theme="light">
-                            <span>☀️</span>
-                            <span>Light</span>
+                        <button class="theme-btn" data-theme="high-contrast">
+                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" fill="none" stroke="#00ff88" stroke-width="3"></circle>
+                                <path d="M12 2 L12 22 M12 12 L22 12" stroke="#00ff88" stroke-width="2"></path>
+                            </svg>
+                            <span style="font-weight: 600; margin-bottom: 4px;">High Contrast</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Accessibility</span>
                         </button>
                     </div>
                 </div>
             </div>
 
             <div class="section-card" id="notification-section">
-                <h2>🔔 Notifications</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-md" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    Notifications
+                </h2>
                 <div class="settings-info" style="margin-bottom: 16px;">
                     <div id="notification-status" class="info-banner" style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: var(--bg-tertiary); text-align: center;">
                         <span id="notification-status-text">Loading...</span>
@@ -2183,7 +2466,7 @@
                 <div id="notification-settings-content">
                     <!-- iOS Installation Prompt (hidden by default) -->
                     <div id="ios-install-prompt" style="display: none; padding: 16px; border-radius: 8px; background: var(--accent-blue); color: white; margin-bottom: 16px;">
-                        <p style="margin-bottom: 12px; font-weight: 600;">📱 Installation Required</p>
+                        <p style="margin-bottom: 12px; font-weight: 600;">Installation Required</p>
                         <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 12px;">
                             To receive notifications on iOS:
                         </p>
@@ -2200,7 +2483,7 @@
                     <div id="notification-enable-section" style="display: none;">
                         <div class="settings-actions">
                             <button class="settings-btn" id="enable-notifications-btn" style="background: var(--accent-green); color: white;">
-                                <span>🔔 Enable Notifications</span>
+                                <span>Notification Enable Notifications</span>
                                 <span class="btn-subtitle">Tap to request permission</span>
                             </button>
                         </div>
@@ -2211,7 +2494,7 @@
                         <!-- Daily Check-in -->
                         <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
                             <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                <span>📅 Daily Check-in</span>
+                                <span>Calendar Daily Check-in</span>
                                 <label class="toggle-switch">
                                     <input type="checkbox" id="daily-checkin-enabled" checked>
                                     <span class="toggle-slider"></span>
@@ -2238,7 +2521,7 @@
                         <!-- Active Attack Check-in -->
                         <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
                             <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                <span>⚡ Active Attack Check-in</span>
+                                <span>Active Active Attack Check-in</span>
                                 <label class="toggle-switch">
                                     <input type="checkbox" id="active-checkin-enabled" checked>
                                     <span class="toggle-slider"></span>
@@ -2302,7 +2585,7 @@
             <div class="section-card">
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
                     <div>
-                        <h2 style="margin-bottom: 8px;">☁️ Weather Tracking</h2>
+                        <h2 style="margin-bottom: 8px;">Weather Weather Tracking</h2>
                         <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">
                             Track barometric pressure patterns • 15-20% of sufferers are weather-sensitive
                         </p>
@@ -2317,7 +2600,7 @@
                 <div id="weather-settings" style="display: none;">
                     <!-- Location Entry -->
                     <div style="margin-bottom: 16px;">
-                        <label for="weather-location-input" style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">📍 Location</label>
+                        <label for="weather-location-input" style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">Location Location</label>
                         <div style="display: flex; gap: 10px;">
                             <input
                                 type="text"
@@ -2340,7 +2623,7 @@
                                 <div id="weather-location-display" style="font-weight: 500; font-size: 0.95rem; margin-top: 2px;">-</div>
                             </div>
                             <button id="weather-refresh-btn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;">
-                                🔄 Refresh
+                                Refresh
                             </button>
                         </div>
                         <div style="border-top: 1px solid var(--border-color); padding-top: 10px;">
@@ -2355,21 +2638,40 @@
 
                     <!-- Privacy & Info -->
                     <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
-                        🔒 Privacy-first • Data stays on your device • <a href="./help/analytics.html#weather" style="color: var(--accent-green); text-decoration: none;">Learn more</a>
+                        Lock Privacy-first • Data stays on your device • <a href="./help/analytics.html#weather" style="color: var(--accent-green); text-decoration: none;">Learn more</a>
                     </div>
                 </div>
             </div>
 
             <div class="section-card">
-                <h2>✨ Phase 1: Advanced Features</h2>
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg class="icon icon-lg" viewBox="0 0 24 24">
+                        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+                    </svg>
+                    Privacy & Accessibility
+                </h2>
                 <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.95rem;">
-                    New features to enhance accessibility, security, and usability.
+                    Features to enhance security, accessibility, and ease of use during episodes.
                 </p>
 
                 <!-- Screen Wake Lock -->
                 <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
                     <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                        <span style="font-weight: 500;">☀️ Keep Screen Awake</span>
+                        <span style="font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                            Keep Screen Awake
+                        </span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="wake-lock-toggle" checked>
                             <span class="toggle-slider"></span>
@@ -2384,7 +2686,15 @@
                 <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                         <div>
-                            <div style="font-weight: 500; margin-bottom: 4px;">🎤 Voice Logging</div>
+                            <div style="font-weight: 500; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                                <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                                </svg>
+                                Voice Logging
+                            </div>
                             <div id="voice-status" style="font-size: 0.85rem; color: var(--text-secondary);">
                                 Checking availability...
                             </div>
@@ -2398,7 +2708,14 @@
                 <!-- Biometric Authentication -->
                 <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
                     <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                        <span style="font-weight: 500;">🔐 Biometric Lock</span>
+                        <span style="font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <path d="M5 13a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6Z"></path>
+                                <path d="M11 16a1 1 0 1 0 2 0 1 1 0 1 0-2 0Z"></path>
+                                <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                            </svg>
+                            Biometric Lock
+                        </span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="biometric-toggle">
                             <span class="toggle-slider"></span>
@@ -2415,7 +2732,13 @@
                 <!-- Auto-Lock -->
                 <div class="settings-group" style="margin-bottom: 20px;">
                     <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                        <span style="font-weight: 500;">🔒 Auto-Lock</span>
+                        <span style="font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Auto-Lock
+                        </span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="auto-lock-toggle" checked>
                             <span class="toggle-slider"></span>
@@ -2438,7 +2761,7 @@
             </div>
 
             <div class="section-card">
-                <h2>💾 Advanced Storage</h2>
+                <h2>Save Advanced Storage</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
                     IndexedDB storage for unlimited migraine history • Background sync when offline
                 </p>
@@ -2471,7 +2794,7 @@
 
                     <!-- Background Sync Status -->
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; text-align: center;">
-                        <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-blue);">🔄</div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-blue);">⟳</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Background Sync</div>
                         <div id="background-sync-status" style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">
                             Checking...
@@ -2487,62 +2810,62 @@
             </div>
 
             <div class="section-card">
-                <h2>ℹ️ Information</h2>
+                <h2>Information</h2>
                 <div class="settings-actions">
                     <button class="settings-btn" id="tour-btn">
-                        <span>🎯 Take a Tour</span>
+                        <span>Take a Tour</span>
                         <span class="btn-subtitle">Interactive walkthrough</span>
                     </button>
                     <button class="settings-btn" id="how-to-btn">
-                        <span>📖 How to Use</span>
+                        <span>Documentation How to Use</span>
                     </button>
                     <button class="settings-btn" id="about-btn">
-                        <span>📱 About This App</span>
+                        <span>Install About This App</span>
                     </button>
                     <button class="settings-btn" id="privacy-btn">
-                        <span>🔒 Privacy & Your Data</span>
+                        <span>Lock Privacy & Your Data</span>
                     </button>
                 </div>
             </div>
 
             <div class="section-card">
-                <h2>📚 Help & Resources</h2>
+                <h2>Help Help & Resources</h2>
                 <div class="settings-actions">
                     <a href="./help/quick-start.html" class="settings-btn" style="text-decoration: none; display: block;">
-                        <span>🚀 Quick Start Guide</span>
+                        <span>Launch Quick Start Guide</span>
                         <span class="btn-subtitle">Get started in minutes</span>
                     </a>
                     <a href="./help/notifications-ios.html" class="settings-btn" style="text-decoration: none; display: block;">
-                        <span>🔔 iOS Notification Setup</span>
+                        <span>Notification iOS Notification Setup</span>
                         <span class="btn-subtitle">Fix notification issues</span>
                     </a>
                     <a href="./help/analytics.html" class="settings-btn" style="text-decoration: none; display: block;">
-                        <span>📊 Understanding Analytics</span>
+                        <span>Understanding Analytics</span>
                         <span class="btn-subtitle">Interpret your charts</span>
                     </a>
                     <a href="./help/faq.html" class="settings-btn" style="text-decoration: none; display: block;">
-                        <span>💡 FAQ</span>
+                        <span>FAQ</span>
                         <span class="btn-subtitle">Common questions</span>
                     </a>
                     <a href="./help/privacy.html" class="settings-btn" style="text-decoration: none; display: block;">
-                        <span>🔒 Privacy Policy</span>
+                        <span>Lock Privacy Policy</span>
                         <span class="btn-subtitle">How we protect your data</span>
                     </a>
                 </div>
             </div>
 
             <div class="section-card">
-                <h2>⚠️ Advanced</h2>
+                <h2>Advanced</h2>
                 <div class="settings-actions">
                     <button class="settings-btn danger" id="clear-all-btn">
-                        <span>🗑️ Clear All Data</span>
+                        <span>Trash Clear All Data</span>
                         <span class="btn-subtitle">Cannot be undone</span>
                     </button>
                 </div>
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v3.3.7</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.0.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -2551,7 +2874,7 @@
         <!-- Hidden Debug Modal -->
         <div id="debug-modal" class="modal" style="display: none;">
             <div class="modal-content" style="max-width: 600px;">
-                <h2>🔍 Developer Diagnostics</h2>
+                <h2>Developer Diagnostics</h2>
                 <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; margin: 16px 0;">
                     <div style="display: grid; gap: 12px; font-size: 0.9rem;">
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
@@ -2559,19 +2882,19 @@
                             <strong id="debug-data-source">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                            <span>📊 Total Episodes:</span>
+                            <span>Total Episodes:</span>
                             <strong id="debug-total-episodes">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                            <span>✅ Active Episodes:</span>
+                            <span>Active Episodes:</span>
                             <strong id="debug-active-episodes">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                            <span>🗑️ Deleted Episodes:</span>
+                            <span>Trash Deleted Episodes:</span>
                             <strong id="debug-deleted-episodes">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                            <span>💾 IndexedDB Status:</span>
+                            <span>Save IndexedDB Status:</span>
                             <strong id="debug-indexeddb">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
@@ -2579,8 +2902,8 @@
                             <strong id="debug-localstorage">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                            <span>📱 App Version:</span>
-                            <strong>v3.3.3 Production</strong>
+                            <span>Install App Version:</span>
+                            <strong>v4.0.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -2593,19 +2916,34 @@
 
         <nav class="bottom-nav">
             <button class="nav-btn active" data-page="log">
-                <span class="nav-icon">📝</span>
+                <svg class="nav-icon icon" viewBox="0 0 24 24">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
                 <span class="nav-label">Log</span>
             </button>
             <button class="nav-btn" data-page="analytics">
-                <span class="nav-icon">📈</span>
+                <svg class="nav-icon icon" viewBox="0 0 24 24">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
                 <span class="nav-label">Analytics</span>
             </button>
             <button class="nav-btn" data-page="history">
-                <span class="nav-icon">📋</span>
+                <svg class="nav-icon icon" viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
                 <span class="nav-label">History</span>
             </button>
             <button class="nav-btn" data-page="settings">
-                <span class="nav-icon">⚙️</span>
+                <svg class="nav-icon icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m8.66-13.66l-4.24 4.24M9.76 14.24l-4.24 4.24M23 12h-6m-6 0H1m17.66 8.66l-4.24-4.24M9.76 9.76L5.52 5.52"></path>
+                </svg>
                 <span class="nav-label">Settings</span>
             </button>
         </nav>
@@ -2668,13 +3006,13 @@
         function retryUntilSuccess(fn, checkFn, maxAttempts = 15, delayMs = 10, attemptNum = 1) {
             // checkFn returns true if we should execute fn
             if (checkFn()) {
-                console.log(`✅ Executing ${fn.name} (attempt ${attemptNum})`);
+                console.log(`[SUCCESS] Executing ${fn.name} (attempt ${attemptNum})`);
                 fn();
                 return;
             }
 
             if (attemptNum >= maxAttempts) {
-                console.warn(`⚠️ Max attempts reached for ${fn.name}, giving up`);
+                console.warn(`[WARNING] Max attempts reached for ${fn.name}, giving up`);
                 return;
             }
 
@@ -2692,7 +3030,7 @@
                 nextDelay = delayMs * Math.pow(2, attemptNum - 2);
             }
 
-            console.log(`⏳ ${fn.name} - elements not ready, retrying in ${Math.round(nextDelay)}ms (attempt ${attemptNum}/${maxAttempts})`);
+            console.log(`[PENDING] ${fn.name} - elements not ready, retrying in ${Math.round(nextDelay)}ms (attempt ${attemptNum}/${maxAttempts})`);
 
             if (nextDelay === 0) {
                 // Use requestAnimationFrame for the first retry (almost immediate)
@@ -2718,7 +3056,7 @@
                 statusText.textContent = status;
             }
 
-            console.log(`📊 Loading: ${percent}% - ${status}`);
+            console.log(`[ANALYTICS] Loading: ${percent}% - ${status}`);
         }
 
         function hideLoadingScreen() {
@@ -2732,7 +3070,7 @@
                     loadingScreen.style.display = 'none';
                 }, 500);
 
-                console.log('✅ Loading complete - app ready');
+                console.log('[SUCCESS] Loading complete - app ready');
             }
         }
 
@@ -2782,11 +3120,11 @@
 
             // CRITICAL FIX: Ensure log page is shown first so DOM elements are accessible
             updateLoadingProgress(85, 'Preparing dashboard...');
-            console.log('🔄 Initializing UI - showing log page first');
+            console.log('[RELOAD] Initializing UI - showing log page first');
             showPage('log');
 
             // Use robust retry mechanism to ensure UI updates when DOM is ready
-            console.log('🔄 Starting robust UI initialization with retry logic...');
+            console.log('[RELOAD] Starting robust UI initialization with retry logic...');
 
             updateLoadingProgress(90, 'Loading statistics...');
             // Retry dashboard update until elements are found
@@ -2835,7 +3173,7 @@
 
             // Check required fields
             if (!migraine.id || !migraine.startTime || !migraine.painLevel) {
-                console.warn('⚠️ Active migraine missing required fields');
+                console.warn('[WARNING] Active migraine missing required fields');
                 return false;
             }
 
@@ -2845,7 +3183,7 @@
             const daysDiff = (now - startTime) / (1000 * 60 * 60 * 24);
 
             if (daysDiff > 7) {
-                console.warn(`⚠️ Active migraine is ${daysDiff.toFixed(1)} days old, clearing as likely stuck`);
+                console.warn(`[WARNING] Active migraine is ${daysDiff.toFixed(1)} days old, clearing as likely stuck`);
                 return false;
             }
 
@@ -2871,7 +3209,7 @@
                         activeMigraine = activeMigraineData.value;
                         // Validate active migraine
                         if (!validateActiveMigraine(activeMigraine)) {
-                            console.warn('⚠️ Invalid active migraine found in IndexedDB, clearing...');
+                            console.warn('[WARNING] Invalid active migraine found in IndexedDB, clearing...');
                             activeMigraine = null;
                             await IDB.delete(DB_STORES.SETTINGS, 'activeMigraine');
                         }
@@ -2899,7 +3237,7 @@
                     activeMigraine = JSON.parse(active);
                     // Validate active migraine
                     if (!validateActiveMigraine(activeMigraine)) {
-                        console.warn('⚠️ Invalid active migraine found in localStorage, clearing...');
+                        console.warn('[WARNING] Invalid active migraine found in localStorage, clearing...');
                         activeMigraine = null;
                         localStorage.removeItem('activeMigraine');
                     }
@@ -2928,7 +3266,7 @@
                         await IDB.delete(DB_STORES.SETTINGS, 'activeMigraine');
                     }
                 } catch (error) {
-                    console.error('❌ Error saving to IndexedDB:', error);
+                    console.error('[ERROR] Error saving to IndexedDB:', error);
                 }
             }
 
@@ -3077,7 +3415,7 @@
                 <div class="med-result-item" onclick="selectMedication('${safeText(med.name).replace(/'/g, '\\\'')}')" style="padding: 12px; margin-bottom: 8px; background: var(--bg-tertiary); border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
                     <div style="font-weight: 600;">${safeText(med.name)}</div>
                     <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
-                        ${med.type === 'abortive' ? '🎯 Abortive' : '🛡️ Preventive'} • ${safeText(med.category)}
+                        ${med.type === 'abortive' ? 'Abortive' : 'Preventive'} • ${safeText(med.category)}
                     </div>
                 </div>
             `).join(''));
@@ -3352,7 +3690,7 @@
         }
 
         function initializeTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const savedTheme = localStorage.getItem('theme') || 'warm-dark';
             applyTheme(savedTheme);
             
             document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -3375,20 +3713,8 @@
         }
 
         function applyTheme(theme) {
-            if (theme === 'auto') {
-                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-            } else {
-                document.documentElement.setAttribute('data-theme', theme);
-            }
+            document.documentElement.setAttribute('data-theme', theme);
         }
-
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-            const currentTheme = localStorage.getItem('theme') || 'dark';
-            if (currentTheme === 'auto') {
-                applyTheme('auto');
-            }
-        });
 
         function initializeNavigation() {
             document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -3440,7 +3766,7 @@
                 }, 100);
             } else if (pageName === 'log') {
                 // Log page contains both the dashboard and the calendar
-                console.log('📊 Switching to log page, updating dashboard and calendar');
+                console.log('[ANALYTICS] Switching to log page, updating dashboard and calendar');
 
                 // Use retry mechanism to ensure elements are ready
                 retryUntilSuccess(
@@ -3468,6 +3794,16 @@
         }
 
         function initializePainScale() {
+            // Pain dropdown handler for Log page
+            const painDropdown = document.getElementById('pain-select');
+            if (painDropdown) {
+                painDropdown.addEventListener('change', (e) => {
+                    const value = e.target.value;
+                    selectedPain = value === '' ? null : parseInt(value);
+                });
+            }
+
+            // Keep button handler for modals and edit forms
             document.querySelectorAll('.pain-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     selectedPain = parseInt(btn.dataset.pain);
@@ -3523,7 +3859,7 @@
                             text: 'Clear Stuck Episode',
                             class: 'btn-danger',
                             action: () => {
-                                console.warn('⚠️ User manually cleared stuck active episode');
+                                console.warn('[WARNING] User manually cleared stuck active episode');
                                 activeMigraine = null;
                                 saveData();
                                 checkActiveMigraine();
@@ -3578,6 +3914,12 @@
 
         function clearForm() {
             selectedPain = null;
+            // Reset dropdown
+            const painDropdown = document.getElementById('pain-select');
+            if (painDropdown) {
+                painDropdown.value = '';
+            }
+            // Reset buttons (for modals)
             document.querySelectorAll('.pain-btn').forEach(b => b.classList.remove('selected'));
             document.getElementById('notes-input').value = '';
             currentEpisodeMedications = [];
@@ -3826,7 +4168,7 @@
                     ` : ''}
 
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green); font-size: 0.9rem; color: var(--text-secondary);">
-                        ℹ️ Weather data and attack ID will be preserved
+                        Weather data and attack ID will be preserved
                     </div>
                 </div>
             `;
@@ -4097,11 +4439,11 @@
             const lastEpisodeElem = document.getElementById('last-episode');
 
             if (!totalElem || !avgPainElem || !weekCountElem || !lastEpisodeElem) {
-                console.warn('⚠️ Dashboard elements not found in DOM - total:', !!totalElem, 'avgPain:', !!avgPainElem, 'week:', !!weekCountElem, 'last:', !!lastEpisodeElem);
+                console.warn('[WARNING] Dashboard elements not found in DOM - total:', !!totalElem, 'avgPain:', !!avgPainElem, 'week:', !!weekCountElem, 'last:', !!lastEpisodeElem);
                 return;
             }
 
-            console.log('✅ Dashboard updated:', total, 'episodes');
+            console.log('[SUCCESS] Dashboard updated:', total, 'episodes');
             totalElem.textContent = total;
             avgPainElem.textContent = avgPain;
             weekCountElem.textContent = thisWeek;
@@ -4136,7 +4478,15 @@
             if (activeMigraines.length === 0) {
                 list.innerHTML = `
                     <div class="section-card" style="text-align: center; padding: 40px;">
-                        <h2>📊 No Episodes Yet</h2>
+                        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+                            <svg class="icon" style="width: 48px; height: 48px; stroke: var(--text-secondary);" viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <h2>No Episodes Yet</h2>
                         <p style="color: var(--text-secondary); margin-top: 12px;">
                             Your migraine history will appear here after you log your first episode.
                         </p>
@@ -4241,7 +4591,7 @@
 
             body.innerHTML = `
                 <div class="form-group">
-                    <label>💊 Medication</label>
+                    <label>Medication Medication</label>
                     <input type="text" id="edit-medication" value="${migraine.medication || ''}"
                            placeholder="e.g. Sumatriptan 100mg"
                            style="width: 100%; padding: 12px; background: var(--bg-tertiary);
@@ -4249,21 +4599,21 @@
                                   color: var(--text-primary); font-size: 1rem;">
                 </div>
                 <div class="form-group">
-                    <label>📝 Notes</label>
+                    <label>Notes Notes</label>
                     <textarea id="edit-notes" rows="4" placeholder="Add any notes about this episode..."
                               style="width: 100%; padding: 12px; background: var(--bg-tertiary);
                                      border: 1px solid var(--border-color); border-radius: 8px;
                                      color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${migraine.notes || ''}</textarea>
                 </div>
                 <div class="form-group">
-                    <label>🏁 Resolution Notes</label>
+                    <label>Resolution Resolution Notes</label>
                     <textarea id="edit-end-notes" rows="3" placeholder="How did it resolve? What helped?"
                               style="width: 100%; padding: 12px; background: var(--bg-tertiary);
                                      border: 1px solid var(--border-color); border-radius: 8px;
                                      color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${migraine.endNotes || ''}</textarea>
                 </div>
                 <div class="form-group">
-                    <label>💊🧊 Relief Methods</label>
+                    <label>MedicationIce Pack Relief Methods</label>
                     <div id="edit-relief-methods-list" style="margin-bottom: 12px;"></div>
                     <div style="display: flex; gap: 8px;">
                         <input type="text" id="new-relief-method" placeholder="Add relief method (e.g., Ice pack, Sumatriptan)"
@@ -4426,13 +4776,13 @@
 
         // Emergency function to restore ALL episodes, even those older than 30 days
         async function emergencyRestoreAllEpisodes() {
-            console.log('🔧 Emergency restore initiated...');
+            console.log('[DEBUG] Emergency restore initiated...');
 
             // Count deleted episodes before restore
             const deletedCount = migraines.filter(m => m.deleted).length;
 
             if (deletedCount === 0) {
-                alert('✅ No deleted episodes found. All episodes are already active!');
+                alert('Success: No deleted episodes found. All episodes are already active!');
                 return;
             }
 
@@ -4443,7 +4793,7 @@
             );
 
             if (!confirmed) {
-                console.log('❌ Emergency restore cancelled by user');
+                console.log('[ERROR] Emergency restore cancelled by user');
                 return;
             }
 
@@ -4457,7 +4807,7 @@
                 }
             });
 
-            console.log(`✅ Restored ${restoredCount} episode(s)`);
+            console.log(`[SUCCESS] Restored ${restoredCount} episode(s)`);
 
             // Save to database
             await saveData();
@@ -4472,10 +4822,10 @@
             const activeCount = getActiveMigraines().length;
             updateDiagnostics({
                 episodesCount: `${migraines.length} total (${activeCount} active, 0 deleted)`,
-                initStatus: `✅ Restored ${restoredCount} episodes!`
+                initStatus: ` Restored ${restoredCount} episodes!`
             });
 
-            alert(`✅ Success!\n\nRestored ${restoredCount} episode(s).\n\nYour data should now be visible on the dashboard and in History.`);
+            alert(`Success!\n\nRestored ${restoredCount} episode(s).\n\nYour data should now be visible on the dashboard and in History.`);
 
             // Optionally navigate to History page to show restored data
             if (restoredCount > 0) {
@@ -4525,14 +4875,14 @@
                                     ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} left
                                 </span>
                             </div>
-                            ${m.medication ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">💊 ${m.medication}</p>` : ''}
-                            ${m.notes ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">📝 ${m.notes}</p>` : ''}
+                            ${m.medication ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">Medication ${m.medication}</p>` : ''}
+                            ${m.notes ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">Notes ${m.notes}</p>` : ''}
                             <div style="display: flex; gap: 8px; margin-top: 12px;">
                                 <button class="btn btn-primary" style="flex: 1; padding: 8px;" onclick="restoreEpisode(${m.id})">
                                     ♻️ Restore
                                 </button>
                                 <button class="btn btn-danger" style="flex: 1; padding: 8px;" onclick="permanentlyDelete(${m.id})">
-                                    🗑️ Delete Forever
+                                    Trash Delete Forever
                                 </button>
                             </div>
                         </div>
@@ -4542,7 +4892,7 @@
             content += `
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
                     <button class="btn btn-danger" style="width: 100%;" onclick="emptyTrash()">
-                        🗑️ Empty Trash (Delete All)
+                        Trash Empty Trash (Delete All)
                     </button>
                 </div>
             `;
@@ -4721,7 +5071,7 @@
             // Update display - check if elements exist first
             const monthDaysEl = document.getElementById('current-month-days');
             if (!monthDaysEl) {
-                console.warn('⚠️ Monthly stats elements not found in DOM');
+                console.warn('[WARNING] Monthly stats elements not found in DOM');
                 return;
             }
 
@@ -4772,7 +5122,7 @@
             const calendarGridElem = document.getElementById('calendar-grid');
 
             if (!currentMonthElem || !calendarGridElem) {
-                console.warn('⚠️ Calendar elements not found in DOM');
+                console.warn('[WARNING] Calendar elements not found in DOM');
                 return;
             }
 
@@ -4882,7 +5232,7 @@
                                 // Show rapid change indicator if available
                                 // Updated threshold: 5+ hPa in 6h (research-validated)
                                 if (weatherEntry.maxChange3h && weatherEntry.maxChange3h >= 5) {
-                                    icon = '⚡';
+                                    icon = 'Active';
                                     color = 'var(--accent-red)';
                                 } else if (change > 5) {
                                     icon = '↑';
@@ -4904,7 +5254,7 @@
             }
 
             calendarGridElem.innerHTML = html;
-            console.log('✅ Calendar rendered for', new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
+            console.log('[SUCCESS] Calendar rendered for', new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
         }
 
         function showDayDetails(dateStr) {
@@ -4952,7 +5302,7 @@
 
                             changeInfo = `
                                 <p>24h Change: ${changeText} hPa (${trend})</p>
-                                ${Math.abs(change) > 5 ? `<p style="color: var(--pain-moderate); margin-top: 4px;">⚠️ Significant 24h change</p>` : ''}
+                                ${Math.abs(change) > 5 ? `<p style="color: var(--pain-moderate); margin-top: 4px;">⚠ Significant 24h change</p>` : ''}
                             `;
                         }
 
@@ -4960,12 +5310,12 @@
                         // Updated threshold: 5+ hPa in 6h (research-validated)
                         let rapidChangeInfo = '';
                         if (weatherEntry.maxChange3h && weatherEntry.maxChange3h >= 5) {
-                            rapidChangeInfo = `<p style="color: var(--accent-red); margin-top: 4px;">⚡ Rapid change: ${weatherEntry.maxChange3h} hPa in 6h</p>`;
+                            rapidChangeInfo = `<p style="color: var(--accent-red); margin-top: 4px;">Active Rapid change: ${weatherEntry.maxChange3h} hPa in 6h</p>`;
                         }
 
                         weatherContent = `
                             <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green);">
-                                <p><strong>☁️ Weather Conditions</strong></p>
+                                <p><strong>Weather Weather Conditions</strong></p>
                                 <p>Pressure: ${todayPressure.toFixed(1)} hPa</p>
                                 ${changeInfo}
                                 ${rapidChangeInfo}
@@ -4992,9 +5342,9 @@
                         <p><strong>Started: ${formatTime(new Date(m.startTime))}</strong></p>
                         <p>Pain: ${m.painLevel}/10 (${m.category})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
-                        ${m.medication ? `<p>💊 Medication: ${m.medication}</p>` : ''}
-                        ${m.notes ? `<p style="margin-top: 8px;">📝 Notes: ${m.notes}</p>` : ''}
-                        ${m.endNotes ? `<p style="margin-top: 8px;">🏁 Resolution: ${m.endNotes}</p>` : ''}
+                        ${m.medication ? `<p>Medication Medication: ${m.medication}</p>` : ''}
+                        ${m.notes ? `<p style="margin-top: 8px;">Notes Notes: ${m.notes}</p>` : ''}
+                        ${m.endNotes ? `<p style="margin-top: 8px;">Resolution Resolution: ${m.endNotes}</p>` : ''}
                     </div>
                 `).join('');
             }
@@ -5009,9 +5359,9 @@
                         <p>Started: ${formatTime(new Date(m.startTime))}</p>
                         <p>Pain: ${m.painLevel}/10 (${m.category})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
-                        ${m.medication ? `<p>💊 Medication: ${m.medication}</p>` : ''}
-                        ${m.notes ? `<p style="margin-top: 8px;">📝 Notes: ${m.notes}</p>` : ''}
-                        ${m.endNotes ? `<p style="margin-top: 8px;">🏁 Resolution: ${m.endNotes}</p>` : ''}
+                        ${m.medication ? `<p>Medication Medication: ${m.medication}</p>` : ''}
+                        ${m.notes ? `<p style="margin-top: 8px;">Notes Notes: ${m.notes}</p>` : ''}
+                        ${m.endNotes ? `<p style="margin-top: 8px;">Resolution Resolution: ${m.endNotes}</p>` : ''}
                     </div>
                 `).join('');
             }
@@ -5029,7 +5379,7 @@
                     if (element) {
                         element.addEventListener(event, handler);
                     } else {
-                        console.warn(`⚠️ Element not found during initialization: ${elementId}`);
+                        console.warn(`[WARNING] Element not found during initialization: ${elementId}`);
                     }
                 };
 
@@ -5071,9 +5421,9 @@
                 // Initialize hidden debug mode (will handle missing elements gracefully)
                 initializeDebugMode();
 
-                console.log('✅ Settings initialization completed (deferred mode)');
+                console.log('[SUCCESS] Settings initialization completed (deferred mode)');
             } catch (error) {
-                console.error('❌ Error in initializeSettings:', error);
+                console.error('[ERROR] Error in initializeSettings:', error);
                 // Don't throw - allow app initialization to continue
             }
         }
@@ -5088,17 +5438,17 @@
         let debugModeInitialized = false;
         function initializeDebugMode() {
             if (debugModeInitialized) {
-                console.log('✅ Debug mode already initialized');
+                console.log('[SUCCESS] Debug mode already initialized');
                 return;
             }
 
             const versionElement = document.getElementById('app-version');
             if (!versionElement) {
-                console.warn('⚠️ Debug mode: app-version element not found, will initialize when settings page is shown');
+                console.warn('[WARNING] Debug mode: app-version element not found, will initialize when settings page is shown');
                 return;
             }
 
-            console.log('🔧 Initializing debug mode...');
+            console.log('[DEBUG] Initializing debug mode...');
 
             // Remove any existing listeners to prevent duplicates
             const newElement = versionElement.cloneNode(true);
@@ -5109,7 +5459,7 @@
                 e.stopPropagation();
                 versionTapCount++;
 
-                console.log(`🔍 Debug tap registered: ${versionTapCount}/7`);
+                console.log(`[SEARCH] Debug tap registered: ${versionTapCount}/7`);
 
                 // Visual feedback - briefly change opacity
                 newElement.style.opacity = '0.5';
@@ -5120,27 +5470,27 @@
                 // Reset counter after 2 seconds of inactivity
                 clearTimeout(versionTapTimer);
                 versionTapTimer = setTimeout(() => {
-                    console.log('🔄 Debug tap counter reset');
+                    console.log('[RELOAD] Debug tap counter reset');
                     versionTapCount = 0;
                 }, 2000);
 
                 // Show debug modal after 7 taps
                 if (versionTapCount === 7) {
-                    console.log('🎯 Opening debug modal...');
+                    console.log('[TARGET] Opening debug modal...');
                     versionTapCount = 0;
                     showDebugModal();
                 }
             }, { passive: false });
 
             debugModeInitialized = true;
-            console.log('✅ Debug mode initialized successfully');
+            console.log('[SUCCESS] Debug mode initialized successfully');
         }
 
         function showDebugModal() {
-            console.log('🔍 showDebugModal called');
+            console.log('[SEARCH] showDebugModal called');
             const modal = document.getElementById('debug-modal');
             if (!modal) {
-                console.error('❌ Debug modal element not found!');
+                console.error('[ERROR] Debug modal element not found!');
                 alert('Debug modal element not found. Please check the console.');
                 return;
             }
@@ -5171,13 +5521,13 @@
                 document.getElementById('debug-total-episodes').textContent = migraines.length;
                 document.getElementById('debug-active-episodes').textContent = activeMigraines.length;
                 document.getElementById('debug-deleted-episodes').textContent = deletedMigraines.length;
-                document.getElementById('debug-indexeddb').textContent = (useIndexedDB && db) ? '✅ Available' : '❌ Not Available';
+                document.getElementById('debug-indexeddb').textContent = (useIndexedDB && db) ? 'Available' : 'Not Available';
                 document.getElementById('debug-localstorage').textContent = localStorageStatus;
 
                 modal.style.display = 'flex';
-                console.log('✅ Debug modal displayed successfully');
+                console.log('[SUCCESS] Debug modal displayed successfully');
             } catch (error) {
-                console.error('❌ Error showing debug modal:', error);
+                console.error('[ERROR] Error showing debug modal:', error);
                 alert('Error showing debug modal: ' + error.message);
             }
         }
@@ -5193,7 +5543,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v3.3.3 - Debug Information
+            const debugInfo = `Aiding Migraine v4.0.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -5207,10 +5557,10 @@ Browser: ${navigator.userAgent}
 `;
 
             navigator.clipboard.writeText(debugInfo).then(() => {
-                alert('✅ Debug information copied to clipboard!');
+                alert('Success: Debug information copied to clipboard!');
             }).catch((err) => {
                 console.error('Failed to copy:', err);
-                alert('❌ Failed to copy. Please check console.');
+                alert('Failed to copy. Please check console.');
             });
         }
 
@@ -5249,7 +5599,7 @@ Browser: ${navigator.userAgent}
                     trashSubtitle.textContent = `${deletedMigraines.length} ${itemText}`;
                 }
             } catch (error) {
-                console.error('❌ Error in updateStorageInfo:', error);
+                console.error('[ERROR] Error in updateStorageInfo:', error);
                 // Don't throw - allow operation to continue
             }
         }
@@ -5612,7 +5962,7 @@ Browser: ${navigator.userAgent}
             if (storageCheck && storageCheck.warning) {
                 summaryHTML += `
                     <div style="padding: 12px; background: var(--accent-red); color: white; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;">
-                        <strong>⚠️ Storage Warning</strong><br>
+                        <strong>⚠ Storage Warning</strong><br>
                         You're approaching the storage limit (${storageCheck.totalMB} MB / ${storageCheck.limitMB} MB).
                         Consider deleting old episodes or emptying trash after import.
                     </div>
@@ -5623,7 +5973,7 @@ Browser: ${navigator.userAgent}
                 <p style="margin-bottom: 16px;">Found <strong>${analysis.total} episodes</strong> in backup file:</p>
                 <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
-                        <span>✅ New Episodes:</span>
+                        <span>New Episodes:</span>
                         <strong style="color: var(--accent-green);">${analysis.new.length}</strong>
                     </div>
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
@@ -5631,7 +5981,7 @@ Browser: ${navigator.userAgent}
                         <strong>${analysis.duplicates.length}</strong>
                     </div>
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
-                        <span>⚠️ Conflicts:</span>
+                        <span>⚠ Conflicts:</span>
                         <strong style="color: var(--accent-red);">${analysis.conflicts.length}</strong>
                     </div>
                 </div>
@@ -5640,7 +5990,7 @@ Browser: ${navigator.userAgent}
             if (analysis.conflicts.length > 0) {
                 summaryHTML += `
                     <p style="color: var(--accent-red); margin-bottom: 12px;">
-                        <strong>⚠️ Conflicts Detected</strong><br>
+                        <strong>⚠ Conflicts Detected</strong><br>
                         Some episodes have the same ID or similar timing but different data.
                     </p>
                 `;
@@ -5697,7 +6047,7 @@ Browser: ${navigator.userAgent}
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.9rem;">
                             <div>
-                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-green);">📥 Importing:</div>
+                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-green);">Import Importing:</div>
                                 <div>Date: ${formatDate(new Date(imported.startTime))}</div>
                                 <div>Time: ${formatTime(new Date(imported.startTime))}</div>
                                 <div>Pain: ${imported.painLevel}/10</div>
@@ -5705,7 +6055,7 @@ Browser: ${navigator.userAgent}
                                 ${imported.medication ? `<div>Med: ${imported.medication}</div>` : ''}
                             </div>
                             <div>
-                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-blue);">💾 Existing:</div>
+                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-blue);">Save Existing:</div>
                                 <div>Date: ${formatDate(new Date(existing.startTime))}</div>
                                 <div>Time: ${formatTime(new Date(existing.startTime))}</div>
                                 <div>Pain: ${existing.painLevel}/10</div>
@@ -6061,7 +6411,7 @@ Browser: ${navigator.userAgent}
 
             const preview = entries.slice(0, 5).map(e => {
                 const date = new Date(e.startTime);
-                return `📅 ${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})} - Pain: ${e.painLevel}/10`;
+                return `Calendar ${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})} - Pain: ${e.painLevel}/10`;
             }).join('<br>');
 
             body.innerHTML = `
@@ -6074,7 +6424,7 @@ Browser: ${navigator.userAgent}
 
                 ${duplicates.length > 0 ? `
                 <div style="background: rgba(212, 165, 116, 0.1); border-left: 3px solid #d4a574; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
-                    <p>⚠️ <strong>${duplicates.length}</strong> duplicate${duplicates.length > 1 ? 's' : ''} detected (will be skipped)</p>
+                    <p>⚠ <strong>${duplicates.length}</strong> duplicate${duplicates.length > 1 ? 's' : ''} detected (will be skipped)</p>
                 </div>
                 ` : ''}
 
@@ -6121,16 +6471,16 @@ Browser: ${navigator.userAgent}
                 <p style="margin-bottom: 20px; color: var(--text-secondary);">Select a date range for your doctor report:</p>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <button class="settings-btn" onclick="exportPDF('7days')">
-                        <span>📅 Last 7 Days</span>
+                        <span>Calendar Last 7 Days</span>
                     </button>
                     <button class="settings-btn" onclick="exportPDF('30days')">
-                        <span>📅 Last 30 Days</span>
+                        <span>Calendar Last 30 Days</span>
                     </button>
                     <button class="settings-btn" onclick="exportPDF('90days')">
-                        <span>📅 Last 90 Days</span>
+                        <span>Calendar Last 90 Days</span>
                     </button>
                     <button class="settings-btn" onclick="showCustomDateRange()">
-                        <span>📅 Custom Range</span>
+                        <span>Calendar Custom Range</span>
                     </button>
                 </div>
             `;
@@ -6291,7 +6641,7 @@ Browser: ${navigator.userAgent}
 
             // Headache Frequency Section
             doc.setFont(undefined, 'bold');
-            doc.text('📊 Headache Frequency', 20, yPos);
+            doc.text('Headache Frequency', 20, yPos);
             yPos += 6;
             doc.setFont(undefined, 'normal');
             doc.text(`Migraine Days in Period: ${uniqueMigraineDays} days (out of ${daysInRange} days tracked)`, 20, yPos);
@@ -6311,7 +6661,7 @@ Browser: ${navigator.userAgent}
             // Pain Characteristics
             doc.setFontSize(10);
             doc.setFont(undefined, 'bold');
-            doc.text('📈 Pain Characteristics', 20, yPos);
+            doc.text('Analytics Pain Characteristics', 20, yPos);
             yPos += 6;
             doc.setFont(undefined, 'normal');
 
@@ -6356,7 +6706,7 @@ Browser: ${navigator.userAgent}
                 if (correlation) {
                     doc.setFontSize(10);
                     doc.setFont(undefined, 'bold');
-                    doc.text('☁️ Weather Sensitivity Analysis', 20, yPos);
+                    doc.text('Weather Weather Sensitivity Analysis', 20, yPos);
                     yPos += 6;
                     doc.setFont(undefined, 'normal');
 
@@ -6556,7 +6906,7 @@ Browser: ${navigator.userAgent}
 
         function clearAllData() {
             const modal = document.getElementById('modal');
-            document.getElementById('modal-title').textContent = '⚠️ Delete All Data?';
+            document.getElementById('modal-title').textContent = 'Delete All Data?';
             document.getElementById('modal-body').innerHTML = `
                 <p><strong>This will permanently delete ALL ${migraines.length} episodes and cannot be undone.</strong></p>
                 <p style="margin-top: 12px;">We recommend exporting a backup first.</p>
@@ -6610,13 +6960,13 @@ Browser: ${navigator.userAgent}
                         and generate professional reports for your healthcare provider.
                     </p>
                     <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 20px; margin: 24px 0; text-align: left;">
-                        <h3 style="font-size: 1.1rem; margin-bottom: 12px; text-align: center;">✨ Key Features</h3>
+                        <h3 style="font-size: 1.1rem; margin-bottom: 12px; text-align: center;">Update Key Features</h3>
                         <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 2;">
-                            <li>📝 <strong>Easy Logging:</strong> Track pain levels, duration, and medications</li>
-                            <li>📊 <strong>Visual History:</strong> Calendar view and detailed statistics</li>
-                            <li>📄 <strong>PDF Reports:</strong> Professional reports for doctor visits</li>
-                            <li>💾 <strong>Secure Backup:</strong> Import/export your data safely</li>
-                            <li>🗑️ <strong>Smart Recovery:</strong> 30-day trash for deleted episodes</li>
+                            <li>Notes <strong>Easy Logging:</strong> Track pain levels, duration, and medications</li>
+                            <li><strong>Visual History:</strong> Calendar view and detailed statistics</li>
+                            <li>Document <strong>PDF Reports:</strong> Professional reports for doctor visits</li>
+                            <li>Save <strong>Secure Backup:</strong> Import/export your data safely</li>
+                            <li>Trash <strong>Smart Recovery:</strong> 30-day trash for deleted episodes</li>
                         </ul>
                     </div>
                     <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
@@ -6937,14 +7287,14 @@ Browser: ${navigator.userAgent}
         // Set up notification UI (called when settings page is shown)
         let notificationUIInitialized = false;
         async function setupNotificationUI() {
-            console.log('🔧 Setting up Notification UI...');
+            console.log('[DEBUG] Setting up Notification UI...');
 
             // Always update UI state when settings page is shown
             await updateNotificationUI();
 
             // If already initialized, skip event listener setup
             if (notificationUIInitialized) {
-                console.log('✅ Notification UI already initialized (skipping event listeners)');
+                console.log('[SUCCESS] Notification UI already initialized (skipping event listeners)');
                 return;
             }
 
@@ -6954,7 +7304,7 @@ Browser: ${navigator.userAgent}
             const testBtn = document.getElementById('test-notification-btn');
 
             if (!enableBtn || !disableBtn || !testBtn) {
-                console.warn('⚠️ Notification UI elements not found, will retry on next settings page visit');
+                console.warn('[WARNING] Notification UI elements not found, will retry on next settings page visit');
                 return;
             }
 
@@ -6980,7 +7330,7 @@ Browser: ${navigator.userAgent}
             if (followupDelay) followupDelay.addEventListener('change', saveNotificationPreferences);
 
             notificationUIInitialized = true;
-            console.log('✅ Notification UI initialized successfully');
+            console.log('[SUCCESS] Notification UI initialized successfully');
         }
 
         function loadNotificationPreferences() {
@@ -7048,13 +7398,13 @@ Browser: ${navigator.userAgent}
 
             // Check if elements exist before updating (settings page might not be loaded yet)
             if (!statusText || !enableSection || !preferencesSection || !iosPrompt) {
-                console.log('⏳ Notification UI elements not yet available, will update when settings page is shown');
+                console.log('[PENDING] Notification UI elements not yet available, will update when settings page is shown');
                 return;
             }
 
             // Check if notifications are supported
             if (!('Notification' in window)) {
-                statusText.innerHTML = '❌ Notifications not supported on this browser';
+                statusText.innerHTML = 'Notifications not supported on this browser';
                 statusText.parentElement.style.background = 'var(--accent-red)';
                 statusText.parentElement.style.color = 'white';
                 return;
@@ -7065,7 +7415,7 @@ Browser: ${navigator.userAgent}
             const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
 
             if (isIOS && !isInstalled) {
-                statusText.innerHTML = '📱 Please install app to home screen';
+                statusText.innerHTML = 'Install Please install app to home screen';
                 statusText.parentElement.style.background = 'var(--accent-blue)';
                 statusText.parentElement.style.color = 'white';
                 iosPrompt.style.display = 'block';
@@ -7083,25 +7433,25 @@ Browser: ${navigator.userAgent}
                 const subscription = await registration.pushManager.getSubscription();
 
                 if (subscription && notificationPreferences.enabled) {
-                    statusText.innerHTML = '✅ Notifications enabled';
+                    statusText.innerHTML = ' Notifications enabled';
                     statusText.parentElement.style.background = 'var(--accent-green)';
                     statusText.parentElement.style.color = 'white';
                     enableSection.style.display = 'none';
                     preferencesSection.style.display = 'block';
                 } else {
-                    statusText.innerHTML = '🔔 Permission granted - Click to enable';
+                    statusText.innerHTML = 'Notification Permission granted - Click to enable';
                     statusText.parentElement.style.background = 'var(--bg-tertiary)';
                     enableSection.style.display = 'block';
                     preferencesSection.style.display = 'none';
                 }
             } else if (permission === 'denied') {
-                statusText.innerHTML = '❌ Notifications blocked - Check browser settings';
+                statusText.innerHTML = 'Notifications blocked - Check browser settings';
                 statusText.parentElement.style.background = 'var(--accent-red)';
                 statusText.parentElement.style.color = 'white';
                 enableSection.style.display = 'none';
                 preferencesSection.style.display = 'none';
             } else {
-                statusText.innerHTML = '🔔 Click below to enable notifications';
+                statusText.innerHTML = 'Notification Click below to enable notifications';
                 statusText.parentElement.style.background = 'var(--bg-tertiary)';
                 enableSection.style.display = 'block';
                 preferencesSection.style.display = 'none';
@@ -7130,7 +7480,7 @@ Browser: ${navigator.userAgent}
                     // Server not configured yet - use local notifications only
                     notificationPreferences.enabled = true;
                     localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
-                    alert('✅ Notifications enabled (local only)!\n\nTo enable server push notifications, configure Firebase and VAPID keys.\nSee NOTIFICATIONS_SETUP.md for details.');
+                    alert('Success: Notifications enabled (local only)!\n\nTo enable server push notifications, configure Firebase and VAPID keys.\nSee NOTIFICATIONS_SETUP.md for details.');
                     updateNotificationUI();
                     return;
                 }
@@ -7183,7 +7533,7 @@ Browser: ${navigator.userAgent}
                 notificationPreferences.pushSubscription = subscription.toJSON();
                 localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
 
-                alert('✅ Notifications enabled! You will receive daily check-ins and post-attack follow-ups.');
+                alert('Success: Notifications enabled! You will receive daily check-ins and post-attack follow-ups.');
                 updateNotificationUI();
 
             } catch (error) {
@@ -7336,7 +7686,7 @@ Browser: ${navigator.userAgent}
                 });
 
                 if (response.ok) {
-                    console.log('✅ Preferences synced with server');
+                    console.log('[SUCCESS] Preferences synced with server');
                 } else {
                     console.error('Failed to sync preferences with server');
                 }
@@ -7364,7 +7714,7 @@ Browser: ${navigator.userAgent}
             });
             localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
 
-            console.log(`📅 Scheduled follow-up notification for ${followUpTime.toLocaleString()}`);
+            console.log(`Calendar Scheduled follow-up notification for ${followUpTime.toLocaleString()}`);
 
             // Send to server if push subscription exists
             if (notificationPreferences.pushSubscription) {
@@ -7381,7 +7731,7 @@ Browser: ${navigator.userAgent}
                     });
 
                     if (response.ok) {
-                        console.log('✅ Follow-up scheduled on server');
+                        console.log('[SUCCESS] Follow-up scheduled on server');
                     } else {
                         console.error('Failed to schedule follow-up on server');
                     }
@@ -7439,7 +7789,7 @@ Browser: ${navigator.userAgent}
             }
 
             localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
-            console.log(`⚡ Scheduled ${maxCheckIns} recurring active attack check-ins (every ${delayHours}h for 24h)`);
+            console.log(`Active Scheduled ${maxCheckIns} recurring active attack check-ins (every ${delayHours}h for 24h)`);
         }
 
         function cancelActiveAttackCheckIn(attackId) {
@@ -7621,7 +7971,7 @@ Browser: ${navigator.userAgent}
                 };
             }
 
-            console.log('✅ Weather data migrated successfully to v3');
+            console.log('[SUCCESS] Weather data migrated successfully to v3');
             return migrated;
         }
 
@@ -7635,10 +7985,10 @@ Browser: ${navigator.userAgent}
                     const idbData = await IDB.get(DB_STORES.WEATHER, 'weatherData');
                     if (idbData) {
                         loaded = idbData.value;
-                        console.log('✅ Weather data loaded from IndexedDB');
+                        console.log('[SUCCESS] Weather data loaded from IndexedDB');
                     }
                 } catch (error) {
-                    console.error('❌ Failed to load weather from IndexedDB:', error);
+                    console.error('[ERROR] Failed to load weather from IndexedDB:', error);
                 }
             }
 
@@ -7648,7 +7998,7 @@ Browser: ${navigator.userAgent}
                 if (saved) {
                     try {
                         loaded = JSON.parse(saved);
-                        console.log('✅ Weather data loaded from localStorage');
+                        console.log('[SUCCESS] Weather data loaded from localStorage');
                         // Migrate to IndexedDB
                         await saveWeatherData();
                     } catch (e) {
@@ -7686,13 +8036,13 @@ Browser: ${navigator.userAgent}
         // Set up weather UI (called when settings page is shown)
         let weatherUIInitialized = false;
         function setupWeatherUI() {
-            console.log('🔧 Setting up Weather UI...');
+            console.log('[DEBUG] Setting up Weather UI...');
 
             const enableToggle = document.getElementById('weather-tracking-enabled');
             const weatherSettings = document.getElementById('weather-settings');
 
             if (!enableToggle || !weatherSettings) {
-                console.warn('⚠️ Weather UI elements not found, will retry on next settings page visit');
+                console.warn('[WARNING] Weather UI elements not found, will retry on next settings page visit');
                 return;
             }
 
@@ -7702,7 +8052,7 @@ Browser: ${navigator.userAgent}
 
             // If already initialized, skip event listener setup
             if (weatherUIInitialized) {
-                console.log('✅ Weather UI already initialized (skipping event listeners)');
+                console.log('[SUCCESS] Weather UI already initialized (skipping event listeners)');
                 return;
             }
 
@@ -7741,7 +8091,7 @@ Browser: ${navigator.userAgent}
             }
 
             weatherUIInitialized = true;
-            console.log('✅ Weather UI initialized successfully');
+            console.log('[SUCCESS] Weather UI initialized successfully');
         }
 
         // Save weather data to IndexedDB (with localStorage backup)
@@ -7753,9 +8103,9 @@ Browser: ${navigator.userAgent}
                         value: weatherData,
                         timestamp: Date.now()
                     });
-                    console.log('✅ Weather data saved to IndexedDB');
+                    console.log('[SUCCESS] Weather data saved to IndexedDB');
                 } catch (error) {
-                    console.error('❌ Failed to save weather to IndexedDB:', error);
+                    console.error('[ERROR] Failed to save weather to IndexedDB:', error);
                 }
             }
             // Also save to localStorage as backup
@@ -7772,7 +8122,7 @@ Browser: ${navigator.userAgent}
                 return;
             }
 
-            statusDiv.innerHTML = '<span style="color: var(--accent-blue);">🔍 Looking up location...</span>';
+            statusDiv.innerHTML = '<span style="color: var(--accent-blue);">Looking up location...</span>';
 
             try {
                 // Use Open-Meteo geocoding API (free, no key needed)
@@ -7782,7 +8132,7 @@ Browser: ${navigator.userAgent}
                 const data = await response.json();
 
                 if (!data.results || data.results.length === 0) {
-                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">❌ Location not found. Try a different format (e.g., "New York" or "10001")</span>';
+                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">Location not found. Try a different format (e.g., "New York" or "10001")</span>';
                     return;
                 }
 
@@ -7798,7 +8148,7 @@ Browser: ${navigator.userAgent}
 
                 saveWeatherData();
 
-                statusDiv.innerHTML = `<span style="color: var(--accent-green);">✅ Location saved: ${weatherData.location.city}</span>`;
+                statusDiv.innerHTML = `<span style="color: var(--accent-green);">Location saved: ${weatherData.location.city}</span>`;
 
                 // Fetch weather for this location
                 await fetchWeatherData();
@@ -7809,7 +8159,7 @@ Browser: ${navigator.userAgent}
 
             } catch (error) {
                 console.error('Geocoding error:', error);
-                statusDiv.innerHTML = '<span style="color: var(--accent-red);">❌ Error looking up location. Please try again.</span>';
+                statusDiv.innerHTML = '<span style="color: var(--accent-red);">Error looking up location. Please try again.</span>';
             }
         }
 
@@ -7943,7 +8293,7 @@ Browser: ${navigator.userAgent}
                 displayCurrentWeather();
                 updateLogWeatherDisplay();
 
-                console.log('✅ Weather data updated:', currentPressure, 'hPa');
+                console.log('[SUCCESS] Weather data updated:', currentPressure, 'hPa');
                 console.log('   3h max change:', todayEntry.maxChange3h, 'hPa');
                 console.log('   24h change:', todayEntry.maxChange24h, 'hPa');
 
@@ -7951,7 +8301,7 @@ Browser: ${navigator.userAgent}
                 console.error('Weather fetch error:', error);
                 const statusDiv = document.getElementById('weather-location-status');
                 if (statusDiv) {
-                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">❌ Error fetching weather data. Please try again later.</span>';
+                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">Error fetching weather data. Please try again later.</span>';
                 }
             }
         }
@@ -8394,7 +8744,7 @@ Browser: ${navigator.userAgent}
 
             saveWeatherData();
 
-            console.log('✅ Personal profile analyzed:', {
+            console.log('[SUCCESS] Personal profile analyzed:', {
                 threshold24h: profile.threshold24h,
                 thresholdRapid: profile.thresholdRapid,
                 dropSensitive: profile.dropSensitive,
@@ -8814,7 +9164,7 @@ Browser: ${navigator.userAgent}
 
             saveWeatherData();
 
-            console.log(`✅ Model trained - Accuracy: ${accuracy}%`,
+            console.log(`[SUCCESS] Model trained - Accuracy: ${accuracy}%`,
                         accuracy >= 60 ? '(enabled)' : '(disabled - low accuracy)');
         }
 
@@ -9690,7 +10040,7 @@ Browser: ${navigator.userAgent}
                             <div>
                                 <div style="font-weight: 600; font-size: 1.1rem;">${safeText(med.name)}</div>
                                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-                                    ${med.type === 'abortive' ? '🎯 Abortive' : '🛡️ Preventive'} • ${med.uses} uses
+                                    ${med.type === 'abortive' ? 'Abortive' : 'Preventive'} • ${med.uses} uses
                                 </div>
                             </div>
                             <div style="text-align: right;">
@@ -9730,7 +10080,7 @@ Browser: ${navigator.userAgent}
                 const monthsHTML = stats.mohRisk.lastThreeMonths.map(month => {
                     const isWarning = month.count > 10;
                     return `<div style="color: ${isWarning ? '#dc2626' : 'var(--text-secondary)'}; padding: 4px 0;">
-                        ${month.name}: <strong>${month.count} days</strong> ${isWarning ? '⚠️' : ''}
+                        ${month.name}: <strong>${month.count} days</strong> ${isWarning ? '[WARNING]' : ''}
                     </div>`;
                 }).join('');
 
@@ -9750,7 +10100,7 @@ Browser: ${navigator.userAgent}
                             <div>
                                 <div style="font-weight: 600;">${med.name}</div>
                                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
-                                    ${med.type === 'abortive' ? '🎯 Abortive' : '🛡️ Preventive'}
+                                    ${med.type === 'abortive' ? 'Abortive' : 'Preventive'}
                                 </div>
                             </div>
                             <div style="text-align: right;">
@@ -9762,7 +10112,7 @@ Browser: ${navigator.userAgent}
                 </div>
 
                 <div style="margin-top: 24px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--border-color);">
-                    <strong>ℹ️ About Medication Overuse Headache (MOH):</strong>
+                    <strong>About Medication Overuse Headache (MOH):</strong>
                     <p style="margin-top: 8px; color: var(--text-secondary); font-size: 0.9rem;">
                         Using abortive medication >10 days/month for >3 months can cause medication overuse headaches,
                         making migraines worse. If you're seeing this warning, please consult your doctor about preventive options.
@@ -9797,7 +10147,7 @@ Browser: ${navigator.userAgent}
          */
         async function initIndexedDB() {
             if (!window.indexedDB) {
-                console.warn('⚠️ IndexedDB not supported, using localStorage');
+                console.warn('[WARNING] IndexedDB not supported, using localStorage');
                 useIndexedDB = false;
                 return false;
             }
@@ -9823,7 +10173,7 @@ Browser: ${navigator.userAgent}
                             migraineStore.createIndex('pain', 'pain', { unique: false });
                             migraineStore.createIndex('isDeleted', 'isDeleted', { unique: false });
                             migraineStore.createIndex('deletedAt', 'deletedAt', { unique: false });
-                            console.log('✅ Created migraines object store');
+                            console.log('[SUCCESS] Created migraines object store');
                         }
 
                         // Medications store
@@ -9834,7 +10184,7 @@ Browser: ${navigator.userAgent}
                             });
                             medStore.createIndex('name', 'name', { unique: false });
                             medStore.createIndex('type', 'type', { unique: false });
-                            console.log('✅ Created medications object store');
+                            console.log('[SUCCESS] Created medications object store');
                         }
 
                         // Settings store
@@ -9842,7 +10192,7 @@ Browser: ${navigator.userAgent}
                             database.createObjectStore(DB_STORES.SETTINGS, {
                                 keyPath: 'key'
                             });
-                            console.log('✅ Created settings object store');
+                            console.log('[SUCCESS] Created settings object store');
                         }
 
                         // Sync queue store (for Background Sync)
@@ -9853,7 +10203,7 @@ Browser: ${navigator.userAgent}
                             });
                             syncStore.createIndex('timestamp', 'timestamp', { unique: false });
                             syncStore.createIndex('type', 'type', { unique: false });
-                            console.log('✅ Created sync queue object store');
+                            console.log('[SUCCESS] Created sync queue object store');
                         }
 
                         // Weather store (Phase 2 Refinements)
@@ -9862,15 +10212,15 @@ Browser: ${navigator.userAgent}
                                 keyPath: 'key'
                             });
                             weatherStore.createIndex('timestamp', 'timestamp', { unique: false });
-                            console.log('✅ Created weather object store');
+                            console.log('[SUCCESS] Created weather object store');
                         }
                     };
                 });
 
-                console.log('✅ IndexedDB initialized successfully');
+                console.log('[SUCCESS] IndexedDB initialized successfully');
                 return true;
             } catch (error) {
-                console.error('❌ IndexedDB initialization failed:', error);
+                console.error('[ERROR] IndexedDB initialization failed:', error);
                 useIndexedDB = false;
                 return false;
             }
@@ -10000,16 +10350,16 @@ Browser: ${navigator.userAgent}
         async function migrateToIndexedDB() {
             const migrated = localStorage.getItem('indexedDB_migrated');
             if (migrated === 'true') {
-                console.log('✅ Already migrated to IndexedDB');
+                console.log('[SUCCESS] Already migrated to IndexedDB');
                 return;
             }
 
             if (!useIndexedDB || !db) {
-                console.log('⚠️ IndexedDB not available, skipping migration');
+                console.log('[WARNING] IndexedDB not available, skipping migration');
                 return;
             }
 
-            console.log('🔄 Starting migration to IndexedDB...');
+            console.log('[RELOAD] Starting migration to IndexedDB...');
 
             try {
                 // Migrate migraines
@@ -10025,7 +10375,7 @@ Browser: ${navigator.userAgent}
                         }
                         await IDB.put(DB_STORES.MIGRAINES, migraine);
                     }
-                    console.log('✅ Migraines migrated');
+                    console.log('[SUCCESS] Migraines migrated');
                 }
 
                 // Migrate active migraine
@@ -10036,19 +10386,19 @@ Browser: ${navigator.userAgent}
                         key: 'activeMigraine',
                         value: activeMigraine
                     });
-                    console.log('✅ Active migraine migrated');
+                    console.log('[SUCCESS] Active migraine migrated');
                 }
 
                 // Migrate user medications
                 const userMedsJSON = localStorage.getItem('userMedications');
                 if (userMedsJSON) {
                     const userMeds = JSON.parse(userMedsJSON);
-                    console.log(`💊 Migrating ${userMeds.length} medications...`);
+                    console.log(`Medication Migrating ${userMeds.length} medications...`);
 
                     for (const med of userMeds) {
                         await IDB.add(DB_STORES.MEDICATIONS, med);
                     }
-                    console.log('✅ Medications migrated');
+                    console.log('[SUCCESS] Medications migrated');
                 }
 
                 // Migrate weather data
@@ -10062,16 +10412,16 @@ Browser: ${navigator.userAgent}
                         value: weather,
                         timestamp: Date.now()
                     });
-                    console.log('✅ Weather data migrated');
+                    console.log('[SUCCESS] Weather data migrated');
                 }
 
                 // Mark migration as complete
                 localStorage.setItem('indexedDB_migrated', 'true');
-                console.log('✅ Migration to IndexedDB complete!');
+                console.log('[SUCCESS] Migration to IndexedDB complete!');
 
                 // Keep localStorage as backup for now (don't delete)
             } catch (error) {
-                console.error('❌ Migration failed:', error);
+                console.error('[ERROR] Migration failed:', error);
                 localStorage.removeItem('indexedDB_migrated');
             }
         }
@@ -10107,10 +10457,10 @@ Browser: ${navigator.userAgent}
                         return !m.isArchived; // Don't load archived by default
                     });
 
-                    console.log(`📊 Loaded ${migraines.length} migraines from IndexedDB`);
+                    console.log(`[ANALYTICS] Loaded ${migraines.length} migraines from IndexedDB`);
                     return migraines;
                 } catch (error) {
-                    console.error('❌ Failed to load from IndexedDB:', error);
+                    console.error('[ERROR] Failed to load from IndexedDB:', error);
                     return [];
                 }
             }
@@ -10155,7 +10505,7 @@ Browser: ${navigator.userAgent}
                         percentage: estimate.quota ? Math.round((estimate.usage / estimate.quota) * 100) : 0
                     };
 
-                    console.log(`💾 Storage: ${formatBytes(storageQuota.usage)} / ${formatBytes(storageQuota.quota)} (${storageQuota.percentage}%)`);
+                    console.log(`Save Storage: ${formatBytes(storageQuota.usage)} / ${formatBytes(storageQuota.quota)} (${storageQuota.percentage}%)`);
 
                     // Warn if storage is getting full
                     if (storageQuota.percentage > 80) {
@@ -10164,7 +10514,7 @@ Browser: ${navigator.userAgent}
 
                     return storageQuota;
                 } catch (error) {
-                    console.error('❌ Storage quota check failed:', error);
+                    console.error('[ERROR] Storage quota check failed:', error);
                 }
             }
             return storageQuota;
@@ -10216,7 +10566,7 @@ Browser: ${navigator.userAgent}
 
         function checkBackgroundSyncSupport() {
             syncSupported = 'serviceWorker' in navigator && 'SyncManager' in window;
-            console.log(`🔄 Background Sync: ${syncSupported ? 'Supported' : 'Not supported'}`);
+            console.log(`[RELOAD] Background Sync: ${syncSupported ? 'Supported' : 'Not supported'}`);
             return syncSupported;
         }
 
@@ -10240,9 +10590,9 @@ Browser: ${navigator.userAgent}
                 try {
                     const registration = await navigator.serviceWorker.ready;
                     await registration.sync.register('sync-data');
-                    console.log('✅ Background sync registered');
+                    console.log('[SUCCESS] Background sync registered');
                 } catch (error) {
-                    console.error('❌ Background sync registration failed:', error);
+                    console.error('[ERROR] Background sync registration failed:', error);
                 }
             }
         }
@@ -10260,14 +10610,14 @@ Browser: ${navigator.userAgent}
                     // Process based on type
                     if (item.type === 'migraine_update') {
                         // In a real app, this would sync to a server
-                        console.log('🔄 Syncing migraine:', item.data);
+                        console.log('[RELOAD] Syncing migraine:', item.data);
                     }
 
                     // Remove from queue after successful processing
                     await IDB.delete(DB_STORES.SYNC_QUEUE, item.id);
-                    console.log('✅ Sync item processed:', item.id);
+                    console.log('[SUCCESS] Sync item processed:', item.id);
                 } catch (error) {
-                    console.error('❌ Sync failed for item:', item.id, error);
+                    console.error('[ERROR] Sync failed for item:', item.id, error);
 
                     // Increment retry count
                     item.retryCount++;
@@ -10276,7 +10626,7 @@ Browser: ${navigator.userAgent}
                     } else {
                         // Max retries reached, remove from queue
                         await IDB.delete(DB_STORES.SYNC_QUEUE, item.id);
-                        console.error('❌ Max retries reached, removing from queue');
+                        console.error('[ERROR] Max retries reached, removing from queue');
                     }
                 }
             }
@@ -10325,7 +10675,7 @@ Browser: ${navigator.userAgent}
 
             try {
                 wakeLock = await navigator.wakeLock.request('screen');
-                console.log('✅ Wake Lock activated');
+                console.log('[SUCCESS] Wake Lock activated');
                 showWakeLockIndicator();
 
                 wakeLock.addEventListener('release', () => {
@@ -10333,7 +10683,7 @@ Browser: ${navigator.userAgent}
                     hideWakeLockIndicator();
                 });
             } catch (err) {
-                console.error('❌ Wake Lock failed:', err);
+                console.error('[ERROR] Wake Lock failed:', err);
             }
         }
 
@@ -10387,7 +10737,7 @@ Browser: ${navigator.userAgent}
             const container = document.querySelector('.container');
 
             banner.className = 'status-banner offline-banner';
-            banner.textContent = '⚠️ You\'re offline - Changes will sync when you reconnect';
+            banner.textContent = 'You\'re offline - Changes will sync when you reconnect';
             banner.style.display = 'block';
             container.classList.add('with-status-banner');
 
@@ -10449,7 +10799,7 @@ Browser: ${navigator.userAgent}
             // Prevent the default install prompt
             e.preventDefault();
             deferredInstallPrompt = e;
-            console.log('📱 Install prompt available');
+            console.log('Install Install prompt available');
 
             // Show custom install prompt after user has logged 3 migraines
             if (!installPromptShown && !installPromptDismissed && migraines.length >= 3) {
@@ -10466,7 +10816,7 @@ Browser: ${navigator.userAgent}
             prompt.style.display = 'block';
             installPromptShown = true;
             localStorage.setItem('installPromptShown', 'true');
-            console.log('✨ Showing custom install prompt');
+            console.log('Update Showing custom install prompt');
         }
 
         function hideInstallPrompt() {
@@ -10492,12 +10842,12 @@ Browser: ${navigator.userAgent}
             hideInstallPrompt();
             installPromptDismissed = true;
             localStorage.setItem('installPromptDismissed', 'true');
-            console.log('❌ Install prompt dismissed');
+            console.log('[ERROR] Install prompt dismissed');
         });
 
         // Listen for successful installation
         window.addEventListener('appinstalled', () => {
-            console.log('✅ PWA installed successfully');
+            console.log('[SUCCESS] PWA installed successfully');
             hideInstallPrompt();
             deferredInstallPrompt = null;
         });
@@ -10514,7 +10864,7 @@ Browser: ${navigator.userAgent}
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
             if (!SpeechRecognition) {
-                console.log('❌ Web Speech API not supported');
+                console.log('[ERROR] Web Speech API not supported');
                 return;
             }
 
@@ -10547,7 +10897,7 @@ Browser: ${navigator.userAgent}
             };
 
             recognition.onerror = (event) => {
-                console.error('❌ Speech recognition error:', event.error);
+                console.error('[ERROR] Speech recognition error:', event.error);
                 stopListening();
             };
 
@@ -10560,9 +10910,9 @@ Browser: ${navigator.userAgent}
             if (voiceBtn) {
                 voiceBtn.style.display = 'flex';
                 voiceBtn.addEventListener('click', toggleVoiceRecognition);
-                console.log('✅ Voice recognition initialized - button shown');
+                console.log('[SUCCESS] Voice recognition initialized - button shown');
             } else {
-                console.warn('⚠️ Voice button element not found in DOM');
+                console.warn('[WARNING] Voice button element not found in DOM');
             }
         }
 
@@ -10580,7 +10930,7 @@ Browser: ${navigator.userAgent}
             try {
                 recognition.start();
             } catch (err) {
-                console.error('❌ Failed to start recognition:', err);
+                console.error('[ERROR] Failed to start recognition:', err);
             }
         }
 
@@ -10597,7 +10947,7 @@ Browser: ${navigator.userAgent}
             try {
                 recognition.stop();
             } catch (err) {
-                console.error('❌ Failed to stop recognition:', err);
+                console.error('[ERROR] Failed to stop recognition:', err);
             }
 
             console.log('🛑 Voice recognition stopped');
@@ -10664,7 +11014,7 @@ Browser: ${navigator.userAgent}
         async function setupBiometricAuth() {
             // Check if Web Authentication API is supported
             if (!window.PublicKeyCredential) {
-                console.log('❌ Web Authentication API not supported');
+                console.log('[ERROR] Web Authentication API not supported');
                 return false;
             }
 
@@ -10673,14 +11023,14 @@ Browser: ${navigator.userAgent}
                 const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
 
                 if (!available) {
-                    console.log('❌ Platform authenticator not available');
+                    console.log('[ERROR] Platform authenticator not available');
                     return false;
                 }
 
-                console.log('✅ Biometric authentication available');
+                console.log('[SUCCESS] Biometric authentication available');
                 return true;
             } catch (err) {
-                console.error('❌ Biometric auth check failed:', err);
+                console.error('[ERROR] Biometric auth check failed:', err);
                 return false;
             }
         }
@@ -10722,11 +11072,11 @@ Browser: ${navigator.userAgent}
                     localStorage.setItem('biometricCredentialId', btoa(String.fromCharCode(...new Uint8Array(credential.rawId))));
                     localStorage.setItem('biometricAuthEnabled', 'true');
                     biometricAuthEnabled = true;
-                    console.log('✅ Biometric registered');
+                    console.log('[SUCCESS] Biometric registered');
                     return true;
                 }
             } catch (err) {
-                console.error('❌ Biometric registration failed:', err);
+                console.error('[ERROR] Biometric registration failed:', err);
                 return false;
             }
         }
@@ -10753,11 +11103,11 @@ Browser: ${navigator.userAgent}
                 });
 
                 if (assertion) {
-                    console.log('✅ Biometric authentication successful');
+                    console.log('[SUCCESS] Biometric authentication successful');
                     return true;
                 }
             } catch (err) {
-                console.error('❌ Biometric authentication failed:', err);
+                console.error('[ERROR] Biometric authentication failed:', err);
                 return false;
             }
 
@@ -10768,7 +11118,7 @@ Browser: ${navigator.userAgent}
             isAppLocked = true;
             const lockScreen = document.getElementById('lock-screen');
             lockScreen.style.display = 'flex';
-            console.log('🔒 App locked');
+            console.log('Lock App locked');
         }
 
         function unlockApp() {
@@ -10828,7 +11178,7 @@ Browser: ${navigator.userAgent}
             });
 
             resetInactivityTimer();
-            console.log('✅ Auto-lock initialized');
+            console.log('[SUCCESS] Auto-lock initialized');
         }
 
         // ============================================
@@ -10859,11 +11209,11 @@ Browser: ${navigator.userAgent}
             // Update IndexedDB status
             if (useIndexedDB && db) {
                 const count = await IDB.count(DB_STORES.MIGRAINES);
-                document.getElementById('indexeddb-status').textContent = `✅ Active - ${count} migraines stored`;
+                document.getElementById('indexeddb-status').textContent = ` Active - ${count} migraines stored`;
                 document.getElementById('indexeddb-status').style.color = 'var(--accent-green)';
                 document.getElementById('indexeddb-count').textContent = count;
             } else {
-                document.getElementById('indexeddb-status').textContent = '❌ Not supported - using localStorage';
+                document.getElementById('indexeddb-status').textContent = 'Not supported - using localStorage';
                 document.getElementById('indexeddb-status').style.color = 'var(--accent-red)';
                 document.getElementById('indexeddb-count').textContent = migraines.length;
             }
@@ -10872,10 +11222,10 @@ Browser: ${navigator.userAgent}
             const syncStatus = document.getElementById('background-sync-status');
             if (syncSupported) {
                 const queueCount = useIndexedDB ? await IDB.count(DB_STORES.SYNC_QUEUE) : 0;
-                syncStatus.textContent = `✅ Enabled - ${queueCount} items in queue`;
+                syncStatus.textContent = ` Enabled - ${queueCount} items in queue`;
                 syncStatus.style.color = 'var(--accent-green)';
             } else {
-                syncStatus.textContent = '⚠️ Not supported on this browser';
+                syncStatus.textContent = 'Not supported on this browser';
                 syncStatus.style.color = 'var(--text-secondary)';
             }
 
@@ -10934,10 +11284,10 @@ Browser: ${navigator.userAgent}
             if (voiceStatus) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 if (SpeechRecognition) {
-                    voiceStatus.textContent = '✅ Available - Voice button shown on screen';
+                    voiceStatus.textContent = ' Available - Voice button shown on screen';
                     voiceStatus.style.color = 'var(--accent-green)';
                 } else {
-                    voiceStatus.textContent = '❌ Not supported on this browser';
+                    voiceStatus.textContent = 'Not supported on this browser';
                     voiceStatus.style.color = 'var(--accent-red)';
                 }
             }
@@ -10954,7 +11304,7 @@ Browser: ${navigator.userAgent}
                     // Check biometric availability
                     setupBiometricAuth().then(available => {
                         if (available) {
-                            biometricStatus.textContent = '✅ Biometric authentication available';
+                            biometricStatus.textContent = ' Biometric authentication available';
                             biometricStatus.style.color = 'var(--accent-green)';
 
                             biometricToggle.addEventListener('change', async (e) => {
@@ -10962,7 +11312,7 @@ Browser: ${navigator.userAgent}
                                     const registered = await registerBiometric();
                                     if (registered) {
                                         biometricAuthEnabled = true;
-                                        biometricStatus.textContent = '✅ Biometric authentication enabled';
+                                        biometricStatus.textContent = ' Biometric authentication enabled';
                                         showModal('Biometric Lock Enabled', 'Your migraine data is now protected with biometric authentication.');
                                     } else {
                                         e.target.checked = false;
@@ -10972,12 +11322,12 @@ Browser: ${navigator.userAgent}
                                     biometricAuthEnabled = false;
                                     localStorage.removeItem('biometricCredentialId');
                                     localStorage.setItem('biometricAuthEnabled', 'false');
-                                    biometricStatus.textContent = '⚠️ Biometric authentication disabled';
+                                    biometricStatus.textContent = 'Biometric authentication disabled';
                                     showModal('Biometric Lock Disabled', 'Your app is no longer protected by biometric authentication.');
                                 }
                             });
                         } else {
-                            biometricStatus.textContent = '❌ Not supported on this device/browser';
+                            biometricStatus.textContent = 'Not supported on this device/browser';
                             biometricStatus.style.color = 'var(--accent-red)';
                             biometricToggle.disabled = true;
                         }
@@ -11070,7 +11420,7 @@ Browser: ${navigator.userAgent}
                 };
             }
 
-            console.log('✅ Phase 1 features initialized');
+            console.log('[SUCCESS] Phase 1 features initialized');
         });
     </script>
 
@@ -11085,7 +11435,7 @@ Browser: ${navigator.userAgent}
             banner.style.display = 'block';
             container.classList.add('with-update-banner');
 
-            console.log('✨ Update available! Auto-updating in 2 seconds...');
+            console.log('Update Update available! Auto-updating in 2 seconds...');
 
             // Auto-update after 2 seconds (give user time to see the message)
             setTimeout(() => {
@@ -11103,7 +11453,7 @@ Browser: ${navigator.userAgent}
 
         function updateApp() {
             if (newWorker) {
-                console.log('⚡ Updating app...');
+                console.log('Active Updating app...');
                 // Send message to skip waiting
                 newWorker.postMessage({ type: 'SKIP_WAITING' });
             }
@@ -11113,11 +11463,11 @@ Browser: ${navigator.userAgent}
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
                     .then(registration => {
-                        console.log('✅ Service Worker registered:', registration.scope);
+                        console.log('[SUCCESS] Service Worker registered:', registration.scope);
 
                         // Immediately check for updates on load
                         registration.update().then(() => {
-                            console.log('🔍 Checked for updates');
+                            console.log('[SEARCH] Checked for updates');
                         });
 
                         // Check if there's already a waiting service worker
@@ -11153,12 +11503,12 @@ Browser: ${navigator.userAgent}
                         });
                     })
                     .catch(error => {
-                        console.error('❌ Service Worker registration failed:', error);
+                        console.error('[ERROR] Service Worker registration failed:', error);
                     });
 
                 // Listen for service worker controller change
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    console.log('🔄 New service worker activated, reloading page...');
+                    console.log('[RELOAD] New service worker activated, reloading page...');
                     window.location.reload();
                 });
 
