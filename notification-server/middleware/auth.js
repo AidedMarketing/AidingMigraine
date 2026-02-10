@@ -135,7 +135,7 @@ function validatePreferences(req, res, next) {
         if (!validFrequencies.includes(preferences.dailyCheckIn.frequency)) {
             return res.status(400).json({
                 error: 'Invalid preferences',
-                message: 'dailyCheckIn.frequency must be one of: daily, weekly, disabled'
+                message: 'dailyCheckIn.frequency must be one of: daily, every-other-day, weekly, disabled'
             });
         }
     }
