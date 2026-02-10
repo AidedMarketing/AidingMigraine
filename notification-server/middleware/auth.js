@@ -131,7 +131,7 @@ function validatePreferences(req, res, next) {
 
     // Validate dailyCheckIn.frequency
     if (preferences.dailyCheckIn && preferences.dailyCheckIn.frequency) {
-        const validFrequencies = ['daily', 'weekly', 'disabled'];
+        const validFrequencies = ['daily', 'every-other-day', 'weekly', 'disabled'];
         if (!validFrequencies.includes(preferences.dailyCheckIn.frequency)) {
             return res.status(400).json({
                 error: 'Invalid preferences',

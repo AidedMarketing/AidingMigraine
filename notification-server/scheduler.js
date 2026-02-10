@@ -26,8 +26,8 @@ function initializeScheduler() {
     // Run every hour at :00 to check for scheduled notifications
     const hourlyJob = schedule.scheduleJob('0 * * * *', async () => {
         const now = new Date();
-        const currentHour = now.getHours();
-        const currentDay = now.getDay();
+        const currentHour = now.getUTCHours();
+        const currentDay = now.getUTCDay();
 
         console.log(`\n⏰ Hourly check at ${now.toLocaleString()}`);
 

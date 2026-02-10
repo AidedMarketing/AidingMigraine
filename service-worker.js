@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 3.3.1 - Loading & Debug Mode Fixes
+// Version 4.0.0 - Production Release
 
-const CACHE_NAME = 'aiding-migraine-v3.3.1';
+const CACHE_NAME = 'aiding-migraine-v4.0.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
