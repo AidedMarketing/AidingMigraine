@@ -90,7 +90,7 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
     res.json({
         name: 'Aiding Migraine Notification Server',
-        version: '2.0.0',
+        version: '4.0.0',
         status: 'running',
         endpoints: {
             health: '/health',

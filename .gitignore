@@ -40,3 +40,6 @@ temp/
 
 # Service worker cache
 sw-cache/
+
+# Git rewrite artifacts
+.git-rewrite/

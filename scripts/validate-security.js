@@ -33,8 +33,8 @@ try {
     warnings.push('⚠️  Found document.write() usage - consider safer alternatives');
   }
 
-  // Check for external script sources
-  const externalScripts = html.match(/<script[^>]+src=['"](https?:\/\/[^'"]+)['"]/gi);
+  // Check for external script sources (capture full tag to detect integrity attribute)
+  const externalScripts = html.match(/<script[^>]+src=['"](https?:\/\/[^'"]+)['"][^>]*>/gi);
   if (externalScripts && externalScripts.length > 0) {
     console.log(`📄 Found ${externalScripts.length} external script(s):`);
     externalScripts.forEach(script => {

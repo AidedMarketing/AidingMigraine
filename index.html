@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v3.2.1 - BUG FIXES
+           AIDING MIGRAINE v4.0.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -1751,8 +1751,8 @@
             }
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- App Loading Screen -->
@@ -6856,16 +6856,18 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v1.6.0</strong></p>
+                <p><strong>Aiding Migraine v4.0.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
-                
+
                 <h3>Features</h3>
                 <ul>
                     <li>Easy pain tracking</li>
                     <li>Duration monitoring</li>
                     <li>Pattern visualization</li>
-                    <li>Privacy-focused</li>
-                    <li>Export & backup</li>
+                    <li>Weather &amp; pressure tracking</li>
+                    <li>Medication management</li>
+                    <li>PDF &amp; CSV export</li>
+                    <li>Privacy-focused &amp; offline-first</li>
                 </ul>
                 
                 <p style="margin-top: 20px; color: var(--text-secondary);">
@@ -10987,16 +10989,12 @@ Browser: ${navigator.userAgent}
                 }
             }
             // Navigate pages
-            else if (text.includes('show history') || text.includes('view history')) {
-                navigateTo('history');
+            else if (text.includes('show history') || text.includes('view history') || text.includes('show calendar') || text.includes('view calendar')) {
+                showPage('history');
                 showModal('Voice Command', 'Navigated to history.');
             }
-            else if (text.includes('show calendar') || text.includes('view calendar')) {
-                navigateTo('calendar');
-                showModal('Voice Command', 'Navigated to calendar.');
-            }
             else if (text.includes('show analytics') || text.includes('view analytics')) {
-                navigateTo('analytics');
+                showPage('analytics');
                 showModal('Voice Command', 'Navigated to analytics.');
             }
             else {
