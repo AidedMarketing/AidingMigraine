@@ -1941,25 +1941,25 @@
                 <div class="section-card">
                     <h2>Log New Episode</h2>
 
-                    <!-- Weather Forecast Indicator -->
+                    <!-- Atmospheric Pressure Indicator -->
                     <div id="weather-forecast-indicator" style="display: none; margin-bottom: 20px;">
-                        <!-- Clear Day State -->
+                        <!-- Stable / Low-Risk State -->
                         <div id="weather-clear" class="weather-forecast-box" style="display: none; background: rgba(123, 166, 138, 0.1); border-left: 4px solid var(--accent-green); padding: 12px 16px; border-radius: 0 8px 8px 0;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.2rem;">✓</span>
+                                <svg viewBox="0 0 24 24" style="width: 1.1rem; height: 1.1rem; stroke: var(--accent-green); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 <div>
-                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--accent-green);">Clear Conditions</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">No significant pressure changes</div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--accent-green);">Pressure Stable</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;" id="weather-clear-detail">No significant pressure changes</div>
                                 </div>
                             </div>
                         </div>
-                        <!-- Pressure Warning State -->
+                        <!-- Pressure Alert State -->
                         <div id="weather-warning" class="weather-forecast-box" style="display: none; background: rgba(212, 165, 116, 0.12); border-left: 4px solid #d4a574; padding: 12px 16px; border-radius: 0 8px 8px 0;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <svg viewBox="0 0 24 24" style="width: 1.2rem; height: 1.2rem; stroke: #d4a574; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
                                 <div>
-                                    <div style="font-size: 0.9rem; font-weight: 500; color: #d4a574;">Weather May Be a Factor</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;" id="weather-warning-detail">Significant pressure change in last 24h</div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: #d4a574;">Pressure May Be a Factor</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;" id="weather-warning-detail">Significant pressure change detected</div>
                                 </div>
                             </div>
                         </div>
@@ -2155,47 +2155,43 @@
 
             <!-- Weather Correlation (if enabled) -->
             <div id="weather-correlation-card" class="section-card" style="display: none;">
-                <h2>Weather Correlation</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 16px;">Relationship between barometric pressure changes and migraines</p>
+                <h2>Pressure Correlation</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Does atmospheric pressure predict your attacks? Based on your own data.</p>
 
                 <div class="correlation-summary">
                     <div class="correlation-stat">
-                        <div class="correlation-label">Correlation Strength</div>
+                        <div class="correlation-label">Attacks on pressure-change days</div>
                         <div id="correlation-strength" class="correlation-value">-</div>
                         <div id="correlation-description" class="correlation-desc">-</div>
                     </div>
                     <div class="correlation-details">
                         <div class="detail-row">
-                            <span>Significant pressure changes:</span>
+                            <span>Significant pressure days:</span>
                             <strong id="correlation-changes">-</strong>
                         </div>
                         <div class="detail-row">
-                            <span>Migraines on change days:</span>
+                            <span>Attacks on those days:</span>
                             <strong id="correlation-migraines">-</strong>
                         </div>
                         <div class="detail-row">
-                            <span>Correlation percentage:</span>
+                            <span>Your correlation rate:</span>
                             <strong id="correlation-percent">-</strong>
                         </div>
                     </div>
                 </div>
 
-                <div class="info-box" style="margin-top: 16px; font-size: 0.9rem;">
-                    <strong>Understanding correlation:</strong> Clinically validated thresholds: >5 hPa in 24 hours (slow changes) or >5 hPa in 6 hours (rapid changes).
-                    Research shows 50% of migraines occur when pressure is 1003-1007 hPa (Okuma 2015).
-                    <strong>Strong correlation (≥70%)</strong> suggests high weather sensitivity.
-                    <strong>Moderate (40-70%)</strong> suggests possible sensitivity.
-                    <strong>Weak (<40%)</strong> suggests low weather sensitivity.
+                <div class="info-box" style="margin-top: 16px; font-size: 0.9rem;" id="correlation-info-box">
+                    More attacks will improve the accuracy of this analysis.
                 </div>
             </div>
 
             <!-- Pressure Trend Chart (if enabled) -->
             <div id="pressure-chart-card" class="section-card" style="display: none;">
-                <h2>Barometric Pressure Trends</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 16px;">Pressure changes and migraine occurrences</p>
+                <h2>Barometric Pressure &amp; Attacks</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Up to 60 days of pressure history with your attack days overlaid</p>
                 <canvas id="pressure-chart"></canvas>
-                <div style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
-                    Red vertical bars indicate migraine days • Dotted line shows clinical threshold (±5 hPa change)
+                <div style="margin-top: 12px; font-size: 0.82rem; color: var(--text-secondary);">
+                    Red dots mark attack days on the pressure line &nbsp;·&nbsp; Shaded columns indicate attack days &nbsp;·&nbsp; Y-axis fixed 980–1040 hPa so a 5 hPa drop always looks the same
                 </div>
             </div>
 
@@ -2601,44 +2597,83 @@
                     <!-- Location Entry -->
                     <div style="margin-bottom: 16px;">
                         <label for="weather-location-input" style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">Location</label>
-                        <div style="display: flex; gap: 10px;">
+                        <div style="display: flex; gap: 8px;">
                             <input
                                 type="text"
                                 id="weather-location-input"
-                                placeholder="ZIP code or city name"
+                                placeholder="City name or ZIP code"
                                 style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.95rem;"
                             >
-                            <button id="weather-location-save" class="btn btn-primary" style="padding: 10px 16px; font-size: 0.9rem;">
+                            <button id="weather-gps-btn" class="btn btn-secondary" style="padding: 10px 12px; font-size: 0.85rem; white-space: nowrap;" title="Use my current location">
+                                <svg viewBox="0 0 24 24" style="width: 1rem; height: 1rem; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle;"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"></path></svg>
+                            </button>
+                            <button id="weather-location-save" class="btn btn-primary" style="padding: 10px 14px; font-size: 0.9rem;">
                                 Save
                             </button>
                         </div>
                         <div id="weather-location-status" style="margin-top: 6px; font-size: 0.85rem;"></div>
                     </div>
 
-                    <!-- Current Weather Display -->
+                    <!-- Current Conditions Display -->
                     <div id="weather-current-display" style="display: none; background: var(--bg-tertiary); padding: 14px; border-radius: 8px; margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                             <div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Location</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">Location</div>
                                 <div id="weather-location-display" style="font-weight: 500; font-size: 0.95rem; margin-top: 2px;">-</div>
                             </div>
-                            <button id="weather-refresh-btn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;">
+                            <button id="weather-refresh-btn" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;">
                                 Refresh
                             </button>
                         </div>
-                        <div style="border-top: 1px solid var(--border-color); padding-top: 10px;">
-                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Current Pressure</div>
-                            <div style="font-size: 1.6rem; font-weight: 600; color: var(--accent-green);" id="weather-current-pressure">-</div>
-                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;" id="weather-pressure-change">-</div>
+
+                        <!-- Pressure row -->
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-bottom: 8px;">
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px;">Barometric Pressure</div>
+                            <div style="font-size: 1.5rem; font-weight: 600; color: var(--accent-green);" id="weather-current-pressure">-</div>
+                            <div style="font-size: 0.85rem; margin-top: 3px;" id="weather-pressure-change">-</div>
                         </div>
-                        <div style="margin-top: 10px; font-size: 0.75rem; color: var(--text-secondary);" id="weather-last-updated">
-                            Last updated: Never
-                        </div>
+
+                        <!-- Conditions row (temp, humidity, wind, condition) -->
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;" id="weather-current-details">-</div>
+
+                        <!-- Risk score row -->
+                        <div style="font-size: 0.85rem; padding: 6px 10px; background: var(--bg-primary); border-radius: 6px;" id="weather-risk-display"></div>
+
+                        <div style="margin-top: 8px; font-size: 0.75rem; color: var(--text-secondary);" id="weather-last-updated">Updated never</div>
                     </div>
 
-                    <!-- Privacy & Info -->
-                    <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center;">
-                        Lock Privacy-first • Data stays on your device • <a href="./help/analytics.html#weather" style="color: var(--accent-green); text-decoration: none;">Learn more</a>
+                    <!-- Historical Data & Backfill -->
+                    <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <div style="font-size: 0.85rem; font-weight: 500;">Pressure History</div>
+                            <button id="weather-backfill-btn" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;">
+                                Fetch 60-day archive
+                            </button>
+                        </div>
+                        <div id="weather-backfill-status" style="font-size: 0.8rem; color: var(--text-secondary);">Loading...</div>
+                    </div>
+
+                    <!-- Alert Sensitivity Threshold -->
+                    <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 6px;">Alert Sensitivity</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">
+                            Alert me when pressure drops or rises by at least:
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="weather-threshold-slider" min="3" max="12" step="1" value="5"
+                                style="flex: 1; accent-color: var(--accent-green);">
+                            <span id="weather-threshold-display" style="font-weight: 600; font-size: 0.95rem; min-width: 60px; text-align: right; color: var(--accent-green);">5 hPa</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">
+                            <span>More sensitive</span>
+                            <span>Less sensitive</span>
+                        </div>
+                        <div style="margin-top: 6px; font-size: 0.78rem; color: var(--text-secondary);" id="weather-threshold-note">Clinical default: 5 hPa in 6 hours (Okuma 2015)</div>
+                    </div>
+
+                    <!-- Privacy notice -->
+                    <div style="font-size: 0.78rem; color: var(--text-secondary); text-align: center;">
+                        Privacy-first — all data stays on your device
                     </div>
                 </div>
             </div>
@@ -7834,7 +7869,7 @@ Browser: ${navigator.userAgent}
 
         // Weather data structure (stored in localStorage)
         let weatherData = {
-            version: 3,             // Data structure version for migrations (updated for ML features)
+            version: 4,             // Data structure version for migrations
             enabled: false,
             location: {
                 query: '',      // User's input (ZIP or city)
@@ -7845,58 +7880,79 @@ Browser: ${navigator.userAgent}
             current: {
                 pressure: null,     // Current pressure in hPa
                 temperature: null,  // Temperature in °C
+                humidity: null,     // Relative humidity %
+                windSpeed: null,    // Wind speed km/h
+                weatherCode: null,  // WMO weather code
+                precipitation: null,// Current precipitation mm
                 timestamp: null     // When fetched
             },
-            forecast: [],           // 48-hour hourly forecast with full data
-            history: [],            // 30 days of detailed pressure readings
+            forecast: [],           // 72-hour hourly forecast (pressure, humidity, temp, weatherCode)
+            history: [],            // 60 days of detailed readings
             lastFetch: null,        // Last API call timestamp
+            historicalBackfill: {   // Status of historical data backfill
+                done: false,
+                lastBackfillDate: null,
+                daysBackfilled: 0
+            },
 
-            // PERSONAL PROFILE & ML FEATURES (NEW in v3)
+            // USER THRESHOLD (configurable, learned from data)
+            userThreshold6h: 5,     // hPa in 6h to trigger alert (default: 5, clinical standard)
+            userThreshold24h: 5,    // hPa in 24h for significant change (default: 5)
+
+            // PERSONAL PROFILE & ML FEATURES
             personalProfile: {
-                threshold24h: null,         // Learned 24h threshold (null = use default 5)
+                threshold24h: null,         // Learned 24h threshold (null = use default)
                 thresholdRapid: null,       // Learned rapid change threshold
                 sensitivityLevel: 'standard', // 'sensitive', 'standard', 'conservative', 'custom'
-                customThreshold24h: null,   // User's custom threshold if selected
-                customThresholdRapid: null, // User's custom rapid threshold
+                customThreshold24h: null,
+                customThresholdRapid: null,
 
                 // Direction sensitivity
                 dropSensitive: true,        // Triggered by pressure drops
                 riseSensitive: false,       // Triggered by pressure rises
-                dropPercentage: 0,          // % of migraines during drops
-                risePercentage: 0,          // % of migraines during rises
+                dropPercentage: 0,
+                risePercentage: 0,
 
                 // Absolute pressure sensitivity
-                lowPressureSensitive: false, // Triggered by low absolute pressure
-                avgTriggerPressure: null,    // Average pressure when migraines occur
+                lowPressureSensitive: false,
+                avgTriggerPressure: null,
+
+                // Humidity sensitivity
+                highHumiditySensitive: false,  // Triggered by high humidity (>75%)
+                avgHumidityAtMigraine: null,   // Average humidity when migraines occur
 
                 // Multi-day patterns
-                cumulativeSensitive: false,  // Reacts to multi-day cumulative changes
-                avgDaysToTrigger: 1,         // Average days from pressure change to migraine
+                cumulativeSensitive: false,
+                avgDaysToTrigger: 1,
+
+                // Correlation honesty flag
+                pressureIsConfirmedTrigger: null, // null=unknown, true=confirmed, false=disconfirmed
+                strongestWeatherFactor: null,     // 'pressure'|'humidity'|'temperature'|'compound'
 
                 // Seasonal patterns
-                seasonalVariation: {},       // {spring: 1.2, summer: 0.8, fall: 1.3, winter: 0.9}
+                seasonalVariation: {},
 
                 // Learning metadata
-                lastAnalyzed: null,          // When personal profile was last calculated
-                sampleSize: 0,               // Number of migraines analyzed
-                confidenceLevel: 'low'       // 'low', 'medium', 'high' based on sample size
+                lastAnalyzed: null,
+                sampleSize: 0,
+                confidenceLevel: 'low'  // 'low'(<10), 'medium'(10-25), 'high'(>25 attacks)
             },
 
             // ML Model data
             mlModel: {
                 enabled: false,
-                weights: null,              // Model weights for logistic regression
-                features: [],               // Feature names
-                accuracy: 0,                // Model accuracy (0-100%)
-                lastTrained: null,          // When model was last trained
-                predictions: []             // Recent predictions for validation
+                weights: null,
+                features: [],
+                accuracy: 0,
+                lastTrained: null,
+                predictions: []
             }
         };
 
         // Migrate weather data from old versions
         function migrateWeatherData(data) {
-            if (!data || data.version === 3) {
-                return data; // Already migrated or new installation
+            if (!data || data.version === 4) {
+                return data; // Already current version
             }
 
             let migrated = data;
@@ -7942,38 +7998,47 @@ Browser: ${navigator.userAgent}
 
             // Migrate v2 → v3 (add personal profile and ML features)
             if (migrated.version === 2) {
-                console.log('📦 Migrating weather data v2 → v3 (adding ML features)...');
+                console.log('Migrating weather data v2 → v3...');
                 migrated.version = 3;
                 migrated.personalProfile = {
-                    threshold24h: null,
-                    thresholdRapid: null,
-                    sensitivityLevel: 'standard',
-                    customThreshold24h: null,
-                    customThresholdRapid: null,
-                    dropSensitive: true,
-                    riseSensitive: false,
-                    dropPercentage: 0,
-                    risePercentage: 0,
-                    lowPressureSensitive: false,
-                    avgTriggerPressure: null,
-                    cumulativeSensitive: false,
-                    avgDaysToTrigger: 1,
-                    seasonalVariation: {},
-                    lastAnalyzed: null,
-                    sampleSize: 0,
-                    confidenceLevel: 'low'
+                    threshold24h: null, thresholdRapid: null, sensitivityLevel: 'standard',
+                    customThreshold24h: null, customThresholdRapid: null,
+                    dropSensitive: true, riseSensitive: false, dropPercentage: 0, risePercentage: 0,
+                    lowPressureSensitive: false, avgTriggerPressure: null,
+                    cumulativeSensitive: false, avgDaysToTrigger: 1, seasonalVariation: {},
+                    lastAnalyzed: null, sampleSize: 0, confidenceLevel: 'low'
                 };
-                migrated.mlModel = {
-                    enabled: false,
-                    weights: null,
-                    features: [],
-                    accuracy: 0,
-                    lastTrained: null,
-                    predictions: []
-                };
+                migrated.mlModel = { enabled: false, weights: null, features: [], accuracy: 0, lastTrained: null, predictions: [] };
             }
 
-            console.log('[SUCCESS] Weather data migrated successfully to v3');
+            // Migrate v3 → v4 (add humidity tracking, backfill status, user thresholds, honest correlation)
+            if (migrated.version === 3) {
+                console.log('Migrating weather data v3 → v4 (adding humidity + honest correlation)...');
+                migrated.version = 4;
+                // Extend current with new fields
+                migrated.current = Object.assign(
+                    { humidity: null, windSpeed: null, weatherCode: null, precipitation: null },
+                    migrated.current || {}
+                );
+                // Add backfill status
+                migrated.historicalBackfill = { done: false, lastBackfillDate: null, daysBackfilled: 0 };
+                // Add user thresholds
+                migrated.userThreshold6h = 5;
+                migrated.userThreshold24h = 5;
+                // Extend personalProfile with new fields
+                const pp = migrated.personalProfile || {};
+                pp.highHumiditySensitive = false;
+                pp.avgHumidityAtMigraine = null;
+                pp.pressureIsConfirmedTrigger = null;
+                pp.strongestWeatherFactor = null;
+                migrated.personalProfile = pp;
+                // Extend history entries to hold 60 days
+                if (migrated.history && migrated.history.length > 30) {
+                    migrated.history = migrated.history.slice(0, 60);
+                }
+            }
+
+            console.log('[SUCCESS] Weather data migrated to v4');
             return migrated;
         }
 
@@ -8013,7 +8078,7 @@ Browser: ${navigator.userAgent}
                 weatherData = migrateWeatherData(loaded);
 
                 // Save migrated data
-                if (loaded.version !== 3) {
+                if (loaded.version !== 4) {
                     await saveWeatherData();
                 }
 
@@ -8072,25 +8137,52 @@ Browser: ${navigator.userAgent}
             // Load current location if exists
             if (weatherData.location.query) {
                 const locationInput = document.getElementById('weather-location-input');
-                if (locationInput) {
-                    locationInput.value = weatherData.location.query;
-                    displayCurrentWeather();
-                }
+                if (locationInput) locationInput.value = weatherData.location.query;
+                displayCurrentWeather();
             }
 
             // Location save button
             const saveBtn = document.getElementById('weather-location-save');
-            if (saveBtn) {
-                saveBtn.addEventListener('click', saveWeatherLocation);
-            }
+            if (saveBtn) saveBtn.addEventListener('click', saveWeatherLocation);
 
             // Refresh button
             const refreshBtn = document.getElementById('weather-refresh-btn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', () => {
-                    fetchWeatherData(true);
+            if (refreshBtn) refreshBtn.addEventListener('click', () => fetchWeatherData(true));
+
+            // GPS button
+            const gpsBtn = document.getElementById('weather-gps-btn');
+            if (gpsBtn) gpsBtn.addEventListener('click', useGPSLocation);
+
+            // Backfill button
+            const backfillBtn = document.getElementById('weather-backfill-btn');
+            if (backfillBtn) backfillBtn.addEventListener('click', fetchHistoricalWeatherData);
+
+            // Alert threshold slider
+            const slider = document.getElementById('weather-threshold-slider');
+            const sliderDisplay = document.getElementById('weather-threshold-display');
+            if (slider && sliderDisplay) {
+                slider.value = weatherData.userThreshold6h || 5;
+                sliderDisplay.textContent = `${slider.value} hPa`;
+                slider.addEventListener('input', () => {
+                    const val = parseInt(slider.value);
+                    sliderDisplay.textContent = `${val} hPa`;
+                    const noteEl = document.getElementById('weather-threshold-note');
+                    if (noteEl) {
+                        if (val <= 3) noteEl.textContent = 'Very sensitive — may alert more often';
+                        else if (val <= 5) noteEl.textContent = 'Clinical default: 5 hPa in 6 hours (Okuma 2015)';
+                        else if (val <= 8) noteEl.textContent = 'Moderate — alerts only for larger changes';
+                        else noteEl.textContent = 'Conservative — alerts only for major pressure shifts';
+                    }
+                });
+                slider.addEventListener('change', () => {
+                    weatherData.userThreshold6h = parseInt(slider.value);
+                    weatherData.userThreshold24h = parseInt(slider.value);
+                    saveWeatherData();
+                    updateLogWeatherDisplay();
                 });
             }
+
+            updateBackfillStatus();
 
             weatherUIInitialized = true;
             console.log('[SUCCESS] Weather UI initialized successfully');
@@ -8165,6 +8257,58 @@ Browser: ${navigator.userAgent}
             }
         }
 
+        // Use device GPS to auto-detect location
+        async function useGPSLocation() {
+            const statusDiv = document.getElementById('weather-location-status');
+            const gpsBtn = document.getElementById('weather-gps-btn');
+            if (!navigator.geolocation) {
+                if (statusDiv) statusDiv.innerHTML = '<span style="color:var(--accent-red);">GPS not available on this device</span>';
+                return;
+            }
+            if (statusDiv) statusDiv.innerHTML = '<span style="color:var(--accent-blue);">Detecting your location...</span>';
+            if (gpsBtn) gpsBtn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    // Reverse geocode using Open-Meteo (get city name from coords)
+                    try {
+                        const reverseUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
+                        const resp = await fetch(reverseUrl);
+                        const place = await resp.json();
+                        const city = place.address?.city || place.address?.town || place.address?.village || place.address?.county || 'Your location';
+                        const state = place.address?.state || '';
+                        const country = place.address?.country_code?.toUpperCase() || '';
+                        const cityLabel = [city, state, country].filter(Boolean).join(', ');
+
+                        weatherData.location = { query: cityLabel, city: cityLabel, lat: latitude, lon: longitude };
+                        saveWeatherData();
+
+                        const locationInput = document.getElementById('weather-location-input');
+                        if (locationInput) locationInput.value = cityLabel;
+                        if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--accent-green);">Location set: ${cityLabel}</span>`;
+
+                        await fetchWeatherData(true);
+                        updateLogWeatherDisplay();
+                        renderCalendar();
+                    } catch (err) {
+                        // Coords are good even if reverse geocode fails
+                        weatherData.location = { query: `${latitude.toFixed(3)}, ${longitude.toFixed(3)}`, city: 'Your location', lat: latitude, lon: longitude };
+                        saveWeatherData();
+                        if (statusDiv) statusDiv.innerHTML = '<span style="color:var(--accent-green);">Location detected — fetching pressure data...</span>';
+                        await fetchWeatherData(true);
+                    }
+                    if (gpsBtn) gpsBtn.disabled = false;
+                },
+                (err) => {
+                    if (gpsBtn) gpsBtn.disabled = false;
+                    const msg = err.code === 1 ? 'Location permission denied' : 'Could not get location';
+                    if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--accent-red);">${msg} — try typing your city name instead</span>`;
+                },
+                { timeout: 10000, maximumAge: 300000 }
+            );
+        }
+
         // Calculate maximum rapid pressure change from readings
         // UPDATED 2026-01-20: Changed to 6-hour window based on clinical research review
         // Note: Function name kept as "Max3hChange" for backward compatibility with data structure
@@ -8193,14 +8337,42 @@ Browser: ${navigator.userAgent}
             return Math.round(maxChange * 10) / 10;
         }
 
-        // Fetch weather data from Open-Meteo
+        // Translate WMO weather code to plain-language condition
+        function getWeatherCondition(code) {
+            if (code === 0) return 'Clear sky';
+            if (code <= 3) return 'Partly cloudy';
+            if (code <= 48) return 'Foggy';
+            if (code <= 55) return 'Drizzle';
+            if (code <= 67) return 'Rain';
+            if (code <= 77) return 'Snow';
+            if (code <= 82) return 'Rain showers';
+            if (code <= 86) return 'Snow showers';
+            if (code <= 99) return 'Thunderstorm';
+            return 'Unknown';
+        }
+
+        // Translate weather code to short label for the log indicator
+        function getWeatherConditionShort(code) {
+            if (code === null || code === undefined) return '';
+            if (code === 0) return 'Clear';
+            if (code <= 3) return 'Cloudy';
+            if (code <= 48) return 'Fog';
+            if (code <= 55) return 'Drizzle';
+            if (code <= 67) return 'Rain';
+            if (code <= 77) return 'Snow';
+            if (code <= 82) return 'Showers';
+            if (code <= 99) return 'Storm';
+            return '';
+        }
+
+        // Fetch weather data from Open-Meteo (enhanced: pressure + humidity + conditions)
         async function fetchWeatherData(forced = false) {
             if (!weatherData.location.lat || !weatherData.location.lon) {
                 console.log('No location set for weather fetch');
                 return;
             }
 
-            // Don't fetch if we fetched recently (unless forced)
+            // Don't fetch if we fetched recently (unless forced) — 1 hour cache
             if (!forced && weatherData.lastFetch) {
                 const oneHourAgo = Date.now() - (60 * 60 * 1000);
                 if (weatherData.lastFetch > oneHourAgo) {
@@ -8212,8 +8384,17 @@ Browser: ${navigator.userAgent}
 
             try {
                 // Open-Meteo API - Free, no key required
-                // Get current + 48h forecast of surface pressure (hourly data)
-                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${weatherData.location.lat}&longitude=${weatherData.location.lon}&current=surface_pressure,temperature_2m&hourly=surface_pressure&timezone=auto&forecast_days=2`;
+                // current: pressure + temperature + humidity + precipitation + weather code + wind
+                // hourly: 72-hour forecast with pressure, humidity, precipitation probability, conditions
+                const weatherUrl = [
+                    'https://api.open-meteo.com/v1/forecast',
+                    `?latitude=${weatherData.location.lat}`,
+                    `&longitude=${weatherData.location.lon}`,
+                    '&current=surface_pressure,temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m',
+                    '&hourly=surface_pressure,temperature_2m,relative_humidity_2m,precipitation_probability,weather_code',
+                    '&timezone=auto',
+                    '&forecast_days=3'
+                ].join('');
 
                 const response = await fetch(weatherUrl);
                 const data = await response.json();
@@ -8224,70 +8405,104 @@ Browser: ${navigator.userAgent}
 
                 const currentTime = new Date();
                 const currentPressure = Math.round(data.current.surface_pressure * 10) / 10;
+                const currentHumidity = Math.round(data.current.relative_humidity_2m);
+                const currentTemp = Math.round(data.current.temperature_2m * 10) / 10;
+                const currentWind = Math.round(data.current.wind_speed_10m * 10) / 10;
+                const currentCode = data.current.weather_code;
+                const currentPrecip = Math.round((data.current.precipitation || 0) * 10) / 10;
 
-                // Store current weather
+                // Store current weather (all variables)
                 weatherData.current = {
                     pressure: currentPressure,
-                    temperature: Math.round(data.current.temperature_2m * 10) / 10,
+                    temperature: currentTemp,
+                    humidity: currentHumidity,
+                    windSpeed: currentWind,
+                    weatherCode: currentCode,
+                    precipitation: currentPrecip,
                     timestamp: Date.now()
                 };
 
-                // Store 48-hour hourly forecast
+                // Store 72-hour hourly forecast (pressure + humidity + conditions)
                 weatherData.forecast = data.hourly.time.map((time, i) => ({
                     time: time,
-                    pressure: Math.round(data.hourly.surface_pressure[i] * 10) / 10
+                    pressure: Math.round(data.hourly.surface_pressure[i] * 10) / 10,
+                    humidity: Math.round(data.hourly.relative_humidity_2m[i]),
+                    temperature: Math.round(data.hourly.temperature_2m[i] * 10) / 10,
+                    precipProb: Math.round(data.hourly.precipitation_probability[i] || 0),
+                    weatherCode: data.hourly.weather_code[i]
                 }));
 
                 // Update history with new reading
                 const today = new Date().toISOString().split('T')[0];
                 const newReading = {
                     time: currentTime.toISOString(),
-                    pressure: currentPressure
+                    pressure: currentPressure,
+                    humidity: currentHumidity,
+                    temperature: currentTemp
                 };
 
                 // Find or create today's entry
                 let todayEntry = weatherData.history.find(h => h.date === today);
 
                 if (!todayEntry) {
-                    // Create new entry for today
                     todayEntry = {
                         date: today,
                         readings: [],
                         dailyAvg: 0,
+                        dailyHumidityAvg: null,
+                        dailyTempAvg: null,
                         maxChange3h: 0,
-                        maxChange24h: null
+                        maxChange24h: null,
+                        weatherCode: currentCode,
+                        precipitation: currentPrecip
                     };
                     weatherData.history.push(todayEntry);
                 }
 
-                // Add new reading (keep multiple readings per day)
+                // Add reading (keep up to 24 per day)
                 todayEntry.readings.push(newReading);
-
-                // Keep only last 24 hours of readings per day (one per hour max)
                 if (todayEntry.readings.length > 24) {
                     todayEntry.readings = todayEntry.readings.slice(-24);
                 }
 
-                // Calculate daily average from all readings
-                const pressureSum = todayEntry.readings.reduce((sum, r) => sum + r.pressure, 0);
+                // Calculate daily averages
+                const pressureSum = todayEntry.readings.reduce((s, r) => s + r.pressure, 0);
                 todayEntry.dailyAvg = Math.round((pressureSum / todayEntry.readings.length) * 10) / 10;
 
-                // Calculate max 3-hour change for today
+                const humidReadings = todayEntry.readings.filter(r => r.humidity != null);
+                if (humidReadings.length > 0) {
+                    todayEntry.dailyHumidityAvg = Math.round(
+                        humidReadings.reduce((s, r) => s + r.humidity, 0) / humidReadings.length
+                    );
+                }
+
+                const tempReadings = todayEntry.readings.filter(r => r.temperature != null);
+                if (tempReadings.length > 0) {
+                    todayEntry.dailyTempAvg = Math.round(
+                        (tempReadings.reduce((s, r) => s + r.temperature, 0) / tempReadings.length) * 10
+                    ) / 10;
+                }
+
+                // Always store latest weather code and precipitation on entry
+                todayEntry.weatherCode = currentCode;
+                todayEntry.precipitation = (todayEntry.precipitation || 0) + currentPrecip;
+
+                // Calculate 6-hour rapid change (primary alert metric)
                 todayEntry.maxChange3h = calculateMax3hChange(todayEntry.readings);
 
-                // Calculate 24h change if we have yesterday's data
-                if (weatherData.history.length >= 2) {
-                    const sorted = [...weatherData.history].sort((a, b) => new Date(b.date) - new Date(a.date));
-                    const yesterday = sorted[1];
+                // Calculate 24h change vs yesterday
+                const sortedHist = [...weatherData.history].sort((a, b) => new Date(b.date) - new Date(a.date));
+                if (sortedHist.length >= 2) {
+                    const yesterday = sortedHist[1];
                     if (yesterday && yesterday.dailyAvg) {
                         todayEntry.maxChange24h = Math.round((todayEntry.dailyAvg - yesterday.dailyAvg) * 10) / 10;
                     }
                 }
 
-                // Keep only last 30 days
+                // Keep only last 60 days (up from 30)
                 weatherData.history = weatherData.history
                     .sort((a, b) => new Date(b.date) - new Date(a.date))
-                    .slice(0, 30);
+                    .slice(0, 60);
 
                 weatherData.lastFetch = Date.now();
                 saveWeatherData();
@@ -8295,9 +8510,8 @@ Browser: ${navigator.userAgent}
                 displayCurrentWeather();
                 updateLogWeatherDisplay();
 
-                console.log('[SUCCESS] Weather data updated:', currentPressure, 'hPa');
-                console.log('   3h max change:', todayEntry.maxChange3h, 'hPa');
-                console.log('   24h change:', todayEntry.maxChange24h, 'hPa');
+                console.log('[SUCCESS] Weather updated:', currentPressure, 'hPa |', currentHumidity, '% humidity |', getWeatherCondition(currentCode));
+                console.log('   6h max change:', todayEntry.maxChange3h, 'hPa | 24h change:', todayEntry.maxChange24h, 'hPa');
 
             } catch (error) {
                 console.error('Weather fetch error:', error);
@@ -8308,51 +8522,74 @@ Browser: ${navigator.userAgent}
             }
         }
 
-        // Display current weather in settings
+        // Display current weather in settings (enhanced with humidity + conditions + risk)
         function displayCurrentWeather() {
             const displayDiv = document.getElementById('weather-current-display');
-            const locationSpan = document.getElementById('weather-location-display');
-            const pressureSpan = document.getElementById('weather-current-pressure');
-            const changeSpan = document.getElementById('weather-pressure-change');
-            const updatedSpan = document.getElementById('weather-last-updated');
 
             if (!weatherData.location.city || !weatherData.current.pressure) {
-                displayDiv.style.display = 'none';
+                if (displayDiv) displayDiv.style.display = 'none';
                 return;
             }
 
-            displayDiv.style.display = 'block';
-            locationSpan.textContent = weatherData.location.city;
-            pressureSpan.textContent = `${weatherData.current.pressure} hPa`;
+            if (displayDiv) displayDiv.style.display = 'block';
 
-            // Calculate 24h pressure change
+            // Location
+            const locationSpan = document.getElementById('weather-location-display');
+            if (locationSpan) locationSpan.textContent = weatherData.location.city;
+
+            // Pressure + plain-language trend
+            const pressureSpan = document.getElementById('weather-current-pressure');
+            if (pressureSpan) pressureSpan.textContent = `${weatherData.current.pressure} hPa`;
+
             const change24h = getPressureChange24h();
-            if (change24h !== null) {
-                const changeText = change24h > 0 ? `↑ ${change24h} hPa` : `↓ ${Math.abs(change24h)} hPa`;
-                const changeColor = Math.abs(change24h) > 5 ? 'var(--accent-red)' : 'var(--text-secondary)';
-                changeSpan.innerHTML = `<span style="color: ${changeColor}">24h change: ${changeText}${Math.abs(change24h) > 5 ? ' (significant)' : ''}</span>`;
-            } else {
-                changeSpan.textContent = '24h change: Not enough data';
+            const changeSpan = document.getElementById('weather-pressure-change');
+            if (changeSpan) {
+                if (change24h !== null) {
+                    const abs = Math.abs(change24h);
+                    const direction = change24h > 0 ? 'Rising' : 'Falling';
+                    const speed = abs >= 10 ? 'fast' : abs >= 5 ? 'noticeably' : abs >= 2 ? 'slowly' : 'stable';
+                    const isSignificant = abs >= (weatherData.userThreshold24h || 5);
+                    const color = isSignificant ? 'var(--accent-red)' : 'var(--text-secondary)';
+                    const arrow = change24h > 0 ? '↑' : '↓';
+                    changeSpan.innerHTML = `<span style="color:${color}">${arrow} ${direction} ${speed} — ${abs} hPa in 24h${isSignificant ? ' (significant)' : ''}</span>`;
+                } else {
+                    changeSpan.textContent = 'Not enough data for trend';
+                }
+            }
+
+            // Humidity + conditions row
+            const detailsSpan = document.getElementById('weather-current-details');
+            if (detailsSpan) {
+                const parts = [];
+                if (weatherData.current.temperature !== null) parts.push(`${weatherData.current.temperature}°C`);
+                if (weatherData.current.humidity !== null) parts.push(`${weatherData.current.humidity}% humidity`);
+                if (weatherData.current.windSpeed !== null) parts.push(`Wind ${weatherData.current.windSpeed} km/h`);
+                if (weatherData.current.weatherCode !== null) parts.push(getWeatherCondition(weatherData.current.weatherCode));
+                detailsSpan.textContent = parts.join(' · ');
+            }
+
+            // Daily risk score
+            const riskSpan = document.getElementById('weather-risk-display');
+            if (riskSpan) {
+                const risk = calculateDailyRiskScore();
+                if (risk !== null) {
+                    riskSpan.innerHTML = `<span style="color:${risk.color}; font-weight:600;">${risk.label}</span> <span style="color:var(--text-secondary); font-size:0.8rem;">${risk.detail}</span>`;
+                }
             }
 
             // Last updated
-            if (weatherData.current.timestamp) {
-                const lastUpdate = new Date(weatherData.current.timestamp);
-                const now = new Date();
-                const diffMinutes = Math.floor((now - lastUpdate) / 60000);
-
+            const updatedSpan = document.getElementById('weather-last-updated');
+            if (updatedSpan && weatherData.current.timestamp) {
+                const diffMinutes = Math.floor((Date.now() - weatherData.current.timestamp) / 60000);
                 let timeAgo;
-                if (diffMinutes < 1) {
-                    timeAgo = 'Just now';
-                } else if (diffMinutes < 60) {
-                    timeAgo = `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
-                } else {
-                    const diffHours = Math.floor(diffMinutes / 60);
-                    timeAgo = `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-                }
-
-                updatedSpan.textContent = `Last updated: ${timeAgo}`;
+                if (diffMinutes < 1) timeAgo = 'Just now';
+                else if (diffMinutes < 60) timeAgo = `${diffMinutes}m ago`;
+                else timeAgo = `${Math.floor(diffMinutes / 60)}h ago`;
+                updatedSpan.textContent = `Updated ${timeAgo}`;
             }
+
+            // Backfill status
+            updateBackfillStatus();
         }
 
         // Get 24-hour pressure change (uses historical daily averages for accuracy)
@@ -8490,24 +8727,245 @@ Browser: ${navigator.userAgent}
                 return null;
             }
 
-            // Get today's entry if it exists for additional data
             const today = new Date().toISOString().split('T')[0];
             const todayEntry = weatherData.history.find(h => h.date === today);
 
             return {
                 pressure: weatherData.current.pressure,
+                humidity: weatherData.current.humidity,
+                temperature: weatherData.current.temperature,
+                weatherCode: weatherData.current.weatherCode,
                 change24h: getPressureChange24h(),
                 maxChange3h: todayEntry ? todayEntry.maxChange3h : null,
                 trend: getPressureTrend(),
+                riskScore: calculateDailyRiskScore(),
                 timestamp: weatherData.current.timestamp
             };
         }
 
-        // Update weather forecast indicator on log screen
+        // Calculate a 0-10 daily atmospheric risk score for migraine
+        // Synthesizes pressure change rate, absolute pressure, humidity — weighted by personal profile
+        function calculateDailyRiskScore() {
+            if (!weatherData.enabled || !weatherData.current.pressure) return null;
+
+            const pressure = weatherData.current.pressure;
+            const humidity = weatherData.current.humidity;
+            const change24h = getPressureChange24h();
+            const today = new Date().toISOString().split('T')[0];
+            const todayEntry = weatherData.history.find(h => h.date === today);
+            const change6h = todayEntry ? (todayEntry.maxChange3h || 0) : 0;
+            const threshold6h = weatherData.userThreshold6h || 5;
+            const threshold24h = weatherData.userThreshold24h || 5;
+            const profile = weatherData.personalProfile;
+
+            let score = 0;
+
+            // 1. Rapid 6-hour change (0-4 points) — primary clinical metric
+            if (change6h >= threshold6h * 2.4) score += 4;      // >12 hPa in 6h: extreme
+            else if (change6h >= threshold6h * 1.6) score += 3; // >8 hPa: severe
+            else if (change6h >= threshold6h) score += 2;       // >5 hPa: significant
+            else if (change6h >= threshold6h * 0.6) score += 1; // >3 hPa: mild
+
+            // 2. 24-hour change (0-2 points)
+            if (change24h !== null) {
+                const abs24h = Math.abs(change24h);
+                if (abs24h >= threshold24h * 2) score += 2;
+                else if (abs24h >= threshold24h) score += 1;
+
+                // Direction bonus: drops are more dangerous than rises (research-validated)
+                if (change24h < 0 && profile && profile.dropSensitive) score += 0.5;
+            }
+
+            // 3. Absolute low pressure zone (0-2 points) — Okuma 2015 thresholds
+            if (pressure < 1005) score += 2;        // High-risk zone
+            else if (pressure < 1007) score += 1;   // Moderate-risk zone
+
+            // 4. High humidity compound risk (0-1 point)
+            if (humidity !== null && humidity > 80) score += 1;
+            else if (humidity !== null && humidity > 70 && pressure < 1010) score += 0.5;
+
+            // Clamp to 0-10
+            const rawScore = Math.min(10, Math.round(score));
+
+            // Color and label
+            let color, label, detail;
+            if (rawScore <= 2) {
+                color = 'var(--accent-green)'; label = 'Low risk'; detail = 'Pressure stable';
+            } else if (rawScore <= 4) {
+                color = '#d4a574'; label = 'Moderate risk'; detail = 'Some pressure movement';
+            } else if (rawScore <= 6) {
+                color = '#c97c4a'; label = 'Elevated risk'; detail = 'Significant pressure shift';
+            } else {
+                color = 'var(--accent-red)'; label = 'High risk'; detail = 'Major pressure change';
+            }
+
+            return { score: rawScore, color, label, detail };
+        }
+
+        // Fetch historical weather data via Open-Meteo archive API (backfill past 60 days)
+        async function fetchHistoricalWeatherData() {
+            if (!weatherData.location.lat || !weatherData.location.lon) return;
+
+            const statusDiv = document.getElementById('weather-backfill-status');
+            if (statusDiv) statusDiv.innerHTML = '<span style="color:var(--accent-blue);">Fetching last 60 days of pressure data...</span>';
+
+            try {
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() - 1); // Archive available up to yesterday
+                const startDate = new Date(endDate);
+                startDate.setDate(startDate.getDate() - 59); // 60 days total
+
+                const fmt = d => d.toISOString().split('T')[0];
+                const archiveUrl = [
+                    'https://archive-api.open-meteo.com/v1/archive',
+                    `?latitude=${weatherData.location.lat}`,
+                    `&longitude=${weatherData.location.lon}`,
+                    `&start_date=${fmt(startDate)}`,
+                    `&end_date=${fmt(endDate)}`,
+                    '&hourly=surface_pressure,temperature_2m,relative_humidity_2m,precipitation,weather_code',
+                    '&timezone=auto'
+                ].join('');
+
+                const response = await fetch(archiveUrl);
+                const data = await response.json();
+
+                if (!data.hourly || !data.hourly.time) throw new Error('Invalid archive data');
+
+                // Group hourly readings into daily entries
+                const dailyMap = {};
+                data.hourly.time.forEach((timeStr, i) => {
+                    const date = timeStr.split('T')[0];
+                    if (!dailyMap[date]) {
+                        dailyMap[date] = { readings: [], codes: [], precips: [] };
+                    }
+                    const pressure = data.hourly.surface_pressure[i];
+                    const humidity = data.hourly.relative_humidity_2m[i];
+                    const temp = data.hourly.temperature_2m[i];
+                    const precip = data.hourly.precipitation[i] || 0;
+                    const code = data.hourly.weather_code[i];
+                    if (pressure != null) {
+                        dailyMap[date].readings.push({
+                            time: timeStr,
+                            pressure: Math.round(pressure * 10) / 10,
+                            humidity: Math.round(humidity || 0),
+                            temperature: Math.round((temp || 0) * 10) / 10
+                        });
+                    }
+                    if (code != null) dailyMap[date].codes.push(code);
+                    dailyMap[date].precips.push(precip);
+                });
+
+                // Merge into weatherData.history (don't overwrite existing readings from current fetch)
+                let backfilledCount = 0;
+                Object.entries(dailyMap).forEach(([date, dayData]) => {
+                    if (!dayData.readings.length) return;
+                    const existing = weatherData.history.find(h => h.date === date);
+                    if (existing && existing.readings && existing.readings.length > 1) return; // Already have live data
+
+                    const pressureSum = dayData.readings.reduce((s, r) => s + r.pressure, 0);
+                    const dailyAvg = Math.round((pressureSum / dayData.readings.length) * 10) / 10;
+                    const humidSum = dayData.readings.reduce((s, r) => s + (r.humidity || 0), 0);
+                    const dailyHumidityAvg = Math.round(humidSum / dayData.readings.length);
+                    const tempSum = dayData.readings.reduce((s, r) => s + (r.temperature || 0), 0);
+                    const dailyTempAvg = Math.round((tempSum / dayData.readings.length) * 10) / 10;
+                    const totalPrecip = Math.round(dayData.precips.reduce((s, p) => s + p, 0) * 10) / 10;
+                    // Most common weather code
+                    const codeMode = dayData.codes.length ? dayData.codes.sort(
+                        (a, b) => dayData.codes.filter(c => c === b).length - dayData.codes.filter(c => c === a).length
+                    )[0] : null;
+                    const maxChange6h = calculateMax3hChange(dayData.readings);
+
+                    const entry = {
+                        date,
+                        readings: dayData.readings,
+                        dailyAvg,
+                        dailyHumidityAvg,
+                        dailyTempAvg,
+                        maxChange3h: maxChange6h,
+                        maxChange24h: null, // Calculated in next pass
+                        weatherCode: codeMode,
+                        precipitation: totalPrecip,
+                        fromArchive: true
+                    };
+
+                    if (existing) {
+                        // Update existing entry with archive data
+                        Object.assign(existing, entry);
+                    } else {
+                        weatherData.history.push(entry);
+                        backfilledCount++;
+                    }
+                });
+
+                // Recalculate 24h changes for all entries now that we have the full picture
+                const sorted = [...weatherData.history].sort((a, b) => new Date(a.date) - new Date(b.date));
+                for (let i = 1; i < sorted.length; i++) {
+                    const today = sorted[i];
+                    const yesterday = sorted[i - 1];
+                    if (today.dailyAvg && yesterday.dailyAvg) {
+                        today.maxChange24h = Math.round((today.dailyAvg - yesterday.dailyAvg) * 10) / 10;
+                    }
+                }
+
+                // Keep only last 60 days, sorted newest first
+                weatherData.history = sorted.reverse().slice(0, 60);
+
+                // Mark backfill complete
+                weatherData.historicalBackfill = {
+                    done: true,
+                    lastBackfillDate: new Date().toISOString(),
+                    daysBackfilled: backfilledCount
+                };
+
+                saveWeatherData();
+
+                // Re-analyze personal profile with the fuller dataset
+                if (weatherData.history.length >= 7) analyzePersonalWeatherProfile();
+
+                const totalDays = weatherData.history.length;
+                if (statusDiv) {
+                    statusDiv.innerHTML = `<span style="color:var(--accent-green);">${totalDays} days of pressure data ready. ${backfilledCount > 0 ? `${backfilledCount} days recovered from archive.` : 'Data already complete.'}</span>`;
+                }
+
+                console.log(`[SUCCESS] Historical backfill complete: ${backfilledCount} archive days added, ${totalDays} total history days`);
+
+                // Refresh analytics if on that page
+                if (typeof renderAnalytics === 'function' && document.getElementById('analytics-page')?.classList.contains('active')) {
+                    renderAnalytics();
+                }
+
+            } catch (error) {
+                console.error('Historical weather fetch error:', error);
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<span style="color:var(--accent-red);">Could not fetch historical data. Check your connection and try again.</span>';
+                }
+            }
+        }
+
+        // Show current backfill status in settings
+        function updateBackfillStatus() {
+            const statusDiv = document.getElementById('weather-backfill-status');
+            if (!statusDiv) return;
+            const bf = weatherData.historicalBackfill;
+            const historyDays = weatherData.history.length;
+            if (!bf || !bf.done) {
+                if (historyDays < 7) {
+                    statusDiv.innerHTML = '<span style="color:var(--text-secondary);">No historical data yet — fetch archive to see last month\'s pressure patterns.</span>';
+                } else {
+                    statusDiv.innerHTML = `<span style="color:var(--text-secondary);">${historyDays} days of live data. Fetch archive to extend to 60 days.</span>`;
+                }
+            } else {
+                statusDiv.innerHTML = `<span style="color:var(--accent-green);">${historyDays} days of pressure history available.</span>`;
+            }
+        }
+
+        // Update weather forecast indicator on log screen (enhanced: risk score + plain language + 6-12h window)
         function updateLogWeatherDisplay() {
             const forecastIndicator = document.getElementById('weather-forecast-indicator');
             const clearBox = document.getElementById('weather-clear');
             const warningBox = document.getElementById('weather-warning');
+
+            if (!forecastIndicator) return;
 
             // Hide if weather tracking is disabled or no data
             if (!weatherData.enabled || !weatherData.current.pressure) {
@@ -8515,47 +8973,74 @@ Browser: ${navigator.userAgent}
                 return;
             }
 
-            // Get 24h change and trend
+            const risk = calculateDailyRiskScore();
             const change24h = getPressureChange24h();
             const trend = getPressureTrend();
 
-            // Check for rapid changes in upcoming forecast
-            const rapidChanges = detectRapidForecastChanges();
-            const hasRapidChanges = rapidChanges.length > 0;
+            // Look 6-12 hours ahead in forecast for incoming changes (optimal alert window per research)
+            const now = new Date();
+            const in6h = new Date(now.getTime() + 6 * 3600000);
+            const in12h = new Date(now.getTime() + 12 * 3600000);
+            let incomingAlert = null;
 
-            // Show indicator if we have any data
+            if (weatherData.forecast && weatherData.forecast.length > 6) {
+                // Find forecast window 6-12 hours from now
+                const forecastWindow = weatherData.forecast.filter(f => {
+                    const t = new Date(f.time);
+                    return t >= in6h && t <= in12h;
+                });
+
+                for (let i = 0; i < forecastWindow.length - 6; i++) {
+                    const window = forecastWindow.slice(i, i + 7);
+                    const pressures = window.map(r => r.pressure);
+                    const change = Math.max(...pressures) - Math.min(...pressures);
+                    const threshold = weatherData.userThreshold6h || 5;
+                    if (change >= threshold) {
+                        const direction = pressures[6] < pressures[0] ? 'falling' : 'rising';
+                        const hoursUntil = Math.round((new Date(window[0].time) - now) / 3600000);
+                        incomingAlert = { change: Math.round(change * 10) / 10, direction, hoursUntil };
+                        break;
+                    }
+                }
+            }
+
             forecastIndicator.style.display = 'block';
 
-            // Determine warning state: show warning if significant 24h change OR rapid forecast changes
-            const showWarning = (trend.significant && change24h !== null) || hasRapidChanges;
+            const showWarning = (risk && risk.score >= 4) || incomingAlert !== null;
 
             if (showWarning) {
-                // Significant pressure change or rapid forecast change - show warning
                 clearBox.style.display = 'none';
                 warningBox.style.display = 'block';
 
-                // Update warning detail with specific information
                 const warningDetail = document.getElementById('weather-warning-detail');
-                let warningText = '';
-
-                if (trend.significant && change24h !== null) {
-                    const changeText = change24h > 0 ? `+${change24h.toFixed(1)}` : change24h.toFixed(1);
-                    warningText = `${trend.text} (${changeText} hPa in 24h)`;
+                if (warningDetail) {
+                    let text = '';
+                    if (risk && risk.score >= 4) {
+                        text = `${risk.label} — ${risk.detail}`;
+                        if (change24h !== null) {
+                            const abs = Math.abs(change24h);
+                            const dir = change24h > 0 ? 'risen' : 'fallen';
+                            if (abs >= 3) text += ` (${dir} ${abs} hPa today)`;
+                        }
+                    }
+                    if (incomingAlert) {
+                        if (text) text += ' · ';
+                        text += `Pressure ${incomingAlert.direction} ${incomingAlert.change} hPa in ~${incomingAlert.hoursUntil}h`;
+                    }
+                    warningDetail.textContent = text || 'Significant pressure activity detected';
                 }
-
-                if (hasRapidChanges) {
-                    const nextChange = rapidChanges[0];
-                    if (warningText) warningText += ' • ';
-                    warningText += `Rapid ${nextChange.direction} (${nextChange.change} hPa in 6h) in ${nextChange.hoursFromNow}h`;
-                }
-
-                warningDetail.textContent = warningText;
             } else if (change24h !== null) {
-                // Normal pressure - show clear
                 clearBox.style.display = 'block';
                 warningBox.style.display = 'none';
+                // Update clear box detail with plain-language stable message
+                const clearDetail = document.getElementById('weather-clear-detail');
+                if (clearDetail) {
+                    const absChange = Math.abs(change24h);
+                    clearDetail.textContent = absChange < 2
+                        ? 'Pressure holding steady'
+                        : `Pressure ${change24h > 0 ? 'slightly rising' : 'slightly falling'} (${absChange} hPa today)`;
+                }
             } else {
-                // Not enough data yet - hide forecast indicator
                 forecastIndicator.style.display = 'none';
             }
         }
@@ -9643,142 +10128,176 @@ Browser: ${navigator.userAgent}
             const correlationCard = document.getElementById('weather-correlation-card');
 
             if (!weatherData.enabled || weatherData.history.length < 7) {
-                correlationCard.style.display = 'none';
+                if (correlationCard) correlationCard.style.display = 'none';
                 return;
             }
 
-            correlationCard.style.display = 'block';
+            if (correlationCard) correlationCard.style.display = 'block';
 
-            // Calculate correlation using existing function
             const correlation = calculateWeatherCorrelation();
 
             if (!correlation) {
-                correlationCard.style.display = 'none';
+                if (correlationCard) correlationCard.style.display = 'none';
                 return;
             }
 
-            // Update UI with correlation data
-            document.getElementById('correlation-strength').textContent =
-                `${correlation.percentage.toFixed(0)}%`;
+            // Percentage display
+            const pct = correlation.percentage != null ? correlation.percentage : correlation.primaryCorrelation || 0;
+            const strengthEl = document.getElementById('correlation-strength');
+            if (strengthEl) strengthEl.textContent = `${Math.round(pct)}%`;
 
-            let strengthText = '';
-            let strengthColor = '';
-
+            // Color and label — including honest "not your trigger" messaging
+            let strengthText, strengthColor, messageSuffix;
             if (correlation.level === 'strong') {
-                strengthText = 'Strong Correlation';
-                strengthColor = 'var(--pain-severe)';
+                strengthText = 'Strong correlation';
+                strengthColor = 'var(--accent-red)';
+                messageSuffix = 'Pressure changes appear to be a real trigger for you.';
             } else if (correlation.level === 'moderate') {
-                strengthText = 'Moderate Correlation';
-                strengthColor = 'var(--pain-moderate)';
+                strengthText = 'Moderate correlation';
+                strengthColor = '#d4a574';
+                messageSuffix = 'Pressure may be contributing to some of your attacks.';
             } else {
-                strengthText = 'Weak Correlation';
-                strengthColor = 'var(--pain-mild)';
+                // Honest disconfirmation — this is valuable information, not a failure
+                strengthText = 'Low correlation';
+                strengthColor = 'var(--accent-green)';
+                messageSuffix = 'Pressure changes don\'t appear to strongly predict your attacks. Other triggers may be more significant.';
             }
 
-            document.getElementById('correlation-description').textContent = strengthText;
-            document.getElementById('correlation-strength').style.color = strengthColor;
+            const descEl = document.getElementById('correlation-description');
+            if (descEl) {
+                descEl.textContent = strengthText;
+                descEl.style.color = strengthColor;
+            }
+            if (strengthEl) strengthEl.style.color = strengthColor;
 
-            document.getElementById('correlation-changes').textContent =
-                `${correlation.significantChangeDays} days`;
-            document.getElementById('correlation-migraines').textContent =
-                `${correlation.migrainesOnChangeDays} days`;
-            document.getElementById('correlation-percent').textContent =
-                `${correlation.percentage.toFixed(1)}%`;
+            // Stats
+            const changesEl = document.getElementById('correlation-changes');
+            if (changesEl) changesEl.textContent = `${correlation.significantChangeDays || 0} days`;
+            const migrainesEl = document.getElementById('correlation-migraines');
+            if (migrainesEl) migrainesEl.textContent = `${correlation.migrainesOnChangeDays || 0} attacks`;
+            const percentEl = document.getElementById('correlation-percent');
+            if (percentEl) percentEl.textContent = `${Math.round(pct)}%`;
+
+            // Update the info-box text with honest messaging
+            const infoBox = document.getElementById('correlation-info-box');
+            if (infoBox) {
+                const sampleNote = correlation.sampleSize < 10
+                    ? ` (${correlation.sampleSize || 'limited'} attacks analyzed — more data will improve accuracy)`
+                    : '';
+                infoBox.innerHTML = `<strong>What this means for you:</strong> ${messageSuffix}${sampleNote} ` +
+                    `Thresholds used: &gt;${weatherData.userThreshold24h || 5} hPa in 24h (slow change), ` +
+                    `&gt;${weatherData.userThreshold6h || 5} hPa in 6h (rapid change).`;
+            }
         }
 
         function renderPressureChart(data, startDate, endDate) {
             const chartCard = document.getElementById('pressure-chart-card');
 
             if (!weatherData.enabled || weatherData.history.length < 7) {
-                chartCard.style.display = 'none';
+                if (chartCard) chartCard.style.display = 'none';
                 return;
             }
 
-            chartCard.style.display = 'block';
+            if (chartCard) chartCard.style.display = 'block';
 
             const canvas = document.getElementById('pressure-chart');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
 
             if (analyticsCharts.pressure) {
                 analyticsCharts.pressure.destroy();
+                analyticsCharts.pressure = null;
             }
 
-            // Prepare data: last 30 days of weather history
-            const days = 30;
+            // Use up to 60 days of history (sorted oldest-first)
+            const sortedHistory = [...weatherData.history]
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .slice(-60);
+
+            // Build migraine day set
+            const migraineDays = new Set();
+            if (data && Array.isArray(data)) {
+                data.forEach(m => {
+                    if (typeof getMigraineDays === 'function') {
+                        getMigraineDays(m).forEach(d => migraineDays.add(d));
+                    } else {
+                        migraineDays.add(m.startTime.split('T')[0]);
+                    }
+                });
+            }
+
             const labels = [];
             const pressureData = [];
-            const changeData = [];
-            const migraineIndicators = [];
+            const migraineMarkers = [];  // Pressure value on migraine days (shown as scatter points)
+            const migraineBarData = []; // Full-height bar on migraine day
 
-            // Get migraine days in the period
-            const migraineDays = new Set();
-            data.forEach(m => {
-                const days = getMigraineDays(m);
-                days.forEach(day => migraineDays.add(day));
-            });
+            // Fixed Y-axis range — critical so changes are comparable across weeks
+            // 980-1040 hPa covers virtually all weather events at sea level
+            const Y_MIN = 980;
+            const Y_MAX = 1040;
 
-            // Build chart data from weather history
-            const sortedHistory = [...weatherData.history].sort((a, b) =>
-                new Date(a.date) - new Date(b.date)
-            ).slice(-days);
-
-            sortedHistory.forEach((entry, index) => {
+            sortedHistory.forEach((entry) => {
                 const date = new Date(entry.date);
                 labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
 
-                // Use dailyAvg or fallback to pressure for old data
                 const pressure = entry.dailyAvg || entry.pressure || 1013.25;
                 pressureData.push(pressure);
 
-                // Calculate 24h change
-                if (index > 0) {
-                    const prevPressure = sortedHistory[index - 1].dailyAvg || sortedHistory[index - 1].pressure || 1013.25;
-                    const change = pressure - prevPressure;
-                    changeData.push(change);
-                } else {
-                    changeData.push(0);
-                }
-
-                // Check if there was a migraine this day
                 const dateKey = entry.date.split('T')[0];
-                migraineIndicators.push(migraineDays.has(dateKey) ? pressure : null);
+                const hasMigraine = migraineDays.has(dateKey);
+                // Migraine marker at the pressure value; bar reaches from bottom of chart
+                migraineMarkers.push(hasMigraine ? pressure : null);
+                migraineBarData.push(hasMigraine ? Y_MAX : null);
             });
 
             const colors = getChartColors();
+            const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+            const threshold = weatherData.userThreshold24h || 5;
 
             analyticsCharts.pressure = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels,
                     datasets: [
                         {
-                            label: 'Barometric Pressure (hPa)',
+                            // Migraine day shading (bar behind pressure line)
+                            label: 'Migraine day',
+                            type: 'bar',
+                            data: migraineBarData,
+                            backgroundColor: isDark ? 'rgba(201, 104, 104, 0.18)' : 'rgba(201, 104, 104, 0.12)',
+                            borderColor: 'transparent',
+                            borderWidth: 0,
+                            yAxisID: 'y',
+                            order: 3,
+                            barPercentage: 1.0,
+                            categoryPercentage: 1.0
+                        },
+                        {
+                            // Main pressure line
+                            label: 'Pressure (hPa)',
                             data: pressureData,
                             borderColor: colors.blue,
                             backgroundColor: 'transparent',
                             borderWidth: 2,
-                            pointRadius: 3,
+                            pointRadius: 2,
+                            pointHoverRadius: 5,
                             pointBackgroundColor: colors.blue,
-                            yAxisID: 'y'
+                            tension: 0.3,
+                            yAxisID: 'y',
+                            order: 1
                         },
                         {
-                            label: '24h Change',
-                            data: changeData,
-                            borderColor: colors.orange,
-                            backgroundColor: 'transparent',
-                            borderWidth: 1,
-                            borderDash: [5, 5],
-                            pointRadius: 0,
-                            yAxisID: 'y1'
-                        },
-                        {
-                            label: 'Migraine Days',
-                            data: migraineIndicators,
-                            type: 'bar',
-                            backgroundColor: 'rgba(255, 99, 132, 0.3)',
-                            borderColor: 'rgba(255, 99, 132, 0.7)',
-                            borderWidth: 1,
-                            yAxisID: 'y'
+                            // Migraine day dot markers on the pressure line
+                            label: 'Attack occurred',
+                            data: migraineMarkers,
+                            borderColor: colors.red,
+                            backgroundColor: colors.red,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            pointStyle: 'circle',
+                            showLine: false,
+                            yAxisID: 'y',
+                            order: 0
                         }
                     ]
                 },
@@ -9786,83 +10305,57 @@ Browser: ${navigator.userAgent}
                     responsive: true,
                     maintainAspectRatio: true,
                     aspectRatio: 2,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
+                    interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: {
                             display: true,
                             labels: {
                                 color: colors.textSecondary,
-                                boxWidth: 20,
-                                padding: 15
+                                boxWidth: 16,
+                                padding: 12,
+                                filter: (item) => item.text !== 'Migraine day' // Hide bar from legend
                             }
                         },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
+                                    if (context.datasetIndex === 0) return null; // hide bar from tooltip
+                                    if (context.datasetIndex === 1 && context.parsed.y !== null) {
+                                        return `Pressure: ${context.parsed.y.toFixed(1)} hPa`;
                                     }
-                                    if (context.parsed.y !== null) {
-                                        if (context.datasetIndex === 0) {
-                                            label += context.parsed.y.toFixed(1) + ' hPa';
-                                        } else if (context.datasetIndex === 1) {
-                                            label += (context.parsed.y > 0 ? '+' : '') +
-                                                     context.parsed.y.toFixed(1) + ' hPa';
-                                        } else {
-                                            label = 'Migraine occurred';
-                                        }
+                                    if (context.datasetIndex === 2 && context.parsed.y !== null) {
+                                        return 'Attack occurred';
                                     }
-                                    return label;
+                                    return null;
                                 }
                             }
-                        }
+                        },
+                        // Shade the high-risk absolute pressure zone (1003-1007 hPa)
+                        annotation: undefined
                     },
                     scales: {
                         x: {
-                            ticks: {
-                                color: colors.textSecondary,
-                                maxRotation: 45,
-                                minRotation: 45
-                            },
-                            grid: {
-                                color: colors.grid
-                            }
+                            ticks: { color: colors.textSecondary, maxRotation: 45, minRotation: 45, maxTicksLimit: 15 },
+                            grid: { color: colors.grid }
                         },
                         y: {
                             type: 'linear',
                             display: true,
                             position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Pressure (hPa)',
-                                color: colors.textSecondary
-                            },
+                            // Fixed range so a 5 hPa drop always looks the same across weeks
+                            min: Y_MIN,
+                            max: Y_MAX,
+                            title: { display: true, text: 'Pressure (hPa)', color: colors.textSecondary },
                             ticks: {
-                                color: colors.textSecondary
+                                color: colors.textSecondary,
+                                callback: (v) => {
+                                    // Mark clinical thresholds visually
+                                    if (v === 1007) return '1007 (risk)';
+                                    if (v === 1005) return '1005 (high risk)';
+                                    return v;
+                                }
                             },
-                            grid: {
-                                color: colors.grid
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: '24h Change (hPa)',
-                                color: colors.textSecondary
-                            },
-                            ticks: {
-                                color: colors.textSecondary
-                            },
-                            grid: {
-                                drawOnChartArea: false
-                            }
+                            grid: { color: colors.grid }
                         }
                     }
                 }
