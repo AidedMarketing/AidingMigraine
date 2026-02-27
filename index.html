@@ -2668,7 +2668,27 @@
                             <span>More sensitive</span>
                             <span>Less sensitive</span>
                         </div>
-                        <div style="margin-top: 6px; font-size: 0.78rem; color: var(--text-secondary);" id="weather-threshold-note">Clinical default: 5 hPa in 6 hours (Okuma 2015)</div>
+                        <div style="margin-top: 6px; font-size: 0.78rem; color: var(--text-secondary);" id="weather-threshold-note">Evidence-based default: 5 hPa / 0.15 inHg in 6 hours (Katsuki et al. 2023)</div>
+                    </div>
+
+                    <!-- Display Units -->
+                    <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 10px;">Display Units</div>
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+                            <span style="font-size: 0.82rem; color: var(--text-secondary); flex: 0 0 80px;">Pressure</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button id="unit-inhg-btn" class="btn btn-primary" style="padding: 5px 12px; font-size: 0.82rem;">inHg</button>
+                                <button id="unit-hpa-btn" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.82rem;">hPa</button>
+                            </div>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">US standard / international</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 0.82rem; color: var(--text-secondary); flex: 0 0 80px;">Temperature</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button id="unit-fahrenheit-btn" class="btn btn-primary" style="padding: 5px 12px; font-size: 0.82rem;">°F</button>
+                                <button id="unit-celsius-btn" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.82rem;">°C</button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Privacy notice -->
@@ -7869,7 +7889,7 @@ Browser: ${navigator.userAgent}
 
         // Weather data structure (stored in localStorage)
         let weatherData = {
-            version: 4,             // Data structure version for migrations
+            version: 5,             // Data structure version for migrations
             enabled: false,
             location: {
                 query: '',      // User's input (ZIP or city)
@@ -7895,6 +7915,10 @@ Browser: ${navigator.userAgent}
                 daysBackfilled: 0
             },
 
+            // DISPLAY UNITS (default to US units)
+            displayUnit: 'inHg',        // 'inHg' (US default) or 'hPa' (international)
+            temperatureUnit: 'fahrenheit', // 'fahrenheit' (US default) or 'celsius'
+
             // USER THRESHOLD (configurable, learned from data)
             userThreshold6h: 5,     // hPa in 6h to trigger alert (default: 5, clinical standard)
             userThreshold24h: 5,    // hPa in 24h for significant change (default: 5)
@@ -7917,7 +7941,12 @@ Browser: ${navigator.userAgent}
                 lowPressureSensitive: false,
                 avgTriggerPressure: null,
 
-                // Humidity sensitivity
+                // Temperature sensitivity (2024 meta-analysis: OR=1.15, stronger than pressure OR=1.07)
+                tempSensitive: false,           // Triggered by rapid temperature changes
+                tempHighSensitive: false,       // Triggered by high temperatures (>32°C/90°F)
+                avgTempChangeAtMigraine: null,  // Avg temperature change on migraine days
+
+                // Humidity sensitivity (2024 meta-analysis: OR=1.04, not statistically significant alone)
                 highHumiditySensitive: false,  // Triggered by high humidity (>75%)
                 avgHumidityAtMigraine: null,   // Average humidity when migraines occur
 
@@ -7951,7 +7980,7 @@ Browser: ${navigator.userAgent}
 
         // Migrate weather data from old versions
         function migrateWeatherData(data) {
-            if (!data || data.version === 4) {
+            if (!data || data.version === 5) {
                 return data; // Already current version
             }
 
@@ -8038,7 +8067,22 @@ Browser: ${navigator.userAgent}
                 }
             }
 
-            console.log('[SUCCESS] Weather data migrated to v4');
+            // Migrate v4 → v5 (add display units, temperature sensitivity, updated research weights)
+            if (migrated.version === 4) {
+                console.log('Migrating weather data v4 → v5 (adding unit display + temp sensitivity)...');
+                migrated.version = 5;
+                // Add display unit preferences (default to US units)
+                migrated.displayUnit = migrated.displayUnit || 'inHg';
+                migrated.temperatureUnit = migrated.temperatureUnit || 'fahrenheit';
+                // Add temperature sensitivity to personalProfile
+                const pp5 = migrated.personalProfile || {};
+                pp5.tempSensitive = false;
+                pp5.tempHighSensitive = false;
+                pp5.avgTempChangeAtMigraine = null;
+                migrated.personalProfile = pp5;
+            }
+
+            console.log('[SUCCESS] Weather data migrated to v5');
             return migrated;
         }
 
@@ -8162,14 +8206,14 @@ Browser: ${navigator.userAgent}
             const sliderDisplay = document.getElementById('weather-threshold-display');
             if (slider && sliderDisplay) {
                 slider.value = weatherData.userThreshold6h || 5;
-                sliderDisplay.textContent = `${slider.value} hPa`;
+                sliderDisplay.textContent = formatThreshold(parseInt(slider.value));
                 slider.addEventListener('input', () => {
                     const val = parseInt(slider.value);
-                    sliderDisplay.textContent = `${val} hPa`;
+                    sliderDisplay.textContent = formatThreshold(val);
                     const noteEl = document.getElementById('weather-threshold-note');
                     if (noteEl) {
                         if (val <= 3) noteEl.textContent = 'Very sensitive — may alert more often';
-                        else if (val <= 5) noteEl.textContent = 'Clinical default: 5 hPa in 6 hours (Okuma 2015)';
+                        else if (val <= 5) noteEl.textContent = 'Evidence-based default: 5 hPa / 0.15 inHg in 6 hours (Katsuki et al. 2023)';
                         else if (val <= 8) noteEl.textContent = 'Moderate — alerts only for larger changes';
                         else noteEl.textContent = 'Conservative — alerts only for major pressure shifts';
                     }
@@ -8181,6 +8225,54 @@ Browser: ${navigator.userAgent}
                     updateLogWeatherDisplay();
                 });
             }
+
+            // Unit preference buttons
+            function updateUnitButtons() {
+                const isInHg = weatherData.displayUnit === 'inHg';
+                const inHgBtn = document.getElementById('unit-inhg-btn');
+                const hpaBtn = document.getElementById('unit-hpa-btn');
+                if (inHgBtn) { inHgBtn.className = isInHg ? 'btn btn-primary' : 'btn btn-secondary'; inHgBtn.style.padding = '5px 12px'; inHgBtn.style.fontSize = '0.82rem'; }
+                if (hpaBtn) { hpaBtn.className = isInHg ? 'btn btn-secondary' : 'btn btn-primary'; hpaBtn.style.padding = '5px 12px'; hpaBtn.style.fontSize = '0.82rem'; }
+                const isFahr = weatherData.temperatureUnit === 'fahrenheit';
+                const fahrBtn = document.getElementById('unit-fahrenheit-btn');
+                const celsiusBtn = document.getElementById('unit-celsius-btn');
+                if (fahrBtn) { fahrBtn.className = isFahr ? 'btn btn-primary' : 'btn btn-secondary'; fahrBtn.style.padding = '5px 12px'; fahrBtn.style.fontSize = '0.82rem'; }
+                if (celsiusBtn) { celsiusBtn.className = isFahr ? 'btn btn-secondary' : 'btn btn-primary'; celsiusBtn.style.padding = '5px 12px'; celsiusBtn.style.fontSize = '0.82rem'; }
+                // Update slider display to match new unit
+                const sliderVal = parseInt((document.getElementById('weather-threshold-slider') || {}).value || 5);
+                const sliderDisp = document.getElementById('weather-threshold-display');
+                if (sliderDisp) sliderDisp.textContent = formatThreshold(sliderVal);
+            }
+            updateUnitButtons();
+
+            const inHgBtn = document.getElementById('unit-inhg-btn');
+            if (inHgBtn) inHgBtn.addEventListener('click', () => {
+                weatherData.displayUnit = 'inHg';
+                saveWeatherData();
+                updateUnitButtons();
+                displayCurrentWeather();
+            });
+            const hpaBtn = document.getElementById('unit-hpa-btn');
+            if (hpaBtn) hpaBtn.addEventListener('click', () => {
+                weatherData.displayUnit = 'hPa';
+                saveWeatherData();
+                updateUnitButtons();
+                displayCurrentWeather();
+            });
+            const fahrBtn = document.getElementById('unit-fahrenheit-btn');
+            if (fahrBtn) fahrBtn.addEventListener('click', () => {
+                weatherData.temperatureUnit = 'fahrenheit';
+                saveWeatherData();
+                updateUnitButtons();
+                displayCurrentWeather();
+            });
+            const celsiusBtn = document.getElementById('unit-celsius-btn');
+            if (celsiusBtn) celsiusBtn.addEventListener('click', () => {
+                weatherData.temperatureUnit = 'celsius';
+                saveWeatherData();
+                updateUnitButtons();
+                displayCurrentWeather();
+            });
 
             updateBackfillStatus();
 
@@ -8522,6 +8614,63 @@ Browser: ${navigator.userAgent}
             }
         }
 
+        // ============================================
+        // UNIT CONVERSION HELPERS
+        // hPa is the internal/API unit. inHg is shown to US users.
+        // Research thresholds remain in hPa internally; only display converts.
+        // ============================================
+
+        // 1 hPa = 0.02953 inHg exactly (1 inHg = 33.8639 hPa)
+        function hPaToInHg(hPa) {
+            if (hPa === null || hPa === undefined) return null;
+            return Math.round(hPa * 0.02953 * 100) / 100; // 2 decimal places
+        }
+
+        function celsiusToFahrenheit(c) {
+            if (c === null || c === undefined) return null;
+            return Math.round(c * 9 / 5 + 32);
+        }
+
+        // Format a pressure value for display (respects user's displayUnit preference)
+        function formatPressure(hPa, decimals) {
+            if (hPa === null || hPa === undefined) return '--';
+            if (weatherData.displayUnit === 'inHg') {
+                const d = decimals !== undefined ? decimals : 2;
+                return hPaToInHg(hPa).toFixed(d) + ' inHg';
+            }
+            return (decimals !== undefined ? hPa.toFixed(decimals) : Math.round(hPa)) + ' hPa';
+        }
+
+        // Format a pressure change value (e.g. "+0.15 inHg" or "-3.2 hPa")
+        function formatPressureChange(changHPa, decimals) {
+            if (changHPa === null || changHPa === undefined) return '--';
+            if (weatherData.displayUnit === 'inHg') {
+                const d = decimals !== undefined ? decimals : 2;
+                const val = hPaToInHg(Math.abs(changHPa)).toFixed(d);
+                return (changHPa >= 0 ? '+' : '-') + val + ' inHg';
+            }
+            const d = decimals !== undefined ? decimals : 1;
+            const val = Math.abs(changHPa).toFixed(d);
+            return (changHPa >= 0 ? '+' : '-') + val + ' hPa';
+        }
+
+        // Format temperature for display (respects user's temperatureUnit preference)
+        function formatTemperature(celsius) {
+            if (celsius === null || celsius === undefined) return '--';
+            if (weatherData.temperatureUnit === 'fahrenheit') {
+                return celsiusToFahrenheit(celsius) + '°F';
+            }
+            return Math.round(celsius) + '°C';
+        }
+
+        // Format the alert threshold for display in current unit
+        function formatThreshold(hPaVal) {
+            if (weatherData.displayUnit === 'inHg') {
+                return hPaToInHg(hPaVal).toFixed(2) + ' inHg';
+            }
+            return hPaVal + ' hPa';
+        }
+
         // Display current weather in settings (enhanced with humidity + conditions + risk)
         function displayCurrentWeather() {
             const displayDiv = document.getElementById('weather-current-display');
@@ -8539,7 +8688,7 @@ Browser: ${navigator.userAgent}
 
             // Pressure + plain-language trend
             const pressureSpan = document.getElementById('weather-current-pressure');
-            if (pressureSpan) pressureSpan.textContent = `${weatherData.current.pressure} hPa`;
+            if (pressureSpan) pressureSpan.textContent = formatPressure(weatherData.current.pressure);
 
             const change24h = getPressureChange24h();
             const changeSpan = document.getElementById('weather-pressure-change');
@@ -8551,17 +8700,18 @@ Browser: ${navigator.userAgent}
                     const isSignificant = abs >= (weatherData.userThreshold24h || 5);
                     const color = isSignificant ? 'var(--accent-red)' : 'var(--text-secondary)';
                     const arrow = change24h > 0 ? '↑' : '↓';
-                    changeSpan.innerHTML = `<span style="color:${color}">${arrow} ${direction} ${speed} — ${abs} hPa in 24h${isSignificant ? ' (significant)' : ''}</span>`;
+                    const changeDisplay = formatPressureChange(change24h);
+                    changeSpan.innerHTML = `<span style="color:${color}">${arrow} ${direction} ${speed} — ${changeDisplay} in 24h${isSignificant ? ' (significant)' : ''}</span>`;
                 } else {
                     changeSpan.textContent = 'Not enough data for trend';
                 }
             }
 
-            // Humidity + conditions row
+            // Temperature + humidity + conditions row
             const detailsSpan = document.getElementById('weather-current-details');
             if (detailsSpan) {
                 const parts = [];
-                if (weatherData.current.temperature !== null) parts.push(`${weatherData.current.temperature}°C`);
+                if (weatherData.current.temperature !== null) parts.push(formatTemperature(weatherData.current.temperature));
                 if (weatherData.current.humidity !== null) parts.push(`${weatherData.current.humidity}% humidity`);
                 if (weatherData.current.windSpeed !== null) parts.push(`Wind ${weatherData.current.windSpeed} km/h`);
                 if (weatherData.current.weatherCode !== null) parts.push(getWeatherCondition(weatherData.current.weatherCode));
@@ -8616,6 +8766,27 @@ Browser: ${navigator.userAgent}
 
             const change = today.dailyAvg - yesterday.dailyAvg;
             return Math.round(change * 10) / 10; // 1 decimal place
+        }
+
+        // Get 24-hour temperature change (uses daily averages — parallel to getPressureChange24h)
+        // Basis: 2024 meta-analysis (OR=1.15 for temperature, stronger than pressure OR=1.07)
+        // Mukamal 2009: 5°C increase in 24h raises headache risk by 7.5%
+        function getTemperatureChange24h(historyForDate) {
+            const history = historyForDate || weatherData.history;
+            if (!history || history.length < 2) return null;
+
+            const sorted = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (sorted.length < 2) return null;
+
+            const today = sorted[0];
+            const yesterday = sorted[1];
+
+            if (today.dailyTempAvg === null || today.dailyTempAvg === undefined ||
+                yesterday.dailyTempAvg === null || yesterday.dailyTempAvg === undefined) {
+                return null;
+            }
+
+            return Math.round((today.dailyTempAvg - yesterday.dailyTempAvg) * 10) / 10;
         }
 
         // Detect rapid pressure changes in forecast (next 24 hours)
@@ -8744,13 +8915,19 @@ Browser: ${navigator.userAgent}
         }
 
         // Calculate a 0-10 daily atmospheric risk score for migraine
-        // Synthesizes pressure change rate, absolute pressure, humidity — weighted by personal profile
+        // UPDATED 2026-02-27: Reweighted per 2024 systematic meta-analysis (31 studies):
+        //   Temperature OR=1.15 (strongest), Pressure OR=1.07, Humidity OR=1.04 (not significant)
+        //   Source: Barakat et al. 2024 meta-analysis (PMID 40246758)
+        //   Katsuki et al. 2023 AI study (40k users): pressure drop 6h before = strongest predictor
+        //   Absolute pressure thresholds: Okuma 2015, confirmed by Farah et al. 2025 systematic review
         function calculateDailyRiskScore() {
             if (!weatherData.enabled || !weatherData.current.pressure) return null;
 
             const pressure = weatherData.current.pressure;
             const humidity = weatherData.current.humidity;
+            const temperature = weatherData.current.temperature;
             const change24h = getPressureChange24h();
+            const tempChange24h = getTemperatureChange24h();
             const today = new Date().toISOString().split('T')[0];
             const todayEntry = weatherData.history.find(h => h.date === today);
             const change6h = todayEntry ? (todayEntry.maxChange3h || 0) : 0;
@@ -8760,29 +8937,43 @@ Browser: ${navigator.userAgent}
 
             let score = 0;
 
-            // 1. Rapid 6-hour change (0-4 points) — primary clinical metric
-            if (change6h >= threshold6h * 2.4) score += 4;      // >12 hPa in 6h: extreme
-            else if (change6h >= threshold6h * 1.6) score += 3; // >8 hPa: severe
-            else if (change6h >= threshold6h) score += 2;       // >5 hPa: significant
-            else if (change6h >= threshold6h * 0.6) score += 1; // >3 hPa: mild
+            // 1. Rapid 6-hour pressure change (0-3 points) — strongest real-world predictor
+            //    Katsuki et al. 2023 (AI/40k users): 6h drop was #1 predictor (p<0.001, gain=11.7)
+            if (change6h >= threshold6h * 2.4) score += 3;      // >12 hPa in 6h: extreme
+            else if (change6h >= threshold6h * 1.6) score += 2; // >8 hPa: severe
+            else if (change6h >= threshold6h) score += 1.5;     // >5 hPa: significant
+            else if (change6h >= threshold6h * 0.6) score += 0.75; // >3 hPa: mild
 
-            // 2. 24-hour change (0-2 points)
+            // 2. 24-hour pressure change (0-2 points)
             if (change24h !== null) {
                 const abs24h = Math.abs(change24h);
                 if (abs24h >= threshold24h * 2) score += 2;
                 else if (abs24h >= threshold24h) score += 1;
 
-                // Direction bonus: drops are more dangerous than rises (research-validated)
+                // Direction bonus: drops more dangerous than rises (research-validated)
                 if (change24h < 0 && profile && profile.dropSensitive) score += 0.5;
             }
 
-            // 3. Absolute low pressure zone (0-2 points) — Okuma 2015 thresholds
-            if (pressure < 1005) score += 2;        // High-risk zone
-            else if (pressure < 1007) score += 1;   // Moderate-risk zone
+            // 3. Absolute low pressure zone (0-2 points) — Okuma 2015, confirmed Farah et al. 2025
+            //    50% of attacks at 1003-1007 hPa (29.62-29.74 inHg)
+            if (pressure < 1005) score += 2;        // 26.5% of migraines (29.68 inHg)
+            else if (pressure < 1007) score += 1;   // 23.5% of migraines (29.74 inHg)
 
-            // 4. High humidity compound risk (0-1 point)
-            if (humidity !== null && humidity > 80) score += 1;
-            else if (humidity !== null && humidity > 70 && pressure < 1010) score += 0.5;
+            // 4. Temperature change (0-2 points) — 2024 meta-analysis: OR=1.15, STRONGER than pressure
+            //    Mukamal 2009: 5°C/24h increase = +7.5% headache risk
+            if (tempChange24h !== null) {
+                const absTempChange = Math.abs(tempChange24h);
+                if (absTempChange >= 10) score += 2;       // >10°C/18°F swing: very high risk
+                else if (absTempChange >= 5) score += 1.5; // >5°C/9°F swing: high risk
+                else if (absTempChange >= 3) score += 0.75; // >3°C/5°F swing: moderate
+            }
+            // Extreme temperature (>32°C/90°F or <-5°C/23°F) adds additional compound risk
+            if (temperature !== null && (temperature > 32 || temperature < -5)) score += 0.5;
+
+            // 5. Humidity compound (0-0.5 points max) — 2024 meta-analysis: OR=1.04, NOT significant alone
+            //    Only scored as a compound factor with concurrent low pressure
+            if (humidity !== null && humidity > 85 && pressure < 1005) score += 0.5;
+            else if (humidity !== null && humidity > 75 && pressure < 1007) score += 0.25;
 
             // Clamp to 0-10
             const rawScore = Math.min(10, Math.round(score));
@@ -8790,13 +8981,13 @@ Browser: ${navigator.userAgent}
             // Color and label
             let color, label, detail;
             if (rawScore <= 2) {
-                color = 'var(--accent-green)'; label = 'Low risk'; detail = 'Pressure stable';
+                color = 'var(--accent-green)'; label = 'Low risk'; detail = 'Conditions stable';
             } else if (rawScore <= 4) {
-                color = '#d4a574'; label = 'Moderate risk'; detail = 'Some pressure movement';
+                color = '#d4a574'; label = 'Moderate risk'; detail = 'Some atmospheric change';
             } else if (rawScore <= 6) {
-                color = '#c97c4a'; label = 'Elevated risk'; detail = 'Significant pressure shift';
+                color = '#c97c4a'; label = 'Elevated risk'; detail = 'Significant atmospheric shift';
             } else {
-                color = 'var(--accent-red)'; label = 'High risk'; detail = 'Major pressure change';
+                color = 'var(--accent-red)'; label = 'High risk'; detail = 'Major atmospheric change';
             }
 
             return { score: rawScore, color, label, detail };
@@ -9220,7 +9411,22 @@ Browser: ${navigator.userAgent}
             profile.cumulativeSensitive = cumulative.cumulativeSensitive;
             profile.avgDaysToTrigger = cumulative.avgDaysToTrigger;
 
-            // 5. Analyze seasonal patterns
+            // 5. Analyze temperature sensitivity (2024 meta-analysis: OR=1.15, strongest weather factor)
+            const tempSensitivity = analyzeTemperatureSensitivity(migraines);
+            profile.tempSensitive = tempSensitivity.tempSensitive;
+            profile.tempHighSensitive = tempSensitivity.tempHighSensitive;
+            profile.avgTempChangeAtMigraine = tempSensitivity.avgTempChangeAtMigraine;
+
+            // Derive strongestWeatherFactor based on personal data (not just population averages)
+            const factorScores = {
+                pressure: (profile.dropPercentage + profile.risePercentage) / 100,
+                temperature: tempSensitivity.tempChangePercentage / 100,
+                humidity: profile.highHumiditySensitive ? 0.5 : 0
+            };
+            profile.strongestWeatherFactor = Object.entries(factorScores)
+                .sort((a, b) => b[1] - a[1])[0][0];
+
+            // 6. Analyze seasonal patterns
             profile.seasonalVariation = analyzeSeasonalPatterns(migraines);
 
             // Update metadata
@@ -9366,6 +9572,54 @@ Browser: ${navigator.userAgent}
             };
         }
 
+        // Analyze user's personal temperature sensitivity
+        // 2024 meta-analysis: temperature OR=1.15, strongest weather factor in population data
+        // Mukamal 2009: 5°C/24h increase = +7.5% headache risk in 7,054 patients
+        function analyzeTemperatureSensitivity(migraines) {
+            const tempChangesAtMigraine = [];
+            const tempsAtMigraine = [];
+            let tempChangeCount = 0;
+
+            migraines.forEach(migraine => {
+                for (let daysBack = 0; daysBack <= 1; daysBack++) {
+                    const checkDate = new Date(migraine.startTime);
+                    checkDate.setDate(checkDate.getDate() - daysBack);
+                    const checkDateStr = checkDate.toISOString().split('T')[0];
+
+                    const weatherEntry = weatherData.history.find(h => h.date === checkDateStr);
+                    if (weatherEntry && weatherEntry.dailyTempAvg !== null && weatherEntry.dailyTempAvg !== undefined) {
+                        tempsAtMigraine.push(weatherEntry.dailyTempAvg);
+
+                        // Calculate temp change for this day vs. previous
+                        const prevDate = new Date(checkDate);
+                        prevDate.setDate(prevDate.getDate() - 1);
+                        const prevEntry = weatherData.history.find(h => h.date === prevDate.toISOString().split('T')[0]);
+                        if (prevEntry && prevEntry.dailyTempAvg !== null && prevEntry.dailyTempAvg !== undefined) {
+                            const change = Math.abs(weatherEntry.dailyTempAvg - prevEntry.dailyTempAvg);
+                            tempChangesAtMigraine.push(change);
+                            if (change >= 5) tempChangeCount++;
+                        }
+                    }
+                }
+            });
+
+            if (tempChangesAtMigraine.length === 0) {
+                return { tempSensitive: false, tempHighSensitive: false, avgTempChangeAtMigraine: null, tempChangePercentage: 0 };
+            }
+
+            const avgChange = tempChangesAtMigraine.reduce((a, b) => a + b, 0) / tempChangesAtMigraine.length;
+            const tempChangePercentage = Math.round((tempChangeCount / migraines.length) * 100);
+            const highTempCount = tempsAtMigraine.filter(t => t > 32).length;
+            const highTempPercentage = Math.round((highTempCount / tempsAtMigraine.length) * 100);
+
+            return {
+                tempSensitive: tempChangePercentage >= 35,         // ≥35% of attacks preceded by ≥5°C swing
+                tempHighSensitive: highTempPercentage >= 40,       // ≥40% of attacks on hot days (>32°C/90°F)
+                avgTempChangeAtMigraine: Math.round(avgChange * 10) / 10,
+                tempChangePercentage
+            };
+        }
+
         // Detect if user reacts to cumulative multi-day pressure changes
         function detectMultiDayPatterns(migraines) {
             let cumulativeCount = 0;
@@ -9499,6 +9753,8 @@ Browser: ${navigator.userAgent}
         }
 
         // Generate predictive alerts based on forecast and personal profile
+        // UPDATED 2026-02-27: Temperature now weighted more heavily per 2024 meta-analysis (OR=1.15)
+        // Pressure still dominant in 6h window (Katsuki 2023), but temperature adds compound risk
         function generatePredictiveAlerts() {
             if (!weatherData.enabled || !weatherData.forecast || weatherData.forecast.length < 12) {
                 return [];
@@ -9518,42 +9774,63 @@ Browser: ${navigator.userAgent}
                 if (startTime <= now) continue; // Only future predictions
 
                 const pressures = window.map(r => r.pressure);
+                const temps = window.map(r => r.temperature).filter(t => t !== null && t !== undefined);
                 const currentPressure = pressures[0];
-                const avgChange = (pressures[6] - pressures[0]) / 6; // hPa per hour
                 const totalChange = pressures[6] - pressures[0];
                 const rapidChange = Math.max(...pressures) - Math.min(...pressures);
+                const tempSwing = temps.length >= 2
+                    ? Math.abs(Math.max(...temps) - Math.min(...temps))
+                    : 0;
+                const currentTemp = temps.length > 0 ? temps[0] : null;
 
                 // Check if this matches user's trigger pattern
                 let triggerProbability = 0;
                 const triggers = [];
 
-                // Check rapid change
+                // Check rapid pressure change (primary clinical metric, Katsuki 2023)
                 if (rapidChange >= thresholdRapid) {
                     triggerProbability += 30;
-                    triggers.push(`Rapid ${totalChange < 0 ? 'drop' : 'rise'} (${rapidChange.toFixed(1)} hPa in 6h)`);
+                    const changeDisplay = formatPressureChange(totalChange < 0 ? -rapidChange : rapidChange);
+                    triggers.push(`Rapid pressure ${totalChange < 0 ? 'drop' : 'rise'} (${changeDisplay} in 6h)`);
                 }
 
-                // Check if direction matches user's sensitivity
+                // Check if pressure direction matches user's sensitivity
                 if (totalChange < 0 && profile.dropSensitive) {
                     triggerProbability += 20;
                 } else if (totalChange > 0 && profile.riseSensitive) {
                     triggerProbability += 15;
                 }
 
-                // Check absolute low pressure
+                // Check absolute low pressure (Okuma 2015, confirmed Farah 2025)
                 if (profile.lowPressureSensitive && currentPressure < 1007) {
                     triggerProbability += 25;
-                    triggers.push(`Low absolute pressure (${currentPressure.toFixed(1)} hPa)`);
+                    triggers.push(`Low pressure zone (${formatPressure(currentPressure)})`);
                 }
 
-                // Check 24h projection
+                // Check 24h pressure projection
                 if (i + 24 < weatherData.forecast.length) {
                     const pressure24hLater = weatherData.forecast[i + 24].pressure;
                     const change24h = Math.abs(pressure24hLater - currentPressure);
                     if (change24h >= threshold24h) {
-                        triggerProbability += 25;
-                        triggers.push(`24h ${pressure24hLater < currentPressure ? 'drop' : 'rise'} (${change24h.toFixed(1)} hPa)`);
+                        triggerProbability += 20;
+                        const dir = pressure24hLater < currentPressure ? 'drop' : 'rise';
+                        triggers.push(`24h pressure ${dir} (${formatPressureChange(pressure24hLater - currentPressure)})`);
                     }
+                }
+
+                // Temperature factor (2024 meta-analysis: OR=1.15, stronger than pressure OR=1.07)
+                // Only add probability if user is personally temperature-sensitive OR swing is extreme
+                if (tempSwing >= 10) {
+                    // Extreme swing (>10°C/18°F) — relevant for everyone
+                    triggerProbability += 20;
+                    triggers.push(`Large temperature swing (${formatTemperature(Math.min(...temps))}–${formatTemperature(Math.max(...temps))})`);
+                } else if (tempSwing >= 5 && profile.tempSensitive) {
+                    triggerProbability += 15;
+                    triggers.push(`Temperature change (${formatTemperature(Math.min(...temps))}–${formatTemperature(Math.max(...temps))})`);
+                }
+                // Extreme heat/cold compound
+                if (currentTemp !== null && (currentTemp > 32 || currentTemp < -5) && profile.tempHighSensitive) {
+                    triggerProbability += 10;
                 }
 
                 // If probability high enough, create alert
@@ -9609,14 +9886,20 @@ Browser: ${navigator.userAgent}
                 const dayDate = new Date(day.date);
 
                 // Features
+                // v5: Added temp change (index 7) per 2024 meta-analysis (OR=1.15, strongest)
+                const prevDay = sortedHistory[sortedHistory.indexOf(day) - 1];
+                const tempChange24h = (day.dailyTempAvg !== null && day.dailyTempAvg !== undefined &&
+                                       prevDay && prevDay.dailyTempAvg !== null && prevDay.dailyTempAvg !== undefined)
+                    ? Math.abs(day.dailyTempAvg - prevDay.dailyTempAvg) : 0;
                 const features = [
                     day.dailyAvg || day.pressure || 1013, // Absolute pressure
-                    day.maxChange24h || 0,                 // 24h change
-                    day.maxChange3h || 0,                  // Rapid change
+                    day.maxChange24h || 0,                 // 24h pressure change
+                    day.maxChange3h || 0,                  // Rapid (6h) pressure change
                     dayDate.getDay(),                      // Day of week (0-6)
                     dayDate.getMonth(),                    // Month (0-11)
                     day.dailyAvg < 1007 ? 1 : 0,          // Low pressure flag
-                    (day.maxChange24h || 0) < 0 ? 1 : 0   // Dropping flag
+                    (day.maxChange24h || 0) < 0 ? 1 : 0,  // Dropping flag
+                    tempChange24h                          // Temperature change (°C) — 2024 meta OR=1.15
                 ];
 
                 // Label: Did migraine occur on this day?
@@ -9643,7 +9926,7 @@ Browser: ${navigator.userAgent}
             weatherData.mlModel = {
                 enabled: accuracy >= 60, // Only enable if reasonably accurate
                 weights: weights,
-                features: ['pressure', 'change24h', 'changeRapid', 'dayOfWeek', 'month', 'lowPressure', 'dropping'],
+                features: ['pressure', 'change24h', 'changeRapid', 'dayOfWeek', 'month', 'lowPressure', 'dropping', 'tempChange24h'],
                 accuracy: accuracy,
                 lastTrained: Date.now(),
                 predictions: []
@@ -9695,6 +9978,10 @@ Browser: ${navigator.userAgent}
                 return null;
             }
 
+            // Guard against stale model with wrong feature count (e.g. pre-v5 model)
+            if (weatherData.mlModel.weights && weatherData.mlModel.weights.length !== 8) {
+                return null; // Model needs retraining with new temperature feature
+            }
             const features = [
                 pressureFeatures.pressure,
                 pressureFeatures.change24h || 0,
@@ -9702,7 +9989,8 @@ Browser: ${navigator.userAgent}
                 new Date().getDay(),
                 new Date().getMonth(),
                 pressureFeatures.pressure < 1007 ? 1 : 0,
-                (pressureFeatures.change24h || 0) < 0 ? 1 : 0
+                (pressureFeatures.change24h || 0) < 0 ? 1 : 0,
+                pressureFeatures.tempChange24h || 0  // 2024 meta-analysis: OR=1.15
             ];
 
             const probability = sigmoid(dotProduct(weatherData.mlModel.weights, features));
@@ -10185,8 +10473,8 @@ Browser: ${navigator.userAgent}
                     ? ` (${correlation.sampleSize || 'limited'} attacks analyzed — more data will improve accuracy)`
                     : '';
                 infoBox.innerHTML = `<strong>What this means for you:</strong> ${messageSuffix}${sampleNote} ` +
-                    `Thresholds used: &gt;${weatherData.userThreshold24h || 5} hPa in 24h (slow change), ` +
-                    `&gt;${weatherData.userThreshold6h || 5} hPa in 6h (rapid change).`;
+                    `Thresholds used: &gt;${formatThreshold(weatherData.userThreshold24h || 5)} in 24h (slow change), ` +
+                    `&gt;${formatThreshold(weatherData.userThreshold6h || 5)} in 6h (rapid change).`;
             }
         }
 
@@ -10232,15 +10520,21 @@ Browser: ${navigator.userAgent}
             const migraineBarData = []; // Full-height bar on migraine day
 
             // Fixed Y-axis range — critical so changes are comparable across weeks
-            // 980-1040 hPa covers virtually all weather events at sea level
-            const Y_MIN = 980;
-            const Y_MAX = 1040;
+            // 980-1040 hPa (28.94-30.71 inHg) covers virtually all sea-level weather events
+            const useInHg = weatherData.displayUnit === 'inHg';
+            const Y_MIN = useInHg ? hPaToInHg(980) : 980;
+            const Y_MAX = useInHg ? hPaToInHg(1040) : 1040;
+            const pressureUnit = useInHg ? 'inHg' : 'hPa';
+            // Risk threshold labels (Okuma 2015, confirmed Farah et al. 2025 systematic review)
+            const RISK_LOW = useInHg ? hPaToInHg(1007) : 1007;   // 29.74 inHg
+            const RISK_HIGH = useInHg ? hPaToInHg(1005) : 1005;  // 29.68 inHg
 
             sortedHistory.forEach((entry) => {
                 const date = new Date(entry.date);
                 labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
 
-                const pressure = entry.dailyAvg || entry.pressure || 1013.25;
+                const pressureHPa = entry.dailyAvg || entry.pressure || 1013.25;
+                const pressure = useInHg ? hPaToInHg(pressureHPa) : pressureHPa;
                 pressureData.push(pressure);
 
                 const dateKey = entry.date.split('T')[0];
@@ -10274,7 +10568,7 @@ Browser: ${navigator.userAgent}
                         },
                         {
                             // Main pressure line
-                            label: 'Pressure (hPa)',
+                            label: `Pressure (${pressureUnit})`,
                             data: pressureData,
                             borderColor: colors.blue,
                             backgroundColor: 'transparent',
@@ -10321,7 +10615,8 @@ Browser: ${navigator.userAgent}
                                 label: function(context) {
                                     if (context.datasetIndex === 0) return null; // hide bar from tooltip
                                     if (context.datasetIndex === 1 && context.parsed.y !== null) {
-                                        return `Pressure: ${context.parsed.y.toFixed(1)} hPa`;
+                                        const decimals = useInHg ? 2 : 1;
+                                        return `Pressure: ${context.parsed.y.toFixed(decimals)} ${pressureUnit}`;
                                     }
                                     if (context.datasetIndex === 2 && context.parsed.y !== null) {
                                         return 'Attack occurred';
@@ -10345,14 +10640,17 @@ Browser: ${navigator.userAgent}
                             // Fixed range so a 5 hPa drop always looks the same across weeks
                             min: Y_MIN,
                             max: Y_MAX,
-                            title: { display: true, text: 'Pressure (hPa)', color: colors.textSecondary },
+                            title: { display: true, text: `Pressure (${pressureUnit})`, color: colors.textSecondary },
                             ticks: {
                                 color: colors.textSecondary,
                                 callback: (v) => {
-                                    // Mark clinical thresholds visually
-                                    if (v === 1007) return '1007 (risk)';
-                                    if (v === 1005) return '1005 (high risk)';
-                                    return v;
+                                    // Mark clinical thresholds (Okuma 2015, confirmed Farah et al. 2025)
+                                    const riskLowLabel = useInHg ? '29.74 (risk)' : '1007 (risk)';
+                                    const riskHighLabel = useInHg ? '29.68 (high risk)' : '1005 (high risk)';
+                                    const tolerance = useInHg ? 0.005 : 0.5;
+                                    if (Math.abs(v - RISK_LOW) < tolerance) return riskLowLabel;
+                                    if (Math.abs(v - RISK_HIGH) < tolerance) return riskHighLabel;
+                                    return useInHg ? v.toFixed(2) : v;
                                 }
                             },
                             grid: { color: colors.grid }
