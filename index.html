@@ -7,7 +7,7 @@
 
     <!-- PWA Configuration -->
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#8fb394">
+    <meta name="theme-color" content="#1c1815">
     <meta name="description" content="Track and manage your migraine symptoms with ease">
 
     <!-- iOS PWA Support -->
@@ -4868,7 +4868,7 @@
                     ? 'Active episode is being tracked. Keep notes brief and update pain as it changes.'
                     : 'No active episode. Log quickly now, or review patterns before your next care visit.';
             }
-            if (painSnapshot) painSnapshot.textContent = activePain;
+            if (painSnapshot) painSnapshot.textContent = activeMigraine ? activePain : '-';
             if (weekChip) weekChip.textContent = `${thisWeek} this week`;
             if (lastChip) lastChip.textContent = `Last episode: ${lastEpisode}`;
             if (monthDays) monthDays.textContent = thisMonth;
