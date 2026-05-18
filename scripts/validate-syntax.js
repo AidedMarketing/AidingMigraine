@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const { execSync } = require('child_process');
 
 console.log('🔍 Validating HTML and JavaScript syntax...\n');
@@ -61,7 +63,7 @@ try {
     if (!script.trim()) continue;
 
     // Write to temp file and check syntax
-    const tempFile = `/tmp/temp-script-${scriptNum}.js`;
+    const tempFile = path.join(os.tmpdir(), `temp-script-${scriptNum}.js`);
     fs.writeFileSync(tempFile, script);
 
     try {

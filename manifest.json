@@ -1,11 +1,12 @@
 {
   "name": "Aiding Migraine",
   "short_name": "AidMigraine",
-  "description": "Track and manage your migraine symptoms with ease",
+  "description": "A calm, privacy-first migraine tracker built for mobile and offline use",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#1a1d24",
-  "theme_color": "#8fb394",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#1c1815",
+  "theme_color": "#1c1815",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -84,7 +85,7 @@
   "categories": ["health", "medical", "lifestyle"],
   "shortcuts": [
     {
-      "name": "Log Migraine",
+      "name": "Log migraine",
       "short_name": "Log",
       "description": "Quickly log a new migraine episode",
       "url": "./?action=log",

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Aiding Migraine</title>
 
     <!-- PWA Configuration -->
@@ -105,19 +105,28 @@
             box-sizing: border-box;
         }
 
+        html {
+            background: var(--bg-primary);
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: var(--bg-primary);
+            background:
+                radial-gradient(circle at top left, rgba(143, 179, 148, 0.12), transparent 34rem),
+                linear-gradient(180deg, rgba(42, 36, 32, 0.96) 0%, var(--bg-primary) 22rem);
             color: var(--text-primary);
             line-height: 1.6;
-            padding-bottom: 80px;
+            padding-bottom: calc(94px + env(safe-area-inset-bottom));
             transition: var(--transition);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 680px;
             margin: 0 auto;
-            padding: 20px;
+            padding: calc(18px + env(safe-area-inset-top)) 18px 24px;
         }
 
         .page {
@@ -135,11 +144,12 @@
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: clamp(1.55rem, 5vw, 2.1rem);
             margin-bottom: 24px;
             font-weight: 600;
             text-align: center;
             position: relative;
+            letter-spacing: 0;
         }
 
         .help-icon {
@@ -176,20 +186,205 @@
 
         .section-card {
             background: var(--bg-secondary);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+            border: 1px solid rgba(237, 232, 223, 0.1);
         }
 
         .active-episode-card {
             background: var(--bg-secondary);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 20px;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
             box-shadow: var(--shadow);
-            border: 2px solid var(--accent-green);
+            border: 1px solid rgba(143, 179, 148, 0.72);
+        }
+
+        .app-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .brand-lockup {
+            min-width: 0;
+        }
+
+        .brand-title {
+            margin: 0;
+            text-align: left;
+            font-size: 1.75rem;
+            line-height: 1.08;
+            font-weight: 750;
+        }
+
+        .brand-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.35;
+            margin-top: 5px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            border: 1px solid rgba(237, 232, 223, 0.12);
+            background: rgba(237, 232, 223, 0.06);
+            color: var(--text-primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .icon-btn:hover,
+        .icon-btn:focus-visible {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            outline: none;
+        }
+
+        .today-hero {
+            position: relative;
+            overflow: hidden;
+            background:
+                linear-gradient(135deg, rgba(143, 179, 148, 0.18), rgba(201, 122, 111, 0.09)),
+                var(--bg-secondary);
+            border: 1px solid rgba(143, 179, 148, 0.32);
+        }
+
+        .today-hero h2,
+        .quick-log-card h2,
+        .mobile-section-title {
+            text-align: left;
+            margin-bottom: 8px;
+            font-size: 1.12rem;
+            font-weight: 700;
+        }
+
+        .today-status-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .today-status-copy {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+
+        .today-status-number {
+            font-size: 3rem;
+            line-height: 0.9;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
+
+        .today-status-label {
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        .today-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .today-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(237, 232, 223, 0.12);
+            background: rgba(28, 24, 21, 0.36);
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            line-height: 1;
+        }
+
+        .quick-log-card {
+            scroll-margin-top: calc(18px + env(safe-area-inset-top));
+        }
+
+        .pain-helper {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin: -10px 0 14px;
+        }
+
+        .mobile-insight-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .mobile-insight {
+            min-height: 88px;
+            padding: 14px;
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid rgba(237, 232, 223, 0.08);
+        }
+
+        .mobile-insight strong {
+            display: block;
+            font-size: 1.45rem;
+            line-height: 1.05;
+            color: var(--text-primary);
+        }
+
+        .mobile-insight span {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            line-height: 1.25;
+            margin-top: 8px;
+        }
+
+        .care-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .care-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 16px;
+            color: var(--text-primary);
+            text-decoration: none;
+            background: var(--bg-tertiary);
+            border: 1px solid rgba(237, 232, 223, 0.1);
+            border-radius: 8px;
+        }
+
+        .care-link span {
+            color: var(--text-secondary);
+            display: block;
+            font-size: 0.84rem;
+            margin-top: 3px;
         }
 
         .active-header {
@@ -1065,13 +1260,15 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border-color);
+            background: rgba(42, 36, 32, 0.94);
+            border-top: 1px solid rgba(237, 232, 223, 0.1);
             display: flex;
             justify-content: space-around;
-            padding: 8px 0;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+            box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.28);
             z-index: 100;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
         }
 
         .nav-btn {
@@ -1080,12 +1277,14 @@
             flex-direction: column;
             align-items: center;
             gap: 4px;
-            padding: 8px;
+            padding: 8px 4px;
             background: none;
             border: none;
+            border-radius: 8px;
             color: var(--text-secondary);
             cursor: pointer;
             transition: var(--transition);
+            min-width: 0;
         }
 
         .nav-btn:hover {
@@ -1094,6 +1293,7 @@
 
         .nav-btn.active {
             color: var(--accent-green);
+            background: rgba(143, 179, 148, 0.1);
         }
 
         .nav-icon {
@@ -1105,8 +1305,9 @@
         }
 
         .nav-label {
-            font-size: 0.75rem;
+            font-size: 0.68rem;
             font-weight: 500;
+            line-height: 1.1;
         }
 
         .modal {
@@ -1220,11 +1421,25 @@
 
         @media (max-width: 600px) {
             .container {
-                padding: 16px;
+                padding: calc(14px + env(safe-area-inset-top)) 14px 18px;
             }
 
             h1 {
                 font-size: 1.5rem;
+            }
+
+            .brand-title {
+                font-size: 1.45rem;
+            }
+
+            .brand-subtitle {
+                font-size: 0.86rem;
+            }
+
+            .section-card,
+            .active-episode-card {
+                padding: 16px;
+                margin-bottom: 12px;
             }
 
             .pain-scale {
@@ -1238,6 +1453,18 @@
 
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .action-buttons,
+            .active-actions {
+                gap: 10px;
+            }
+
+            .action-buttons .btn,
+            .active-actions .btn {
+                padding-left: 12px;
+                padding-right: 12px;
             }
 
             .theme-options {
@@ -1826,10 +2053,39 @@
 
     <div class="container">
         <div id="log-page" class="page active">
-            <h1>
-                Aiding Migraine
-                <a href="./help/index.html" class="help-icon" title="Help & Documentation">?</a>
-            </h1>
+            <header class="app-topbar">
+                <div class="brand-lockup">
+                    <h1 class="brand-title">Aiding Migraine</h1>
+                    <div class="brand-subtitle" id="today-date-label">Today</div>
+                </div>
+                <div class="topbar-actions">
+                    <a href="./help/index.html" class="icon-btn" title="Help & Documentation" aria-label="Help and documentation">
+                        <svg class="icon icon-md" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.1 9a3 3 0 1 1 5.8 1c-.8 1.2-2.1 1.5-2.6 2.7"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </a>
+                </div>
+            </header>
+
+            <section class="section-card today-hero" aria-labelledby="today-summary-title">
+                <div class="today-status-row">
+                    <div>
+                        <h2 id="today-summary-title">Today</h2>
+                        <p class="today-status-copy" id="today-status-copy">Ready when you need to log symptoms, check patterns, or export notes for care.</p>
+                    </div>
+                    <div>
+                        <div class="today-status-number" id="today-pain-snapshot">0</div>
+                        <div class="today-status-label">current pain</div>
+                    </div>
+                </div>
+                <div class="today-chips">
+                    <span class="today-chip" id="today-week-chip">0 this week</span>
+                    <span class="today-chip" id="today-last-chip">Last episode: -</span>
+                    <span class="today-chip">Offline ready</span>
+                </div>
+            </section>
             
             <div id="active-episode-section" style="display: none;">
                 <div class="active-episode-card">
@@ -1938,8 +2194,9 @@
             </div>
 
             <div id="logging-section">
-                <div class="section-card">
-                    <h2>Log New Episode</h2>
+                <div class="section-card quick-log-card" id="quick-log-card">
+                    <h2>Log migraine</h2>
+                    <p class="pain-helper">Fast, thumb-friendly logging for the moments when screen time needs to stay short.</p>
 
                     <!-- Atmospheric Pressure Indicator -->
                     <div id="weather-forecast-indicator" style="display: none; margin-bottom: 20px;">
@@ -1966,7 +2223,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="pain-select">How would you rate your pain?</label>
+                        <label for="pain-select">Pain level</label>
                         <select id="pain-select" class="pain-dropdown">
                             <option value="">Select level...</option>
                             <option value="0">0 - No pain</option>
@@ -2023,13 +2280,13 @@
 
                     <div class="action-buttons">
                         <button id="clear-btn" class="btn btn-secondary">Clear</button>
-                        <button id="log-btn" class="btn btn-primary">Log Episode</button>
+                        <button id="log-btn" class="btn btn-primary">Log migraine</button>
                     </div>
                 </div>
             </div>
 
             <div class="section-card">
-                <h2>Your Stats</h2>
+                <h2 class="mobile-section-title">Recent pattern</h2>
                 <div class="stats-grid">
                     <div class="stat-box">
                         <div class="stat-number" id="total-episodes">0</div>
@@ -2047,6 +2304,16 @@
                     <div class="stat-box">
                         <div class="stat-number" id="last-episode">-</div>
                         <div class="stat-label">Last Episode</div>
+                    </div>
+                </div>
+                <div class="mobile-insight-grid">
+                    <div class="mobile-insight">
+                        <strong id="mobile-care-days">0</strong>
+                        <span>migraine days this month</span>
+                    </div>
+                    <div class="mobile-insight">
+                        <strong id="mobile-care-average">0</strong>
+                        <span>average pain level</span>
                     </div>
                 </div>
             </div>
@@ -2260,6 +2527,55 @@
                     </div>
                 </div>
                 <div id="medication-usage-content"></div>
+            </div>
+        </div>
+
+        <div id="care-page" class="page">
+            <h1>
+                Care
+                <a href="./help/index.html" class="help-icon" title="Help & Documentation">?</a>
+            </h1>
+
+            <div class="section-card today-hero">
+                <h2 class="mobile-section-title">Care-ready notes</h2>
+                <p class="today-status-copy">Keep your data portable, private, and easy to share before appointments.</p>
+                <div class="today-chips">
+                    <span class="today-chip">Local data</span>
+                    <span class="today-chip">PDF reports</span>
+                    <span class="today-chip">CSV export</span>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2 class="mobile-section-title">Share with your clinician</h2>
+                <div class="care-grid">
+                    <button class="settings-btn" id="care-export-pdf-btn">
+                        <span>Doctor report</span>
+                        <span class="btn-subtitle">Export a clean PDF summary for visits</span>
+                    </button>
+                    <button class="settings-btn" id="care-export-csv-btn">
+                        <span>Spreadsheet export</span>
+                        <span class="btn-subtitle">Open your history in Excel or Google Sheets</span>
+                    </button>
+                    <a href="./help/analytics.html" class="care-link">
+                        <div>
+                            <strong>Understand your patterns</strong>
+                            <span>How to interpret charts and trends</span>
+                        </div>
+                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </a>
+                    <a href="./help/privacy.html" class="care-link">
+                        <div>
+                            <strong>Privacy and your data</strong>
+                            <span>What stays on device and what can be exported</span>
+                        </div>
+                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -2816,7 +3132,7 @@
             </div>
 
             <div class="section-card">
-                <h2>Save Advanced Storage</h2>
+                <h2>Advanced Storage</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
                     IndexedDB storage for unlimited migraine history • Background sync when offline
                 </p>
@@ -2872,19 +3188,19 @@
                         <span class="btn-subtitle">Interactive walkthrough</span>
                     </button>
                     <button class="settings-btn" id="how-to-btn">
-                        <span>Documentation How to Use</span>
+                        <span>How to Use</span>
                     </button>
                     <button class="settings-btn" id="about-btn">
-                        <span>Install About This App</span>
+                        <span>About This App</span>
                     </button>
                     <button class="settings-btn" id="privacy-btn">
-                        <span>Lock Privacy & Your Data</span>
+                        <span>Privacy & Your Data</span>
                     </button>
                 </div>
             </div>
 
             <div class="section-card">
-                <h2>Help Help & Resources</h2>
+                <h2>Help & Resources</h2>
                 <div class="settings-actions">
                     <a href="./help/quick-start.html" class="settings-btn" style="text-decoration: none; display: block;">
                         <span>Launch Quick Start Guide</span>
@@ -2903,7 +3219,7 @@
                         <span class="btn-subtitle">Common questions</span>
                     </a>
                     <a href="./help/privacy.html" class="settings-btn" style="text-decoration: none; display: block;">
-                        <span>Lock Privacy Policy</span>
+                        <span>Privacy Policy</span>
                         <span class="btn-subtitle">How we protect your data</span>
                     </a>
                 </div>
@@ -2972,18 +3288,9 @@
         <nav class="bottom-nav">
             <button class="nav-btn active" data-page="log">
                 <svg class="nav-icon icon" viewBox="0 0 24 24">
-                    <path d="M12 20h9"></path>
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    <path d="M3 12h5l2-7 4 14 2-7h5"></path>
                 </svg>
-                <span class="nav-label">Log</span>
-            </button>
-            <button class="nav-btn" data-page="analytics">
-                <svg class="nav-icon icon" viewBox="0 0 24 24">
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                </svg>
-                <span class="nav-label">Analytics</span>
+                <span class="nav-label">Today</span>
             </button>
             <button class="nav-btn" data-page="history">
                 <svg class="nav-icon icon" viewBox="0 0 24 24">
@@ -2993,6 +3300,20 @@
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
                 <span class="nav-label">History</span>
+            </button>
+            <button class="nav-btn" data-page="analytics">
+                <svg class="nav-icon icon" viewBox="0 0 24 24">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <span class="nav-label">Insights</span>
+            </button>
+            <button class="nav-btn" data-page="care">
+                <svg class="nav-icon icon" viewBox="0 0 24 24">
+                    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path>
+                </svg>
+                <span class="nav-label">Care</span>
             </button>
             <button class="nav-btn" data-page="settings">
                 <svg class="nav-icon icon" viewBox="0 0 24 24">
@@ -3778,6 +4099,23 @@
                     showPage(page);
                 });
             });
+
+            const carePdf = document.getElementById('care-export-pdf-btn');
+            const careCsv = document.getElementById('care-export-csv-btn');
+
+            if (carePdf) {
+                carePdf.addEventListener('click', () => {
+                    const exportBtn = document.getElementById('export-pdf-btn');
+                    if (exportBtn) exportBtn.click();
+                });
+            }
+
+            if (careCsv) {
+                careCsv.addEventListener('click', () => {
+                    const exportBtn = document.getElementById('export-csv-btn');
+                    if (exportBtn) exportBtn.click();
+                });
+            }
         }
 
         function showPage(pageName) {
@@ -3845,6 +4183,8 @@
                 updateLogWeatherDisplay();
             } else if (pageName === 'analytics') {
                 initializeAnalytics();
+            } else if (pageName === 'care') {
+                updateDashboard();
             }
         }
 
@@ -4487,6 +4827,10 @@
                 ? formatRelativeTime(activeMigraines[activeMigraines.length - 1].startTime)
                 : '-';
 
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const thisMonth = activeMigraines.filter(m => new Date(m.startTime) >= monthStart).length;
+            const activePain = activeMigraine ? activeMigraine.painLevel : 0;
+
             // Check if dashboard elements exist before updating
             const totalElem = document.getElementById('total-episodes');
             const avgPainElem = document.getElementById('avg-pain');
@@ -4503,6 +4847,32 @@
             avgPainElem.textContent = avgPain;
             weekCountElem.textContent = thisWeek;
             lastEpisodeElem.textContent = lastEpisode;
+
+            const dateLabel = document.getElementById('today-date-label');
+            const statusCopy = document.getElementById('today-status-copy');
+            const painSnapshot = document.getElementById('today-pain-snapshot');
+            const weekChip = document.getElementById('today-week-chip');
+            const lastChip = document.getElementById('today-last-chip');
+            const monthDays = document.getElementById('mobile-care-days');
+            const mobileAverage = document.getElementById('mobile-care-average');
+
+            if (dateLabel) {
+                dateLabel.textContent = now.toLocaleDateString([], {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+            if (statusCopy) {
+                statusCopy.textContent = activeMigraine
+                    ? 'Active episode is being tracked. Keep notes brief and update pain as it changes.'
+                    : 'No active episode. Log quickly now, or review patterns before your next care visit.';
+            }
+            if (painSnapshot) painSnapshot.textContent = activePain;
+            if (weekChip) weekChip.textContent = `${thisWeek} this week`;
+            if (lastChip) lastChip.textContent = `Last episode: ${lastEpisode}`;
+            if (monthDays) monthDays.textContent = thisMonth;
+            if (mobileAverage) mobileAverage.textContent = avgPain;
 
             const comparison = document.getElementById('week-comparison');
             if (comparison) {
