@@ -3378,6 +3378,14 @@
                 .replace(/'/g, '&#039;');
         }
 
+        function episodeIdMatches(episode, id) {
+            return episode && String(episode.id) === String(id);
+        }
+
+        function getNotificationEpisodeId(rawId) {
+            return String(rawId || '').split('-')[0];
+        }
+
         // Robust retry helper for DOM-dependent operations
         function retryUntilSuccess(fn, checkFn, maxAttempts = 15, delayMs = 10, attemptNum = 1) {
             // checkFn returns true if we should execute fn
@@ -4547,18 +4555,18 @@
 
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label for="edit-medication" style="display: block; margin-bottom: 8px; font-weight: 600;">Medication</label>
-                        <input type="text" id="edit-medication" value="${attack.medication || ''}" placeholder="e.g., Sumatriptan 100mg" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                        <input type="text" id="edit-medication" value="${safeText(attack.medication || '')}" placeholder="e.g., Sumatriptan 100mg" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
                     </div>
 
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label for="edit-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Notes</label>
-                        <textarea id="edit-notes" rows="4" placeholder="Any additional details..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${attack.notes || ''}</textarea>
+                        <textarea id="edit-notes" rows="4" placeholder="Any additional details..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${safeText(attack.notes || '')}</textarea>
                     </div>
 
                     ${attack.endNotes ? `
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label for="edit-end-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Resolution Notes</label>
-                        <textarea id="edit-end-notes" rows="3" placeholder="How did it resolve?" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${attack.endNotes || ''}</textarea>
+                        <textarea id="edit-end-notes" rows="3" placeholder="How did it resolve?" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${safeText(attack.endNotes || '')}</textarea>
                     </div>
                     ` : ''}
 
@@ -4922,7 +4930,7 @@
 
             const sorted = [...activeMigraines].reverse();
             
-            list.innerHTML = sorted.map(m => {
+            list.innerHTML = safeHTML(sorted.map(m => {
                 const start = new Date(m.startTime);
                 const painProgress = getPainProgression(m);
                 
@@ -4937,7 +4945,7 @@
                         <div class="history-details">
                             <div class="history-detail">
                                 <span class="detail-label">Pain</span>
-                                <span class="detail-value">${painProgress}</span>
+                                <span class="detail-value">${safeText(painProgress)}</span>
                             </div>
                             <div class="history-detail">
                                 <span class="detail-label">Duration</span>
@@ -4945,10 +4953,10 @@
                             </div>
                             <div class="history-detail">
                                 <span class="detail-label">Category</span>
-                                <span class="detail-value">${m.category}</span>
+                                <span class="detail-value">${safeText(m.category)}</span>
                             </div>
                         </div>
-                        ${m.notes ? `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">${m.notes}</p>` : ''}
+                        ${m.notes ? `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">${safeText(m.notes)}</p>` : ''}
                         <div class="history-actions">
                             <button class="btn btn-secondary" onclick="viewEpisode(${m.id})">View Details</button>
                             <button class="btn btn-secondary" onclick="editEpisode(${m.id})">Edit</button>
@@ -4956,7 +4964,7 @@
                         </div>
                     </div>
                 `;
-            }).join('');
+            }).join(''));
         }
 
         function viewEpisode(id) {
@@ -4970,8 +4978,8 @@
                 <p><strong>Started:</strong> ${formatDate(start)} at ${formatTime(start)}</p>
                 ${end ? `<p><strong>Ended:</strong> ${formatDate(end)} at ${formatTime(end)}</p>` : ''}
                 <p><strong>Duration:</strong> ${formatDuration(migraine.duration)}</p>
-                <p><strong>Pain Level:</strong> ${migraine.painLevel}/10 (${migraine.category})</p>
-                ${migraine.medication ? `<p><strong>Medication:</strong> ${migraine.medication}</p>` : ''}
+                <p><strong>Pain Level:</strong> ${migraine.painLevel}/10 (${safeText(migraine.category)})</p>
+                ${migraine.medication ? `<p><strong>Medication:</strong> ${safeText(migraine.medication)}</p>` : ''}
             `;
             
             if (migraine.painHistory && migraine.painHistory.length > 1) {
@@ -4985,17 +4993,17 @@
             if (migraine.reliefMethods && migraine.reliefMethods.length > 0) {
                 content += `<h3>Relief Methods</h3><ul>`;
                 migraine.reliefMethods.forEach(r => {
-                    content += `<li>${formatTime(new Date(r.timestamp))}: ${r.method}</li>`;
+                    content += `<li>${formatTime(new Date(r.timestamp))}: ${safeText(r.method)}</li>`;
                 });
                 content += `</ul>`;
             }
 
             if (migraine.notes) {
-                content += `<h3>Notes</h3><p>${migraine.notes}</p>`;
+                content += `<h3>Notes</h3><p>${safeText(migraine.notes)}</p>`;
             }
 
             if (migraine.endNotes) {
-                content += `<h3>Resolution Notes</h3><p>${migraine.endNotes}</p>`;
+                content += `<h3>Resolution Notes</h3><p>${safeText(migraine.endNotes)}</p>`;
             }
 
             showModal('Episode Details', content);
@@ -5016,29 +5024,29 @@
 
             body.innerHTML = `
                 <div class="form-group">
-                    <label>Medication Medication</label>
-                    <input type="text" id="edit-medication" value="${migraine.medication || ''}"
+                    <label>Medication</label>
+                    <input type="text" id="edit-medication" value="${safeText(migraine.medication || '')}"
                            placeholder="e.g. Sumatriptan 100mg"
                            style="width: 100%; padding: 12px; background: var(--bg-tertiary);
                                   border: 1px solid var(--border-color); border-radius: 8px;
                                   color: var(--text-primary); font-size: 1rem;">
                 </div>
                 <div class="form-group">
-                    <label>Notes Notes</label>
+                    <label>Notes</label>
                     <textarea id="edit-notes" rows="4" placeholder="Add any notes about this episode..."
                               style="width: 100%; padding: 12px; background: var(--bg-tertiary);
                                      border: 1px solid var(--border-color); border-radius: 8px;
-                                     color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${migraine.notes || ''}</textarea>
+                                     color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${safeText(migraine.notes || '')}</textarea>
                 </div>
                 <div class="form-group">
-                    <label>Resolution Resolution Notes</label>
+                    <label>Resolution Notes</label>
                     <textarea id="edit-end-notes" rows="3" placeholder="How did it resolve? What helped?"
                               style="width: 100%; padding: 12px; background: var(--bg-tertiary);
                                      border: 1px solid var(--border-color); border-radius: 8px;
-                                     color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${migraine.endNotes || ''}</textarea>
+                                     color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${safeText(migraine.endNotes || '')}</textarea>
                 </div>
                 <div class="form-group">
-                    <label>MedicationIce Pack Relief Methods</label>
+                    <label>Relief Methods</label>
                     <div id="edit-relief-methods-list" style="margin-bottom: 12px;"></div>
                     <div style="display: flex; gap: 8px;">
                         <input type="text" id="new-relief-method" placeholder="Add relief method (e.g., Ice pack, Sumatriptan)"
@@ -5300,14 +5308,14 @@
                                     ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} left
                                 </span>
                             </div>
-                            ${m.medication ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">Medication ${m.medication}</p>` : ''}
-                            ${m.notes ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">Notes ${m.notes}</p>` : ''}
+                            ${m.medication ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">Medication: ${safeText(m.medication)}</p>` : ''}
+                            ${m.notes ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">Notes: ${safeText(m.notes)}</p>` : ''}
                             <div style="display: flex; gap: 8px; margin-top: 12px;">
                                 <button class="btn btn-primary" style="flex: 1; padding: 8px;" onclick="restoreEpisode(${m.id})">
                                     ♻️ Restore
                                 </button>
                                 <button class="btn btn-danger" style="flex: 1; padding: 8px;" onclick="permanentlyDelete(${m.id})">
-                                    Trash Delete Forever
+                                    Delete Forever
                                 </button>
                             </div>
                         </div>
@@ -5317,7 +5325,7 @@
             content += `
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
                     <button class="btn btn-danger" style="width: 100%;" onclick="emptyTrash()">
-                        Trash Empty Trash (Delete All)
+                        Empty Trash (Delete All)
                     </button>
                 </div>
             `;
@@ -5765,11 +5773,11 @@
                             ✏️ Edit
                         </button>
                         <p><strong>Started: ${formatTime(new Date(m.startTime))}</strong></p>
-                        <p>Pain: ${m.painLevel}/10 (${m.category})</p>
+                        <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
-                        ${m.medication ? `<p>Medication Medication: ${m.medication}</p>` : ''}
-                        ${m.notes ? `<p style="margin-top: 8px;">Notes Notes: ${m.notes}</p>` : ''}
-                        ${m.endNotes ? `<p style="margin-top: 8px;">Resolution Resolution: ${m.endNotes}</p>` : ''}
+                        ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${m.notes ? `<p style="margin-top: 8px;">Notes: ${safeText(m.notes)}</p>` : ''}
+                        ${m.endNotes ? `<p style="margin-top: 8px;">Resolution: ${safeText(m.endNotes)}</p>` : ''}
                     </div>
                 `).join('');
             }
@@ -5782,11 +5790,11 @@
                         </button>
                         <p><strong>Ongoing Attack</strong></p>
                         <p>Started: ${formatTime(new Date(m.startTime))}</p>
-                        <p>Pain: ${m.painLevel}/10 (${m.category})</p>
+                        <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
-                        ${m.medication ? `<p>Medication Medication: ${m.medication}</p>` : ''}
-                        ${m.notes ? `<p style="margin-top: 8px;">Notes Notes: ${m.notes}</p>` : ''}
-                        ${m.endNotes ? `<p style="margin-top: 8px;">Resolution Resolution: ${m.endNotes}</p>` : ''}
+                        ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${m.notes ? `<p style="margin-top: 8px;">Notes: ${safeText(m.notes)}</p>` : ''}
+                        ${m.endNotes ? `<p style="margin-top: 8px;">Resolution: ${safeText(m.endNotes)}</p>` : ''}
                     </div>
                 `).join('');
             }
@@ -7842,7 +7850,7 @@ Browser: ${navigator.userAgent}
             const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
 
             if (isIOS && !isInstalled) {
-                statusText.innerHTML = 'Install Please install app to home screen';
+                statusText.innerHTML = 'Please install app to home screen';
                 statusText.parentElement.style.background = 'var(--accent-blue)';
                 statusText.parentElement.style.color = 'white';
                 iosPrompt.style.display = 'block';
@@ -7866,7 +7874,7 @@ Browser: ${navigator.userAgent}
                     enableSection.style.display = 'none';
                     preferencesSection.style.display = 'block';
                 } else {
-                    statusText.innerHTML = 'Notification Permission granted - Click to enable';
+                    statusText.innerHTML = 'Permission granted - click to enable';
                     statusText.parentElement.style.background = 'var(--bg-tertiary)';
                     enableSection.style.display = 'block';
                     preferencesSection.style.display = 'none';
@@ -8076,11 +8084,13 @@ Browser: ${navigator.userAgent}
                 showPage('log');
             } else if (action === 'update' && attackId) {
                 // Find and show the attack for updating
-                const attack = migraines.find(m => m.id === attackId);
+                const episodeId = getNotificationEpisodeId(attackId);
+                const attack = migraines.find(m => episodeIdMatches(m, episodeId)) ||
+                    (episodeIdMatches(activeMigraine, episodeId) ? activeMigraine : null);
                 if (attack) {
                     showPage('history');
                     setTimeout(() => {
-                        showMigraineSummary(attack);
+                        editAttack(attack.id);
                     }, 500);
                 }
             }

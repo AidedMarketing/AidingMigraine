@@ -68,9 +68,10 @@ self.addEventListener('activate', (event) => {
 // Fetch event - network-first for HTML, cache-first for assets
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
+    const acceptHeader = event.request.headers.get('accept') || '';
 
     // Network-first strategy for HTML files to ensure users get latest version
-    if (event.request.headers.get('accept').includes('text/html') ||
+    if (acceptHeader.includes('text/html') ||
         url.pathname.endsWith('.html') ||
         url.pathname === '/' ||
         url.pathname === '/index.html') {
