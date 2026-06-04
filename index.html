@@ -191,6 +191,8 @@
             margin-bottom: 16px;
             box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
             border: 1px solid rgba(237, 232, 223, 0.1);
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .active-episode-card {
@@ -335,31 +337,42 @@
         .mobile-insight-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
-            margin-top: 14px;
+            gap: 12px;
+            margin-top: 12px;
+            align-items: stretch;
         }
 
         .mobile-insight {
-            min-height: 88px;
-            padding: 14px;
+            min-width: 0;
+            min-height: 108px;
+            padding: 16px 12px;
             border-radius: 8px;
             background: var(--bg-tertiary);
             border: 1px solid rgba(237, 232, 223, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
 
         .mobile-insight strong {
             display: block;
-            font-size: 1.45rem;
-            line-height: 1.05;
+            width: 100%;
+            min-height: 2.25rem;
+            font-size: clamp(1.55rem, 8vw, 2rem);
+            line-height: 1;
             color: var(--text-primary);
+            overflow-wrap: anywhere;
         }
 
         .mobile-insight span {
             display: block;
             color: var(--text-secondary);
-            font-size: 0.78rem;
-            line-height: 1.25;
+            font-size: 0.9rem;
+            line-height: 1.2;
             margin-top: 8px;
+            min-height: 2.2em;
         }
 
         .care-grid {
@@ -436,6 +449,10 @@
             flex-wrap: wrap;
         }
 
+        .active-actions .btn {
+            flex: 1 1 160px;
+        }
+
         .relief-quick-btn:hover {
             background: var(--bg-primary) !important;
             border-color: var(--accent-green) !important;
@@ -458,8 +475,12 @@
         }
 
         input[type="text"],
+        input[type="time"],
+        input[type="date"],
+        select,
         textarea {
             width: 100%;
+            min-width: 0;
             padding: 12px 16px;
             background: var(--bg-tertiary);
             border: 2px solid var(--border-color);
@@ -638,6 +659,14 @@
             transition: var(--transition);
             width: 100%;
             font-family: inherit;
+            min-width: 0;
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
         }
 
         .btn-primary {
@@ -665,48 +694,80 @@
         }
 
         .action-buttons {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
             margin-top: 20px;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            align-items: stretch;
         }
 
         .stat-box {
             background: var(--bg-tertiary);
-            padding: 20px;
+            padding: 16px 12px;
             border-radius: 8px;
             text-align: center;
             border: 1px solid var(--border-color);
+            min-width: 0;
+            min-height: 108px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .stat-number {
-            font-size: 2rem;
+            width: 100%;
+            min-height: 2.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.55rem, 8vw, 2rem);
             font-weight: 700;
             color: var(--accent-green);
-            margin-bottom: 4px;
+            line-height: 1;
+            margin-bottom: 8px;
+            overflow-wrap: anywhere;
         }
 
         .stat-label {
             font-size: 0.9rem;
             color: var(--text-secondary);
+            line-height: 1.2;
+            min-height: 2.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
 
         .stat-comparison {
             font-size: 0.85rem;
             color: var(--text-secondary);
-            margin-top: 4px;
+            line-height: 1.2;
+            margin-top: 6px;
+            min-height: 1.2em;
+            overflow-wrap: anywhere;
         }
 
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
             margin-bottom: 16px;
+        }
+
+        .calendar-header h3 {
+            min-width: 0;
+            text-align: center;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
         }
 
         .calendar-nav-btn {
@@ -718,6 +779,7 @@
             font-size: 1.2rem;
             cursor: pointer;
             transition: var(--transition);
+            flex-shrink: 0;
         }
 
         .calendar-nav-btn:hover {
@@ -1308,6 +1370,9 @@
             font-size: 0.68rem;
             font-weight: 500;
             line-height: 1.1;
+            max-width: 100%;
+            text-align: center;
+            overflow-wrap: anywhere;
         }
 
         .modal {
@@ -1410,6 +1475,7 @@
             padding: 16px 20px;
             border-top: 1px solid var(--border-color);
             display: flex;
+            flex-wrap: wrap;
             gap: 12px;
             justify-content: flex-end;
         }
@@ -1452,8 +1518,23 @@
             }
 
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 10px;
+            }
+
+            .mobile-insight-grid {
+                gap: 10px;
+            }
+
+            .stat-box,
+            .mobile-insight {
+                min-height: 100px;
+                padding: 14px 10px;
+            }
+
+            .stat-label,
+            .mobile-insight span {
+                font-size: 0.82rem;
             }
 
             .action-buttons,
@@ -1465,6 +1546,14 @@
             .active-actions .btn {
                 padding-left: 12px;
                 padding-right: 12px;
+            }
+
+            .modal-actions {
+                justify-content: stretch;
+            }
+
+            .modal-actions .btn {
+                flex: 1 1 120px;
             }
 
             .theme-options {
