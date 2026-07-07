@@ -9063,10 +9063,18 @@ Browser: ${navigator.userAgent}
                         maxChange3h: 0,
                         maxChange24h: null,
                         weatherCode: currentCode,
-                        precipitation: currentPrecip
+                        precipitation: 0
                     };
                     weatherData.history.push(todayEntry);
                 }
+
+                // Open-Meteo current precipitation covers the last hour, so
+                // only accumulate it once per hour (re-fetches within the
+                // same hour would otherwise double count)
+                const currentHourKey = currentTime.toISOString().slice(0, 13);
+                const alreadyCountedThisHour = todayEntry.readings.some(r =>
+                    r.time && r.time.slice(0, 13) === currentHourKey
+                );
 
                 // Add reading (keep up to 24 per day)
                 todayEntry.readings.push(newReading);
@@ -9092,20 +9100,27 @@ Browser: ${navigator.userAgent}
                     ) / 10;
                 }
 
-                // Always store latest weather code and precipitation on entry
+                // Always store latest weather code; accumulate precipitation
+                // at most once per hour
                 todayEntry.weatherCode = currentCode;
-                todayEntry.precipitation = (todayEntry.precipitation || 0) + currentPrecip;
+                if (!alreadyCountedThisHour) {
+                    todayEntry.precipitation = (todayEntry.precipitation || 0) + currentPrecip;
+                }
 
                 // Calculate 6-hour rapid change (primary alert metric)
                 todayEntry.maxChange3h = calculateMax3hChange(todayEntry.readings);
 
-                // Calculate 24h change vs yesterday
-                const sortedHist = [...weatherData.history].sort((a, b) => new Date(b.date) - new Date(a.date));
-                if (sortedHist.length >= 2) {
-                    const yesterday = sortedHist[1];
-                    if (yesterday && yesterday.dailyAvg) {
-                        todayEntry.maxChange24h = Math.round((todayEntry.dailyAvg - yesterday.dailyAvg) * 10) / 10;
-                    }
+                // Calculate 24h change vs CALENDAR yesterday - after a usage
+                // gap the most recent history entry can be days old, which
+                // would mislabel a multi-day delta as a 24h change
+                const yesterdayKey = new Date(currentTime.getTime() - 24 * 60 * 60 * 1000)
+                    .toISOString().split('T')[0];
+                const yesterday = weatherData.history.find(h => h.date === yesterdayKey);
+                if (yesterday && yesterday.dailyAvg) {
+                    todayEntry.maxChange24h = Math.round((todayEntry.dailyAvg - yesterday.dailyAvg) * 10) / 10;
+                } else {
+                    // No reading for calendar-yesterday: 24h change unknown
+                    todayEntry.maxChange24h = null;
                 }
 
                 // Keep only last 60 days (up from 30)
@@ -9772,11 +9787,15 @@ Browser: ${navigator.userAgent}
             const sortedHistory = [...weatherData.history]
                 .sort((a, b) => new Date(a.date) - new Date(b.date));
 
+            let daysConsidered = 0;
+            let migraineWindowDays = 0; // windows with a migraine, on ANY day (baseline)
+
             sortedHistory.forEach((day, index) => {
                 if (index === 0) return; // Skip first day (no previous day to compare)
 
                 const yesterday = sortedHistory[index - 1];
                 const dayDate = new Date(day.date);
+                daysConsidered++;
 
                 // Calculate 24h change using daily averages
                 let change24h = 0;
@@ -9810,6 +9829,10 @@ Browser: ${navigator.userAgent}
                     const migraineTime = new Date(m.startTime);
                     return migraineTime >= windowStart && migraineTime <= windowEnd;
                 });
+
+                if (hadMigraineInWindow) {
+                    migraineWindowDays++;
+                }
 
                 if (hasSignificantChange && hadMigraineInWindow) {
                     migrainesOnChangeDays++;
@@ -9860,16 +9883,33 @@ Browser: ${navigator.userAgent}
                 primaryType = '24h';
             }
 
+            // Compare against the baseline migraine rate across ALL tracked
+            // days - a raw conditional probability overstates the link for
+            // frequent migraineurs (70% of all days having migraines would
+            // otherwise read as a "70% pressure correlation")
+            const baselinePercentage = daysConsidered > 0 ?
+                Math.round((migraineWindowDays / daysConsidered) * 100) : 0;
+            const relativeRisk = baselinePercentage > 0 ?
+                primaryCorrelation / baselinePercentage : null;
+            const sampleDays = primaryType === '24h' ? significantChangeDays : rapidChangeDays;
+
             let level, message;
-            if (primaryCorrelation >= 70) {
+            const baselineNote = baselinePercentage > 0
+                ? ` Migraines followed ${primaryCorrelation}% of ${primaryType} pressure-change days vs ${baselinePercentage}% of all tracked days.`
+                : '';
+
+            if (sampleDays < 5) {
+                level = 'insufficient';
+                message = `Only ${sampleDays} significant pressure-change day${sampleDays === 1 ? '' : 's'} recorded so far - more data is needed before a reliable pattern can be identified.`;
+            } else if (relativeRisk !== null && relativeRisk >= 1.5 && primaryCorrelation >= 40) {
                 level = 'strong';
-                message = `Strong correlation detected with ${primaryType} pressure changes. This appears to be a significant trigger for you.`;
-            } else if (primaryCorrelation >= 40) {
+                message = `Strong correlation detected with ${primaryType} pressure changes (${relativeRisk.toFixed(1)}x your baseline rate). This appears to be a significant trigger for you.${baselineNote}`;
+            } else if (relativeRisk !== null && relativeRisk >= 1.2) {
                 level = 'moderate';
-                message = `Moderate correlation with ${primaryType} pressure changes. May affect your migraines.`;
+                message = `Moderate correlation with ${primaryType} pressure changes (${relativeRisk.toFixed(1)}x your baseline rate). May affect your migraines.${baselineNote}`;
             } else {
                 level = 'weak';
-                message = `Low correlation with pressure changes. Other triggers may be more significant.`;
+                message = `Pressure-change days don't show meaningfully more migraines than your baseline. Other triggers may be more significant.${baselineNote}`;
             }
 
             return {
@@ -9881,6 +9921,8 @@ Browser: ${navigator.userAgent}
                 migrainesOnChangeDays: migrainesOnChangeDays,
                 migrainesOnRapidChangeDays: migrainesOnRapidChangeDays,
                 totalMigraineDays: totalMigraineDays,
+                baselinePercentage: baselinePercentage,
+                relativeRisk: relativeRisk,
                 level: level,
                 message: message,
                 primaryType: primaryType
@@ -10584,7 +10626,14 @@ Browser: ${navigator.userAgent}
             const endDate = new Date();
 
             if (range === 'all') {
-                startDate = new Date(0); // Beginning of time
+                // Span from the first logged episode, not the Unix epoch -
+                // an epoch start made avg/month ~0 and generated ~670
+                // frequency-chart buckets
+                const earliest = activeMigraines.reduce((min, m) => {
+                    const t = new Date(m.startTime);
+                    return (!min || t < min) ? t : min;
+                }, null);
+                startDate = earliest || new Date();
             } else {
                 const days = parseInt(range);
                 startDate = new Date(endDate - days * 24 * 60 * 60 * 1000);
@@ -10627,9 +10676,9 @@ Browser: ${navigator.userAgent}
             });
 
             const totalDays = migraineDays.size;
-            const daysInRange = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const daysInRange = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)));
             const monthsInRange = daysInRange / 30;
-            const avgPerMonth = monthsInRange > 0 ? (totalDays / monthsInRange).toFixed(1) : 0;
+            const avgPerMonth = (totalDays / monthsInRange).toFixed(1);
 
             const avgPain = data.length > 0
                 ? (data.reduce((sum, m) => sum + m.painLevel, 0) / data.length).toFixed(1)
@@ -10951,21 +11000,30 @@ Browser: ${navigator.userAgent}
             const strengthEl = document.getElementById('correlation-strength');
             if (strengthEl) strengthEl.textContent = `${Math.round(pct)}%`;
 
-            // Color and label — including honest "not your trigger" messaging
+            // Color and label — including honest "not your trigger" messaging.
+            // Strength reflects the rate vs the user's BASELINE migraine
+            // rate, not the raw conditional probability.
+            const rrNote = correlation.relativeRisk != null && correlation.baselinePercentage > 0
+                ? ` Migraines followed ${Math.round(pct)}% of pressure-change days vs ${correlation.baselinePercentage}% of all tracked days (${correlation.relativeRisk.toFixed(1)}x baseline).`
+                : '';
             let strengthText, strengthColor, messageSuffix;
-            if (correlation.level === 'strong') {
+            if (correlation.level === 'insufficient') {
+                strengthText = 'Not enough data yet';
+                strengthColor = 'var(--text-secondary)';
+                messageSuffix = correlation.message || 'More pressure-change days are needed before a reliable pattern can be identified.';
+            } else if (correlation.level === 'strong') {
                 strengthText = 'Strong correlation';
                 strengthColor = 'var(--accent-red)';
-                messageSuffix = 'Pressure changes appear to be a real trigger for you.';
+                messageSuffix = `Pressure changes appear to be a real trigger for you.${rrNote}`;
             } else if (correlation.level === 'moderate') {
                 strengthText = 'Moderate correlation';
                 strengthColor = '#d4a574';
-                messageSuffix = 'Pressure may be contributing to some of your attacks.';
+                messageSuffix = `Pressure may be contributing to some of your attacks.${rrNote}`;
             } else {
                 // Honest disconfirmation — this is valuable information, not a failure
                 strengthText = 'Low correlation';
                 strengthColor = 'var(--accent-green)';
-                messageSuffix = 'Pressure changes don\'t appear to strongly predict your attacks. Other triggers may be more significant.';
+                messageSuffix = `Pressure-change days don't show meaningfully more migraines than your baseline. Other triggers may be more significant.${rrNote}`;
             }
 
             const descEl = document.getElementById('correlation-description');
@@ -11262,8 +11320,9 @@ Browser: ${navigator.userAgent}
                     : null;
             });
 
-            // Calculate MOH risk (medication overuse headache)
-            const mohStats = calculateMOHRisk(data);
+            // Calculate MOH risk (medication overuse headache) - always
+            // computed from the full dataset, not the date-range filter
+            const mohStats = calculateMOHRisk();
 
             return {
                 totalMedications,
@@ -11272,8 +11331,16 @@ Browser: ${navigator.userAgent}
             };
         }
 
-        function calculateMOHRisk(data) {
-            // Calculate medication usage days per month for last 3 months
+        function calculateMOHRisk() {
+            // Clinical MOH (ICHD-3) thresholds are medication-class specific:
+            // >=10 days/month for triptans, ergots, opioids, and combination
+            // analgesics; >=15 days/month for simple analgesics/NSAIDs.
+            // Uses the FULL dataset (not the analytics date-range filter) so
+            // the trailing calendar months are never undercounted.
+            const HIGH_RISK_THRESHOLD = 10;  // triptan/combination/opioid/ergot
+            const SIMPLE_ANALGESIC_THRESHOLD = 15;  // NSAIDs, simple analgesics
+            const highRiskCategories = ['triptan', 'combination', 'opioid', 'ergot', 'cgrp'];
+
             const now = new Date();
             const months = [];
 
@@ -11283,16 +11350,17 @@ Browser: ${navigator.userAgent}
                 months.push({
                     key: monthKey,
                     name: monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-                    daysUsed: new Set()
+                    daysUsed: new Set(),        // any abortive
+                    highRiskDaysUsed: new Set() // class-10 abortives only
                 });
             }
 
-            // Count days with abortive medication use
-            data.forEach(migraine => {
+            // Count days with abortive medication use across all episodes
+            getActiveMigraines().forEach(migraine => {
                 if (!migraine.medications || migraine.medications.length === 0) return;
 
-                const hasAbortive = migraine.medications.some(med => med.type === 'abortive');
-                if (!hasAbortive) return;
+                const abortives = migraine.medications.filter(med => med.type === 'abortive');
+                if (abortives.length === 0) return;
 
                 const migraineDate = new Date(migraine.startTime);
                 const monthKey = `${migraineDate.getFullYear()}-${String(migraineDate.getMonth() + 1).padStart(2, '0')}`;
@@ -11301,23 +11369,30 @@ Browser: ${navigator.userAgent}
                 const month = months.find(m => m.key === monthKey);
                 if (month) {
                     month.daysUsed.add(dayKey);
+                    if (abortives.some(med => highRiskCategories.includes(med.category))) {
+                        month.highRiskDaysUsed.add(dayKey);
+                    }
                 }
             });
 
-            // Convert Sets to counts
+            // A month meets the MOH threshold when class-10 medications were
+            // used on >=10 days, or any abortive on >=15 days
             months.forEach(month => {
                 month.count = month.daysUsed.size;
+                month.highRiskCount = month.highRiskDaysUsed.size;
+                month.atThreshold =
+                    month.highRiskCount >= HIGH_RISK_THRESHOLD ||
+                    month.count >= SIMPLE_ANALGESIC_THRESHOLD;
             });
 
-            // Check if at risk (>10 days/month for 3 months)
-            const atRisk = months.filter(m => m.count > 10).length >= 2;
-            const currentMonthCount = months[0].count;
+            const atRisk = months.filter(m => m.atThreshold).length >= 2;
 
             return {
                 atRisk,
                 currentMonth: months[0],
                 lastThreeMonths: months,
-                threshold: 10
+                threshold: HIGH_RISK_THRESHOLD,
+                simpleAnalgesicThreshold: SIMPLE_ANALGESIC_THRESHOLD
             };
         }
 
@@ -11383,14 +11458,14 @@ Browser: ${navigator.userAgent}
             const mohWarning = document.getElementById('moh-warning');
 
             // Check MOH risk and show warning if necessary
-            if (stats.mohRisk.atRisk || stats.mohRisk.currentMonth.count > 10) {
+            if (stats.mohRisk.atRisk || stats.mohRisk.currentMonth.atThreshold) {
                 mohWarning.style.display = 'block';
                 document.getElementById('moh-days-this-month').textContent = stats.mohRisk.currentMonth.count;
 
                 const monthsHTML = stats.mohRisk.lastThreeMonths.map(month => {
-                    const isWarning = month.count > 10;
+                    const isWarning = month.atThreshold;
                     return `<div style="color: ${isWarning ? '#dc2626' : 'var(--text-secondary)'}; padding: 4px 0;">
-                        ${month.name}: <strong>${month.count} days</strong> ${isWarning ? '[WARNING]' : ''}
+                        ${month.name}: <strong>${month.count} days</strong>${month.highRiskCount > 0 && month.highRiskCount !== month.count ? ` (${month.highRiskCount} triptan/combination)` : ''} ${isWarning ? '[WARNING]' : ''}
                     </div>`;
                 }).join('');
 
