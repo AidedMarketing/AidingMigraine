@@ -7193,7 +7193,7 @@ Browser: ${navigator.userAgent}
             // Pain Characteristics
             doc.setFontSize(10);
             doc.setFont(undefined, 'bold');
-            doc.text('Analytics Pain Characteristics', 20, yPos);
+            doc.text('Pain Characteristics', 20, yPos);
             yPos += 6;
             doc.setFont(undefined, 'normal');
 
@@ -7214,7 +7214,7 @@ Browser: ${navigator.userAgent}
 
             // Duration Analysis
             doc.setFont(undefined, 'bold');
-            doc.text('⏱️ Duration Analysis', 20, yPos);
+            doc.text('Duration Analysis', 20, yPos);
             yPos += 6;
             doc.setFont(undefined, 'normal');
 
@@ -7238,7 +7238,7 @@ Browser: ${navigator.userAgent}
                 if (correlation) {
                     doc.setFontSize(10);
                     doc.setFont(undefined, 'bold');
-                    doc.text('Weather Weather Sensitivity Analysis', 20, yPos);
+                    doc.text('Weather Sensitivity Analysis', 20, yPos);
                     yPos += 6;
                     doc.setFont(undefined, 'normal');
 
@@ -7326,13 +7326,20 @@ Browser: ${navigator.userAgent}
 
                     yPos += 5;
 
-                    // Add notes if present
+                    // Add notes if present, breaking pages mid-note so long
+                    // notes can't run past the footer (drawn at y=285)
                     if (episode.notes) {
                         doc.setFontSize(8);
                         doc.setFont(undefined, 'italic');
                         const noteLines = doc.splitTextToSize(`Notes: ${episode.notes}`, 170);
-                        doc.text(noteLines, 25, yPos);
-                        yPos += noteLines.length * 4;
+                        for (const noteLine of noteLines) {
+                            if (yPos > 275) {
+                                doc.addPage();
+                                yPos = 20;
+                            }
+                            doc.text(noteLine, 25, yPos);
+                            yPos += 4;
+                        }
                         doc.setFontSize(9);
                         doc.setFont(undefined, 'normal');
                     }
@@ -7906,7 +7913,15 @@ Browser: ${navigator.userAgent}
         function loadNotificationPreferences() {
             const stored = localStorage.getItem('notificationPreferences');
             if (stored) {
-                notificationPreferences = JSON.parse(stored);
+                // A corrupt value must not break notification init (and with
+                // it, app startup) - fall back to defaults instead
+                try {
+                    notificationPreferences = JSON.parse(stored);
+                } catch (error) {
+                    console.error('[ERROR] Corrupt notificationPreferences, resetting to defaults:', error);
+                    localStorage.removeItem('notificationPreferences');
+                    return;
+                }
 
                 // Migrate old preferences (add activeAttackCheckIn if missing)
                 if (!notificationPreferences.activeAttackCheckIn) {
@@ -8276,17 +8291,9 @@ Browser: ${navigator.userAgent}
             const delayMs = notificationPreferences.postAttackFollowUp.delayHours * 60 * 60 * 1000;
             const followUpTime = new Date(Date.now() + delayMs);
 
-            // Store scheduled notification locally
-            const scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications') || '[]');
-            scheduledNotifications.push({
-                id: `followup-${attackId}`,
-                attackId: attackId,
-                scheduledTime: followUpTime.toISOString(),
-                type: 'post-attack-followup'
-            });
-            localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
-
-            console.log(`Calendar Scheduled follow-up notification for ${followUpTime.toLocaleString()}`);
+            // Delivery is handled entirely by the notification server; the
+            // old local 'scheduledNotifications' store was write-only and
+            // grew without bound, so it has been removed.
 
             // Send to server if push subscription exists
             if (notificationPreferences.pushSubscription) {
@@ -8320,22 +8327,13 @@ Browser: ${navigator.userAgent}
 
             const delayHours = notificationPreferences.activeAttackCheckIn.delayHours;
 
-            // Schedule multiple recurring check-ins (up to 24 hours worth)
+            // Schedule multiple recurring check-ins (up to 24 hours worth).
+            // Delivery is server-side only; no local queue is kept.
             const maxCheckIns = Math.floor(24 / delayHours); // e.g., if delayHours=2, schedule 12 check-ins
-            const scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications') || '[]');
 
             for (let i = 1; i <= maxCheckIns; i++) {
                 const delayMs = delayHours * i * 60 * 60 * 1000;
                 const checkInTime = new Date(Date.now() + delayMs);
-
-                // Store scheduled notification locally with unique ID including sequence number
-                scheduledNotifications.push({
-                    id: `active-checkin-${attackId}-${i}`,
-                    attackId: attackId,
-                    scheduledTime: checkInTime.toISOString(),
-                    type: 'active-attack-checkin',
-                    sequence: i
-                });
 
                 // Send to server if push subscription exists
                 if (notificationPreferences.pushSubscription) {
@@ -8360,41 +8358,37 @@ Browser: ${navigator.userAgent}
                 }
             }
 
-            localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
             console.log(`Active Scheduled ${maxCheckIns} recurring active attack check-ins (every ${delayHours}h for 24h)`);
         }
 
         function cancelActiveAttackCheckIn(attackId) {
-            // Remove ALL scheduled check-ins for this attack (they have IDs like active-checkin-${attackId}-1, -2, etc.)
-            let scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications') || '[]');
-            const toCancel = scheduledNotifications.filter(n => n.attackId === attackId && n.type === 'active-attack-checkin');
-            scheduledNotifications = scheduledNotifications.filter(n => !(n.attackId === attackId && n.type === 'active-attack-checkin'));
-            localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
+            // Cancel every scheduled check-in for this attack on the server.
+            // Server IDs are `${attackId}-${sequence}` for sequences
+            // 1..maxCheckIns (see scheduleActiveAttackCheckIn).
+            if (!notificationPreferences.pushSubscription) return;
 
-            console.log(`🚫 Canceled ${toCancel.length} active attack check-in notifications for attack ${attackId}`);
+            const delayHours = notificationPreferences.activeAttackCheckIn.delayHours || 2;
+            const maxCheckIns = Math.floor(24 / delayHours);
 
-            // Cancel on server if push subscription exists
-            if (notificationPreferences.pushSubscription && toCancel.length > 0) {
-                try {
-                    const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
+            try {
+                const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
 
-                    // Cancel each check-in on the server
-                    for (const checkin of toCancel) {
-                        const sequence = checkin.sequence || '';
-                        const serverAttackId = sequence ? `${attackId}-${sequence}` : attackId;
+                for (let i = 1; i <= maxCheckIns; i++) {
+                    const serverAttackId = `${attackId}-${i}`;
 
-                        fetch(`${SERVER_URL}/api/notifications/cancel-active-checkin`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                attackId: serverAttackId,
-                                subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
-                            })
-                        }).catch(error => console.error(`Error canceling active attack check-in ${serverAttackId} on server:`, error));
-                    }
-                } catch (error) {
-                    console.error('Error canceling active attack check-ins:', error);
+                    fetch(`${SERVER_URL}/api/notifications/cancel-active-checkin`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            attackId: serverAttackId,
+                            subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
+                        })
+                    }).catch(error => console.error(`Error canceling active attack check-in ${serverAttackId} on server:`, error));
                 }
+
+                console.log(`Canceled up to ${maxCheckIns} active attack check-ins for attack ${attackId}`);
+            } catch (error) {
+                console.error('Error canceling active attack check-ins:', error);
             }
         }
 
