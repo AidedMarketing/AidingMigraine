@@ -10471,30 +10471,77 @@ Browser: ${navigator.userAgent}
                 labels.push(hadMigraine ? 1 : 0);
             });
 
-            // Simple logistic regression (gradient descent)
-            const weights = simpleLogisticRegression(trainingData, labels);
+            // Z-score normalize features so absolute pressure (~1013) can't
+            // drown out the 0-11 scale features during gradient descent
+            const { means, stds } = computeFeatureStats(trainingData);
+            const normalizedData = trainingData.map(row => normalizeFeatures(row, means, stds));
 
-            // Calculate accuracy
-            let correct = 0;
-            trainingData.forEach((features, i) => {
+            // Simple logistic regression (gradient descent)
+            const weights = simpleLogisticRegression(normalizedData, labels);
+
+            // Evaluate with balanced accuracy (mean of sensitivity and
+            // specificity). Plain accuracy is trivially high on imbalanced
+            // data - an all-'no migraine' predictor can score 80%+ - so the
+            // old 'accuracy >= 60' gate enabled meaningless models.
+            let truePos = 0, trueNeg = 0, falsePos = 0, falseNeg = 0;
+            normalizedData.forEach((features, i) => {
                 const prediction = sigmoid(dotProduct(weights, features)) > 0.5 ? 1 : 0;
-                if (prediction === labels[i]) correct++;
+                if (prediction === 1 && labels[i] === 1) truePos++;
+                else if (prediction === 0 && labels[i] === 0) trueNeg++;
+                else if (prediction === 1 && labels[i] === 0) falsePos++;
+                else falseNeg++;
             });
-            const accuracy = Math.round((correct / trainingData.length) * 100);
+            const positives = truePos + falseNeg;
+            const negatives = trueNeg + falsePos;
+            const sensitivity = positives > 0 ? truePos / positives : 0;
+            const specificity = negatives > 0 ? trueNeg / negatives : 0;
+            const balancedAccuracy = (sensitivity + specificity) / 2;
+            const accuracy = Math.round(((truePos + trueNeg) / normalizedData.length) * 100);
+
+            // Enable only when the model shows real skill over guessing
+            // (balanced accuracy > 0.55) and there are enough migraine days
+            // to have learned anything (>= 3 positive examples)
+            const enabled = balancedAccuracy >= 0.55 && positives >= 3;
 
             weatherData.mlModel = {
-                enabled: accuracy >= 60, // Only enable if reasonably accurate
+                modelVersion: 2, // v2: normalized features + balanced-accuracy gate
+                enabled: enabled,
                 weights: weights,
+                featureMeans: means,
+                featureStds: stds,
                 features: ['pressure', 'change24h', 'changeRapid', 'dayOfWeek', 'month', 'lowPressure', 'dropping', 'tempChange24h'],
                 accuracy: accuracy,
+                balancedAccuracy: Math.round(balancedAccuracy * 100),
                 lastTrained: Date.now(),
                 predictions: []
             };
 
             saveWeatherData();
 
-            console.log(`[SUCCESS] Model trained - Accuracy: ${accuracy}%`,
-                        accuracy >= 60 ? '(enabled)' : '(disabled - low accuracy)');
+            console.log(`[SUCCESS] Model trained - Balanced accuracy: ${Math.round(balancedAccuracy * 100)}% (raw ${accuracy}%)`,
+                        enabled ? '(enabled)' : '(disabled - no skill over baseline)');
+        }
+
+        function computeFeatureStats(data) {
+            const n = data[0].length;
+            const means = new Array(n).fill(0);
+            const stds = new Array(n).fill(0);
+
+            data.forEach(row => row.forEach((v, j) => { means[j] += v; }));
+            means.forEach((sum, j) => { means[j] = sum / data.length; });
+
+            data.forEach(row => row.forEach((v, j) => {
+                stds[j] += Math.pow(v - means[j], 2);
+            }));
+            stds.forEach((sum, j) => {
+                stds[j] = Math.sqrt(sum / data.length) || 1; // avoid divide-by-zero
+            });
+
+            return { means, stds };
+        }
+
+        function normalizeFeatures(row, means, stds) {
+            return row.map((v, j) => (v - means[j]) / stds[j]);
         }
 
         // Simple logistic regression implementation
@@ -10537,9 +10584,13 @@ Browser: ${navigator.userAgent}
                 return null;
             }
 
-            // Guard against stale model with wrong feature count (e.g. pre-v5 model)
-            if (weatherData.mlModel.weights && weatherData.mlModel.weights.length !== 8) {
-                return null; // Model needs retraining with new temperature feature
+            // Guard against stale models: wrong feature count (pre-v5) or
+            // trained before normalization was introduced (modelVersion < 2)
+            if (!weatherData.mlModel.weights ||
+                weatherData.mlModel.weights.length !== 8 ||
+                weatherData.mlModel.modelVersion !== 2 ||
+                !weatherData.mlModel.featureMeans || !weatherData.mlModel.featureStds) {
+                return null; // Model needs retraining
             }
             const features = [
                 pressureFeatures.pressure,
@@ -10552,7 +10603,10 @@ Browser: ${navigator.userAgent}
                 pressureFeatures.tempChange24h || 0  // 2024 meta-analysis: OR=1.15
             ];
 
-            const probability = sigmoid(dotProduct(weatherData.mlModel.weights, features));
+            const normalized = normalizeFeatures(
+                features, weatherData.mlModel.featureMeans, weatherData.mlModel.featureStds
+            );
+            const probability = sigmoid(dotProduct(weatherData.mlModel.weights, normalized));
             return Math.round(probability * 100);
         }
 
