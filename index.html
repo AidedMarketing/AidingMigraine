@@ -3533,8 +3533,9 @@
         function validateActiveMigraine(migraine) {
             if (!migraine) return false;
 
-            // Check required fields
-            if (!migraine.id || !migraine.startTime || !migraine.painLevel) {
+            // Check required fields (painLevel 0 = "No pain" is valid)
+            if (!migraine.id || !migraine.startTime ||
+                migraine.painLevel == null || isNaN(migraine.painLevel)) {
                 console.warn('[WARNING] Active migraine missing required fields');
                 return false;
             }
@@ -5432,7 +5433,8 @@
             if (migraine.endTime) {
                 endDate = new Date(migraine.endTime);
             } else if (migraine.duration) {
-                endDate = new Date(startDate.getTime() + migraine.duration * 60 * 1000);
+                // duration is stored in seconds
+                endDate = new Date(startDate.getTime() + migraine.duration * 1000);
             } else {
                 // If still active or no end time, just count the start day
                 endDate = startDate;
@@ -6287,7 +6289,7 @@ Browser: ${navigator.userAgent}
 
                 // Validate specific fields
                 if (episode.painLevel !== undefined) {
-                    if (typeof episode.painLevel !== 'number' || episode.painLevel < 1 || episode.painLevel > 10) {
+                    if (typeof episode.painLevel !== 'number' || episode.painLevel < 0 || episode.painLevel > 10) {
                         errors.push(`Episode ${index + 1}: Pain level must be between 1-10`);
                     }
                 }
@@ -6587,10 +6589,19 @@ Browser: ${navigator.userAgent}
                 new Date(a.startTime) - new Date(b.startTime)
             );
 
+            // Neutralize spreadsheet formula injection: a leading =, +, -, @
+            // (or tab/CR) would execute as a formula in Excel/Sheets
+            const neutralizeFormula = (value) =>
+                /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+
             // Convert each migraine to CSV row
             sorted.forEach(m => {
                 const startDate = new Date(m.startTime);
-                const date = startDate.toISOString().split('T')[0];
+                // Use the LOCAL calendar date to match the local start/end
+                // times below - mixing the UTC date with local times shifted
+                // episodes by a day on re-import for most timezones
+                const pad = n => String(n).padStart(2, '0');
+                const date = `${startDate.getFullYear()}-${pad(startDate.getMonth() + 1)}-${pad(startDate.getDate())}`;
                 const startTime = startDate.toTimeString().slice(0, 5);
 
                 let endTime = '';
@@ -6601,9 +6612,9 @@ Browser: ${navigator.userAgent}
                     durationHours = (m.duration / 3600).toFixed(2);
                 }
 
-                const medication = (m.medication || '').replace(/"/g, '""'); // Escape quotes
-                const notes = (m.notes || '').replace(/"/g, '""');
-                const resolution = (m.endNotes || '').replace(/"/g, '""');
+                const medication = neutralizeFormula(m.medication || '').replace(/"/g, '""'); // Escape quotes
+                const notes = neutralizeFormula(m.notes || '').replace(/"/g, '""');
+                const resolution = neutralizeFormula(m.endNotes || '').replace(/"/g, '""');
                 const pressure = m.weather && m.weather.pressure ? m.weather.pressure.toFixed(1) : '';
 
                 // Quote fields that might contain commas
@@ -6749,6 +6760,12 @@ Browser: ${navigator.userAgent}
                             continue;
                         }
 
+                        // Strip the formula-injection guard apostrophe our
+                        // exporter prefixes to =, +, -, @ so round-trips
+                        // restore the original text
+                        const stripFormulaGuard = (value) =>
+                            value && /^'[=+\-@]/.test(value) ? value.slice(1) : value;
+
                         // Create migraine object
                         const migraine = {
                             id: Date.now() * 1000 + Math.floor(Math.random() * 1000) + i, // Unique ID with randomness
@@ -6756,8 +6773,8 @@ Browser: ${navigator.userAgent}
                             painLevel: pain,
                             category: getPainCategory(pain),
                             status: 'completed',
-                            medication: medicationIdx !== -1 ? row[medicationIdx] : null,
-                            notes: notesIdx !== -1 ? row[notesIdx] : null,
+                            medication: medicationIdx !== -1 ? stripFormulaGuard(row[medicationIdx]) : null,
+                            notes: notesIdx !== -1 ? stripFormulaGuard(row[notesIdx]) : null,
                             importedAt: new Date().toISOString(),
                             importSource: 'csv'
                         };
@@ -7442,7 +7459,7 @@ Browser: ${navigator.userAgent}
         const tourSteps = [
             {
                 title: 'Log a Migraine Episode',
-                description: 'Select your pain level (1-10) and click "Start Episode" to begin tracking. You can update pain levels and add notes during the episode.',
+                description: 'Select your pain level (0-10) and click "Start Episode" to begin tracking. You can update pain levels and add notes during the episode.',
                 target: '.pain-scale',
                 page: 'log',
                 position: 'bottom'
@@ -8505,8 +8522,10 @@ Browser: ${navigator.userAgent}
             if (loaded) {
                 weatherData = migrateWeatherData(loaded);
 
-                // Save migrated data
-                if (loaded.version !== 4) {
+                // Persist the migration whenever the loaded blob was not
+                // already on the current version (migrateWeatherData
+                // upgrades everything to v5)
+                if (loaded.version !== 5) {
                     await saveWeatherData();
                 }
 
@@ -12201,7 +12220,7 @@ Browser: ${navigator.userAgent}
 
             // Auto-lock toggle and delay
             const autoLockToggle = document.getElementById('auto-lock-toggle');
-            const autoLockDelay = document.getElementById('auto-lock-delay');
+            const autoLockDelaySelect = document.getElementById('auto-lock-delay');
             const autoLockSettings = document.getElementById('auto-lock-settings');
 
             if (autoLockToggle) {
@@ -12225,12 +12244,12 @@ Browser: ${navigator.userAgent}
                 }
             }
 
-            if (autoLockDelay) {
-                autoLockDelay.value = autoLockDelay;
+            if (autoLockDelaySelect) {
+                autoLockDelaySelect.value = String(autoLockDelay);
 
                 // Only add event listener on first initialization
                 if (!phase1SettingsInitialized) {
-                    autoLockDelay.addEventListener('change', (e) => {
+                    autoLockDelaySelect.addEventListener('change', (e) => {
                         autoLockDelay = parseInt(e.target.value);
                         localStorage.setItem('autoLockDelay', autoLockDelay);
                         resetInactivityTimer();
