@@ -3327,14 +3327,20 @@
         let userMedications = [];
         let currentEpisodeMedications = []; // Temporary storage for medications being logged
 
+        // Import flow state (avoids serializing datasets into DOM attributes)
+        let pendingImportAnalysis = null;
+
         // XSS Protection Helper
         // Sanitizes HTML to prevent XSS attacks when using innerHTML
         function safeHTML(html) {
             if (typeof DOMPurify !== 'undefined') {
+                // No event-handler attributes (onclick/onchange) may pass
+                // through here - interactivity uses addEventListener with
+                // data-* attributes instead
                 return DOMPurify.sanitize(html, {
                     ALLOWED_TAGS: ['div', 'span', 'p', 'b', 'i', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'a', 'button', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'select', 'option', 'input', 'label', 'textarea', 'form'],
-                    ALLOWED_ATTR: ['class', 'style', 'onclick', 'href', 'target', 'id', 'value', 'type', 'placeholder', 'onchange', 'checked', 'selected', 'disabled', 'name', 'for'],
-                    ALLOW_DATA_ATTR: false
+                    ALLOWED_ATTR: ['class', 'style', 'href', 'target', 'id', 'value', 'type', 'placeholder', 'checked', 'selected', 'disabled', 'name', 'for', 'title'],
+                    ALLOW_DATA_ATTR: true
                 });
             }
             // Fallback: basic escaping if DOMPurify not available
@@ -3773,6 +3779,17 @@
         function searchMedications(query) {
             const resultsDiv = document.getElementById('med-search-results');
 
+            // Delegated click handler (attached once) - no inline onclick
+            if (!resultsDiv.dataset.delegated) {
+                resultsDiv.addEventListener('click', (e) => {
+                    const item = e.target.closest('[data-med-name]');
+                    if (item) {
+                        selectMedication(item.dataset.medName);
+                    }
+                });
+                resultsDiv.dataset.delegated = '1';
+            }
+
             if (!query || query.length < 2) {
                 resultsDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Type at least 2 characters...</p>';
                 return;
@@ -3788,7 +3805,7 @@
             }
 
             resultsDiv.innerHTML = safeHTML(matches.slice(0, 10).map(med => `
-                <div class="med-result-item" onclick="selectMedication('${safeText(med.name).replace(/'/g, '\\\'')}')" style="padding: 12px; margin-bottom: 8px; background: var(--bg-tertiary); border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
+                <div class="med-result-item" data-med-name="${safeText(med.name)}" style="padding: 12px; margin-bottom: 8px; background: var(--bg-tertiary); border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
                     <div style="font-weight: 600;">${safeText(med.name)}</div>
                     <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
                         ${med.type === 'abortive' ? 'Abortive' : 'Preventive'} • ${safeText(med.category)}
@@ -3877,6 +3894,17 @@
         function renderMedicationsList() {
             const listDiv = document.getElementById('medications-list');
 
+            // Delegated click handler (attached once) - no inline onclick
+            if (!listDiv.dataset.delegated) {
+                listDiv.addEventListener('click', (e) => {
+                    const btn = e.target.closest('[data-med-index]');
+                    if (btn) {
+                        removeMedicationFromEpisode(Number(btn.dataset.medIndex));
+                    }
+                });
+                listDiv.dataset.delegated = '1';
+            }
+
             if (currentEpisodeMedications.length === 0) {
                 listDiv.innerHTML = '';
                 return;
@@ -3890,7 +3918,7 @@
                             ${safeText(med.formulation || 'Not specified')} • ${new Date(med.timeTaken).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </div>
                     </div>
-                    <button onclick="removeMedicationFromEpisode(${index})" style="background: var(--pain-moderate); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem;">Remove</button>
+                    <button data-med-index="${index}" style="background: var(--pain-moderate); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem;">Remove</button>
                 </div>
             `).join(''));
         }
@@ -4765,6 +4793,17 @@
             const timeline = document.getElementById('active-relief-timeline');
             const entriesContainer = document.getElementById('relief-timeline-entries');
 
+            // Delegated click handler (attached once) - no inline onclick
+            if (!entriesContainer.dataset.delegated) {
+                entriesContainer.addEventListener('click', (e) => {
+                    const btn = e.target.closest('[data-relief-index]');
+                    if (btn) {
+                        deleteReliefMethod(Number(btn.dataset.reliefIndex));
+                    }
+                });
+                entriesContainer.dataset.delegated = '1';
+            }
+
             timeline.style.display = 'block';
             entriesContainer.innerHTML = '';
 
@@ -4786,7 +4825,7 @@
                 entry.innerHTML = safeHTML(`
                     <div style="font-size: 0.85rem; color: var(--text-secondary); min-width: 60px;">${time}</div>
                     <div style="flex: 1; font-size: 0.9rem; color: var(--text-primary);">${safeText(relief.method)}</div>
-                    <button onclick="deleteReliefMethod(${originalIndex})"
+                    <button data-relief-index="${originalIndex}"
                             style="background: none; border: none; color: var(--text-secondary);
                                    cursor: pointer; font-size: 1.1rem; padding: 4px 8px;
                                    transition: var(--transition); line-height: 1;"
@@ -4900,6 +4939,20 @@
             const list = document.getElementById('history-list');
             const activeMigraines = getActiveMigraines();
 
+            // Delegated click handler (attached once) - no inline onclick
+            if (!list.dataset.delegated) {
+                list.addEventListener('click', (e) => {
+                    const btn = e.target.closest('[data-action][data-id]');
+                    if (!btn) return;
+                    const raw = btn.dataset.id;
+                    const id = isNaN(Number(raw)) ? raw : Number(raw);
+                    if (btn.dataset.action === 'view') viewEpisode(id);
+                    else if (btn.dataset.action === 'edit') editEpisode(id);
+                    else if (btn.dataset.action === 'delete') deleteEpisode(id);
+                });
+                list.dataset.delegated = '1';
+            }
+
             if (activeMigraines.length === 0) {
                 list.innerHTML = `
                     <div class="section-card" style="text-align: center; padding: 40px;">
@@ -4950,9 +5003,9 @@
                         </div>
                         ${m.notes ? `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">${safeText(m.notes)}</p>` : ''}
                         <div class="history-actions">
-                            <button class="btn btn-secondary" onclick="viewEpisode(${m.id})">View Details</button>
-                            <button class="btn btn-secondary" onclick="editEpisode(${m.id})">Edit</button>
-                            <button class="btn btn-secondary" onclick="deleteEpisode(${m.id})">Delete</button>
+                            <button class="btn btn-secondary" data-action="view" data-id="${safeText(String(m.id))}">View Details</button>
+                            <button class="btn btn-secondary" data-action="edit" data-id="${safeText(String(m.id))}">Edit</button>
+                            <button class="btn btn-secondary" data-action="delete" data-id="${safeText(String(m.id))}">Delete</button>
                         </div>
                     </div>
                 `;
@@ -5073,6 +5126,23 @@
             const list = document.getElementById('edit-relief-methods-list');
             if (!list) return;
 
+            // Delegated handlers (attached once) - no inline onclick/onchange
+            if (!list.dataset.delegated) {
+                list.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button[data-relief-index]');
+                    if (btn) {
+                        deleteEditReliefMethod(Number(btn.dataset.reliefIndex));
+                    }
+                });
+                list.addEventListener('change', (e) => {
+                    const input = e.target.closest('input[data-relief-index]');
+                    if (input) {
+                        updateEditReliefMethod(Number(input.dataset.reliefIndex), input.value);
+                    }
+                });
+                list.dataset.delegated = '1';
+            }
+
             if (tempReliefMethods.length === 0) {
                 list.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.9rem; padding: 8px; text-align: center;">No relief methods logged</div>';
                 return;
@@ -5083,11 +5153,11 @@
                 return `
                     <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 6px;">
                         <div style="font-size: 0.8rem; color: var(--text-secondary); min-width: 60px;">${time}</div>
-                        <input type="text" value="${safeText(relief.method)}" onchange="updateEditReliefMethod(${index}, this.value)"
+                        <input type="text" value="${safeText(relief.method)}" data-relief-index="${index}"
                                style="flex: 1; padding: 6px 10px; background: var(--bg-tertiary);
                                       border: 1px solid var(--border-color); border-radius: 6px;
                                       color: var(--text-primary); font-size: 0.9rem;">
-                        <button onclick="deleteEditReliefMethod(${index})"
+                        <button data-relief-index="${index}"
                                 style="background: none; border: none; color: var(--text-secondary);
                                        cursor: pointer; font-size: 1.1rem; padding: 4px 8px;"
                                 title="Remove">✕</button>
@@ -5762,7 +5832,7 @@
             if (startedToday.length > 0) {
                 content += startedToday.map(m => `
                     <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; position: relative;">
-                        <button onclick="editAttack(${m.id})" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
+                        <button data-edit-attack="${safeText(String(m.id))}" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
                             ✏️ Edit
                         </button>
                         <p><strong>Started: ${formatTime(new Date(m.startTime))}</strong></p>
@@ -5778,7 +5848,7 @@
             if (ongoingToday.length > 0) {
                 content += ongoingToday.map(m => `
                     <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-blue); position: relative;">
-                        <button onclick="editAttack(${m.id})" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
+                        <button data-edit-attack="${safeText(String(m.id))}" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
                             ✏️ Edit
                         </button>
                         <p><strong>Ongoing Attack</strong></p>
@@ -6428,26 +6498,33 @@ Browser: ${navigator.userAgent}
                 summaryHTML += `<p style="color: var(--text-secondary);">All episodes already exist. Nothing new to import.</p>`;
             }
 
-            body.innerHTML = summaryHTML;
+            body.innerHTML = safeHTML(summaryHTML);
 
-            // Action buttons
+            // Keep the analysis in module state instead of serializing the
+            // entire dataset into onclick attributes (fragile + injectable)
+            pendingImportAnalysis = analysis;
+
+            // Action buttons (built programmatically - no inline handlers)
             const actions = document.getElementById('modal-actions');
+            actions.textContent = '';
+
+            const addActionButton = (text, className, handler) => {
+                const btn = document.createElement('button');
+                btn.className = `btn ${className}`;
+                btn.textContent = text;
+                btn.addEventListener('click', handler);
+                actions.appendChild(btn);
+            };
 
             if (analysis.new.length === 0 && analysis.conflicts.length === 0) {
-                actions.innerHTML = `
-                    <button class="btn btn-primary" onclick="closeModal()">Close</button>
-                `;
+                addActionButton('Close', 'btn-primary', closeModal);
             } else if (analysis.conflicts.length > 0) {
-                actions.innerHTML = `
-                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button class="btn btn-secondary" onclick="reviewConflicts(${JSON.stringify(analysis).replace(/"/g, '&quot;')})">Review Conflicts</button>
-                    <button class="btn btn-primary" onclick="importWithStrategy(${JSON.stringify(analysis).replace(/"/g, '&quot;')}, 'skipConflicts')">Import New Only</button>
-                `;
+                addActionButton('Cancel', 'btn-secondary', closeModal);
+                addActionButton('Review Conflicts', 'btn-secondary', () => reviewConflicts(pendingImportAnalysis));
+                addActionButton('Import New Only', 'btn-primary', () => importWithStrategy(pendingImportAnalysis, 'skipConflicts'));
             } else {
-                actions.innerHTML = `
-                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button class="btn btn-primary" onclick="confirmImport(${JSON.stringify(analysis.new).replace(/"/g, '&quot;')})">Import ${analysis.new.length} Episodes</button>
-                `;
+                addActionButton('Cancel', 'btn-secondary', closeModal);
+                addActionButton(`Import ${analysis.new.length} Episodes`, 'btn-primary', () => confirmImport(pendingImportAnalysis.new));
             }
 
             document.getElementById('modal-title').textContent = 'Import Review';
@@ -6480,7 +6557,7 @@ Browser: ${navigator.userAgent}
                                 <div>Time: ${formatTime(new Date(imported.startTime))}</div>
                                 <div>Pain: ${imported.painLevel}/10</div>
                                 <div>Duration: ${formatDuration(imported.duration || 0)}</div>
-                                ${imported.medication ? `<div>Med: ${imported.medication}</div>` : ''}
+                                ${imported.medication ? `<div>Med: ${safeText(imported.medication)}</div>` : ''}
                             </div>
                             <div>
                                 <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-blue);">Save Existing:</div>
@@ -6488,7 +6565,7 @@ Browser: ${navigator.userAgent}
                                 <div>Time: ${formatTime(new Date(existing.startTime))}</div>
                                 <div>Pain: ${existing.painLevel}/10</div>
                                 <div>Duration: ${formatDuration(existing.duration || 0)}</div>
-                                ${existing.medication ? `<div>Med: ${existing.medication}</div>` : ''}
+                                ${existing.medication ? `<div>Med: ${safeText(existing.medication)}</div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -6497,14 +6574,24 @@ Browser: ${navigator.userAgent}
 
             conflictsHTML += `</div>`;
 
-            body.innerHTML = conflictsHTML;
+            body.innerHTML = safeHTML(conflictsHTML);
+
+            pendingImportAnalysis = analysis;
 
             const actions = document.getElementById('modal-actions');
-            actions.innerHTML = `
-                <button class="btn btn-secondary" onclick="showImportReviewModal([], ${JSON.stringify(analysis).replace(/"/g, '&quot;')})">Back</button>
-                <button class="btn btn-secondary" onclick="importWithStrategy(${JSON.stringify(analysis).replace(/"/g, '&quot;')}, 'skipConflicts')">Skip Conflicts</button>
-                <button class="btn btn-primary" onclick="importWithStrategy(${JSON.stringify(analysis).replace(/"/g, '&quot;')}, 'replaceConflicts')">Replace Existing</button>
-            `;
+            actions.textContent = '';
+
+            const addActionButton = (text, className, handler) => {
+                const btn = document.createElement('button');
+                btn.className = `btn ${className}`;
+                btn.textContent = text;
+                btn.addEventListener('click', handler);
+                actions.appendChild(btn);
+            };
+
+            addActionButton('Back', 'btn-secondary', () => showImportReviewModal([], pendingImportAnalysis));
+            addActionButton('Skip Conflicts', 'btn-secondary', () => importWithStrategy(pendingImportAnalysis, 'skipConflicts'));
+            addActionButton('Replace Existing', 'btn-primary', () => importWithStrategy(pendingImportAnalysis, 'replaceConflicts'));
 
             document.getElementById('modal-title').textContent = 'Review Conflicts';
         }
@@ -6547,6 +6634,7 @@ Browser: ${navigator.userAgent}
                 message += `\n\nSkipped ${analysis.conflicts.length} conflicting episodes.`;
             }
 
+            pendingImportAnalysis = null;
             showModal('Import Complete', message);
         }
 
@@ -6565,6 +6653,7 @@ Browser: ${navigator.userAgent}
             updateStorageInfo();
 
             closeModal();
+            pendingImportAnalysis = null;
             showModal('Import Complete', `Successfully imported ${newEpisodes.length} episodes.`);
         }
 
@@ -7391,16 +7480,41 @@ Browser: ${navigator.userAgent}
             showModal('Data Cleared', 'All data has been deleted.');
         }
 
-        function showModal(title, content) {
+        function showModal(title, content, actions) {
             document.getElementById('modal-title').textContent = title;
-            document.getElementById('modal-body').innerHTML = content;
-            document.getElementById('modal-actions').innerHTML = '<button class="btn btn-primary" onclick="closeModal()">Close</button>';
+            // All modal content is sanitized; interactive elements inside the
+            // body use data-* attributes with delegated listeners
+            document.getElementById('modal-body').innerHTML = safeHTML(content);
+
+            const actionsEl = document.getElementById('modal-actions');
+            actionsEl.textContent = '';
+            const buttons = (Array.isArray(actions) && actions.length > 0)
+                ? actions
+                : [{ text: 'Close', class: 'btn-primary', action: closeModal }];
+            for (const buttonDef of buttons) {
+                const btn = document.createElement('button');
+                btn.className = `btn ${buttonDef.class || 'btn-primary'}`;
+                btn.textContent = buttonDef.text;
+                btn.addEventListener('click', buttonDef.action);
+                actionsEl.appendChild(btn);
+            }
+
             document.getElementById('modal').classList.add('active');
         }
 
         function closeModal() {
             document.getElementById('modal').classList.remove('active');
         }
+
+        // Delegated handler for interactive elements inside sanitized modal
+        // bodies (e.g. calendar day-details Edit buttons)
+        document.getElementById('modal-body').addEventListener('click', (e) => {
+            const editBtn = e.target.closest('[data-edit-attack]');
+            if (editBtn) {
+                const raw = editBtn.dataset.editAttack;
+                editAttack(isNaN(Number(raw)) ? raw : Number(raw));
+            }
+        });
 
         function showWelcomeModal() {
             const modal = document.getElementById('modal');
