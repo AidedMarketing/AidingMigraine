@@ -3017,7 +3017,7 @@
 
                     <!-- Privacy notice -->
                     <div style="font-size: 0.78rem; color: var(--text-secondary); text-align: center;">
-                        Privacy-first — all data stays on your device
+                        Privacy-first — migraine data stays on your device; only your location is sent to the weather service
                     </div>
                 </div>
             </div>
@@ -3078,7 +3078,7 @@
                         </label>
                     </label>
                     <p style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 12px; margin-bottom: 12px;">
-                        Secure your health data with fingerprint or face recognition.
+                        Screen lock: require fingerprint or face recognition to open the app. Note: this hides the interface but does not encrypt the stored data.
                     </p>
                     <div id="biometric-status" style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 12px; padding: 10px; background: var(--bg-tertiary); border-radius: 8px;">
                         Checking availability...
@@ -7419,25 +7419,24 @@ Browser: ${navigator.userAgent}
         function showPrivacy() {
             const content = `
                 <h3>Your Privacy Matters</h3>
-                
-                <p><strong>✓ All data stored locally</strong><br>
-                Your information never leaves your device.</p>
-                
-                <p><strong>✓ No cloud uploads</strong><br>
-                No servers, no tracking, no analytics.</p>
-                
-                <p><strong>✓ No account required</strong><br>
-                Start using immediately, privately.</p>
-                
+
+                <p><strong>✓ Local by default</strong><br>
+                Your migraine data is stored only on this device using browser storage. There is no account, no tracking, and no analytics.</p>
+
                 <p><strong>✓ You own your data</strong><br>
                 Export anytime, delete anytime.</p>
-                
-                <h3>Data Storage</h3>
-                <p>Your migraine data is stored only on this device using browser storage.</p>
-                
+
+                <h3>Optional features that use the network</h3>
+                <p>Two features are off by default and only send data if you turn them on:</p>
+                <ul>
+                    <li><strong>Weather tracking:</strong> sends your location (city/ZIP you enter, or GPS coordinates if you allow them) to Open-Meteo (weather data) and Nominatim/OpenStreetMap (location lookup). Your migraine data is never sent.</li>
+                    <li><strong>Push notifications:</strong> sends your push subscription, timezone, notification schedule, and attack-onset timestamps (used to time follow-up reminders) to this project's notification server. No pain levels, notes, medications, or other health details are sent.</li>
+                </ul>
+                <p>Turning these features off stops all network activity. Everything else stays on your device.</p>
+
                 <h3>Backup Recommendation</h3>
                 <p>Export your data regularly to prevent loss if you clear browser data.</p>
-                
+
                 <p style="margin-top: 20px; color: var(--text-secondary); font-size: 0.9rem;">
                     <strong>Note:</strong> This app is not HIPAA compliant and should not be used for official medical records. Always consult healthcare providers.
                 </p>
@@ -7547,7 +7546,7 @@ Browser: ${navigator.userAgent}
                         </ul>
                     </div>
                     <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
-                        All your data stays private on your device. Nothing is sent to any server.
+                        Your data stays on your device by default. Optional weather and notification features send only the minimum needed (location or notification schedule) - see Privacy in Settings for details.
                     </p>
                 </div>
             `;
@@ -12433,7 +12432,7 @@ Browser: ${navigator.userAgent}
                                     if (registered) {
                                         biometricAuthEnabled = true;
                                         biometricStatus.textContent = ' Biometric authentication enabled';
-                                        showModal('Biometric Lock Enabled', 'Your migraine data is now protected with biometric authentication.');
+                                        showModal('Screen Lock Enabled', 'The app now requires biometric unlock to open. Note: this is a screen lock - stored data is not encrypted.');
                                     } else {
                                         e.target.checked = false;
                                         showModal('Setup Failed', 'Unable to register biometric authentication. Please try again.');
@@ -12443,7 +12442,7 @@ Browser: ${navigator.userAgent}
                                     localStorage.removeItem('biometricCredentialId');
                                     localStorage.setItem('biometricAuthEnabled', 'false');
                                     biometricStatus.textContent = 'Biometric authentication disabled';
-                                    showModal('Biometric Lock Disabled', 'Your app is no longer protected by biometric authentication.');
+                                    showModal('Screen Lock Disabled', 'The app no longer asks for biometric unlock on open.');
                                 }
                             });
                         } else {

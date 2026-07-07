@@ -138,6 +138,31 @@ The app states "No cloud uploads. No servers, no tracking, no analytics" (7409�
 
 ---
 
+## Second-Pass Audit Findings (2026-07-07)
+
+A second audit of the areas covered lightly in the first pass (weather/ML math, analytics computations, PDF report, notification frontend) found 16 additional issues. All P0 items above and every HIGH/MEDIUM finding below were **fixed in the v4.1.0 sprint branch**; remaining LOWs are foldered into the backlog.
+
+| # | Severity | Finding | Status |
+|---|---|---|---|
+| N-1 | HIGH | CSV export mixed UTC date with local time → ±1 day shift on re-import for most timezones | ✅ Fixed |
+| N-2 | MED | `getMigraineDays` treated seconds-stored duration as minutes → 60× inflated day counts | ✅ Fixed |
+| N-3 | MED | MOH used `> 10` flat threshold for all abortives; clinical thresholds are ≥10 (triptans/combinations/opioids) and ≥15 (simple analgesics/NSAIDs) | ✅ Fixed |
+| N-4 | MED | MOH 3-month lookback consumed the analytics range filter → undercounted edge months | ✅ Fixed |
+| N-5 | MED | "All Time" range started at the 1970 epoch → avg/month ≈ 0, ~670-bucket chart | ✅ Fixed |
+| N-6 | MED | Weather correlation had no baseline comparison → frequent migraineurs always saw "strong correlation" | ✅ Fixed (relative-risk vs baseline + minimum sample) |
+| N-7 | MED | 24h pressure change compared to last *recorded* day, not calendar-yesterday → wrong after gaps | ✅ Fixed |
+| N-8 | MED | ML regression had no feature normalization → pressure drowned all other features | ✅ Fixed (z-score, stats stored with model) |
+| N-9 | MED | ML enable gate = training accuracy ≥60% → trivially passed by class imbalance | ✅ Fixed (balanced accuracy ≥0.55 + ≥3 positive days) |
+| N-10 | MED | PDF long notes overflowed past the footer (page-break only checked per row) | ✅ Fixed |
+| N-11 | LOW | Emoji/word artifacts in clinician PDF headers | ✅ Fixed |
+| N-12 | MED | `scheduledNotifications` localStorage was write-only dead storage that leaked | ✅ Fixed (removed; server is delivery source of truth) |
+| N-13 | LOW-MED | Unguarded `JSON.parse` on notificationPreferences could break startup | ✅ Fixed |
+| N-14 | LOW | `convertLocalTimeToUTC` derives the UTC offset from today's date → daily check-in drifts 1h after DST transitions | ⏳ Backlog (added to P1 below) |
+| N-15 | LOW | Service worker opened IndexedDB at version 1 → `VersionError` | ✅ Mooted (sync code removed) |
+| N-16 | LOW | Daily precipitation double-counted the first reading and re-accumulated on re-fetches | ✅ Fixed |
+
+**P0 status:** all 16 P0 items above shipped in the v4.1.0 sprint branch. Note P0-9 shipped in scope-limited form: `safeHTML`/`showModal` and the 5 sanitizer-surface call sites are converted; the remaining ~36 inline handlers in direct-innerHTML modals are the P1 sweep.
+
 ## P1 — Quality, Trust, CI
 
 1. **UI text artifacts** from an emoji→word replacement sweep: "Notification Enable Notifications" (2887), "Calendar Daily Check-in" (2898), "Active Active Attack Check-in" (2925), "Weather Weather Conditions" (5840), "Trash Clear All Data" (3321), "Notification iOS Notification Setup" (3299), "Save IndexedDB Status" (3357), "Save Existing"/"Import Importing" (6572/6580), "Calendar Last 7 Days" (6996). Sweep the whole file; these read as broken and confuse screen readers.
@@ -150,6 +175,7 @@ The app states "No cloud uploads. No servers, no tracking, no analytics" (7409�
 7. **Performance:** Chart.js + jsPDF load eagerly in `<head>` (2070–2071) — lazy-load on first analytics/PDF use (CLAUDE.md already claims this happens); `saveData` (3728) rewrites **every** migraine on every save — write only changed records; strip or gate the emoji/`[DEBUG]` console noise (3482, 3532, 5779, 5984, 9074, scheduler.js, service-worker.js:270); replace the `retryUntilSuccess` polling init (3479) and the 500ms `setTimeout` races across two `DOMContentLoaded` handlers (11904, 12649) + `window.load` (12721) with deterministic init.
 8. **Unify the two edit flows:** history's `editEpisode` (5104: meds/notes/relief only) vs. calendar's `editAttack` (4583: dates/times/pain only) — one modal covering times, pain, medications, notes, relief methods.
 9. **Docs truth pass (after fixes land):** CLAUDE.md says ~8.5k lines (it's ~12.8k) and "Chart.js lazy-loaded" (it isn't yet); `ML_FEATURES_DOCUMENTATION.md` overstates heuristic risk-scoring as ML; README/CHANGELOG/`SECURITY_COMPLETION_SUMMARY.md` present an audited production release that this review contradicts — update all once P0/P1 are done.
+10. **DST-correct notification scheduling (N-14):** `convertLocalTimeToUTC` computes the UTC offset from today's date and stores it once, so daily check-ins fire an hour off for half the year in DST-observing timezones. Recompute the UTC hour server-side from the stored timezone, or refresh the stored `utcHour` client-side on each app open.
 
 ---
 

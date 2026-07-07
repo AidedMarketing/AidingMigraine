@@ -46,6 +46,7 @@
                 <li><strong>Notification time:</strong> Your preferred time for daily check-ins (e.g., "8:00 PM")</li>
                 <li><strong>Timezone:</strong> Your timezone (e.g., "America/New_York") to deliver notifications at the correct local time</li>
                 <li><strong>Enabled status:</strong> Whether notifications are on or off</li>
+                <li><strong>Attack timing (follow-ups only):</strong> If you enable post-attack follow-ups or active-attack check-ins, the server also receives an attack identifier and the scheduled reminder times. The identifier is derived from when the attack started; no pain levels, notes, symptoms, or medications are ever sent</li>
             </ul>
 
             <p><strong>Important:</strong> This data is stored on our notification server and is necessary for the notification system to function. However:</p>
@@ -67,8 +68,8 @@
             <p><strong>Important:</strong> All weather data is stored exclusively on your device. Your location is:</p>
             <ul>
                 <li>✅ Never sent to our servers</li>
-                <li>✅ Never shared with third parties</li>
-                <li>✅ Only used to fetch weather data from Open-Meteo (a free, public weather API)</li>
+                <li>✅ Only sent to two services that make the feature work: Open-Meteo (fetches the weather for your coordinates) and Nominatim/OpenStreetMap (turns your city/ZIP into coordinates, or coordinates into a city name if you use the optional GPS button)</li>
+                <li>✅ Never shared with anyone else</li>
                 <li>✅ Deleted when you disable weather tracking</li>
             </ul>
 
@@ -92,7 +93,7 @@
                 <li>❌ <strong>No personal identifying information</strong> (name, email, phone number)</li>
                 <li>❌ <strong>No migraine symptoms or health data</strong> (we never see your entries)</li>
                 <li>❌ <strong>No server-side location tracking</strong> (weather location stored locally only, timezone for notifications)</li>
-                <li>❌ <strong>No GPS access</strong> (you manually enter location for weather tracking)</li>
+                <li>❌ <strong>No GPS access unless you ask for it</strong> (you can type your location manually; the optional "use my location" button asks the browser for GPS one time to fill it in)</li>
                 <li>❌ <strong>No analytics or usage tracking</strong> (we don't use Google Analytics, Facebook Pixel, etc.)</li>
                 <li>❌ <strong>No advertising IDs or tracking cookies</strong></li>
                 <li>❌ <strong>No browsing history or behavioral data</strong></li>
