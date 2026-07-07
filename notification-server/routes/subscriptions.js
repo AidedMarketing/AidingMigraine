@@ -57,7 +57,7 @@ router.post('/subscribe', validateEndpoint, validatePreferences, async (req, res
             }
         };
 
-        const result = addSubscription(newSubscription);
+        const result = await addSubscription(newSubscription);
 
         res.status(201).json({
             success: true,
@@ -87,7 +87,7 @@ router.post('/unsubscribe', validateEndpoint, async (req, res) => {
             });
         }
 
-        const removed = removeSubscription(endpoint);
+        const removed = await removeSubscription(endpoint);
 
         if (removed) {
             res.json({
@@ -122,7 +122,7 @@ router.post('/update-preferences', validateEndpoint, validatePreferences, async 
             });
         }
 
-        const updated = updateSubscriptionPreferences(endpoint, preferences);
+        const updated = await updateSubscriptionPreferences(endpoint, preferences);
 
         if (updated) {
             res.json({

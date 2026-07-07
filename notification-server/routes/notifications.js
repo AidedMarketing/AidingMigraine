@@ -35,7 +35,7 @@ router.post('/schedule-followup', strictLimiter, validateEndpoint, async (req, r
             sent: false
         };
 
-        const result = addScheduledFollowup(followup);
+        const result = await addScheduledFollowup(followup);
 
         res.status(201).json({
             success: true,
@@ -119,7 +119,7 @@ router.post('/schedule-active-checkin', strictLimiter, validateEndpoint, async (
             sent: false
         };
 
-        const result = addScheduledActiveCheckin(checkin);
+        const result = await addScheduledActiveCheckin(checkin);
 
         res.status(201).json({
             success: true,
@@ -149,7 +149,7 @@ router.post('/cancel-active-checkin', strictLimiter, validateEndpoint, async (re
             });
         }
 
-        const canceled = cancelActiveCheckin(attackId);
+        const canceled = await cancelActiveCheckin(attackId);
 
         if (canceled) {
             res.json({
