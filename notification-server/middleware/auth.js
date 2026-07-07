@@ -40,8 +40,10 @@ function requireAdminAuth(req, res, next) {
  * Prevents injection attacks via malformed endpoints
  */
 function validateEndpoint(req, res, next) {
-    // Support both 'endpoint' and 'subscriptionEndpoint' field names
-    const endpoint = req.body.endpoint || req.body.subscriptionEndpoint;
+    // Support 'endpoint', 'subscriptionEndpoint', and nested 'subscription.endpoint' field names
+    const endpoint = req.body.endpoint ||
+        req.body.subscriptionEndpoint ||
+        (req.body.subscription && req.body.subscription.endpoint);
 
     if (!endpoint) {
         return next(); // Let route handler deal with missing endpoint
@@ -70,7 +72,11 @@ function validateEndpoint(req, res, next) {
 
         const isValidDomain = validDomains.some(domain => {
             if (domain.includes('*')) {
-                const regex = new RegExp('^' + domain.replace('*', '.*') + '$');
+                const pattern = domain
+                    .split('*')
+                    .map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+                    .join('[a-z0-9-]*');
+                const regex = new RegExp('^' + pattern + '$', 'i');
                 return regex.test(url.hostname);
             }
             return url.hostname === domain;

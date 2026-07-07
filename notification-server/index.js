@@ -8,16 +8,20 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const { initializeScheduler } = require('./scheduler');
 const { initializeDatabase } = require('./database');
+const { limiter } = require('./middleware/rate-limit');
 const subscriptionRoutes = require('./routes/subscriptions');
 const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Behind a single reverse proxy (Render) - required for express-rate-limit
+// to key limits off the real client IP instead of the proxy's IP
+app.set('trust proxy', 1);
 
 // CORS Configuration - Whitelist specific origins
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:8080,http://127.0.0.1:8080')
@@ -61,21 +65,6 @@ app.use(helmet({
         preload: true
     }
 }));
-
-// Rate Limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later',
-    standardHeaders: true,
-    legacyHeaders: false
-});
-
-const strictLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 10, // Limit each IP to 10 requests per minute for sensitive endpoints
-    message: 'Too many requests, please slow down'
-});
 
 // Health check endpoint (before CORS to allow public access)
 app.get('/health', (req, res) => {
