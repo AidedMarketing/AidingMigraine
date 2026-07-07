@@ -3313,6 +3313,8 @@
     </div>
 
     <script>
+        const APP_VERSION = '4.1.0';
+
         let migraines = [];
         let selectedPain = null;
         let activeMigraine = null;
@@ -3611,6 +3613,19 @@
             // Save to IndexedDB if available
             if (useIndexedDB && db) {
                 try {
+                    // Reconcile deletions: any stored record whose id is no
+                    // longer in the in-memory array has been hard-deleted
+                    // (permanent delete, empty trash, purge, clear all) and
+                    // must be removed from IndexedDB too, otherwise it
+                    // resurrects on next load.
+                    const keepIds = new Set(migraines.map(m => m.id));
+                    const storedKeys = await IDB.getAllKeys(DB_STORES.MIGRAINES);
+                    for (const key of storedKeys) {
+                        if (!keepIds.has(key)) {
+                            await IDB.delete(DB_STORES.MIGRAINES, key);
+                        }
+                    }
+
                     // Save all migraines
                     for (const migraine of migraines) {
                         await IDB.put(DB_STORES.MIGRAINES, migraine);
@@ -5151,7 +5166,7 @@
         }
 
         function getActiveMigraines() {
-            return migraines.filter(m => !m.deleted);
+            return migraines.filter(m => !m.deleted && !m.archived);
         }
 
         function getDeletedMigraines() {
@@ -6014,12 +6029,14 @@ Browser: ${navigator.userAgent}
         }
 
         function exportJSON() {
-            const activeMigraines = getActiveMigraines();
+            // Include archived (but not trashed) episodes so archiving
+            // never causes data loss in backups
+            const exportMigraines = migraines.filter(m => !m.deleted);
             const data = {
-                appVersion: '3.2.0',
+                appVersion: APP_VERSION,
                 exportDate: new Date().toISOString(),
-                totalEpisodes: activeMigraines.length,
-                migraines: activeMigraines
+                totalEpisodes: exportMigraines.length,
+                migraines: exportMigraines
             };
             
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -7330,18 +7347,29 @@ Browser: ${navigator.userAgent}
             modal.classList.add('active');
         }
 
-        function confirmClearAll() {
+        async function confirmClearAll() {
             migraines = [];
             activeMigraine = null;
             localStorage.clear();
-            
-            saveData();
+
+            // Clear every IndexedDB store so nothing resurrects on reload
+            if (useIndexedDB && db) {
+                for (const store of Object.values(DB_STORES)) {
+                    try {
+                        await IDB.clear(store);
+                    } catch (error) {
+                        console.error('[ERROR] Failed to clear store:', store, error);
+                    }
+                }
+            }
+
+            await saveData();
             renderHistory();
             updateDashboard();
             renderCalendar();
             updateStorageInfo();
             checkActiveMigraine();
-            
+
             closeModal();
             showModal('Data Cleared', 'All data has been deleted.');
         }
@@ -11278,7 +11306,7 @@ Browser: ${navigator.userAgent}
         // ============================================
 
         const DB_NAME = 'AidingMigraineDB';
-        const DB_VERSION = 2; // Incremented for weather store
+        const DB_VERSION = 3; // v3: drop unused syncQueue store and dead-field indexes
         let db = null;
         let useIndexedDB = true; // Flag to enable/disable IndexedDB
 
@@ -11310,18 +11338,31 @@ Browser: ${navigator.userAgent}
                     request.onupgradeneeded = (event) => {
                         const database = event.target.result;
 
-                        // Migraines store with indexes
+                        // Migraines store with indexes on fields the live
+                        // data model actually has (startTime, deletedAt)
                         if (!database.objectStoreNames.contains(DB_STORES.MIGRAINES)) {
                             const migraineStore = database.createObjectStore(DB_STORES.MIGRAINES, {
                                 keyPath: 'id',
                                 autoIncrement: false
                             });
-                            migraineStore.createIndex('date', 'date', { unique: false });
                             migraineStore.createIndex('startTime', 'startTime', { unique: false });
-                            migraineStore.createIndex('pain', 'pain', { unique: false });
-                            migraineStore.createIndex('isDeleted', 'isDeleted', { unique: false });
                             migraineStore.createIndex('deletedAt', 'deletedAt', { unique: false });
                             console.log('[SUCCESS] Created migraines object store');
+                        } else {
+                            // v3 upgrade: remove indexes declared on fields
+                            // that never existed on stored records
+                            const migraineStore = event.target.transaction.objectStore(DB_STORES.MIGRAINES);
+                            ['date', 'pain', 'isDeleted'].forEach(name => {
+                                if (migraineStore.indexNames.contains(name)) {
+                                    migraineStore.deleteIndex(name);
+                                }
+                            });
+                        }
+
+                        // v3 upgrade: drop the unused background-sync queue store
+                        if (database.objectStoreNames.contains('syncQueue')) {
+                            database.deleteObjectStore('syncQueue');
+                            console.log('[SUCCESS] Dropped unused syncQueue store');
                         }
 
                         // Medications store
@@ -11395,15 +11436,14 @@ Browser: ${navigator.userAgent}
                 });
             },
 
-            // Get items by index
-            async getAllByIndex(storeName, indexName, value) {
+            // Get all keys from a store
+            async getAllKeys(storeName) {
                 if (!useIndexedDB || !db) return [];
 
                 return new Promise((resolve, reject) => {
                     const transaction = db.transaction([storeName], 'readonly');
                     const store = transaction.objectStore(storeName);
-                    const index = store.index(indexName);
-                    const request = index.getAll(value);
+                    const request = store.getAllKeys();
 
                     request.onsuccess = () => resolve(request.result || []);
                     request.onerror = () => reject(request.error);
@@ -11563,65 +11603,6 @@ Browser: ${navigator.userAgent}
             }
         }
 
-        /**
-         * Enhanced data operations using IndexedDB
-         */
-        async function saveMigraineToIDB(migraine) {
-            if (useIndexedDB) {
-                // Ensure migraine has an ID
-                if (!migraine.id) {
-                    migraine.id = migraine.date + '_' + migraine.startTime;
-                }
-                await IDB.put(DB_STORES.MIGRAINES, migraine);
-            }
-            // Also save to localStorage as backup
-            saveData();
-        }
-
-        async function loadMigrainesFromIDB() {
-            if (useIndexedDB) {
-                try {
-                    const allMigraines = await IDB.getAll(DB_STORES.MIGRAINES);
-                    // Filter out deleted migraines older than 30 days
-                    const now = Date.now();
-                    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-
-                    migraines = allMigraines.filter(m => {
-                        if (m.isDeleted) {
-                            const deletedTime = new Date(m.deletedAt).getTime();
-                            return (now - deletedTime) < thirtyDaysMs;
-                        }
-                        return !m.isArchived; // Don't load archived by default
-                    });
-
-                    console.log(`[ANALYTICS] Loaded ${migraines.length} migraines from IndexedDB`);
-                    return migraines;
-                } catch (error) {
-                    console.error('[ERROR] Failed to load from IndexedDB:', error);
-                    return [];
-                }
-            }
-            return [];
-        }
-
-        async function deleteMigraineFromIDB(migraineId) {
-            if (useIndexedDB) {
-                // Soft delete - mark as deleted instead of removing
-                const migraine = await IDB.get(DB_STORES.MIGRAINES, migraineId);
-                if (migraine) {
-                    migraine.isDeleted = true;
-                    migraine.deletedAt = new Date().toISOString();
-                    await IDB.put(DB_STORES.MIGRAINES, migraine);
-                }
-            }
-        }
-
-        async function permanentlyDeleteMigraine(migraineId) {
-            if (useIndexedDB) {
-                await IDB.delete(DB_STORES.MIGRAINES, migraineId);
-            }
-        }
-
         // ============================================
         // PHASE 2: STORAGE QUOTA MANAGEMENT
         // ============================================
@@ -11673,7 +11654,7 @@ Browser: ${navigator.userAgent}
         }
 
         /**
-         * Archive old migraines (soft delete migraines older than X months)
+         * Archive old migraines (hides them from views; still included in JSON export)
          */
         async function archiveOldMigraines(monthsOld = 12) {
             const cutoffDate = new Date();
@@ -11682,16 +11663,19 @@ Browser: ${navigator.userAgent}
             let archivedCount = 0;
 
             for (const migraine of migraines) {
-                const migraineDate = new Date(migraine.date);
-                if (migraineDate < cutoffDate && !migraine.isDeleted && !migraine.isArchived) {
-                    migraine.isArchived = true;
+                const migraineDate = new Date(migraine.startTime);
+                if (migraineDate < cutoffDate && !migraine.deleted && !migraine.archived) {
+                    migraine.archived = true;
                     migraine.archivedAt = new Date().toISOString();
-                    await saveMigraineToIDB(migraine);
                     archivedCount++;
                 }
             }
 
-            console.log(`📦 Archived ${archivedCount} migraines older than ${monthsOld} months`);
+            if (archivedCount > 0) {
+                await saveData();
+            }
+
+            console.log(`Archived ${archivedCount} migraines older than ${monthsOld} months`);
             return archivedCount;
         }
 
