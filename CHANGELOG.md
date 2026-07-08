@@ -5,6 +5,17 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2026-07-08
+
+### Added — Symptom & Aura Tracking (P2-1)
+
+- **Log associated symptoms and aura** on each migraine from a controlled, ICHD-3-aligned list: nausea, vomiting, light/sound/smell sensitivity, visual/sensory/speech aura, neck pain, dizziness, blurred vision, and fatigue. Captured as a quick chip multi-select on the log form.
+- **Adjust symptoms during an active attack** from the active-episode card as they develop.
+- **Edit symptoms** on any past episode from both the History and calendar edit flows.
+- **Symptoms everywhere they matter**: shown in History cards, the Episode Details view, and calendar day details; a new **"Common Symptoms"** analytics card ranks symptom frequency over the selected range.
+- **Clinician exports**: symptoms appear per-episode in the PDF doctor report plus a "Common Symptoms" summary; a new `Symptoms` column in CSV export (and CSV import maps it back); JSON export/import carry symptoms automatically.
+- Imported symptom values are filtered against the controlled list, so import can't inject arbitrary content through this field.
+
 ## [4.1.0] - 2026-07-07
 
 ### Sprint: Critical Fixes (see SPRINT_PLAN.md for the full audit)
