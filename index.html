@@ -463,6 +463,38 @@
             transform: scale(0.98);
         }
 
+        .symptom-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .symptom-chip {
+            padding: 8px 14px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .symptom-chip:hover {
+            border-color: var(--accent-green);
+        }
+
+        .symptom-chip.selected {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: #fff;
+        }
+
+        .symptom-chip:focus-visible {
+            outline: 2px solid var(--accent-green);
+            outline-offset: 2px;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -2126,6 +2158,12 @@
                         </div>
                     </div>
 
+                    <!-- Symptoms (adjustable during the attack) -->
+                    <div style="margin: 20px 0; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                        <div style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">Symptoms</div>
+                        <div id="active-symptom-chips" class="symptom-chips"></div>
+                    </div>
+
                     <!-- Add Relief Method Section -->
                     <div id="add-relief-section" style="margin: 20px 0;">
                         <button id="add-relief-btn" class="btn btn-secondary" style="width: 100%; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -2277,6 +2315,11 @@
                                 <button type="button" id="add-medication-btn" class="btn btn-secondary" style="width: 100%; padding: 10px;">
                                     + Add Medication
                                 </button>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Symptoms (optional)</label>
+                                <div id="log-symptom-chips" class="symptom-chips"></div>
                             </div>
 
                             <div class="form-group">
@@ -3330,6 +3373,65 @@
         // Import flow state (avoids serializing datasets into DOM attributes)
         let pendingImportAnalysis = null;
 
+        // Associated symptoms & aura (controlled list, ICHD-3 aligned).
+        // Episodes store the keys; UI renders the labels.
+        const SYMPTOM_OPTIONS = [
+            { key: 'nausea', label: 'Nausea' },
+            { key: 'vomiting', label: 'Vomiting' },
+            { key: 'photophobia', label: 'Light sensitivity' },
+            { key: 'phonophobia', label: 'Sound sensitivity' },
+            { key: 'osmophobia', label: 'Smell sensitivity' },
+            { key: 'aura_visual', label: 'Visual aura' },
+            { key: 'aura_sensory', label: 'Sensory aura (tingling/numbness)' },
+            { key: 'aura_speech', label: 'Speech/language aura' },
+            { key: 'neck_pain', label: 'Neck pain' },
+            { key: 'dizziness', label: 'Dizziness/vertigo' },
+            { key: 'blurred_vision', label: 'Blurred vision' },
+            { key: 'fatigue', label: 'Fatigue' }
+        ];
+        const SYMPTOM_KEYS = new Set(SYMPTOM_OPTIONS.map(s => s.key));
+        const SYMPTOM_LABELS = Object.fromEntries(SYMPTOM_OPTIONS.map(s => [s.key, s.label]));
+
+        // Symptoms selected on the quick-log form (for the next new episode)
+        let selectedSymptoms = new Set();
+
+        // Return display labels for an episode's stored symptom keys
+        function symptomLabels(keys) {
+            if (!Array.isArray(keys)) return [];
+            return keys.filter(k => SYMPTOM_KEYS.has(k)).map(k => SYMPTOM_LABELS[k]);
+        }
+
+        // Render a chip multi-select into a container. Chips carry data-symptom;
+        // toggling is handled by one delegated listener (see bindSymptomChips).
+        // No inline onclick (safeHTML strips event-handler attributes).
+        function renderSymptomChips(containerId, selectedSet) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = safeHTML(SYMPTOM_OPTIONS.map(s => {
+                const on = selectedSet.has(s.key) ? ' selected' : '';
+                return `<button type="button" class="symptom-chip${on}" data-symptom="${safeText(s.key)}" aria-pressed="${selectedSet.has(s.key)}">${safeText(s.label)}</button>`;
+            }).join(''));
+        }
+
+        // Attach one delegated toggle listener (idempotent). onToggle(key, isOn)
+        // lets the caller update the backing set/state.
+        function bindSymptomChips(containerId, selectedSet, onToggle) {
+            const container = document.getElementById(containerId);
+            if (!container || container.dataset.delegated) return;
+            container.addEventListener('click', (e) => {
+                const chip = e.target.closest('[data-symptom]');
+                if (!chip) return;
+                const key = chip.dataset.symptom;
+                if (!SYMPTOM_KEYS.has(key)) return;
+                const isOn = !selectedSet.has(key);
+                if (isOn) selectedSet.add(key); else selectedSet.delete(key);
+                chip.classList.toggle('selected', isOn);
+                chip.setAttribute('aria-pressed', String(isOn));
+                if (onToggle) onToggle(key, isOn);
+            });
+            container.dataset.delegated = '1';
+        }
+
         // XSS Protection Helper
         // Sanitizes HTML to prevent XSS attacks when using innerHTML
         function safeHTML(html) {
@@ -4256,6 +4358,8 @@
             document.getElementById('update-pain-btn')?.addEventListener('click', updateActivePain);
             document.getElementById('end-episode-btn')?.addEventListener('click', endActiveMigraine);
             renderMedicationsList(); // Initialize empty medication list
+            renderSymptomChips('log-symptom-chips', selectedSymptoms);
+            bindSymptomChips('log-symptom-chips', selectedSymptoms);
         }
 
         function logEpisode() {
@@ -4315,7 +4419,8 @@
                     ? currentEpisodeMedications.map(m => `${m.name}${m.dosage ? ' ' + m.dosage : ''}`).join(', ')
                     : null,
                 weather: getCurrentWeatherForEntry(),
-                category: getPainCategory(selectedPain)
+                category: getPainCategory(selectedPain),
+                symptoms: Array.from(selectedSymptoms)
             };
 
             activeMigraine = migraine;
@@ -4347,6 +4452,8 @@
             document.getElementById('notes-input').value = '';
             currentEpisodeMedications = [];
             renderMedicationsList();
+            selectedSymptoms.clear();
+            renderSymptomChips('log-symptom-chips', selectedSymptoms);
         }
 
         function updateActivePain() {
@@ -4479,6 +4586,34 @@
             document.getElementById('active-category').textContent = activeMigraine.category;
             updateDuration();
             updateReliefTimeline();
+            updateActiveSymptomChips();
+        }
+
+        // Symptom chips on the active-episode card write straight to the
+        // in-progress episode so they can be adjusted as symptoms develop.
+        // The delegated listener reads activeMigraine live (not a captured
+        // set) so it stays correct across re-renders.
+        function updateActiveSymptomChips() {
+            if (!activeMigraine) return;
+            if (!Array.isArray(activeMigraine.symptoms)) activeMigraine.symptoms = [];
+            renderSymptomChips('active-symptom-chips', new Set(activeMigraine.symptoms));
+            const container = document.getElementById('active-symptom-chips');
+            if (container && !container.dataset.delegated) {
+                container.addEventListener('click', (e) => {
+                    const chip = e.target.closest('[data-symptom]');
+                    if (!chip || !activeMigraine) return;
+                    const key = chip.dataset.symptom;
+                    if (!SYMPTOM_KEYS.has(key)) return;
+                    const set = new Set(activeMigraine.symptoms);
+                    const isOn = !set.has(key);
+                    if (isOn) set.add(key); else set.delete(key);
+                    activeMigraine.symptoms = Array.from(set);
+                    chip.classList.toggle('selected', isOn);
+                    chip.setAttribute('aria-pressed', String(isOn));
+                    saveData();
+                });
+                container.dataset.delegated = '1';
+            }
         }
 
         function startDurationTracking() {
