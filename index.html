@@ -6854,7 +6854,7 @@ Browser: ${navigator.userAgent}
 
             // CSV Header with BOM for Excel compatibility
             const BOM = '\uFEFF';
-            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa)\n';
+            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms\n';
 
             // Sort by date (oldest first) - use slice() to avoid mutating original array
             const sorted = activeMigraines.slice().sort((a, b) =>
@@ -6888,9 +6888,10 @@ Browser: ${navigator.userAgent}
                 const notes = neutralizeFormula(m.notes || '').replace(/"/g, '""');
                 const resolution = neutralizeFormula(m.endNotes || '').replace(/"/g, '""');
                 const pressure = m.weather && m.weather.pressure ? m.weather.pressure.toFixed(1) : '';
+                const symptoms = neutralizeFormula(symptomLabels(m.symptoms).join('; ')).replace(/"/g, '""');
 
                 // Quote fields that might contain commas
-                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure}\n`;
+                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure},"${symptoms}"\n`;
             });
 
             // Create and download file
@@ -6993,6 +6994,11 @@ Browser: ${navigator.userAgent}
                 const endTimeIdx = header.findIndex(h => h.includes('end') && h.includes('time'));
                 const medicationIdx = header.findIndex(h => h.includes('medication') || h.includes('med'));
                 const notesIdx = header.findIndex(h => h.includes('note'));
+                const symptomsIdx = header.findIndex(h => h.includes('symptom'));
+
+                // Map exported symptom labels back to controlled keys (case-insensitive)
+                const symptomLabelToKey = {};
+                SYMPTOM_OPTIONS.forEach(s => { symptomLabelToKey[s.label.toLowerCase()] = s.key; });
 
                 // Parse data rows
                 const entries = [];
@@ -7058,6 +7064,14 @@ Browser: ${navigator.userAgent}
                                 migraine.endTime = endDateTime.toISOString();
                                 migraine.duration = Math.floor((endDateTime - startDateTime) / 1000);
                             }
+                        }
+
+                        // Parse symptoms if present (labels -> controlled keys)
+                        if (symptomsIdx !== -1 && row[symptomsIdx]) {
+                            migraine.symptoms = stripFormulaGuard(row[symptomsIdx])
+                                .split(';')
+                                .map(s => symptomLabelToKey[s.trim().toLowerCase()])
+                                .filter(Boolean);
                         }
 
                         entries.push(migraine);
@@ -7414,6 +7428,30 @@ Browser: ${navigator.userAgent}
             doc.text(`Range: ${formatDuration(minDuration)} - ${formatDuration(maxDuration)}`, 20, yPos);
             yPos += 15;
 
+            // Common Symptoms summary
+            const symptomCounts = {};
+            episodesInRange.forEach(m => {
+                symptomLabels(m.symptoms).forEach(label => {
+                    symptomCounts[label] = (symptomCounts[label] || 0) + 1;
+                });
+            });
+            const rankedSymptoms = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]);
+            if (rankedSymptoms.length > 0) {
+                doc.setFont(undefined, 'bold');
+                doc.text('Common Symptoms', 20, yPos);
+                yPos += 6;
+                doc.setFont(undefined, 'normal');
+                const symptomSummary = rankedSymptoms
+                    .map(([label, count]) => `${label} (${count})`)
+                    .join(', ');
+                const symptomSummaryLines = doc.splitTextToSize(symptomSummary, 170);
+                symptomSummaryLines.forEach(line => {
+                    doc.text(line, 20, yPos);
+                    yPos += 5;
+                });
+                yPos += 10;
+            }
+
             // Weather Correlation (if enabled)
             if (weatherData.enabled && weatherData.history.length >= 7) {
                 const correlation = calculateWeatherCorrelation();
@@ -7508,6 +7546,24 @@ Browser: ${navigator.userAgent}
                     }
 
                     yPos += 5;
+
+                    // Add symptoms sub-line if present (page-break aware)
+                    const epSymptoms = symptomLabels(episode.symptoms);
+                    if (epSymptoms.length > 0) {
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'italic');
+                        const symLines = doc.splitTextToSize(`Symptoms: ${epSymptoms.join(', ')}`, 170);
+                        for (const symLine of symLines) {
+                            if (yPos > 275) {
+                                doc.addPage();
+                                yPos = 20;
+                            }
+                            doc.text(symLine, 25, yPos);
+                            yPos += 4;
+                        }
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                    }
 
                     // Add notes if present, breaking pages mid-note so long
                     // notes can't run past the footer (drawn at y=285)
