@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
 // Version 4.0.0 - Production Release
 
-const CACHE_NAME = 'aiding-migraine-v4.1.0-sprint-fixes';
+const CACHE_NAME = 'aiding-migraine-v4.1.1-sw-guard';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -68,6 +68,15 @@ self.addEventListener('activate', (event) => {
 // Fetch event - network-first for HTML, cache-first for assets
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
+
+    // Only handle same-origin GET requests. Cross-origin calls (e.g. the
+    // notification server, weather APIs) and non-GET methods are left to
+    // the browser: caching a POST throws, and returning cached HTML to a
+    // JSON API caller corrupts the response.
+    if (event.request.method !== 'GET' || url.origin !== self.location.origin) {
+        return;
+    }
+
     const acceptHeader = event.request.headers.get('accept') || '';
 
     // Network-first strategy for HTML files to ensure users get latest version
@@ -106,7 +115,10 @@ self.addEventListener('fetch', (event) => {
                         });
                 })
                 .catch(() => {
-                    return caches.match('./index.html');
+                    // Same-origin asset miss while offline: return a real
+                    // error rather than handing back the HTML shell (which
+                    // would corrupt a script/style/JSON consumer).
+                    return Response.error();
                 })
         );
     }
@@ -176,6 +188,11 @@ self.addEventListener('push', (event) => {
         options.actions = [
             { action: 'update', title: 'Update Status' },
             { action: 'dismiss', title: 'Later' }
+        ];
+    } else if (data.type === 'active-attack-checkin') {
+        options.actions = [
+            { action: 'update', title: 'Update Status' },
+            { action: 'dismiss', title: 'Dismiss' }
         ];
     }
 
