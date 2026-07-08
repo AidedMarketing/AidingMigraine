@@ -6972,7 +6972,7 @@ Browser: ${navigator.userAgent}
 
             // CSV Header with BOM for Excel compatibility
             const BOM = '\uFEFF';
-            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms\n';
+            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms,Triggers\n';
 
             // Sort by date (oldest first) - use slice() to avoid mutating original array
             const sorted = activeMigraines.slice().sort((a, b) =>
@@ -7007,9 +7007,10 @@ Browser: ${navigator.userAgent}
                 const resolution = neutralizeFormula(m.endNotes || '').replace(/"/g, '""');
                 const pressure = m.weather && m.weather.pressure ? m.weather.pressure.toFixed(1) : '';
                 const symptoms = neutralizeFormula(symptomLabels(m.symptoms).join('; ')).replace(/"/g, '""');
+                const triggers = neutralizeFormula(triggerLabels(m.triggers).join('; ')).replace(/"/g, '""');
 
                 // Quote fields that might contain commas
-                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure},"${symptoms}"\n`;
+                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure},"${symptoms}","${triggers}"\n`;
             });
 
             // Create and download file
@@ -7113,10 +7114,13 @@ Browser: ${navigator.userAgent}
                 const medicationIdx = header.findIndex(h => h.includes('medication') || h.includes('med'));
                 const notesIdx = header.findIndex(h => h.includes('note'));
                 const symptomsIdx = header.findIndex(h => h.includes('symptom'));
+                const triggersIdx = header.findIndex(h => h.includes('trigger'));
 
-                // Map exported symptom labels back to controlled keys (case-insensitive)
+                // Map exported labels back to controlled keys (case-insensitive)
                 const symptomLabelToKey = {};
                 SYMPTOM_OPTIONS.forEach(s => { symptomLabelToKey[s.label.toLowerCase()] = s.key; });
+                const triggerLabelToKey = {};
+                TRIGGER_OPTIONS.forEach(t => { triggerLabelToKey[t.label.toLowerCase()] = t.key; });
 
                 // Parse data rows
                 const entries = [];
@@ -7189,6 +7193,14 @@ Browser: ${navigator.userAgent}
                             migraine.symptoms = stripFormulaGuard(row[symptomsIdx])
                                 .split(';')
                                 .map(s => symptomLabelToKey[s.trim().toLowerCase()])
+                                .filter(Boolean);
+                        }
+
+                        // Parse triggers if present (labels -> controlled keys)
+                        if (triggersIdx !== -1 && row[triggersIdx]) {
+                            migraine.triggers = stripFormulaGuard(row[triggersIdx])
+                                .split(';')
+                                .map(s => triggerLabelToKey[s.trim().toLowerCase()])
                                 .filter(Boolean);
                         }
 
@@ -7570,6 +7582,30 @@ Browser: ${navigator.userAgent}
                 yPos += 10;
             }
 
+            // Common Triggers summary
+            const triggerCounts = {};
+            episodesInRange.forEach(m => {
+                triggerLabels(m.triggers).forEach(label => {
+                    triggerCounts[label] = (triggerCounts[label] || 0) + 1;
+                });
+            });
+            const rankedTriggers = Object.entries(triggerCounts).sort((a, b) => b[1] - a[1]);
+            if (rankedTriggers.length > 0) {
+                doc.setFont(undefined, 'bold');
+                doc.text('Common Triggers', 20, yPos);
+                yPos += 6;
+                doc.setFont(undefined, 'normal');
+                const triggerSummary = rankedTriggers
+                    .map(([label, count]) => `${label} (${count})`)
+                    .join(', ');
+                const triggerSummaryLines = doc.splitTextToSize(triggerSummary, 170);
+                triggerSummaryLines.forEach(line => {
+                    doc.text(line, 20, yPos);
+                    yPos += 5;
+                });
+                yPos += 10;
+            }
+
             // Weather Correlation (if enabled)
             if (weatherData.enabled && weatherData.history.length >= 7) {
                 const correlation = calculateWeatherCorrelation();
@@ -7677,6 +7713,24 @@ Browser: ${navigator.userAgent}
                                 yPos = 20;
                             }
                             doc.text(symLine, 25, yPos);
+                            yPos += 4;
+                        }
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                    }
+
+                    // Add triggers sub-line if present (page-break aware)
+                    const epTriggers = triggerLabels(episode.triggers);
+                    if (epTriggers.length > 0) {
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'italic');
+                        const trigLines = doc.splitTextToSize(`Triggers: ${epTriggers.join(', ')}`, 170);
+                        for (const trigLine of trigLines) {
+                            if (yPos > 275) {
+                                doc.addPage();
+                                yPos = 20;
+                            }
+                            doc.text(trigLine, 25, yPos);
                             yPos += 4;
                         }
                         doc.setFontSize(9);

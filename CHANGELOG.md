@@ -5,6 +5,21 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0] - 2026-07-08
+
+### Added — Trigger Tracking (P2-2)
+
+- **Log possible triggers** on each migraine from a controlled list (stress, poor/too much sleep, skipped meal, dehydration, alcohol, caffeine and withdrawal, chocolate, aged cheese, MSG/processed food, bright light, loud noise, strong smells, screen time, physical exertion, hormonal/menstrual, weather change, travel) via a quick chip multi-select.
+- Triggers are adjustable during an active attack, editable on any past episode (History and calendar edit flows), and shown in History cards, Episode Details, and calendar day details.
+- New **"Common Triggers"** analytics card ranks trigger frequency over the selected range.
+- Exports: per-episode triggers + a "Common Triggers" summary in the PDF doctor report; a `Triggers` column in CSV export/import; JSON carries them automatically.
+- Imported trigger values are filtered against the controlled list.
+
+### Changed
+
+- Refactored the symptom/trigger chip UI and analytics into shared, option-agnostic helpers.
+- Synced in-app version strings to the current release (they had lagged at 4.1.0).
+
 ## [4.2.0] - 2026-07-08
 
 ### Added — Symptom & Aura Tracking (P2-1)

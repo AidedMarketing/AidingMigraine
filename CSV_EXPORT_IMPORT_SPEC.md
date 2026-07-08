@@ -13,9 +13,9 @@ Enable users to export migraine data to CSV format and import data from other mi
 
 ### Column Structure
 ```csv
-Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms
-2024-01-15,14:30,18:45,4.25,7,Moderate,Sumatriptan 100mg,Triggered by stress,Resolved with rest,completed,1013.2,Nausea; Light sensitivity
-2024-01-20,09:00,,,8,Severe,Ibuprofen 800mg,Aura present,Still ongoing,active,,Visual aura
+Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms,Triggers
+2024-01-15,14:30,18:45,4.25,7,Moderate,Sumatriptan 100mg,Triggered by stress,Resolved with rest,completed,1013.2,Nausea; Light sensitivity,Stress; Poor sleep
+2024-01-20,09:00,,,8,Severe,Ibuprofen 800mg,Aura present,Still ongoing,active,,Visual aura,Weather change
 ```
 
 ### Field Definitions
@@ -38,6 +38,9 @@ Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,R
     (e.g. `Nausea; Light sensitivity; Visual aura`) or empty. Added in v4.2.0.
     On import, labels are matched case-insensitively back to known symptom keys;
     unknown labels are ignored. Older CSVs without this column import fine.
+13. **Triggers** - Semicolon-separated trigger labels from the controlled list
+    (e.g. `Stress; Poor sleep; Weather change`) or empty. Added in v4.3.0. Same
+    case-insensitive label→key matching and back-compat behavior as Symptoms.
 
 ### Export Features
 - **Date Range Selection**: Export all or specific date range
