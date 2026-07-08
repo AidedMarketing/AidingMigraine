@@ -2579,6 +2579,11 @@
                 </div>
                 <div id="medication-usage-content"></div>
             </div>
+
+            <div id="symptom-analytics-card" class="section-card" style="display: none;">
+                <h2>Common Symptoms</h2>
+                <div id="symptom-analytics-content"></div>
+            </div>
         </div>
 
         <div id="care-page" class="page">
@@ -4725,6 +4730,11 @@
                     </div>
                     ` : ''}
 
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Symptoms</label>
+                        <div id="edit-attack-symptom-chips" class="symptom-chips"></div>
+                    </div>
+
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green); font-size: 0.9rem; color: var(--text-secondary);">
                         Weather data and attack ID will be preserved
                     </div>
@@ -4738,6 +4748,12 @@
 
             document.getElementById('modal-title').textContent = 'Edit Migraine Episode';
             modal.classList.add('active');
+
+            // Symptoms chips (fresh modal body each open, so bind fresh)
+            tempEditSymptoms = new Set(Array.isArray(attack.symptoms)
+                ? attack.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : []);
+            renderSymptomChips('edit-attack-symptom-chips', tempEditSymptoms);
+            bindSymptomChips('edit-attack-symptom-chips', tempEditSymptoms);
 
             // Pain level selection
             body.querySelectorAll('.pain-btn').forEach(btn => {
@@ -4811,6 +4827,7 @@
                 category: getPainCategory(painLevel),
                 medication: medication || null,
                 notes: notes,
+                symptoms: Array.from(tempEditSymptoms),
                 lastModified: new Date().toISOString(),
                 editCount: (originalAttack.editCount || 0) + 1
             };
@@ -5136,6 +5153,7 @@
                                 <span class="detail-value">${safeText(m.category)}</span>
                             </div>
                         </div>
+                        ${symptomLabels(m.symptoms).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Symptoms:</strong> ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">${safeText(m.notes)}</p>` : ''}
                         <div class="history-actions">
                             <button class="btn btn-secondary" data-action="view" data-id="${safeText(String(m.id))}">View Details</button>
@@ -5170,6 +5188,15 @@
                 content += `</ul>`;
             }
 
+            const viewSymptoms = symptomLabels(migraine.symptoms);
+            if (viewSymptoms.length > 0) {
+                content += `<h3>Symptoms</h3><ul>`;
+                viewSymptoms.forEach(label => {
+                    content += `<li>${safeText(label)}</li>`;
+                });
+                content += `</ul>`;
+            }
+
             if (migraine.reliefMethods && migraine.reliefMethods.length > 0) {
                 content += `<h3>Relief Methods</h3><ul>`;
                 migraine.reliefMethods.forEach(r => {
@@ -5191,6 +5218,8 @@
 
         // Temporary storage for relief methods being edited
         let tempReliefMethods = [];
+        // Symptoms being edited (rebuilt each time an edit modal opens)
+        let tempEditSymptoms = new Set();
 
         function editEpisode(id) {
             const migraine = migraines.find(m => m.id === id);
@@ -5198,6 +5227,8 @@
 
             // Copy relief methods to temporary storage
             tempReliefMethods = migraine.reliefMethods ? [...migraine.reliefMethods] : [];
+            tempEditSymptoms = new Set(Array.isArray(migraine.symptoms)
+                ? migraine.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : []);
 
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
@@ -5226,6 +5257,10 @@
                                      color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${safeText(migraine.endNotes || '')}</textarea>
                 </div>
                 <div class="form-group">
+                    <label>Symptoms</label>
+                    <div id="edit-symptom-chips" class="symptom-chips"></div>
+                </div>
+                <div class="form-group">
                     <label>Relief Methods</label>
                     <div id="edit-relief-methods-list" style="margin-bottom: 12px;"></div>
                     <div style="display: flex; gap: 8px;">
@@ -5246,7 +5281,9 @@
             document.getElementById('modal-title').textContent = 'Edit Episode';
             modal.classList.add('active');
 
-            // Render relief methods list
+            // Render symptom chips and relief methods list
+            renderSymptomChips('edit-symptom-chips', tempEditSymptoms);
+            bindSymptomChips('edit-symptom-chips', tempEditSymptoms);
             renderEditReliefMethods();
 
             // Allow Enter key to add relief method
@@ -5339,6 +5376,7 @@
             migraine.notes = notes || null;
             migraine.endNotes = endNotes || null;
             migraine.reliefMethods = tempReliefMethods.length > 0 ? tempReliefMethods : null;
+            migraine.symptoms = Array.from(tempEditSymptoms);
 
             saveData();
             renderHistory();
@@ -5974,6 +6012,7 @@
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="margin-top: 8px;">Notes: ${safeText(m.notes)}</p>` : ''}
                         ${m.endNotes ? `<p style="margin-top: 8px;">Resolution: ${safeText(m.endNotes)}</p>` : ''}
                     </div>
@@ -5991,6 +6030,7 @@
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="margin-top: 8px;">Notes: ${safeText(m.notes)}</p>` : ''}
                         ${m.endNotes ? `<p style="margin-top: 8px;">Resolution: ${safeText(m.endNotes)}</p>` : ''}
                     </div>
@@ -10862,6 +10902,55 @@ Browser: ${navigator.userAgent}
 
             // Render medication analytics if any medication data exists
             renderMedicationAnalytics(filteredData);
+
+            // Render symptom frequency breakdown
+            renderSymptomAnalytics(filteredData);
+        }
+
+        function renderSymptomAnalytics(data) {
+            const card = document.getElementById('symptom-analytics-card');
+            const content = document.getElementById('symptom-analytics-content');
+            if (!card || !content) return;
+
+            // Tally symptom keys across episodes
+            const counts = {};
+            let episodesWithSymptoms = 0;
+            data.forEach(m => {
+                const keys = Array.isArray(m.symptoms) ? m.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : [];
+                if (keys.length > 0) episodesWithSymptoms++;
+                keys.forEach(k => { counts[k] = (counts[k] || 0) + 1; });
+            });
+
+            const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            if (ranked.length === 0) {
+                card.style.display = 'none';
+                return;
+            }
+            card.style.display = 'block';
+
+            const maxCount = ranked[0][1];
+            const colors = getChartColors();
+            const rows = ranked.map(([key, count]) => {
+                const pct = Math.round((count / data.length) * 100);
+                const barPct = Math.round((count / maxCount) * 100);
+                return `
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px;">
+                            <span>${safeText(SYMPTOM_LABELS[key])}</span>
+                            <span style="color: var(--text-secondary);">${count} (${pct}%)</span>
+                        </div>
+                        <div style="height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; width: ${barPct}%; background: ${colors.primary}; border-radius: 4px;"></div>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            content.innerHTML = safeHTML(`
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 12px;">
+                    ${episodesWithSymptoms} of ${data.length} episodes in this range had symptoms logged.
+                </p>
+                ${rows}
+            `);
         }
 
         function updateAnalyticsMetrics(data, startDate, endDate) {
