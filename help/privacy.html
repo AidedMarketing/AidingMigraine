@@ -15,7 +15,7 @@
         </header>
 
         <main class="help-content">
-            <p><em>Last updated: December 5, 2025</em></p>
+            <p><em>Last updated: July 7, 2026</em></p>
 
             <div class="info-box success">
                 <h4>Privacy First, Always</h4>
@@ -146,14 +146,14 @@
                     <th>Data Shared</th>
                 </tr>
                 <tr>
-                    <td>Firebase Cloud Messaging (FCM)</td>
-                    <td>Deliver push notifications</td>
+                    <td>Browser push service (e.g. Google FCM, Mozilla, Apple)</td>
+                    <td>Deliver push notifications to your device (chosen by your browser, not the app)</td>
                     <td>Anonymous push token, notification content</td>
                 </tr>
                 <tr>
                     <td>Render.com</td>
                     <td>Host notification scheduling server</td>
-                    <td>Notification preferences (time, timezone)</td>
+                    <td>Notification preferences (time, timezone, schedule); for follow-ups, an attack identifier + reminder times</td>
                 </tr>
                 <tr>
                     <td>GitHub Pages</td>
@@ -165,7 +165,13 @@
                     <td>Fetch weather data (if weather tracking enabled)</td>
                     <td>Location coordinates (not linked to your identity)</td>
                 </tr>
+                <tr>
+                    <td>Nominatim / OpenStreetMap</td>
+                    <td>Geocode your city/ZIP to coordinates, or coordinates to a place name (if weather tracking enabled)</td>
+                    <td>The location text you enter, or your GPS coordinates if you use "use my location"</td>
+                </tr>
             </table>
+            <p>Push notifications in Chrome are delivered via Google's Firebase Cloud Messaging endpoint &mdash; this is the browser's standard Web Push transport, not the Firebase server SDK, and the app sends nothing to Firebase directly.</p>
 
             <p><strong>We do NOT use:</strong></p>
             <ul>

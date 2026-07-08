@@ -2,6 +2,8 @@
 **Date:** 2026-01-21
 **Status:** Partial - Critical vulnerabilities addressed, urgent work remains
 
+> **v4.1.0 addendum (2026-07-07):** A follow-up sprint fixed additional server- and client-side issues not covered here — push-endpoint SSRF, unauthenticated `send-test`, DOMPurify event-handler allowlist, proxy-aware rate limiting, atomic JSON persistence, and removal of tracked `.git-rewrite` artifacts. See `CHANGELOG.md` (4.1.0) and `SECURITY_COMPLETION_SUMMARY.md` addendum.
+
 ---
 
 ## Executive Summary

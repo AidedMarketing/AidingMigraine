@@ -4,6 +4,8 @@
 **Project:** Aiding Migraine Notification Server
 **Auditor:** Claude Code
 
+> **Historical (2026-07-07):** This report describes a pre-remediation state. `firebase-admin` has since been removed and no `firebase` reference remains in `notification-server/`; push delivery uses the `web-push` library with VAPID. The dependency counts and the `firebase-admin` recommendation below no longer apply. Automated `npm audit` in CI is tracked as a P1 backlog item.
+
 ## Executive Summary
 
 The notification server has **1 high-severity security vulnerability**, **2 outdated packages** with major version updates available, and **significant bloat** from an unnecessary dependency (`firebase-admin`) that contributes 170 production dependencies.

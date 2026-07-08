@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.0.0 - PRODUCTION
+           AIDING MIGRAINE v4.1.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -2803,7 +2803,7 @@
                     <div id="notification-enable-section" style="display: none;">
                         <div class="settings-actions">
                             <button class="settings-btn" id="enable-notifications-btn" style="background: var(--accent-green); color: white;">
-                                <span>Notification Enable Notifications</span>
+                                <span>Enable Notifications</span>
                                 <span class="btn-subtitle">Tap to request permission</span>
                             </button>
                         </div>
@@ -2814,7 +2814,7 @@
                         <!-- Daily Check-in -->
                         <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
                             <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                <span>Calendar Daily Check-in</span>
+                                <span>Daily Check-in</span>
                                 <label class="toggle-switch">
                                     <input type="checkbox" id="daily-checkin-enabled" checked>
                                     <span class="toggle-slider"></span>
@@ -2841,7 +2841,7 @@
                         <!-- Active Attack Check-in -->
                         <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
                             <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                <span>Active Active Attack Check-in</span>
+                                <span>Active Attack Check-in</span>
                                 <label class="toggle-switch">
                                     <input type="checkbox" id="active-checkin-enabled" checked>
                                     <span class="toggle-slider"></span>
@@ -2866,7 +2866,7 @@
                         <!-- Post-Attack Follow-up -->
                         <div class="settings-group" style="margin-bottom: 20px;">
                             <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                <span>⏰ Post-Attack Follow-up</span>
+                                <span>Post-Attack Follow-up</span>
                                 <label class="toggle-switch">
                                     <input type="checkbox" id="followup-enabled" checked>
                                     <span class="toggle-slider"></span>
@@ -2890,11 +2890,11 @@
                         <!-- Test Notifications -->
                         <div class="settings-actions">
                             <button class="settings-btn" id="test-notification-btn">
-                                <span>🧪 Send Test Notification</span>
+                                <span>Send Test Notification</span>
                                 <span class="btn-subtitle">Verify notifications are working</span>
                             </button>
                             <button class="settings-btn danger" id="disable-notifications-btn">
-                                <span>🔕 Disable Notifications</span>
+                                <span>Disable Notifications</span>
                                 <span class="btn-subtitle">Unsubscribe from all notifications</span>
                             </button>
                         </div>
@@ -3119,7 +3119,7 @@
             <div class="section-card">
                 <h2>Advanced Storage</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
-                    IndexedDB storage for unlimited migraine history • Background sync when offline
+                    IndexedDB storage for unlimited migraine history • Works fully offline
                 </p>
 
                 <!-- Storage Quota -->
@@ -3151,7 +3151,7 @@
 
                 <!-- Archive Action -->
                 <button id="archive-old-btn" class="settings-btn" style="width: 100%;">
-                    <span>📦 Archive Old Data</span>
+                    <span>Archive Old Data</span>
                     <span class="btn-subtitle">Archive migraines older than 12 months</span>
                 </button>
             </div>
@@ -3183,7 +3183,7 @@
                         <span class="btn-subtitle">Get started in minutes</span>
                     </a>
                     <a href="./help/notifications-ios.html" class="settings-btn" style="text-decoration: none; display: block;">
-                        <span>Notification iOS Notification Setup</span>
+                        <span>iOS Notification Setup</span>
                         <span class="btn-subtitle">Fix notification issues</span>
                     </a>
                     <a href="./help/analytics.html" class="settings-btn" style="text-decoration: none; display: block;">
@@ -3205,14 +3205,14 @@
                 <h2>Advanced</h2>
                 <div class="settings-actions">
                     <button class="settings-btn danger" id="clear-all-btn">
-                        <span>Trash Clear All Data</span>
+                        <span>Clear All Data</span>
                         <span class="btn-subtitle">Cannot be undone</span>
                     </button>
                 </div>
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.0.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.1.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3225,7 +3225,7 @@
                 <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; margin: 16px 0;">
                     <div style="display: grid; gap: 12px; font-size: 0.9rem;">
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                            <span>📦 Data Source:</span>
+                            <span>Data Source:</span>
                             <strong id="debug-data-source">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
@@ -3241,22 +3241,22 @@
                             <strong id="debug-deleted-episodes">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                            <span>Save IndexedDB Status:</span>
+                            <span>IndexedDB Status:</span>
                             <strong id="debug-indexeddb">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
-                            <span>💿 localStorage Status:</span>
+                            <span>localStorage Status:</span>
                             <strong id="debug-localstorage">-</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.0.0 Production</strong>
+                            <strong>v4.1.0 Production</strong>
                         </div>
                     </div>
                 </div>
                 <div class="modal-actions">
                     <button class="btn btn-secondary" onclick="closeDebugModal()">Close</button>
-                    <button class="btn btn-primary" onclick="copyDebugInfo()">📋 Copy Debug Info</button>
+                    <button class="btn btn-primary" onclick="copyDebugInfo()">Copy Debug Info</button>
                 </div>
             </div>
         </div>
@@ -4267,7 +4267,7 @@
             if (activeMigraine) {
                 // Offer to clear stuck episode
                 showModal(
-                    'Active Episode Detected',
+                    'Episode Detected',
                     'You already have an active episode. Please end it first, or clear it if you believe this is an error.',
                     [
                         {
@@ -5374,7 +5374,7 @@
                             ${m.notes ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">Notes: ${safeText(m.notes)}</p>` : ''}
                             <div style="display: flex; gap: 8px; margin-top: 12px;">
                                 <button class="btn btn-primary" style="flex: 1; padding: 8px;" onclick="restoreEpisode(${m.id})">
-                                    ♻️ Restore
+                                    Restore
                                 </button>
                                 <button class="btn btn-danger" style="flex: 1; padding: 8px;" onclick="permanentlyDelete(${m.id})">
                                     Delete Forever
@@ -5798,7 +5798,7 @@
 
                             changeInfo = `
                                 <p>24h Change: ${changeText} hPa (${trend})</p>
-                                ${Math.abs(change) > 5 ? `<p style="color: var(--pain-moderate); margin-top: 4px;">⚠ Significant 24h change</p>` : ''}
+                                ${Math.abs(change) > 5 ? `<p style="color: var(--pain-moderate); margin-top: 4px;">Significant 24h change</p>` : ''}
                             `;
                         }
 
@@ -5806,12 +5806,12 @@
                         // Updated threshold: 5+ hPa in 6h (research-validated)
                         let rapidChangeInfo = '';
                         if (weatherEntry.maxChange3h && weatherEntry.maxChange3h >= 5) {
-                            rapidChangeInfo = `<p style="color: var(--accent-red); margin-top: 4px;">Active Rapid change: ${weatherEntry.maxChange3h} hPa in 6h</p>`;
+                            rapidChangeInfo = `<p style="color: var(--accent-red); margin-top: 4px;">Rapid change: ${weatherEntry.maxChange3h} hPa in 6h</p>`;
                         }
 
                         weatherContent = `
                             <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green);">
-                                <p><strong>Weather Weather Conditions</strong></p>
+                                <p><strong>Weather Conditions</strong></p>
                                 <p>Pressure: ${todayPressure.toFixed(1)} hPa</p>
                                 ${changeInfo}
                                 ${rapidChangeInfo}
@@ -6039,7 +6039,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.0.0 - Debug Information
+            const debugInfo = `Aiding Migraine v4.1.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -6360,7 +6360,7 @@ Browser: ${navigator.userAgent}
                 // Validate specific fields
                 if (episode.painLevel !== undefined) {
                     if (typeof episode.painLevel !== 'number' || episode.painLevel < 0 || episode.painLevel > 10) {
-                        errors.push(`Episode ${index + 1}: Pain level must be between 1-10`);
+                        errors.push(`Episode ${index + 1}: Pain level must be between 0-10`);
                     }
                 }
 
@@ -6460,7 +6460,7 @@ Browser: ${navigator.userAgent}
             if (storageCheck && storageCheck.warning) {
                 summaryHTML += `
                     <div style="padding: 12px; background: var(--accent-red); color: white; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;">
-                        <strong>⚠ Storage Warning</strong><br>
+                        <strong>Storage Warning</strong><br>
                         You're approaching the storage limit (${storageCheck.totalMB} MB / ${storageCheck.limitMB} MB).
                         Consider deleting old episodes or emptying trash after import.
                     </div>
@@ -6475,11 +6475,11 @@ Browser: ${navigator.userAgent}
                         <strong style="color: var(--accent-green);">${analysis.new.length}</strong>
                     </div>
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
-                        <span>📋 Exact Duplicates:</span>
+                        <span>Exact Duplicates:</span>
                         <strong>${analysis.duplicates.length}</strong>
                     </div>
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: flex; justify-content: space-between;">
-                        <span>⚠ Conflicts:</span>
+                        <span>Conflicts:</span>
                         <strong style="color: var(--accent-red);">${analysis.conflicts.length}</strong>
                     </div>
                 </div>
@@ -6488,7 +6488,7 @@ Browser: ${navigator.userAgent}
             if (analysis.conflicts.length > 0) {
                 summaryHTML += `
                     <p style="color: var(--accent-red); margin-bottom: 12px;">
-                        <strong>⚠ Conflicts Detected</strong><br>
+                        <strong>Conflicts Detected</strong><br>
                         Some episodes have the same ID or similar timing but different data.
                     </p>
                 `;
@@ -6552,7 +6552,7 @@ Browser: ${navigator.userAgent}
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.9rem;">
                             <div>
-                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-green);">Import Importing:</div>
+                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-green);">Importing:</div>
                                 <div>Date: ${formatDate(new Date(imported.startTime))}</div>
                                 <div>Time: ${formatTime(new Date(imported.startTime))}</div>
                                 <div>Pain: ${imported.painLevel}/10</div>
@@ -6560,7 +6560,7 @@ Browser: ${navigator.userAgent}
                                 ${imported.medication ? `<div>Med: ${safeText(imported.medication)}</div>` : ''}
                             </div>
                             <div>
-                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-blue);">Save Existing:</div>
+                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--accent-blue);">Existing:</div>
                                 <div>Date: ${formatDate(new Date(existing.startTime))}</div>
                                 <div>Time: ${formatTime(new Date(existing.startTime))}</div>
                                 <div>Pain: ${existing.painLevel}/10</div>
@@ -6956,7 +6956,7 @@ Browser: ${navigator.userAgent}
 
                 ${duplicates.length > 0 ? `
                 <div style="background: rgba(212, 165, 116, 0.1); border-left: 3px solid #d4a574; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
-                    <p>⚠ <strong>${duplicates.length}</strong> duplicate${duplicates.length > 1 ? 's' : ''} detected (will be skipped)</p>
+                    <p><strong>${duplicates.length}</strong> duplicate${duplicates.length > 1 ? 's' : ''} detected (will be skipped)</p>
                 </div>
                 ` : ''}
 
@@ -7003,16 +7003,16 @@ Browser: ${navigator.userAgent}
                 <p style="margin-bottom: 20px; color: var(--text-secondary);">Select a date range for your doctor report:</p>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <button class="settings-btn" onclick="exportPDF('7days')">
-                        <span>Calendar Last 7 Days</span>
+                        <span>Last 7 Days</span>
                     </button>
                     <button class="settings-btn" onclick="exportPDF('30days')">
-                        <span>Calendar Last 30 Days</span>
+                        <span>Last 30 Days</span>
                     </button>
                     <button class="settings-btn" onclick="exportPDF('90days')">
-                        <span>Calendar Last 90 Days</span>
+                        <span>Last 90 Days</span>
                     </button>
                     <button class="settings-btn" onclick="showCustomDateRange()">
-                        <span>Calendar Custom Range</span>
+                        <span>Custom Range</span>
                     </button>
                 </div>
             `;
@@ -7395,7 +7395,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.0.0</strong></p>
+                <p><strong>Aiding Migraine v4.1.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -8035,7 +8035,7 @@ Browser: ${navigator.userAgent}
                 enableSection.style.display = 'none';
                 preferencesSection.style.display = 'none';
             } else {
-                statusText.innerHTML = 'Notification Click below to enable notifications';
+                statusText.innerHTML = 'Click below to enable notifications';
                 statusText.parentElement.style.background = 'var(--bg-tertiary)';
                 enableSection.style.display = 'block';
                 preferencesSection.style.display = 'none';
@@ -8064,7 +8064,7 @@ Browser: ${navigator.userAgent}
                     // Server not configured yet - use local notifications only
                     notificationPreferences.enabled = true;
                     localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
-                    alert('Success: Notifications enabled (local only)!\n\nTo enable server push notifications, configure Firebase and VAPID keys.\nSee NOTIFICATIONS_SETUP.md for details.');
+                    alert('Success: Notifications enabled (local only)!\n\nTo enable server push notifications, configure VAPID keys.\nSee NOTIFICATIONS_SETUP.md for details.');
                     updateNotificationUI();
                     return;
                 }
@@ -10615,9 +10615,16 @@ Browser: ${navigator.userAgent}
             pressure: null
         };
 
+        // Light themes use a light chart palette; warm-dark and high-contrast
+        // (a dark high-contrast theme) use the dark palette.
+        const LIGHT_THEMES = new Set(['light', 'warm-light']);
+        function isDarkTheme() {
+            return !LIGHT_THEMES.has(document.documentElement.getAttribute('data-theme'));
+        }
+
         // Get theme-aware colors for charts
         function getChartColors() {
-            const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+            const isDark = isDarkTheme();
 
             return {
                 text: isDark ? '#f0eeeb' : '#2a2a2a',
@@ -11167,7 +11174,7 @@ Browser: ${navigator.userAgent}
             });
 
             const colors = getChartColors();
-            const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+            const isDark = isDarkTheme();
             const threshold = weatherData.userThreshold24h || 5;
 
             analyticsCharts.pressure = new Chart(ctx, {

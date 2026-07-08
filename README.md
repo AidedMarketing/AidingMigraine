@@ -7,15 +7,24 @@ A Progressive Web App for tracking migraines, identifying patterns, and improvin
 [![PWA](https://img.shields.io/badge/PWA-enabled-blueviolet)](https://web.dev/progressive-web-apps/)
 [![Privacy First](https://img.shields.io/badge/Privacy-First-green)](./help/privacy.html)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-4.0.0-blue)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-4.1.0-blue)](./CHANGELOG.md)
 
 [Live Demo](https://aidedmarketing.github.io/AidingMigraine/) | [Documentation](https://aidedmarketing.github.io/AidingMigraine/help/) | [Report Bug](https://github.com/AidedMarketing/AidingMigraine/issues) | [Changelog](./CHANGELOG.md)
 
 ---
 
-## 🆕 What's New in v4.0.0
+## 🆕 What's New in v4.1.0
 
-### Complete UI Redesign - Migraine-Friendly Interface
+### Critical Fixes & Honesty Pass
+
+**A focused reliability release** (see the [Changelog](./CHANGELOG.md) for the full list):
+- Fixed data-integrity bugs where deleted episodes could reappear and 0-pain entries were dropped
+- Closed backend security holes (push-endpoint SSRF, unauthenticated test relay) and hardened rate limiting
+- Removed two broken features that shipped non-functional: background sync and voice logging
+- Corrected privacy copy to accurately describe the optional weather and notification network calls
+- Clinical medication-overuse thresholds and a baseline-relative weather correlation
+
+### Previous: Complete UI Redesign - Migraine-Friendly Interface
 
 **A complete visual overhaul designed specifically for people experiencing migraines:**
 
@@ -32,10 +41,9 @@ A Progressive Web App for tracking migraines, identifying patterns, and improvin
 **Phase 2: Enhanced Data Management (v3.1.0)**
 - IndexedDB Storage for unlimited history
 - Storage quota management and auto-archive
-- Background sync for offline changes
 
 **Phase 1: Advanced PWA Features (v3.0.0)**
-- Screen wake lock, voice logging, biometric auth
+- Screen wake lock, biometric screen lock
 - Auto-lock, offline indicators, custom install prompt
 
 📖 **[Full Changelog](./CHANGELOG.md)** | **[Phase 1 Documentation](./PHASE_1_FEATURES.md)**
@@ -68,23 +76,25 @@ A Progressive Web App for tracking migraines, identifying patterns, and improvin
 - 📊 **Medication analytics** - See which treatments work best
 - 🧪 **Custom medications** - Track any treatment not in the library
 
-### Machine Learning & Personalization (NEW in v2.0)
-- 🧠 **Personal threshold learning** - App learns YOUR specific triggers
+### Personalized Weather Insights
+- 🧠 **Personal threshold detection** - Estimates the pressure changes that tend to precede *your* migraines
 - 📈 **Adaptive sensitivity detection** - Discovers if you react to pressure drops, rises, or both
-- 🎯 **Individual risk profiles** - Personalized warnings based on your history
-- 📊 **Confidence scoring** - See how reliable predictions are (requires 5+ tracked migraines)
-- ⚡ **Smart pattern detection** - Identifies your unique migraine patterns
+- 🎯 **Individual risk profiles** - Warnings based on your own history
+- 📊 **Skill-gated predictions** - An on-device logistic model that only activates when it beats a naive baseline on your data (needs enough tracked migraines)
+- ⚡ **Pattern detection** - Surfaces your recurring migraine patterns
+
+> Note: these run entirely on your device using statistical heuristics and a small logistic-regression model — not a large-scale "AI" service.
 
 ### Weather Tracking
 - 🌦️ **Barometric pressure correlation** (2-level tracking: 24h & 6h changes)
-- 📍 **ZIP code-based weather data** (automatic weather API integration)
-- 📊 **Automatic weather pattern analysis** with ML-powered insights
+- 📍 **Location-based weather data** (enter a ZIP/city, or optionally use one-time GPS; via Open-Meteo + Nominatim)
+- 📊 **Automatic weather pattern analysis** (baseline-relative correlation)
 - 🎯 **Personalized weather triggers** - Learns which conditions affect YOU
 - 🌡️ **Absolute pressure monitoring** - Low pressure storm system warnings
 - 📉 **Direction sensitivity** - Tracks if you're sensitive to drops, rises, or both
 
 ### Privacy First
-- 🔒 **All data stays on YOUR device** (local storage only)
+- 🔒 **Your migraine data stays on YOUR device** (local storage only; never transmitted). Two optional, off-by-default features use the network: notifications (push subscription + schedule to the notification server) and weather (location to Open-Meteo/Nominatim).
 - 🚫 **No tracking, no ads, no data collection**
 - ✅ **Works completely offline**
 - 💪 **No account required**
@@ -162,7 +172,7 @@ Existing apps often:
 - ❌ Cost money or have paywalls
 
 **Aiding Migraine is different:**
-- ✅ Completely private (data never leaves your device)
+- ✅ Private by default (your migraine data never leaves your device; optional weather/notifications send only the minimum required)
 - ✅ Simple, migraine-friendly design
 - ✅ Clinically relevant analytics (based on ICHD-3 criteria)
 - ✅ Free and open source
@@ -177,7 +187,7 @@ Existing apps often:
 - Progressive Web App (PWA) standards
 - Service Workers (offline support + update management)
 - Web Push API (notifications via VAPID protocol)
-- LocalStorage (data persistence, fully encrypted in browser)
+- IndexedDB + LocalStorage (on-device persistence; note: browser storage is not encrypted at rest)
 - Chart.js 4.4.1 (analytics visualizations)
 - DOMPurify 3.0.6 (XSS protection)
 
@@ -256,11 +266,11 @@ Existing apps often:
 - ❌ **No personal information** (name, email, etc.)
 - ❌ **No tracking or analytics**
 - ❌ **No advertising IDs**
-- ❌ **No location data** (beyond ZIP/postal code for weather)
+- ❌ **No location data on our servers** (if you enable weather, your location — the ZIP/city you enter, or optional one-time GPS — is sent to Open-Meteo and Nominatim to fetch weather, but never stored on our servers)
 
 ### Your Rights
 - **Access:** Your data is on your device, accessible anytime
-- **Export:** PDF export available in Settings
+- **Export:** PDF, CSV, and JSON export available in Settings
 - **Delete:** Clear all data anytime in Settings
 - **Portability:** Export JSON backup for data migration
 
@@ -288,30 +298,30 @@ See [Contributing Guidelines](#contributing) below
 
 ## 🚧 Roadmap
 
-**Current (v4.0.0):**
+**Shipped (through v4.1.0):**
 - ✅ **Migraine-friendly UI redesign** (warm themes, minimal icons, reduced clutter)
 - ✅ Core tracking and calendar
-- ✅ Analytics dashboard with 4 charts
+- ✅ Analytics dashboard with charts
 - ✅ Notification system (timezone-aware)
-- ✅ PDF export with clinical interpretations
+- ✅ PDF, CSV, and JSON export
 - ✅ Seamless update system
 - ✅ **3 theme options** (Warm Dark, Warm Light, High Contrast)
-- ✅ **Weather tracking** with barometric pressure correlation
+- ✅ **Weather tracking** with baseline-relative pressure correlation
 - ✅ **Active attack check-in notifications**
 - ✅ **Motion sensitivity accessibility support**
-- ✅ **Medication tracking** with effectiveness analysis
-- ✅ **Machine learning & personalization** (personal thresholds, direction sensitivity)
+- ✅ **Medication tracking** with effectiveness analysis and clinical MOH detection
+- ✅ **Personalized weather insights** (personal thresholds, direction sensitivity, skill-gated on-device model)
 - ✅ **Entry editing** (modify past entries)
 - ✅ **CSV import/export** for data portability
-- ✅ **Enterprise-grade security** (XSS protection, rate limiting, authentication)
+- ✅ **Security hardening** (XSS protection, rate limiting, authenticated admin endpoints)
 - ✅ **IndexedDB storage** (unlimited history)
-- ✅ **Advanced PWA features** (wake lock, voice logging, biometric auth)
+- ✅ **PWA features** (wake lock, biometric screen lock)
 
-**Coming Soon (v4.1.0):**
-- 🔄 **Cloud sync via Google Drive** (optional, privacy-preserving)
-- 📊 **Enhanced medication analytics** with comparative effectiveness charts
-- 🎯 **Multi-trigger correlation** (weather + medication + lifestyle)
-- 🔔 **Smart notification timing** based on your migraine patterns
+**Coming Soon:**
+- 🩺 **Structured symptom & aura tracking** (nausea, photophobia, phonophobia)
+- 🎯 **Trigger tracking UI** (food, sleep, stress, screens) with correlation
+- 📋 **MIDAS / HIT-6 disability scores** in the doctor report
+- ⚡ **One-tap "attack mode" logging** for faster capture
 
 **Long-term:**
 - Multi-device sync (encrypted peer-to-peer)
@@ -378,7 +388,7 @@ npm start
 
 ```
 AidingMigraine/
-├── index.html                      # Main PWA application (~8,500 lines)
+├── index.html                      # Main PWA application (~12,600 lines)
 ├── service-worker.js               # Service worker (offline + notifications + URL validation)
 ├── manifest.json                   # PWA manifest (app metadata, icons, shortcuts)
 ├── .gitignore                      # Prevents secrets from being committed

@@ -2,6 +2,13 @@
 
 Comprehensive documentation for Phase 1 features added in version 3.0.0.
 
+> **⚠️ Updated in v4.1.0 — this document is partly historical.**
+> - **Voice Logging (Web Speech API) was removed** in v4.1.0 (it shipped non-functional — it called functions that never existed). Ignore the Voice Logging sections below; a properly built version may return later.
+> - **Background Sync was removed** in v4.1.0 (the stub discarded queued data without sending it anywhere).
+> - **Biometric Authentication is a screen lock, not data protection.** It hides the UI behind a biometric prompt but does **not** encrypt stored data, and it can be bypassed by clearing a storage flag. Treat the "secure your health data" framing below as inaccurate.
+> - The pain scale is **0–10** (0 = "No pain"), not 1–10.
+> See `CHANGELOG.md` (4.1.0) for details.
+
 ---
 
 ## Table of Contents
