@@ -19,8 +19,12 @@ Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,R
 ```
 
 ### Field Definitions
-1. **Date** - ISO date (YYYY-MM-DD)
-2. **Start Time** - 24-hour format (HH:MM)
+1. **Date** - Local calendar date (YYYY-MM-DD). Since v4.1.0 both Date and the
+   time columns use the device's local timezone; the importer parses them as
+   local, so round-trips preserve timestamps. (Exports created before v4.1.0
+   wrote the UTC date with local times, which could shift episodes near
+   midnight by one day on import.)
+2. **Start Time** - 24-hour format (HH:MM), local time
 3. **End Time** - 24-hour format (HH:MM) or empty if active
 4. **Duration (hours)** - Decimal hours (e.g., 4.25 = 4h 15m) or empty if active
 5. **Pain Level** - 0-10 integer

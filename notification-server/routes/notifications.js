@@ -10,13 +10,14 @@ const {
     cancelActiveCheckin
 } = require('../database');
 const { sendWebPushNotification } = require('../push-notifications');
-const { validateEndpoint } = require('../middleware/auth');
+const { requireAdminAuth, validateEndpoint } = require('../middleware/auth');
+const { strictLimiter } = require('../middleware/rate-limit');
 
 /**
  * POST /api/notifications/schedule-followup
  * Schedule a post-attack follow-up notification
  */
-router.post('/schedule-followup', validateEndpoint, async (req, res) => {
+router.post('/schedule-followup', strictLimiter, validateEndpoint, async (req, res) => {
     try {
         const { attackId, followUpTime, subscriptionEndpoint } = req.body;
 
@@ -34,7 +35,7 @@ router.post('/schedule-followup', validateEndpoint, async (req, res) => {
             sent: false
         };
 
-        const result = addScheduledFollowup(followup);
+        const result = await addScheduledFollowup(followup);
 
         res.status(201).json({
             success: true,
@@ -52,9 +53,9 @@ router.post('/schedule-followup', validateEndpoint, async (req, res) => {
 
 /**
  * POST /api/notifications/send-test
- * Send a test notification (for debugging)
+ * Send a test notification (admin only - for debugging)
  */
-router.post('/send-test', async (req, res) => {
+router.post('/send-test', strictLimiter, requireAdminAuth, validateEndpoint, async (req, res) => {
     try {
         const { subscription } = req.body;
 
@@ -100,7 +101,7 @@ router.post('/send-test', async (req, res) => {
  * POST /api/notifications/schedule-active-checkin
  * Schedule an active attack check-in notification
  */
-router.post('/schedule-active-checkin', validateEndpoint, async (req, res) => {
+router.post('/schedule-active-checkin', strictLimiter, validateEndpoint, async (req, res) => {
     try {
         const { attackId, checkInTime, subscriptionEndpoint } = req.body;
 
@@ -118,7 +119,7 @@ router.post('/schedule-active-checkin', validateEndpoint, async (req, res) => {
             sent: false
         };
 
-        const result = addScheduledActiveCheckin(checkin);
+        const result = await addScheduledActiveCheckin(checkin);
 
         res.status(201).json({
             success: true,
@@ -138,7 +139,7 @@ router.post('/schedule-active-checkin', validateEndpoint, async (req, res) => {
  * POST /api/notifications/cancel-active-checkin
  * Cancel an active attack check-in notification
  */
-router.post('/cancel-active-checkin', validateEndpoint, async (req, res) => {
+router.post('/cancel-active-checkin', strictLimiter, validateEndpoint, async (req, res) => {
     try {
         const { attackId, subscriptionEndpoint } = req.body;
 
@@ -148,7 +149,7 @@ router.post('/cancel-active-checkin', validateEndpoint, async (req, res) => {
             });
         }
 
-        const canceled = cancelActiveCheckin(attackId);
+        const canceled = await cancelActiveCheckin(attackId);
 
         if (canceled) {
             res.json({

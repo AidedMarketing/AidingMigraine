@@ -5,6 +5,39 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-07-07
+
+### Sprint: Critical Fixes (see SPRINT_PLAN.md for the full audit)
+
+#### Fixed — Data Integrity
+- **Deleted data no longer resurrects**: hard deletes (permanent delete, empty trash, purge, Clear All Data) now actually remove records from IndexedDB; previously every deleted episode returned on reload
+- **Pain level 0 is preserved**: 0-pain active episodes were wiped on reload and rejected on re-import
+- **CSV round-trips preserve timestamps**: the export mixed the UTC date with local times, shifting episodes by a day on re-import for most timezones
+- **Archive Old Data works**: it compared against a field that never existed and had never archived anything; archived entries are hidden from views but included in JSON exports
+- **Migraine-day counts fixed** for entries with a duration but no end time (seconds were treated as minutes, inflating spans 60x)
+- Auto-lock delay setting no longer throws; weather settings migration persists instead of re-running every launch; JSON exports stamp the real app version
+
+#### Fixed — Security
+- Untracked 97 leftover `git filter-repo` artifact files
+- Push endpoint allowlist now runs on `/subscribe` (was silently skipped — SSRF vector); `send-test` requires the admin API key; rate limiting works behind Render's proxy and sensitive endpoints use the strict limiter
+- DOMPurify no longer allowlists `onclick`/`onchange`; all modal content is sanitized; converted the riskiest inline-handler generators to delegated listeners; CSV exports neutralize spreadsheet formula injection
+- Notification server: scheduler survives malformed records; JSON writes are awaited, serialized, and atomic
+
+#### Fixed — Analytics honesty
+- Medication-overuse warnings follow clinical (ICHD-3) class-specific thresholds (10 days for triptans/combinations/opioids, 15 for simple analgesics)
+- Weather correlation is compared against your baseline migraine rate (relative risk) instead of a raw conditional probability
+- "All Time" range spans from your first entry, not 1970; 24h pressure change is marked unknown after tracking gaps; risk-model features are normalized and the model only enables with real predictive skill
+
+#### Removed
+- **Background sync stub**: logged "synced" then deleted queued data without sending it anywhere
+- **Voice logging**: called functions that didn't exist and threw on every command (a rebuilt version is in the backlog)
+- Write-only `scheduledNotifications` local storage that grew without bound
+
+#### Changed
+- Privacy copy now accurately describes the two opt-in network features (weather → Open-Meteo/Nominatim; notifications → project server) instead of claiming nothing ever leaves the device
+- Biometric lock is described as a screen lock (it does not encrypt stored data)
+- PDF doctor report: long notes paginate correctly; section headers cleaned up
+
 ## [4.0.0] - 2026-02-09
 
 ### Major UI Redesign - Migraine-Friendly Interface

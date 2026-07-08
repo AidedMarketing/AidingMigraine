@@ -16,6 +16,7 @@ const {
     validateEndpoint,
     validatePreferences
 } = require('../middleware/auth');
+const { strictLimiter } = require('../middleware/rate-limit');
 
 /**
  * POST /api/subscriptions/subscribe
@@ -28,6 +29,15 @@ router.post('/subscribe', validateEndpoint, validatePreferences, async (req, res
         if (!subscription || !subscription.endpoint) {
             return res.status(400).json({
                 error: 'Invalid subscription data'
+            });
+        }
+
+        if (!subscription.keys ||
+            typeof subscription.keys.p256dh !== 'string' || !subscription.keys.p256dh ||
+            typeof subscription.keys.auth !== 'string' || !subscription.keys.auth) {
+            return res.status(400).json({
+                error: 'Invalid subscription data',
+                message: 'subscription.keys.p256dh and subscription.keys.auth are required'
             });
         }
 
@@ -47,7 +57,7 @@ router.post('/subscribe', validateEndpoint, validatePreferences, async (req, res
             }
         };
 
-        const result = addSubscription(newSubscription);
+        const result = await addSubscription(newSubscription);
 
         res.status(201).json({
             success: true,
@@ -77,7 +87,7 @@ router.post('/unsubscribe', validateEndpoint, async (req, res) => {
             });
         }
 
-        const removed = removeSubscription(endpoint);
+        const removed = await removeSubscription(endpoint);
 
         if (removed) {
             res.json({
@@ -112,7 +122,7 @@ router.post('/update-preferences', validateEndpoint, validatePreferences, async 
             });
         }
 
-        const updated = updateSubscriptionPreferences(endpoint, preferences);
+        const updated = await updateSubscriptionPreferences(endpoint, preferences);
 
         if (updated) {
             res.json({
@@ -138,7 +148,7 @@ router.post('/update-preferences', validateEndpoint, validatePreferences, async 
  * GET /api/subscriptions
  * Get all subscriptions (admin only - requires API key)
  */
-router.get('/', requireAdminAuth, async (req, res) => {
+router.get('/', strictLimiter, requireAdminAuth, async (req, res) => {
     try {
         const subscriptions = getAllSubscriptions();
         res.json({

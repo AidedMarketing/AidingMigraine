@@ -122,7 +122,7 @@ async function processScheduledFollowUps() {
 
             if (!subscription) {
                 console.log(`   Subscription not found for follow-up ${followup.id}`);
-                markFollowupAsSent(followup.id); // Mark as sent to avoid retrying
+                await markFollowupAsSent(followup.id); // Mark as sent to avoid retrying
                 failed++;
                 continue;
             }
@@ -131,7 +131,7 @@ async function processScheduledFollowUps() {
             const result = await sendWebPushNotification(subscription, payload);
 
             if (result.success) {
-                markFollowupAsSent(followup.id);
+                await markFollowupAsSent(followup.id);
                 sent++;
                 console.log(`   ✅ Follow-up sent for attack ${followup.attackId}`);
             } else {
@@ -168,7 +168,7 @@ async function processActiveCheckins() {
 
             if (!subscription) {
                 console.log(`   Subscription not found for check-in ${checkin.id}`);
-                markActiveCheckinAsSent(checkin.id); // Mark as sent to avoid retrying
+                await markActiveCheckinAsSent(checkin.id); // Mark as sent to avoid retrying
                 failed++;
                 continue;
             }
@@ -177,7 +177,7 @@ async function processActiveCheckins() {
             const result = await sendWebPushNotification(subscription, payload);
 
             if (result.success) {
-                markActiveCheckinAsSent(checkin.id);
+                await markActiveCheckinAsSent(checkin.id);
                 sent++;
                 console.log(`   ✅ Active check-in sent for attack ${checkin.attackId}`);
             } else {

@@ -86,20 +86,36 @@ async function initializeDatabase() {
     }
 }
 
-async function saveSubscriptions() {
-    await fs.writeFile(DB_PATH, JSON.stringify(subscriptions, null, 2));
+// Writes are serialized through a single chain and performed atomically
+// (temp file + rename) so concurrent requests can't interleave partial
+// writes or clobber each other's snapshots.
+let writeChain = Promise.resolve();
+
+function queueWrite(task) {
+    writeChain = writeChain.then(task, task);
+    return writeChain;
 }
 
-async function saveFollowups() {
-    await fs.writeFile(FOLLOWUPS_PATH, JSON.stringify(scheduledFollowups, null, 2));
+async function writeAtomic(filePath, data) {
+    const tmpPath = `${filePath}.tmp`;
+    await fs.writeFile(tmpPath, JSON.stringify(data, null, 2));
+    await fs.rename(tmpPath, filePath);
 }
 
-async function saveActiveCheckins() {
-    await fs.writeFile(ACTIVE_CHECKINS_PATH, JSON.stringify(scheduledActiveCheckins, null, 2));
+function saveSubscriptions() {
+    return queueWrite(() => writeAtomic(DB_PATH, subscriptions));
+}
+
+function saveFollowups() {
+    return queueWrite(() => writeAtomic(FOLLOWUPS_PATH, scheduledFollowups));
+}
+
+function saveActiveCheckins() {
+    return queueWrite(() => writeAtomic(ACTIVE_CHECKINS_PATH, scheduledActiveCheckins));
 }
 
 // Subscription management
-function addSubscription(subscription) {
+async function addSubscription(subscription) {
     // Remove existing subscription with same endpoint
     subscriptions = subscriptions.filter(s => s.endpoint !== subscription.endpoint);
     subscriptions.push({
@@ -107,23 +123,23 @@ function addSubscription(subscription) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
     });
-    saveSubscriptions();
+    await saveSubscriptions();
     return subscription;
 }
 
-function removeSubscription(endpoint) {
+async function removeSubscription(endpoint) {
     const initialLength = subscriptions.length;
     subscriptions = subscriptions.filter(s => s.endpoint !== endpoint);
-    saveSubscriptions();
+    await saveSubscriptions();
     return initialLength !== subscriptions.length;
 }
 
-function updateSubscriptionPreferences(endpoint, preferences) {
+async function updateSubscriptionPreferences(endpoint, preferences) {
     const subscription = subscriptions.find(s => s.endpoint === endpoint);
     if (subscription) {
         subscription.preferences = preferences;
         subscription.updatedAt = new Date().toISOString();
-        saveSubscriptions();
+        await saveSubscriptions();
         return subscription;
     }
     return null;
@@ -140,7 +156,8 @@ function getAllSubscriptions() {
 // Get users who should receive daily check-in at current hour
 function getSubscriptionsForDailyCheckIn(currentHour, currentDay) {
     return subscriptions.filter(sub => {
-        if (!sub.preferences || !sub.preferences.dailyCheckIn.enabled) {
+        if (!sub.preferences || !sub.preferences.dailyCheckIn ||
+            !sub.preferences.dailyCheckIn.enabled) {
             return false;
         }
 
@@ -149,10 +166,12 @@ function getSubscriptionsForDailyCheckIn(currentHour, currentDay) {
         let targetHour;
         if (sub.preferences.dailyCheckIn.utcHour !== undefined) {
             targetHour = sub.preferences.dailyCheckIn.utcHour;
-        } else {
+        } else if (typeof sub.preferences.dailyCheckIn.time === 'string') {
             // Backwards compatibility: assume time is in UTC if no utcHour field
-            const [hour, minute] = sub.preferences.dailyCheckIn.time.split(':').map(Number);
+            const [hour] = sub.preferences.dailyCheckIn.time.split(':').map(Number);
             targetHour = hour;
+        } else {
+            return false; // No usable schedule on this record
         }
 
         // Check if it's the right hour (currentHour is in UTC)
@@ -172,12 +191,12 @@ function getSubscriptionsForDailyCheckIn(currentHour, currentDay) {
 }
 
 // Scheduled follow-up management
-function addScheduledFollowup(followup) {
+async function addScheduledFollowup(followup) {
     scheduledFollowups.push({
         ...followup,
         createdAt: new Date().toISOString()
     });
-    saveFollowups();
+    await saveFollowups();
     return followup;
 }
 
@@ -189,22 +208,27 @@ function getFollowupsDueNow() {
     return dueFollowups;
 }
 
-function markFollowupAsSent(followupId) {
+async function markFollowupAsSent(followupId) {
     const followup = scheduledFollowups.find(f => f.id === followupId);
     if (followup) {
         followup.sent = true;
         followup.sentAt = new Date().toISOString();
-        saveFollowups();
+        await saveFollowups();
     }
 }
 
 // Active attack check-in management
-function addScheduledActiveCheckin(checkin) {
+async function addScheduledActiveCheckin(checkin) {
+    // Replace any pending check-in for the same attack so re-scheduling
+    // can't create duplicate IDs that double-fire
+    scheduledActiveCheckins = scheduledActiveCheckins.filter(
+        c => !(c.attackId === checkin.attackId && !c.sent)
+    );
     scheduledActiveCheckins.push({
         ...checkin,
         createdAt: new Date().toISOString()
     });
-    saveActiveCheckins();
+    await saveActiveCheckins();
     return checkin;
 }
 
@@ -216,19 +240,19 @@ function getActiveCheckinsDueNow() {
     return dueCheckins;
 }
 
-function markActiveCheckinAsSent(checkinId) {
+async function markActiveCheckinAsSent(checkinId) {
     const checkin = scheduledActiveCheckins.find(c => c.id === checkinId);
     if (checkin) {
         checkin.sent = true;
         checkin.sentAt = new Date().toISOString();
-        saveActiveCheckins();
+        await saveActiveCheckins();
     }
 }
 
-function cancelActiveCheckin(attackId) {
+async function cancelActiveCheckin(attackId) {
     const initialLength = scheduledActiveCheckins.length;
     scheduledActiveCheckins = scheduledActiveCheckins.filter(c => c.attackId !== attackId);
-    saveActiveCheckins();
+    await saveActiveCheckins();
     return initialLength !== scheduledActiveCheckins.length;
 }
 
