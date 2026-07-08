@@ -2164,6 +2164,12 @@
                         <div id="active-symptom-chips" class="chip-group"></div>
                     </div>
 
+                    <!-- Triggers (adjustable during the attack) -->
+                    <div style="margin: 20px 0; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                        <div style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">Possible Triggers</div>
+                        <div id="active-trigger-chips" class="chip-group"></div>
+                    </div>
+
                     <!-- Add Relief Method Section -->
                     <div id="add-relief-section" style="margin: 20px 0;">
                         <button id="add-relief-btn" class="btn btn-secondary" style="width: 100%; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -2320,6 +2326,11 @@
                             <div class="form-group">
                                 <label>Symptoms (optional)</label>
                                 <div id="log-symptom-chips" class="chip-group"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Possible Triggers (optional)</label>
+                                <div id="log-trigger-chips" class="chip-group"></div>
                             </div>
 
                             <div class="form-group">
@@ -4400,6 +4411,8 @@
             renderMedicationsList(); // Initialize empty medication list
             renderSymptomChips('log-symptom-chips', selectedSymptoms);
             bindSymptomChips('log-symptom-chips', selectedSymptoms);
+            renderTriggerChips('log-trigger-chips', selectedTriggers);
+            bindTriggerChips('log-trigger-chips', selectedTriggers);
         }
 
         function logEpisode() {
@@ -4460,7 +4473,8 @@
                     : null,
                 weather: getCurrentWeatherForEntry(),
                 category: getPainCategory(selectedPain),
-                symptoms: Array.from(selectedSymptoms)
+                symptoms: Array.from(selectedSymptoms),
+                triggers: Array.from(selectedTriggers)
             };
 
             activeMigraine = migraine;
@@ -4494,6 +4508,8 @@
             renderMedicationsList();
             selectedSymptoms.clear();
             renderSymptomChips('log-symptom-chips', selectedSymptoms);
+            selectedTriggers.clear();
+            renderTriggerChips('log-trigger-chips', selectedTriggers);
         }
 
         function updateActivePain() {
@@ -4627,6 +4643,7 @@
             updateDuration();
             updateReliefTimeline();
             updateActiveSymptomChips();
+            updateActiveTriggerChips();
         }
 
         // Symptom chips on the active-episode card write straight to the
@@ -4648,6 +4665,30 @@
                     const isOn = !set.has(key);
                     if (isOn) set.add(key); else set.delete(key);
                     activeMigraine.symptoms = Array.from(set);
+                    chip.classList.toggle('selected', isOn);
+                    chip.setAttribute('aria-pressed', String(isOn));
+                    saveData();
+                });
+                container.dataset.delegated = '1';
+            }
+        }
+
+        // Trigger chips on the active-episode card (same live-binding pattern)
+        function updateActiveTriggerChips() {
+            if (!activeMigraine) return;
+            if (!Array.isArray(activeMigraine.triggers)) activeMigraine.triggers = [];
+            renderTriggerChips('active-trigger-chips', new Set(activeMigraine.triggers));
+            const container = document.getElementById('active-trigger-chips');
+            if (container && !container.dataset.delegated) {
+                container.addEventListener('click', (e) => {
+                    const chip = e.target.closest('[data-chip-key]');
+                    if (!chip || !activeMigraine) return;
+                    const key = chip.dataset.chipKey;
+                    if (!TRIGGER_KEYS.has(key)) return;
+                    const set = new Set(activeMigraine.triggers);
+                    const isOn = !set.has(key);
+                    if (isOn) set.add(key); else set.delete(key);
+                    activeMigraine.triggers = Array.from(set);
                     chip.classList.toggle('selected', isOn);
                     chip.setAttribute('aria-pressed', String(isOn));
                     saveData();
