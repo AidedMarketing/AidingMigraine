@@ -2595,6 +2595,11 @@
                 <h2>Common Symptoms</h2>
                 <div id="symptom-analytics-content"></div>
             </div>
+
+            <div id="trigger-analytics-card" class="section-card" style="display: none;">
+                <h2>Common Triggers</h2>
+                <div id="trigger-analytics-content"></div>
+            </div>
         </div>
 
         <div id="care-page" class="page">
@@ -4811,6 +4816,11 @@
                         <div id="edit-attack-symptom-chips" class="chip-group"></div>
                     </div>
 
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Possible Triggers</label>
+                        <div id="edit-attack-trigger-chips" class="chip-group"></div>
+                    </div>
+
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green); font-size: 0.9rem; color: var(--text-secondary);">
                         Weather data and attack ID will be preserved
                     </div>
@@ -4825,11 +4835,15 @@
             document.getElementById('modal-title').textContent = 'Edit Migraine Episode';
             modal.classList.add('active');
 
-            // Symptoms chips (fresh modal body each open, so bind fresh)
+            // Symptom + trigger chips (fresh modal body each open, so bind fresh)
             tempEditSymptoms = new Set(Array.isArray(attack.symptoms)
                 ? attack.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : []);
             renderSymptomChips('edit-attack-symptom-chips', tempEditSymptoms);
             bindSymptomChips('edit-attack-symptom-chips', tempEditSymptoms);
+            tempEditTriggers = new Set(Array.isArray(attack.triggers)
+                ? attack.triggers.filter(k => TRIGGER_KEYS.has(k)) : []);
+            renderTriggerChips('edit-attack-trigger-chips', tempEditTriggers);
+            bindTriggerChips('edit-attack-trigger-chips', tempEditTriggers);
 
             // Pain level selection
             body.querySelectorAll('.pain-btn').forEach(btn => {
@@ -4904,6 +4918,7 @@
                 medication: medication || null,
                 notes: notes,
                 symptoms: Array.from(tempEditSymptoms),
+                triggers: Array.from(tempEditTriggers),
                 lastModified: new Date().toISOString(),
                 editCount: (originalAttack.editCount || 0) + 1
             };
@@ -5230,6 +5245,7 @@
                             </div>
                         </div>
                         ${symptomLabels(m.symptoms).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Symptoms:</strong> ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
+                        ${triggerLabels(m.triggers).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Triggers:</strong> ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">${safeText(m.notes)}</p>` : ''}
                         <div class="history-actions">
                             <button class="btn btn-secondary" data-action="view" data-id="${safeText(String(m.id))}">View Details</button>
@@ -5273,6 +5289,15 @@
                 content += `</ul>`;
             }
 
+            const viewTriggers = triggerLabels(migraine.triggers);
+            if (viewTriggers.length > 0) {
+                content += `<h3>Possible Triggers</h3><ul>`;
+                viewTriggers.forEach(label => {
+                    content += `<li>${safeText(label)}</li>`;
+                });
+                content += `</ul>`;
+            }
+
             if (migraine.reliefMethods && migraine.reliefMethods.length > 0) {
                 content += `<h3>Relief Methods</h3><ul>`;
                 migraine.reliefMethods.forEach(r => {
@@ -5296,6 +5321,7 @@
         let tempReliefMethods = [];
         // Symptoms being edited (rebuilt each time an edit modal opens)
         let tempEditSymptoms = new Set();
+        let tempEditTriggers = new Set();
 
         function editEpisode(id) {
             const migraine = migraines.find(m => m.id === id);
@@ -5305,6 +5331,8 @@
             tempReliefMethods = migraine.reliefMethods ? [...migraine.reliefMethods] : [];
             tempEditSymptoms = new Set(Array.isArray(migraine.symptoms)
                 ? migraine.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : []);
+            tempEditTriggers = new Set(Array.isArray(migraine.triggers)
+                ? migraine.triggers.filter(k => TRIGGER_KEYS.has(k)) : []);
 
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
@@ -5337,6 +5365,10 @@
                     <div id="edit-symptom-chips" class="chip-group"></div>
                 </div>
                 <div class="form-group">
+                    <label>Possible Triggers</label>
+                    <div id="edit-trigger-chips" class="chip-group"></div>
+                </div>
+                <div class="form-group">
                     <label>Relief Methods</label>
                     <div id="edit-relief-methods-list" style="margin-bottom: 12px;"></div>
                     <div style="display: flex; gap: 8px;">
@@ -5360,6 +5392,8 @@
             // Render symptom chips and relief methods list
             renderSymptomChips('edit-symptom-chips', tempEditSymptoms);
             bindSymptomChips('edit-symptom-chips', tempEditSymptoms);
+            renderTriggerChips('edit-trigger-chips', tempEditTriggers);
+            bindTriggerChips('edit-trigger-chips', tempEditTriggers);
             renderEditReliefMethods();
 
             // Allow Enter key to add relief method
@@ -5453,6 +5487,7 @@
             migraine.endNotes = endNotes || null;
             migraine.reliefMethods = tempReliefMethods.length > 0 ? tempReliefMethods : null;
             migraine.symptoms = Array.from(tempEditSymptoms);
+            migraine.triggers = Array.from(tempEditTriggers);
 
             saveData();
             renderHistory();
@@ -6089,6 +6124,7 @@
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
+                        ${triggerLabels(m.triggers).length > 0 ? `<p>Triggers: ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="margin-top: 8px;">Notes: ${safeText(m.notes)}</p>` : ''}
                         ${m.endNotes ? `<p style="margin-top: 8px;">Resolution: ${safeText(m.endNotes)}</p>` : ''}
                     </div>
@@ -6107,6 +6143,7 @@
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
+                        ${triggerLabels(m.triggers).length > 0 ? `<p>Triggers: ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="margin-top: 8px;">Notes: ${safeText(m.notes)}</p>` : ''}
                         ${m.endNotes ? `<p style="margin-top: 8px;">Resolution: ${safeText(m.endNotes)}</p>` : ''}
                     </div>
@@ -6541,7 +6578,7 @@ Browser: ${navigator.userAgent}
 
         function sanitizeEpisode(episode) {
             // Sanitize text fields to prevent XSS
-            const textFields = ['notes', 'medication', 'endNotes', 'triggers'];
+            const textFields = ['notes', 'medication', 'endNotes'];
 
             textFields.forEach(field => {
                 if (episode[field]) {
@@ -6549,11 +6586,16 @@ Browser: ${navigator.userAgent}
                 }
             });
 
-            // Symptoms is a controlled key list: keep only known keys.
-            // This both validates and neutralizes any injected content.
+            // Symptoms and triggers are controlled key lists: keep only known
+            // keys. This both validates and neutralizes any injected content.
             if (episode.symptoms !== undefined) {
                 episode.symptoms = Array.isArray(episode.symptoms)
                     ? episode.symptoms.filter(k => typeof k === 'string' && SYMPTOM_KEYS.has(k))
+                    : [];
+            }
+            if (episode.triggers !== undefined) {
+                episode.triggers = Array.isArray(episode.triggers)
+                    ? episode.triggers.filter(k => typeof k === 'string' && TRIGGER_KEYS.has(k))
                     : [];
             }
 
@@ -11035,21 +11077,22 @@ Browser: ${navigator.userAgent}
             // Render medication analytics if any medication data exists
             renderMedicationAnalytics(filteredData);
 
-            // Render symptom frequency breakdown
+            // Render symptom and trigger frequency breakdowns
             renderSymptomAnalytics(filteredData);
+            renderTriggerAnalytics(filteredData);
         }
 
-        function renderSymptomAnalytics(data) {
-            const card = document.getElementById('symptom-analytics-card');
-            const content = document.getElementById('symptom-analytics-content');
+        // Ranked frequency breakdown of a controlled option list across episodes.
+        function renderOptionAnalytics(cardId, contentId, data, field, keySet, labelMap, noun) {
+            const card = document.getElementById(cardId);
+            const content = document.getElementById(contentId);
             if (!card || !content) return;
 
-            // Tally symptom keys across episodes
             const counts = {};
-            let episodesWithSymptoms = 0;
+            let episodesWith = 0;
             data.forEach(m => {
-                const keys = Array.isArray(m.symptoms) ? m.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : [];
-                if (keys.length > 0) episodesWithSymptoms++;
+                const keys = Array.isArray(m[field]) ? m[field].filter(k => keySet.has(k)) : [];
+                if (keys.length > 0) episodesWith++;
                 keys.forEach(k => { counts[k] = (counts[k] || 0) + 1; });
             });
 
@@ -11068,7 +11111,7 @@ Browser: ${navigator.userAgent}
                 return `
                     <div style="margin-bottom: 10px;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px;">
-                            <span>${safeText(SYMPTOM_LABELS[key])}</span>
+                            <span>${safeText(labelMap[key])}</span>
                             <span style="color: var(--text-secondary);">${count} (${pct}%)</span>
                         </div>
                         <div style="height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
@@ -11079,10 +11122,18 @@ Browser: ${navigator.userAgent}
 
             content.innerHTML = safeHTML(`
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 12px;">
-                    ${episodesWithSymptoms} of ${data.length} episodes in this range had symptoms logged.
+                    ${episodesWith} of ${data.length} episodes in this range had ${noun} logged.
                 </p>
                 ${rows}
             `);
+        }
+
+        function renderSymptomAnalytics(data) {
+            renderOptionAnalytics('symptom-analytics-card', 'symptom-analytics-content', data, 'symptoms', SYMPTOM_KEYS, SYMPTOM_LABELS, 'symptoms');
+        }
+
+        function renderTriggerAnalytics(data) {
+            renderOptionAnalytics('trigger-analytics-card', 'trigger-analytics-content', data, 'triggers', TRIGGER_KEYS, TRIGGER_LABELS, 'triggers');
         }
 
         function updateAnalyticsMetrics(data, startDate, endDate) {
