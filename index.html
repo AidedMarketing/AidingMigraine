@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.3.0 - PRODUCTION
+           AIDING MIGRAINE v4.4.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -3292,7 +3292,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.3.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.4.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3330,7 +3330,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.3.0 Production</strong>
+                            <strong>v4.4.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -6528,7 +6528,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.3.0 - Debug Information
+            const debugInfo = `Aiding Migraine v4.4.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -7726,6 +7726,28 @@ Browser: ${navigator.userAgent}
             doc.text(statusNote, 20, yPos);
             yPos += 10;
 
+            // Disability Assessments (latest MIDAS / HIT-6)
+            const latestMidas = latestAssessment('midas');
+            const latestHit6 = latestAssessment('hit6');
+            if (latestMidas || latestHit6) {
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.text('Disability Assessments', 20, yPos);
+                yPos += 6;
+                doc.setFont(undefined, 'normal');
+                if (latestMidas) {
+                    const g = midasGrade(latestMidas.score);
+                    doc.text(`MIDAS: ${latestMidas.score} (Grade ${g.grade} - ${g.label}), taken ${formatDate(new Date(latestMidas.date))}`, 20, yPos);
+                    yPos += 5;
+                }
+                if (latestHit6) {
+                    const g = hit6Grade(latestHit6.score);
+                    doc.text(`HIT-6: ${latestHit6.score} (${g.label}), taken ${formatDate(new Date(latestHit6.date))}`, 20, yPos);
+                    yPos += 5;
+                }
+                yPos += 8;
+            }
+
             // Pain Characteristics
             doc.setFontSize(10);
             doc.setFont(undefined, 'bold');
@@ -8015,7 +8037,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.3.0</strong></p>
+                <p><strong>Aiding Migraine v4.4.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
