@@ -1,15 +1,18 @@
-# Machine Learning & Personal Profiling Features
-## State-of-the-Art Atmospheric Pressure Monitoring
+# Weather Personalization & On-Device Risk Modeling
+## Atmospheric Pressure Monitoring
 
-**Date:** 2026-01-20
+**Date:** 2026-01-20 (updated 2026-07-07 for v4.1.0)
 **Version:** 3.0
-**Status:** Production Ready
+
+---
+
+> **Scope note (v4.1.0):** This system is a set of **statistical heuristics** (personal percentile thresholds, direction/absolute-pressure sensitivity) plus a **small logistic-regression model** — all running on-device. It is not "state-of-the-art" or large-scale machine learning, and earlier "AI/ML-powered" framing overstated it. In v4.1.0 the model's features are z-score **normalized** (so absolute pressure no longer dominates) and it only **activates when it demonstrates real skill over a naive baseline** (balanced accuracy above chance with enough migraine days); otherwise predictions stay off. The weather correlation shown to users is a **baseline-relative** measure, not a raw coincidence rate.
 
 ---
 
 ## Overview
 
-This document describes the comprehensive machine learning and personal profiling system added to the atmospheric pressure monitoring feature. These enhancements transform the app from a standard weather tracker into a sophisticated, personalized migraine prediction system.
+This document describes the personal weather-profiling system layered on top of atmospheric pressure monitoring. It personalizes pressure-sensitivity estimates and, when it can demonstrate predictive skill on your own data, surfaces a migraine-risk estimate.
 
 ---
 

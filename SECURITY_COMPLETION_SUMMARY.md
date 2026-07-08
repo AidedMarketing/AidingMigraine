@@ -5,6 +5,10 @@
 
 ---
 
+> **Addendum (v4.1.0, 2026-07-07):** The "0 critical vulnerabilities" conclusion below was premature. A later review found and fixed several genuine issues that predated this summary: an SSRF-able push `/subscribe` endpoint (the allowlist read the wrong field and was skipped), an unauthenticated `send-test` push relay, `onclick`/`onchange` allowlisted through DOMPurify, rate limiting broken behind the Render proxy, non-atomic notification-server JSON writes, and 97 leftover `.git-rewrite` filter-repo artifacts still tracked. All are remediated in v4.1.0 — see `CHANGELOG.md` "Fixed — Security". Any innerHTML/inline-handler counts below are also pre-v4.1.0 (modal content is now sanitized).
+
+---
+
 ## 🎯 Mission Accomplished
 
 Successfully addressed **20 out of 26 vulnerabilities** (77%) found in the comprehensive security audit, including **ALL CRITICAL vulnerabilities** that could be fixed automatically.

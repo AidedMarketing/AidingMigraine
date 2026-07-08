@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.0.0 - PRODUCTION
+           AIDING MIGRAINE v4.1.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -3119,7 +3119,7 @@
             <div class="section-card">
                 <h2>Advanced Storage</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
-                    IndexedDB storage for unlimited migraine history • Background sync when offline
+                    IndexedDB storage for unlimited migraine history • Works fully offline
                 </p>
 
                 <!-- Storage Quota -->
@@ -3212,7 +3212,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.0.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.1.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3250,7 +3250,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.0.0 Production</strong>
+                            <strong>v4.1.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -6039,7 +6039,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.0.0 - Debug Information
+            const debugInfo = `Aiding Migraine v4.1.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -6360,7 +6360,7 @@ Browser: ${navigator.userAgent}
                 // Validate specific fields
                 if (episode.painLevel !== undefined) {
                     if (typeof episode.painLevel !== 'number' || episode.painLevel < 0 || episode.painLevel > 10) {
-                        errors.push(`Episode ${index + 1}: Pain level must be between 1-10`);
+                        errors.push(`Episode ${index + 1}: Pain level must be between 0-10`);
                     }
                 }
 
@@ -7395,7 +7395,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.0.0</strong></p>
+                <p><strong>Aiding Migraine v4.1.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -8064,7 +8064,7 @@ Browser: ${navigator.userAgent}
                     // Server not configured yet - use local notifications only
                     notificationPreferences.enabled = true;
                     localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
-                    alert('Success: Notifications enabled (local only)!\n\nTo enable server push notifications, configure Firebase and VAPID keys.\nSee NOTIFICATIONS_SETUP.md for details.');
+                    alert('Success: Notifications enabled (local only)!\n\nTo enable server push notifications, configure VAPID keys.\nSee NOTIFICATIONS_SETUP.md for details.');
                     updateNotificationUI();
                     return;
                 }

@@ -4,20 +4,20 @@
 
 Aiding Migraine is a **privacy-first, offline-first Progressive Web App (PWA)** for migraine tracking and management. Users log migraines, track patterns, view analytics, manage medications, and export data for healthcare providers. All user data is stored locally on the device (IndexedDB/localStorage). An optional Node.js/Express notification server handles push notifications.
 
-- **Version:** 4.0.0
+- **Version:** 4.1.0
 - **License:** MIT
 - **Repository:** https://github.com/AidedMarketing/AidingMigraine
 
 ## Architecture
 
 ### Frontend (Vanilla JS PWA)
-- **Single-file app:** `index.html` (~8,500+ lines) contains all HTML, CSS, and JavaScript inline
+- **Single-file app:** `index.html` (~12,600 lines) contains all HTML, CSS, and JavaScript inline
 - **No build step:** Served as static files — no bundler, transpiler, or framework
-- **Service worker:** `service-worker.js` handles offline caching, push notifications, and background sync
+- **Service worker:** `service-worker.js` handles offline caching and push notifications
 - **PWA manifest:** `manifest.json` defines installable app metadata
 - **External dependencies (CDN only):**
   - DOMPurify 3.0.6 (XSS protection, loaded with SRI integrity)
-  - Chart.js 4.4.1 (analytics visualization, lazy-loaded)
+  - Chart.js 4.4.1 and jsPDF (analytics + PDF export; currently loaded eagerly in `<head>` — lazy-loading is a planned optimization)
 
 ### Backend (Optional Notification Server)
 - Located in `notification-server/`
@@ -31,7 +31,7 @@ Aiding Migraine is a **privacy-first, offline-first Progressive Web App (PWA)** 
 ```
 AidingMigraine/
 ├── index.html                  # Main application (HTML + CSS + JS)
-├── service-worker.js           # Offline caching, push notifications, background sync
+├── service-worker.js           # Offline caching, push notifications
 ├── manifest.json               # PWA configuration
 ├── package.json                # Root package (test scripts only, no deps)
 ├── icons/                      # PWA icons (16px–512px, maskable variants)
@@ -139,7 +139,7 @@ These are enforced by `scripts/validate-security.js` and CI:
 ## Data Storage
 
 ### Frontend (Browser)
-- **IndexedDB:** Primary store for migraine entries, medications, sync queue
+- **IndexedDB:** Primary store for migraine entries, medications, settings, weather history
 - **localStorage:** Settings, preferences, backward-compatible backup
 
 ### Backend (Notification Server)
@@ -153,7 +153,7 @@ These are enforced by `scripts/validate-security.js` and CI:
 | File | Purpose |
 |------|---------|
 | `index.html` | Entire frontend app (HTML + CSS + JS) |
-| `service-worker.js` | Offline caching, push handling, background sync |
+| `service-worker.js` | Offline caching, push handling |
 | `manifest.json` | PWA install configuration |
 | `notification-server/index.js` | Backend server setup and middleware |
 | `notification-server/database.js` | Data persistence layer |

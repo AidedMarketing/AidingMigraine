@@ -1,5 +1,7 @@
 # Enhanced Medication Tracking Feature Specification
 
+> **v4.1.0 update — MOH thresholds are class-specific.** Any "more than 10 days/month for all medications" wording in this spec is superseded. Medication-overuse-headache risk now follows ICHD-3 classes: **≥10 medication-days/month** for triptans, ergots, opioids, and combination analgesics; **≥15 medication-days/month** for simple analgesics/NSAIDs (e.g. ibuprofen, acetaminophen). The implementation classifies by each medication's `category`.
+
 ## Overview
 Comprehensive medication tracking system to help users and doctors understand medication effectiveness, usage patterns, and identify potential medication overuse headaches (MOH).
 
