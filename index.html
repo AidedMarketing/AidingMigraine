@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.3.0 - PRODUCTION
+           AIDING MIGRAINE v4.4.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -2649,6 +2649,22 @@
                     </a>
                 </div>
             </div>
+
+            <div class="section-card">
+                <h2 class="mobile-section-title">Disability assessments</h2>
+                <p class="today-status-copy">Standardized questionnaires clinicians use to gauge migraine burden. Included in your doctor report.</p>
+                <div id="assessments-content" style="margin: 12px 0;"></div>
+                <div class="care-grid">
+                    <button class="settings-btn" id="take-midas-btn">
+                        <span>Take MIDAS</span>
+                        <span class="btn-subtitle">5 questions · disability over 3 months</span>
+                    </button>
+                    <button class="settings-btn" id="take-hit6-btn">
+                        <span>Take HIT-6</span>
+                        <span class="btn-subtitle">6 questions · headache impact</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div id="settings-page" class="page">
@@ -3276,7 +3292,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.3.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.4.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3314,7 +3330,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.3.0 Production</strong>
+                            <strong>v4.4.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3377,10 +3393,190 @@
     </div>
 
     <script>
-        const APP_VERSION = '4.3.0';
+        const APP_VERSION = '4.4.0';
 
         let migraines = [];
         let selectedPain = null;
+
+        // ============================================
+        // DISABILITY ASSESSMENTS (MIDAS + HIT-6)
+        // ============================================
+        // Standardized questionnaires clinicians use to gauge migraine
+        // disability. Stored locally as periodic self-assessments.
+        let assessments = [];
+
+        const MIDAS_QUESTIONS = [
+            'On how many days in the last 3 months did you MISS work or school because of your headaches?',
+            'On how many days was your productivity at work or school REDUCED BY HALF or more (do not include the days counted above)?',
+            'On how many days did you NOT DO household work because of your headaches?',
+            'On how many days was your household productivity REDUCED BY HALF or more (do not include the days counted above)?',
+            'On how many days did you MISS family, social, or leisure activities because of your headaches?'
+        ];
+
+        const HIT6_QUESTIONS = [
+            'When you have headaches, how often is the pain severe?',
+            'How often do headaches limit your ability to do usual daily activities including household work, work, school, or social activities?',
+            'When you have a headache, how often do you wish you could lie down?',
+            'In the past 4 weeks, how often have you felt too tired to do work or daily activities because of your headaches?',
+            'In the past 4 weeks, how often have you felt fed up or irritated because of your headaches?',
+            'In the past 4 weeks, how often did headaches limit your ability to concentrate on work or daily activities?'
+        ];
+        const HIT6_OPTIONS = [
+            { label: 'Never', value: 6 },
+            { label: 'Rarely', value: 8 },
+            { label: 'Sometimes', value: 10 },
+            { label: 'Very often', value: 11 },
+            { label: 'Always', value: 13 }
+        ];
+
+        function midasGrade(score) {
+            if (score <= 5) return { grade: 'I', label: 'Little or no disability' };
+            if (score <= 10) return { grade: 'II', label: 'Mild disability' };
+            if (score <= 20) return { grade: 'III', label: 'Moderate disability' };
+            return { grade: 'IV', label: 'Severe disability' };
+        }
+
+        function hit6Grade(score) {
+            if (score <= 49) return { grade: 'Little/none', label: 'Little or no impact' };
+            if (score <= 55) return { grade: 'Some', label: 'Some impact' };
+            if (score <= 59) return { grade: 'Substantial', label: 'Substantial impact' };
+            return { grade: 'Severe', label: 'Severe impact' };
+        }
+
+        function loadAssessments() {
+            const stored = localStorage.getItem('assessments');
+            if (!stored) return;
+            try {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) assessments = parsed;
+            } catch (e) {
+                console.error('[ERROR] Corrupt assessments, resetting:', e);
+                localStorage.removeItem('assessments');
+            }
+        }
+
+        function saveAssessments() {
+            localStorage.setItem('assessments', JSON.stringify(assessments));
+        }
+
+        function latestAssessment(type) {
+            return assessments
+                .filter(a => a.type === type)
+                .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+        }
+
+        // Merge imported assessments, de-duplicating by id
+        function mergeAssessments(incoming) {
+            if (!Array.isArray(incoming)) return 0;
+            const known = new Set(assessments.map(a => a.id));
+            let added = 0;
+            incoming.forEach(a => {
+                if (a && a.id && !known.has(a.id) &&
+                    (a.type === 'midas' || a.type === 'hit6') &&
+                    typeof a.score === 'number') {
+                    assessments.push(a);
+                    known.add(a.id);
+                    added++;
+                }
+            });
+            if (added > 0) saveAssessments();
+            return added;
+        }
+
+        // --- Questionnaire modals ---
+        // showModal sanitizes the body; select/option/input are allowed tags.
+        // Values are read from the DOM inside the programmatic submit action.
+
+        function openMidasModal() {
+            const rows = MIDAS_QUESTIONS.map((q, i) => `
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label for="midas-q${i}" style="display:block; margin-bottom:6px; font-size:0.9rem;">${i + 1}. ${q}</label>
+                    <input type="number" id="midas-q${i}" value="0"
+                           style="width: 100px; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary);">
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;"> days</span>
+                </div>`).join('');
+
+            showModal('MIDAS Questionnaire', `
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px;">
+                    Answer for the <strong>last 3 months</strong>. Enter a number of days (0 if none).
+                </p>
+                ${rows}
+            `, [
+                { text: 'Cancel', class: 'btn-secondary', action: closeModal },
+                { text: 'Save Score', class: 'btn-primary', action: submitMidas }
+            ]);
+        }
+
+        function submitMidas() {
+            const answers = MIDAS_QUESTIONS.map((_, i) => {
+                const v = parseInt(document.getElementById(`midas-q${i}`).value, 10);
+                return isNaN(v) || v < 0 ? 0 : Math.min(v, 365);
+            });
+            const score = answers.reduce((s, v) => s + v, 0);
+            const { grade, label } = midasGrade(score);
+            assessments.push({ id: Date.now(), type: 'midas', date: new Date().toISOString(), answers, score, grade });
+            saveAssessments();
+            closeModal();
+            renderAssessments();
+            showModal('MIDAS Result', `<p>Your MIDAS score is <strong>${score}</strong> — Grade ${grade} (${label}).</p><p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">Saved. It will be included in your doctor report.</p>`);
+        }
+
+        function openHit6Modal() {
+            const optionsHtml = HIT6_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+            const rows = HIT6_QUESTIONS.map((q, i) => `
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label for="hit6-q${i}" style="display:block; margin-bottom:6px; font-size:0.9rem;">${i + 1}. ${q}</label>
+                    <select id="hit6-q${i}" style="width: 100%; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary);">
+                        ${optionsHtml}
+                    </select>
+                </div>`).join('');
+
+            showModal('HIT-6 Questionnaire', `
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px;">
+                    Think about how you have felt over the <strong>past 4 weeks</strong>.
+                </p>
+                ${rows}
+            `, [
+                { text: 'Cancel', class: 'btn-secondary', action: closeModal },
+                { text: 'Save Score', class: 'btn-primary', action: submitHit6 }
+            ]);
+        }
+
+        function submitHit6() {
+            const valid = new Set(HIT6_OPTIONS.map(o => o.value));
+            const answers = HIT6_QUESTIONS.map((_, i) => {
+                const v = parseInt(document.getElementById(`hit6-q${i}`).value, 10);
+                return valid.has(v) ? v : 6;
+            });
+            const score = answers.reduce((s, v) => s + v, 0);
+            const { grade, label } = hit6Grade(score);
+            assessments.push({ id: Date.now(), type: 'hit6', date: new Date().toISOString(), answers, score, grade });
+            saveAssessments();
+            closeModal();
+            renderAssessments();
+            showModal('HIT-6 Result', `<p>Your HIT-6 score is <strong>${score}</strong> (${label}).</p><p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">Saved. It will be included in your doctor report.</p>`);
+        }
+
+        // Render the latest MIDAS/HIT-6 results on the Care page card
+        function renderAssessments() {
+            const content = document.getElementById('assessments-content');
+            if (!content) return;
+            const midas = latestAssessment('midas');
+            const hit6 = latestAssessment('hit6');
+            const fmt = (a, extra) => a
+                ? `<div style="font-size:0.85rem; color: var(--text-secondary); margin-top:4px;">Latest: <strong>${a.score}</strong>${extra(a)} · ${formatDate(new Date(a.date))}</div>`
+                : `<div style="font-size:0.85rem; color: var(--text-secondary); margin-top:4px;">Not taken yet</div>`;
+            content.innerHTML = safeHTML(`
+                <div style="margin-bottom: 12px;">
+                    <div style="font-weight:600;">MIDAS <span style="font-weight:400; color:var(--text-secondary); font-size:0.8rem;">— disability over 3 months</span></div>
+                    ${fmt(midas, a => ` (Grade ${safeText(a.grade)})`)}
+                </div>
+                <div>
+                    <div style="font-weight:600;">HIT-6 <span style="font-weight:400; color:var(--text-secondary); font-size:0.8rem;">— headache impact</span></div>
+                    ${fmt(hit6, a => ` (${safeText(hit6Grade(a.score).label)})`)}
+                </div>
+            `);
+        }
         let activeMigraine = null;
         let durationInterval = null;
         let currentMonth = new Date();
@@ -3610,6 +3806,7 @@
 
             updateLoadingProgress(25, 'Initializing medication library...');
             initializeMedicationLibrary();
+            loadAssessments();
 
             updateLoadingProgress(30, 'Setting up theme...');
             initializeTheme();
@@ -4302,6 +4499,9 @@
                     if (exportBtn) exportBtn.click();
                 });
             }
+
+            document.getElementById('take-midas-btn')?.addEventListener('click', openMidasModal);
+            document.getElementById('take-hit6-btn')?.addEventListener('click', openHit6Modal);
         }
 
         function showPage(pageName) {
@@ -4371,6 +4571,7 @@
                 initializeAnalytics();
             } else if (pageName === 'care') {
                 updateDashboard();
+                renderAssessments();
             }
         }
 
@@ -6327,7 +6528,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.3.0 - Debug Information
+            const debugInfo = `Aiding Migraine v4.4.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -6396,7 +6597,8 @@ Browser: ${navigator.userAgent}
                 appVersion: APP_VERSION,
                 exportDate: new Date().toISOString(),
                 totalEpisodes: exportMigraines.length,
-                migraines: exportMigraines
+                migraines: exportMigraines,
+                assessments: assessments
             };
             
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -6480,6 +6682,13 @@ Browser: ${navigator.userAgent}
 
                     if (!Array.isArray(data.migraines)) {
                         throw new Error('MIGRAINES_NOT_ARRAY');
+                    }
+
+                    // Restore any disability assessments from the backup
+                    // (independent of the migraine conflict-resolution flow)
+                    if (Array.isArray(data.assessments)) {
+                        mergeAssessments(data.assessments);
+                        renderAssessments();
                     }
 
                     if (data.migraines.length === 0) {
@@ -7517,6 +7726,28 @@ Browser: ${navigator.userAgent}
             doc.text(statusNote, 20, yPos);
             yPos += 10;
 
+            // Disability Assessments (latest MIDAS / HIT-6)
+            const latestMidas = latestAssessment('midas');
+            const latestHit6 = latestAssessment('hit6');
+            if (latestMidas || latestHit6) {
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.text('Disability Assessments', 20, yPos);
+                yPos += 6;
+                doc.setFont(undefined, 'normal');
+                if (latestMidas) {
+                    const g = midasGrade(latestMidas.score);
+                    doc.text(`MIDAS: ${latestMidas.score} (Grade ${g.grade} - ${g.label}), taken ${formatDate(new Date(latestMidas.date))}`, 20, yPos);
+                    yPos += 5;
+                }
+                if (latestHit6) {
+                    const g = hit6Grade(latestHit6.score);
+                    doc.text(`HIT-6: ${latestHit6.score} (${g.label}), taken ${formatDate(new Date(latestHit6.date))}`, 20, yPos);
+                    yPos += 5;
+                }
+                yPos += 8;
+            }
+
             // Pain Characteristics
             doc.setFontSize(10);
             doc.setFont(undefined, 'bold');
@@ -7806,7 +8037,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.3.0</strong></p>
+                <p><strong>Aiding Migraine v4.4.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>

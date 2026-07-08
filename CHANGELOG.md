@@ -5,6 +5,14 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2026-07-08
+
+### Added — MIDAS & HIT-6 Disability Assessments (P2-3)
+
+- **Take the MIDAS and HIT-6 questionnaires** in-app from a new "Disability assessments" card on the Care page. These are the standard instruments clinicians use to gauge migraine burden.
+- **MIDAS** (5 questions about days lost/limited over 3 months) produces a score and Grade I–IV; **HIT-6** (6 impact questions) produces a score and impact band.
+- The Care card shows your latest score and grade for each; results are stored locally, included in JSON backups (and restored on import), and added to the **PDF doctor report** so your clinician sees them.
+
 ## [4.3.0] - 2026-07-08
 
 ### Added — Trigger Tracking (P2-2)
