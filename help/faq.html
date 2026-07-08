@@ -20,15 +20,16 @@
             <h2>🔒 Privacy & Data</h2>
 
             <h3>Is my data private?</h3>
-            <p><strong>Yes, completely.</strong> All your migraine entries, analytics, and personal health information are stored exclusively on your device using browser local storage. This data never leaves your device and is never transmitted to our servers.</p>
+            <p><strong>Local by default.</strong> All your migraine entries, analytics, and personal health information are stored exclusively on your device using browser local storage &mdash; your migraine data itself is never transmitted anywhere. Two features are optional and off by default: if you enable them, notifications send a push subscription/timezone/schedule to our notification server, and weather tracking sends your location to Open-Meteo and Nominatim. See the <a href="privacy.html">Privacy Policy</a> for the full details.</p>
 
             <h3>Where is my data stored?</h3>
-            <p>Your migraine tracking data is stored in your browser's local storage on your device. The only information sent to our servers is:</p>
+            <p>Your migraine tracking data is stored in your browser's local storage on your device. The only information sent to our servers &mdash; and only if you turn notifications on &mdash; is:</p>
             <ul>
                 <li>Your notification preferences (time, timezone, enabled/disabled status)</li>
                 <li>An anonymous push notification subscription token</li>
+                <li>For follow-up reminders only: an attack identifier (derived from the attack's start time) and the scheduled reminder times</li>
             </ul>
-            <p>No personally identifiable information or health data is ever transmitted.</p>
+            <p>No pain levels, notes, symptoms, medications, or other personally identifiable health data is ever transmitted.</p>
 
             <h3>Can I delete my data?</h3>
             <p><strong>Yes, at any time.</strong> To delete all your data:</p>
@@ -132,13 +133,7 @@
             <p>The app will automatically count each calendar day as a separate migraine day. For example, a migraine from Monday 11 PM to Wednesday 3 AM counts as 3 migraine days (Mon, Tue, Wed) - which is clinically accurate.</p>
 
             <h3>Can I edit past entries?</h3>
-            <p><strong>Currently, no.</strong> To modify a past entry:</p>
-            <ol>
-                <li>Tap the date on the calendar</li>
-                <li>Delete the existing entry</li>
-                <li>Create a new entry with corrected information</li>
-            </ol>
-            <p><strong>Future feature:</strong> We're working on adding an edit function to simplify corrections.</p>
+            <p><strong>Yes.</strong> To modify a past entry, either tap the date on the calendar and choose <em>Edit</em>, or open the episode from the History page and tap <em>Edit</em>. You can update the times, pain level, medication, notes, and relief methods. If you'd rather start over, you can also delete the entry and create a new one.</p>
 
             <h3>What if I miss a day?</h3>
             <p>Don't worry! You can log past days at any time:</p>
@@ -230,13 +225,11 @@
             <h2>📄 Export</h2>
 
             <h3>What format is the export?</h3>
-            <p>Aiding Migraine exports data as a <strong>PDF report</strong>, which includes:</p>
+            <p>Aiding Migraine offers three export formats:</p>
             <ul>
-                <li>Summary of migraine days by month</li>
-                <li>Clinical classification (episodic vs. chronic)</li>
-                <li>Severity distribution breakdown</li>
-                <li>Attack frequency patterns</li>
-                <li>Clinical interpretations and recommendations</li>
+                <li><strong>PDF report</strong> &mdash; a doctor-friendly summary (migraine days by month, episodic vs. chronic classification, severity distribution, frequency patterns, and clinical interpretations).</li>
+                <li><strong>CSV export</strong> &mdash; a spreadsheet of every episode (dates and times in your local timezone, pain, duration, medication, notes, pressure) for your own analysis or import elsewhere.</li>
+                <li><strong>JSON backup</strong> &mdash; a complete backup you can re-import into Aiding Migraine.</li>
             </ul>
             <p>The PDF is formatted for easy sharing with healthcare providers.</p>
 
@@ -252,14 +245,8 @@
             </ul>
             <p><strong>Not included:</strong> Individual entry-by-entry details (this keeps the report concise and doctor-friendly).</p>
 
-            <h3>Can I import data from another app?</h3>
-            <p><strong>Not currently.</strong> Aiding Migraine doesn't have a data import feature. If you're switching from another tracker:</p>
-            <ul>
-                <li>Start fresh with Aiding Migraine</li>
-                <li>Keep your old app's export for historical reference</li>
-                <li>Track for 3 months to establish patterns</li>
-            </ul>
-            <p><strong>Future feature:</strong> CSV import is on our roadmap.</p>
+            <h3>Can I import data?</h3>
+            <p><strong>Yes.</strong> From Settings you can import a <strong>JSON backup</strong> (previously exported from Aiding Migraine) or a <strong>CSV file</strong>. CSV import matches on date, time, and pain level and skips duplicates, so re-importing is safe. If you're coming from another tracker, export its data to CSV and map the columns to Date, Start Time, and Pain Level.</p>
 
             <h3>How do I share my report with my doctor?</h3>
             <p>After exporting the PDF:</p>
@@ -381,25 +368,25 @@
             </ul>
 
             <h3>How do I interpret the weather correlation?</h3>
-            <p>The Analytics page shows your personal weather correlation:</p>
+            <p>The Analytics page compares how often migraines follow significant pressure changes against your <em>baseline</em> migraine rate on all tracked days (this "relative risk" avoids overstating the link if you have frequent migraines):</p>
             <ul>
-                <li><strong>Strong (≥70%):</strong> High weather sensitivity - most significant pressure changes coincide with migraines</li>
-                <li><strong>Moderate (40-70%):</strong> Possible weather sensitivity - worth monitoring</li>
-                <li><strong>Weak (<40%):</strong> Low weather sensitivity - other triggers may be more relevant</li>
+                <li><strong>Strong:</strong> Migraines follow pressure-change days noticeably more often than your baseline (about 1.5&times; or more) &mdash; pressure appears to be a real trigger for you.</li>
+                <li><strong>Moderate:</strong> Somewhat more often than baseline &mdash; pressure may contribute to some attacks.</li>
+                <li><strong>Weak / none:</strong> No more than your baseline &mdash; other triggers are likely more relevant.</li>
             </ul>
-            <p><strong>Important:</strong> Correlation requires at least 7 days of data. The more data you have, the more accurate the correlation becomes.</p>
+            <p><strong>Important:</strong> The correlation needs at least 7 days of weather data and enough pressure-change days to be reliable; until then it will say more data is needed. The more data you have, the more accurate it becomes.</p>
 
             <h3>Is my location data private?</h3>
-            <p><strong>Yes, completely private.</strong> Your location is:</p>
+            <p>Your location is stored on your device and used only to make weather tracking work. It is:</p>
             <ul>
-                <li>Stored only on your device (localStorage)</li>
-                <li>Never sent to our servers</li>
-                <li>Only used to fetch weather data from a free, public weather API (Open-Meteo)</li>
-                <li>You can disable weather tracking anytime to delete all weather data</li>
+                <li>Stored on your device (localStorage)</li>
+                <li>Never sent to <em>our</em> servers</li>
+                <li>Sent to two third-party services that provide the feature: <strong>Open-Meteo</strong> (fetches the weather for your coordinates) and <strong>Nominatim/OpenStreetMap</strong> (turns a city/ZIP into coordinates, or coordinates into a city name)</li>
+                <li>Deleted when you disable weather tracking</li>
             </ul>
 
             <h3>Does weather tracking use GPS?</h3>
-            <p><strong>No.</strong> You manually enter your location (ZIP code or city name). We don't access your device's GPS to preserve your privacy.</p>
+            <p><strong>Only if you ask it to.</strong> By default you type your location (ZIP code or city name) and no GPS is used. There's an optional "use my location" button that asks your browser for GPS once to fill in your coordinates &mdash; you're always in control of whether that happens.</p>
 
             <h3>What if I'm not weather-sensitive?</h3>
             <p><strong>You don't need to use this feature!</strong> Weather tracking is completely optional. If the correlation is weak, that's valuable information too - it tells you to focus on other potential triggers.</p>
@@ -416,14 +403,12 @@
             <p>Your data is preserved during updates.</p>
 
             <h3>What features are coming next?</h3>
-            <p>Our roadmap includes:</p>
+            <p>Recently shipped: entry editing, CSV import/export, and medication-overuse (MOH) detection. Our roadmap includes:</p>
             <ul>
                 <li><strong>Structured symptom tracking</strong> (nausea, aura, photophobia, phonophobia)</li>
-                <li><strong>Medication tracking improvements</strong> (frequency analysis, MOH detection)</li>
                 <li><strong>Trigger pattern detection</strong> (multi-factor analysis)</li>
-                <li><strong>Cloud sync via Google Drive</strong> (optional, privacy-preserving)</li>
-                <li><strong>Entry editing</strong> (fix mistakes without deleting)</li>
-                <li><strong>CSV import/export</strong></li>
+                <li><strong>Standardized disability scores</strong> (MIDAS / HIT-6) in the doctor report</li>
+                <li><strong>One-tap "attack mode" logging</strong> for faster capture during an attack</li>
             </ul>
             <p>Priorities can shift based on user feedback!</p>
 
