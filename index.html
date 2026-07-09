@@ -2811,6 +2811,16 @@
                 <h2>Common after-effects</h2>
                 <div id="postdrome-analytics-content"></div>
             </div>
+
+            <div id="location-analytics-card" class="section-card" style="display: none;">
+                <h2>Common pain locations</h2>
+                <div id="location-analytics-content"></div>
+            </div>
+
+            <div id="quality-analytics-card" class="section-card" style="display: none;">
+                <h2>Pain quality</h2>
+                <div id="quality-analytics-content"></div>
+            </div>
         </div>
 
         <div id="care-page" class="page">
@@ -5985,6 +5995,8 @@
                                 <span class="detail-value">${safeText(m.category)}</span>
                             </div>
                         </div>
+                        ${headZoneLabels(m.painLocations).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Location:</strong> ${safeText(headZoneLabels(m.painLocations).join(', '))}${deriveLaterality(m.painLocations) ? ` (${deriveLaterality(m.painLocations)})` : ''}</p>` : ''}
+                        ${qualityLabels(m.painQuality).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Quality:</strong> ${safeText(qualityLabels(m.painQuality).join(', '))}</p>` : ''}
                         ${prodromeLabels(m.prodrome).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Warning signs:</strong> ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Symptoms:</strong> ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Triggers:</strong> ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
@@ -6021,6 +6033,21 @@
                     content += `<li>${formatTime(new Date(p.timestamp))}: ${p.level}/10</li>`;
                 });
                 content += `</ul>`;
+            }
+
+            // Pain location — read-only head map painted after the modal opens
+            // (the map's <svg> can't pass through showModal's safeHTML)
+            const viewLocations = headZoneLabels(migraine.painLocations);
+            if (viewLocations.length > 0) {
+                const lat = deriveLaterality(migraine.painLocations);
+                content += `<h3>Pain Location${lat ? ` (${lat})` : ''}</h3>`;
+                content += `<div id="view-head-map"></div>`;
+                content += `<p style="color: var(--text-secondary); font-size: 0.9rem;">${safeText(viewLocations.join(', '))}</p>`;
+            }
+
+            const viewQuality = qualityLabels(migraine.painQuality);
+            if (viewQuality.length > 0) {
+                content += `<h3>Pain Quality</h3><p>${safeText(viewQuality.join(', '))}</p>`;
             }
 
             const viewProdrome = prodromeLabels(migraine.prodrome);
@@ -6076,6 +6103,11 @@
             }
 
             showModal('Episode Details', content);
+
+            // Paint the read-only head map now that the placeholder exists
+            if (viewLocations.length > 0) {
+                renderHeadMap('view-head-map', new Set(migraine.painLocations), false);
+            }
         }
 
         // Temporary storage for relief methods being edited
@@ -6924,6 +6956,8 @@
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${headZoneLabels(m.painLocations).length > 0 ? `<p>Location: ${safeText(headZoneLabels(m.painLocations).join(', '))}${deriveLaterality(m.painLocations) ? ` (${deriveLaterality(m.painLocations)})` : ''}</p>` : ''}
+                        ${qualityLabels(m.painQuality).length > 0 ? `<p>Quality: ${safeText(qualityLabels(m.painQuality).join(', '))}</p>` : ''}
                         ${prodromeLabels(m.prodrome).length > 0 ? `<p>Warning signs: ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p>Triggers: ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
@@ -6945,6 +6979,8 @@
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${headZoneLabels(m.painLocations).length > 0 ? `<p>Location: ${safeText(headZoneLabels(m.painLocations).join(', '))}${deriveLaterality(m.painLocations) ? ` (${deriveLaterality(m.painLocations)})` : ''}</p>` : ''}
+                        ${qualityLabels(m.painQuality).length > 0 ? `<p>Quality: ${safeText(qualityLabels(m.painQuality).join(', '))}</p>` : ''}
                         ${prodromeLabels(m.prodrome).length > 0 ? `<p>Warning signs: ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p>Triggers: ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
@@ -12195,6 +12231,10 @@ Browser: ${navigator.userAgent}
             // Phase breakdowns: warning signs (prodrome) + after-effects (postdrome)
             renderOptionAnalytics('prodrome-analytics-card', 'prodrome-analytics-content', filteredData, 'prodrome', PRODROME_KEYS, PRODROME_LABELS, 'warning signs');
             renderOptionAnalytics('postdrome-analytics-card', 'postdrome-analytics-content', filteredData, 'postdrome', POSTDROME_KEYS, POSTDROME_LABELS, 'after-effects');
+
+            // Head-pain location + quality breakdowns
+            renderOptionAnalytics('location-analytics-card', 'location-analytics-content', filteredData, 'painLocations', HEAD_ZONE_KEYS, HEAD_ZONE_LABELS, 'pain locations');
+            renderOptionAnalytics('quality-analytics-card', 'quality-analytics-content', filteredData, 'painQuality', PAIN_QUALITY_KEYS, PAIN_QUALITY_LABELS, 'pain quality');
         }
 
         // Ranked frequency breakdown of a controlled option list across episodes.
