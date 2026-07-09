@@ -10495,6 +10495,10 @@ Browser: ${navigator.userAgent}
 
             if (action === 'log') {
                 showPage('log');
+            } else if (action === 'analytics') {
+                showPage('analytics');
+            } else if (action === 'care') {
+                showPage('care');
             } else if (action === 'update' && attackId) {
                 // Find and show the attack for updating
                 const episodeId = getNotificationEpisodeId(attackId);
