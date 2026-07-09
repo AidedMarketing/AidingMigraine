@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.8.0 - PRODUCTION
+           AIDING MIGRAINE v4.9.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -3513,7 +3513,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.8.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.9.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3551,7 +3551,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.8.0 Production</strong>
+                            <strong>v4.9.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3614,7 +3614,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '4.8.0';
+        const APP_VERSION = '4.9.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -7168,7 +7168,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.8.0 - Debug Information
+            const debugInfo = `Aiding Migraine v4.9.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -7841,7 +7841,7 @@ Browser: ${navigator.userAgent}
 
             // CSV Header with BOM for Excel compatibility
             const BOM = '\uFEFF';
-            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms,Triggers,Prodrome,Postdrome\n';
+            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms,Triggers,Prodrome,Postdrome,Pain Location,Pain Quality\n';
 
             // Sort by date (oldest first) - use slice() to avoid mutating original array
             const sorted = activeMigraines.slice().sort((a, b) =>
@@ -7879,9 +7879,11 @@ Browser: ${navigator.userAgent}
                 const triggers = neutralizeFormula(triggerLabels(m.triggers).join('; ')).replace(/"/g, '""');
                 const prodrome = neutralizeFormula(prodromeLabels(m.prodrome).join('; ')).replace(/"/g, '""');
                 const postdrome = neutralizeFormula(postdromeLabels(m.postdrome).join('; ')).replace(/"/g, '""');
+                const painLocation = neutralizeFormula(headZoneLabels(m.painLocations).join('; ')).replace(/"/g, '""');
+                const painQuality = neutralizeFormula(qualityLabels(m.painQuality).join('; ')).replace(/"/g, '""');
 
                 // Quote fields that might contain commas
-                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure},"${symptoms}","${triggers}","${prodrome}","${postdrome}"\n`;
+                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure},"${symptoms}","${triggers}","${prodrome}","${postdrome}","${painLocation}","${painQuality}"\n`;
             });
 
             // Create and download file
@@ -7988,6 +7990,8 @@ Browser: ${navigator.userAgent}
                 const triggersIdx = header.findIndex(h => h.includes('trigger'));
                 const prodromeIdx = header.findIndex(h => h.includes('prodrome'));
                 const postdromeIdx = header.findIndex(h => h.includes('postdrome'));
+                const locationIdx = header.findIndex(h => h.includes('location'));
+                const qualityIdx = header.findIndex(h => h.includes('quality'));
 
                 // Map exported labels back to controlled keys (case-insensitive)
                 const symptomLabelToKey = {};
@@ -7998,6 +8002,10 @@ Browser: ${navigator.userAgent}
                 PRODROME_OPTIONS.forEach(p => { prodromeLabelToKey[p.label.toLowerCase()] = p.key; });
                 const postdromeLabelToKey = {};
                 POSTDROME_OPTIONS.forEach(p => { postdromeLabelToKey[p.label.toLowerCase()] = p.key; });
+                const locationLabelToKey = {};
+                HEAD_ZONES.forEach(z => { locationLabelToKey[z.label.toLowerCase()] = z.key; });
+                const qualityLabelToKey = {};
+                PAIN_QUALITY_OPTIONS.forEach(q => { qualityLabelToKey[q.label.toLowerCase()] = q.key; });
 
                 // Parse data rows
                 const entries = [];
@@ -8092,6 +8100,18 @@ Browser: ${navigator.userAgent}
                             migraine.postdrome = stripFormulaGuard(row[postdromeIdx])
                                 .split(';')
                                 .map(s => postdromeLabelToKey[s.trim().toLowerCase()])
+                                .filter(Boolean);
+                        }
+                        if (locationIdx !== -1 && row[locationIdx]) {
+                            migraine.painLocations = stripFormulaGuard(row[locationIdx])
+                                .split(';')
+                                .map(s => locationLabelToKey[s.trim().toLowerCase()])
+                                .filter(Boolean);
+                        }
+                        if (qualityIdx !== -1 && row[qualityIdx]) {
+                            migraine.painQuality = stripFormulaGuard(row[qualityIdx])
+                                .split(';')
+                                .map(s => qualityLabelToKey[s.trim().toLowerCase()])
                                 .filter(Boolean);
                         }
 
@@ -8471,6 +8491,29 @@ Browser: ${navigator.userAgent}
             doc.text(`Range: ${formatDuration(minDuration)} - ${formatDuration(maxDuration)}`, 20, yPos);
             yPos += 15;
 
+            // Common pain locations summary
+            const locationCounts = {};
+            episodesInRange.forEach(m => {
+                headZoneLabels(m.painLocations).forEach(label => {
+                    locationCounts[label] = (locationCounts[label] || 0) + 1;
+                });
+            });
+            const rankedLocations = Object.entries(locationCounts).sort((a, b) => b[1] - a[1]);
+            if (rankedLocations.length > 0) {
+                doc.setFont(undefined, 'bold');
+                doc.text('Common Pain Locations', 20, yPos);
+                yPos += 6;
+                doc.setFont(undefined, 'normal');
+                const locationSummary = rankedLocations
+                    .map(([label, count]) => `${label} (${count})`)
+                    .join(', ');
+                doc.splitTextToSize(locationSummary, 170).forEach(line => {
+                    doc.text(line, 20, yPos);
+                    yPos += 5;
+                });
+                yPos += 10;
+            }
+
             // Common warning signs (prodrome) summary
             const prodromeCounts = {};
             episodesInRange.forEach(m => {
@@ -8661,6 +8704,37 @@ Browser: ${navigator.userAgent}
                     yPos += 5;
 
                     // Add prodrome (warning signs) sub-line if present
+                    // Add pain location (with laterality) sub-line if present
+                    const epLocations = headZoneLabels(episode.painLocations);
+                    if (epLocations.length > 0) {
+                        const lat = deriveLaterality(episode.painLocations);
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'italic');
+                        const locLines = doc.splitTextToSize(`Location: ${epLocations.join(', ')}${lat ? ` (${lat})` : ''}`, 170);
+                        for (const locLine of locLines) {
+                            if (yPos > 275) { doc.addPage(); yPos = 20; }
+                            doc.text(locLine, 25, yPos);
+                            yPos += 4;
+                        }
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                    }
+
+                    // Add pain quality sub-line if present
+                    const epQuality = qualityLabels(episode.painQuality);
+                    if (epQuality.length > 0) {
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'italic');
+                        const qualLines = doc.splitTextToSize(`Quality: ${epQuality.join(', ')}`, 170);
+                        for (const qualLine of qualLines) {
+                            if (yPos > 275) { doc.addPage(); yPos = 20; }
+                            doc.text(qualLine, 25, yPos);
+                            yPos += 4;
+                        }
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                    }
+
                     const epProdrome = prodromeLabels(episode.prodrome);
                     if (epProdrome.length > 0) {
                         doc.setFontSize(8);
@@ -8801,7 +8875,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.8.0</strong></p>
+                <p><strong>Aiding Migraine v4.9.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
