@@ -11,7 +11,7 @@ const helmet = require('helmet');
 require('dotenv').config();
 
 const { initializeScheduler } = require('./scheduler');
-const { initializeDatabase } = require('./database');
+const { initializeDatabase, flushWrites } = require('./database');
 const { limiter } = require('./middleware/rate-limit');
 const subscriptionRoutes = require('./routes/subscriptions');
 const notificationRoutes = require('./routes/notifications');
@@ -79,7 +79,7 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
     res.json({
         name: 'Aiding Migraine Notification Server',
-        version: '4.0.0',
+        version: '5.1.0',
         status: 'running',
         endpoints: {
             health: '/health',
@@ -107,19 +107,44 @@ app.use((err, req, res, next) => {
     });
 });
 
+// Cancel scheduled jobs, stop accepting connections, flush pending writes,
+// then exit — so a deploy/restart can't truncate a data file mid-write.
+function setupGracefulShutdown(server, jobs) {
+    let shuttingDown = false;
+    const shutdown = async (signal) => {
+        if (shuttingDown) return;
+        shuttingDown = true;
+        console.log(`\n${signal} received — shutting down gracefully...`);
+        try {
+            Object.values(jobs || {}).forEach(job => { if (job && job.cancel) job.cancel(); });
+            await new Promise(resolve => server.close(resolve));
+            await flushWrites();
+            console.log('✅ Clean shutdown complete');
+            process.exit(0);
+        } catch (error) {
+            console.error('❌ Error during shutdown:', error);
+            process.exit(1);
+        }
+    };
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
+}
+
 // Initialize database and scheduler
 async function startServer() {
     try {
         await initializeDatabase();
         console.log('✅ Database initialized');
 
-        initializeScheduler();
+        const jobs = initializeScheduler();
         console.log('✅ Notification scheduler started');
 
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, () => {
             console.log(`🚀 Notification server running on port ${PORT}`);
             console.log(`📡 Health check: http://localhost:${PORT}/health`);
         });
+
+        setupGracefulShutdown(server, jobs);
     } catch (error) {
         console.error('❌ Failed to start server:', error);
         process.exit(1);
