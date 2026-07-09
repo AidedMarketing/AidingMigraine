@@ -5,6 +5,15 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.0] - 2026-07-09
+
+### Added — One-tap Attack Mode (P2-5)
+
+- **"Start attack now" button** at the top of the log card starts tracking an episode with a single tap — no fields required. Built for the moment an attack begins and screen time needs to stay short.
+- Weather is captured automatically at onset; pain, symptoms, triggers, and relief can be added anytime from the active-episode card as the attack develops.
+- Pain is left **unset** rather than defaulted to a number, so in-progress episodes never pollute your pain averages. A pain level (0–10) is required only when you end the episode, so every completed record still carries a real value.
+- Starting attack mode while an episode is already active shows the existing "end or clear" prompt.
+
 ## [4.4.0] - 2026-07-08
 
 ### Added — MIDAS & HIT-6 Disability Assessments (P2-3)

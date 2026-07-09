@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.4.0 - PRODUCTION
+           AIDING MIGRAINE v4.5.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -2250,6 +2250,12 @@
                     <h2>Log migraine</h2>
                     <p class="pain-helper">Fast, thumb-friendly logging for the moments when screen time needs to stay short.</p>
 
+                    <!-- One-tap attack mode: start tracking immediately, refine details later -->
+                    <button id="start-attack-btn" class="btn btn-primary" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 16px; margin-bottom: 20px;">
+                        <span style="font-size: 1.05rem; font-weight: 600;">Start attack now</span>
+                        <span style="font-size: 0.8rem; font-weight: 400; opacity: 0.85;">One tap — add pain and details later</span>
+                    </button>
+
                     <!-- Atmospheric Pressure Indicator -->
                     <div id="weather-forecast-indicator" style="display: none; margin-bottom: 20px;">
                         <!-- Stable / Low-Risk State -->
@@ -3292,7 +3298,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.4.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.5.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3330,7 +3336,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.4.0 Production</strong>
+                            <strong>v4.5.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3393,7 +3399,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '4.4.0';
+        const APP_VERSION = '4.5.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -4609,6 +4615,7 @@
         });
 
         function initializeLogging() {
+            document.getElementById('start-attack-btn')?.addEventListener('click', startAttackMode);
             document.getElementById('log-btn').addEventListener('click', logEpisode);
             document.getElementById('clear-btn').addEventListener('click', clearForm);
             document.getElementById('add-medication-btn').addEventListener('click', showAddMedicationModal);
@@ -4621,6 +4628,81 @@
             bindTriggerChips('log-trigger-chips', selectedTriggers);
         }
 
+        // Shared "you already have an active episode" prompt, reused by the
+        // detailed log form and the one-tap attack-mode button.
+        function showActiveEpisodeConflict() {
+            showModal(
+                'Episode Detected',
+                'You already have an active episode. Please end it first, or clear it if you believe this is an error.',
+                [
+                    {
+                        text: 'End Current Episode',
+                        class: 'btn-primary',
+                        action: () => {
+                            endActiveMigraine();
+                            closeModal();
+                        }
+                    },
+                    {
+                        text: 'Clear Stuck Episode',
+                        class: 'btn-danger',
+                        action: () => {
+                            console.warn('[WARNING] User manually cleared stuck active episode');
+                            activeMigraine = null;
+                            saveData();
+                            checkActiveMigraine();
+                            closeModal();
+                            showModal('Success', 'Stuck episode cleared. You can now log a new episode.');
+                        }
+                    },
+                    {
+                        text: 'Cancel',
+                        class: 'btn-secondary',
+                        action: closeModal
+                    }
+                ]
+            );
+        }
+
+        // One-tap "attack mode": start an episode NOW with no required fields.
+        // Pain is left unset (null) rather than a fabricated default so averages
+        // aren't polluted; the user refines pain/symptoms/triggers/relief on the
+        // active-episode card, and pain is required only when the episode ends.
+        function startAttackMode() {
+            if (activeMigraine) {
+                showActiveEpisodeConflict();
+                return;
+            }
+
+            const now = new Date().toISOString();
+            const migraine = {
+                id: Date.now(),
+                startTime: now,
+                painLevel: null,
+                painHistory: [],
+                status: 'active',
+                notes: '',
+                medications: null,
+                medication: null,
+                weather: getCurrentWeatherForEntry(),
+                category: null,
+                symptoms: [],
+                triggers: []
+            };
+
+            activeMigraine = migraine;
+            saveData();
+            startDurationTracking();
+            checkActiveMigraine();
+            updateDashboard();
+            renderCalendar();
+
+            scheduleActiveAttackCheckIn(migraine.id);
+            schedulePostAttackFollowUp(migraine.id);
+
+            showModal('Attack Started', 'Your episode is now being tracked. Add pain level and details anytime from the active episode card.');
+        }
+
         function logEpisode() {
             if (selectedPain === null) {
                 showModal('Error', 'Please select a pain level.');
@@ -4628,38 +4710,7 @@
             }
 
             if (activeMigraine) {
-                // Offer to clear stuck episode
-                showModal(
-                    'Episode Detected',
-                    'You already have an active episode. Please end it first, or clear it if you believe this is an error.',
-                    [
-                        {
-                            text: 'End Current Episode',
-                            class: 'btn-primary',
-                            action: () => {
-                                endActiveMigraine();
-                                closeModal();
-                            }
-                        },
-                        {
-                            text: 'Clear Stuck Episode',
-                            class: 'btn-danger',
-                            action: () => {
-                                console.warn('[WARNING] User manually cleared stuck active episode');
-                                activeMigraine = null;
-                                saveData();
-                                checkActiveMigraine();
-                                closeModal();
-                                showModal('Success', 'Stuck episode cleared. You can now log a new episode.');
-                            }
-                        },
-                        {
-                            text: 'Cancel',
-                            class: 'btn-secondary',
-                            action: closeModal
-                        }
-                    ]
-                );
+                showActiveEpisodeConflict();
                 return;
             }
 
@@ -4773,24 +4824,63 @@
 
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
-            
+
+            // Attack-mode episodes may still have no pain level. Require one at
+            // the end so the completed record (which enters analytics/history)
+            // always carries a real, numeric pain value.
+            const needsPain = activeMigraine.painLevel == null;
+
             body.innerHTML = `
                 <p>End this migraine episode?</p>
+                ${needsPain ? `
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>How bad was the pain? (required)</label>
+                    <div class="pain-scale" id="end-pain-scale">
+                        ${[0,1,2,3,4,5,6,7,8,9,10].map(i =>
+                            `<button type="button" class="pain-btn" data-pain="${i}">${i}</button>`
+                        ).join('')}
+                    </div>
+                    <p id="end-pain-error" style="display: none; color: var(--accent-red); font-size: 0.85rem; margin-top: 8px;">Please choose a pain level (0–10) before ending.</p>
+                </div>` : ''}
                 <div class="form-group" style="margin-top: 16px;">
                     <label>Final Notes (optional)</label>
                     <textarea id="end-notes" placeholder="How did it resolve? What helped?" rows="3"></textarea>
                 </div>
             `;
-            
+
             document.getElementById('modal-actions').innerHTML = `
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-primary" id="confirm-end">End Episode</button>
             `;
-            
+
             document.getElementById('modal-title').textContent = 'End Episode';
             modal.classList.add('active');
-            
+
+            if (needsPain) {
+                body.querySelectorAll('#end-pain-scale .pain-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        body.querySelectorAll('#end-pain-scale .pain-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        const err = document.getElementById('end-pain-error');
+                        if (err) err.style.display = 'none';
+                    });
+                });
+            }
+
             document.getElementById('confirm-end').addEventListener('click', () => {
+                if (needsPain) {
+                    const selected = body.querySelector('#end-pain-scale .pain-btn.selected');
+                    if (!selected) {
+                        const err = document.getElementById('end-pain-error');
+                        if (err) err.style.display = 'block';
+                        return;
+                    }
+                    const endPain = parseInt(selected.dataset.pain);
+                    activeMigraine.painLevel = endPain;
+                    activeMigraine.category = getPainCategory(endPain);
+                    activeMigraine.painHistory.push({ timestamp: new Date().toISOString(), level: endPain });
+                }
+
                 const endNotes = document.getElementById('end-notes').value.trim();
 
                 activeMigraine.endTime = new Date().toISOString();
@@ -4844,8 +4934,9 @@
         function updateActiveMigraineeDisplay() {
             if (!activeMigraine) return;
 
-            document.getElementById('active-pain-display').textContent = `${activeMigraine.painLevel}/10`;
-            document.getElementById('active-category').textContent = activeMigraine.category;
+            document.getElementById('active-pain-display').textContent =
+                activeMigraine.painLevel == null ? '—' : `${activeMigraine.painLevel}/10`;
+            document.getElementById('active-category').textContent = activeMigraine.category || '—';
             updateDuration();
             updateReliefTimeline();
             updateActiveSymptomChips();
@@ -5312,7 +5403,7 @@
 
             const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
             const thisMonth = activeMigraines.filter(m => new Date(m.startTime) >= monthStart).length;
-            const activePain = activeMigraine ? activeMigraine.painLevel : 0;
+            const activePain = (activeMigraine && activeMigraine.painLevel != null) ? activeMigraine.painLevel : '—';
 
             // Check if dashboard elements exist before updating
             const totalElem = document.getElementById('total-episodes');
@@ -5352,6 +5443,7 @@
                     : 'No active episode. Log quickly now, or review patterns before your next care visit.';
             }
             if (painSnapshot) painSnapshot.textContent = activeMigraine ? activePain : '-';
+            // (activePain already renders '—' when an active episode has no pain yet)
             if (weekChip) weekChip.textContent = `${thisWeek} this week`;
             if (lastChip) lastChip.textContent = `Last episode: ${lastEpisode}`;
             if (monthDays) monthDays.textContent = thisMonth;
@@ -6528,7 +6620,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.4.0 - Debug Information
+            const debugInfo = `Aiding Migraine v4.5.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -8037,7 +8129,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.4.0</strong></p>
+                <p><strong>Aiding Migraine v4.5.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -8403,6 +8495,7 @@ Browser: ${navigator.userAgent}
         });
 
         function getPainCategory(level) {
+            if (level == null || isNaN(level)) return null;
             if (level <= 3) return 'Mild';
             if (level <= 6) return 'Moderate';
             return 'Severe';
