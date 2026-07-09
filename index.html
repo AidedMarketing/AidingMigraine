@@ -2733,6 +2733,16 @@
                 <h2>Triggers &times; weather</h2>
                 <div id="trigger-weather-content"></div>
             </div>
+
+            <div id="prodrome-analytics-card" class="section-card" style="display: none;">
+                <h2>Common warning signs</h2>
+                <div id="prodrome-analytics-content"></div>
+            </div>
+
+            <div id="postdrome-analytics-card" class="section-card" style="display: none;">
+                <h2>Common after-effects</h2>
+                <div id="postdrome-analytics-content"></div>
+            </div>
         </div>
 
         <div id="care-page" class="page">
@@ -5745,8 +5755,10 @@
                                 <span class="detail-value">${safeText(m.category)}</span>
                             </div>
                         </div>
+                        ${prodromeLabels(m.prodrome).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Warning signs:</strong> ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Symptoms:</strong> ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Triggers:</strong> ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
+                        ${postdromeLabels(m.postdrome).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>After-effects:</strong> ${safeText(postdromeLabels(m.postdrome).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">${safeText(m.notes)}</p>` : ''}
                         <div class="history-actions">
                             <button class="btn btn-secondary" data-action="view" data-id="${safeText(String(m.id))}">View Details</button>
@@ -5781,6 +5793,15 @@
                 content += `</ul>`;
             }
 
+            const viewProdrome = prodromeLabels(migraine.prodrome);
+            if (viewProdrome.length > 0) {
+                content += `<h3>Warning signs (prodrome)</h3><ul>`;
+                viewProdrome.forEach(label => {
+                    content += `<li>${safeText(label)}</li>`;
+                });
+                content += `</ul>`;
+            }
+
             const viewSymptoms = symptomLabels(migraine.symptoms);
             if (viewSymptoms.length > 0) {
                 content += `<h3>Symptoms</h3><ul>`;
@@ -5794,6 +5815,15 @@
             if (viewTriggers.length > 0) {
                 content += `<h3>Possible Triggers</h3><ul>`;
                 viewTriggers.forEach(label => {
+                    content += `<li>${safeText(label)}</li>`;
+                });
+                content += `</ul>`;
+            }
+
+            const viewPostdrome = postdromeLabels(migraine.postdrome);
+            if (viewPostdrome.length > 0) {
+                content += `<h3>After-effects (postdrome)</h3><ul>`;
+                viewPostdrome.forEach(label => {
                     content += `<li>${safeText(label)}</li>`;
                 });
                 content += `</ul>`;
@@ -6644,8 +6674,10 @@
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${prodromeLabels(m.prodrome).length > 0 ? `<p>Warning signs: ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p>Triggers: ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
+                        ${postdromeLabels(m.postdrome).length > 0 ? `<p>After-effects: ${safeText(postdromeLabels(m.postdrome).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="margin-top: 8px;">Notes: ${safeText(m.notes)}</p>` : ''}
                         ${m.endNotes ? `<p style="margin-top: 8px;">Resolution: ${safeText(m.endNotes)}</p>` : ''}
                     </div>
@@ -6663,8 +6695,10 @@
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${prodromeLabels(m.prodrome).length > 0 ? `<p>Warning signs: ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p>Triggers: ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
+                        ${postdromeLabels(m.postdrome).length > 0 ? `<p>After-effects: ${safeText(postdromeLabels(m.postdrome).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="margin-top: 8px;">Notes: ${safeText(m.notes)}</p>` : ''}
                         ${m.endNotes ? `<p style="margin-top: 8px;">Resolution: ${safeText(m.endNotes)}</p>` : ''}
                     </div>
@@ -11793,6 +11827,10 @@ Browser: ${navigator.userAgent}
 
             // Cross-tabulate triggers against measured pressure activity
             renderTriggerWeatherCorrelation(filteredData);
+
+            // Phase breakdowns: warning signs (prodrome) + after-effects (postdrome)
+            renderOptionAnalytics('prodrome-analytics-card', 'prodrome-analytics-content', filteredData, 'prodrome', PRODROME_KEYS, PRODROME_LABELS, 'warning signs');
+            renderOptionAnalytics('postdrome-analytics-card', 'postdrome-analytics-content', filteredData, 'postdrome', POSTDROME_KEYS, POSTDROME_LABELS, 'after-effects');
         }
 
         // Ranked frequency breakdown of a controlled option list across episodes.
