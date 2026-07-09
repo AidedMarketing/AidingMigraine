@@ -256,6 +256,35 @@ async function cancelActiveCheckin(attackId) {
     return initialLength !== scheduledActiveCheckins.length;
 }
 
+// Drop old records so the JSON files don't grow without bound: sent records
+// older than the cutoff (by sentAt), and unsent records whose scheduledTime
+// is more than the cutoff in the past (never delivered — subscription likely
+// gone). Pending future records are always kept.
+async function pruneOldRecords(maxAgeDays = 7) {
+    const cutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
+    const keep = (r) => {
+        const ts = r.sent
+            ? (r.sentAt ? new Date(r.sentAt).getTime() : 0)
+            : (r.scheduledTime ? new Date(r.scheduledTime).getTime() : Date.now());
+        return ts > cutoff;
+    };
+    const fBefore = scheduledFollowups.length;
+    const cBefore = scheduledActiveCheckins.length;
+    scheduledFollowups = scheduledFollowups.filter(keep);
+    scheduledActiveCheckins = scheduledActiveCheckins.filter(keep);
+    const removed = (fBefore - scheduledFollowups.length) + (cBefore - scheduledActiveCheckins.length);
+    if (removed > 0) {
+        await saveFollowups();
+        await saveActiveCheckins();
+    }
+    return removed;
+}
+
+// Flush any queued atomic writes — used for graceful shutdown.
+function flushWrites() {
+    return writeChain;
+}
+
 module.exports = {
     initializeDatabase,
     addSubscription,
@@ -270,5 +299,7 @@ module.exports = {
     addScheduledActiveCheckin,
     getActiveCheckinsDueNow,
     markActiveCheckinAsSent,
-    cancelActiveCheckin
+    cancelActiveCheckin,
+    pruneOldRecords,
+    flushWrites
 };
