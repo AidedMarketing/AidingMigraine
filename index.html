@@ -3958,11 +3958,51 @@
             renderCycleCorrelation();
         }
 
-        // Filled in with the correlation verdict (see renderCycleCorrelation);
-        // defined as a no-op-safe stub until then.
+        // Menstrual-migraine correlation verdict on the Cycle card. Uses the
+        // full logged span (first period/episode → today) and the baseline-
+        // honest comparison from calculateMenstrualCorrelation.
         function renderCycleCorrelation() {
             const el = document.getElementById('cycle-correlation');
-            if (el) el.innerHTML = '';
+            if (!el) return;
+
+            const migraines = getActiveMigraines();
+            const starts = sortedPeriodStarts();
+            if (starts.length < 2) { el.innerHTML = ''; return; }
+
+            const earliestMig = migraines.reduce((min, m) => {
+                const t = parseLocalDate(new Date(m.startTime).toISOString().split('T')[0]);
+                return (!min || (t && t < min)) ? t : min;
+            }, null);
+            const startDate = new Date(Math.min(starts[0].getTime(), earliestMig ? earliestMig.getTime() : starts[0].getTime()));
+            const endDate = parseLocalDate(toLocalDateStr(new Date()));
+
+            const corr = calculateMenstrualCorrelation(migraines, startDate, endDate);
+
+            if (corr.level === 'insufficient') {
+                const msg = corr.reason === 'periods'
+                    ? 'Log at least two period starts to check for a menstrual pattern.'
+                    : 'Keep logging migraines and periods — a few more attacks will reveal whether they track your cycle.';
+                el.innerHTML = safeHTML(`<p style="color: var(--text-secondary); font-size: 0.85rem;">${msg}</p>`);
+                return;
+            }
+
+            const obs = Math.round(corr.observedShare * 100);
+            const exp = Math.round(corr.expectedShare * 100);
+            let color, verdict;
+            if (corr.level === 'strong') {
+                color = 'var(--accent-red)';
+                verdict = `Your migraines cluster around your period: ${obs}% fell in the perimenstrual window (2 days before to 3 days after your period start), vs ${exp}% expected by chance. This looks like menstrually-related migraine — worth discussing with your clinician.`;
+            } else if (corr.level === 'moderate') {
+                color = '#d4a574';
+                verdict = `Some of your migraines line up with your period: ${obs}% fell in the perimenstrual window vs ${exp}% expected by chance. There may be a menstrual component.`;
+            } else {
+                color = 'var(--accent-green)';
+                verdict = `Your migraines don't cluster around your period so far: ${obs}% fell in the perimenstrual window vs ${exp}% expected by chance. Other triggers may matter more.`;
+            }
+            el.innerHTML = safeHTML(`<div style="padding: 12px 14px; border-radius: 10px; background: var(--bg-tertiary); border-left: 3px solid ${color};">
+                <strong>Menstrual-migraine pattern:</strong> ${verdict}
+                <span style="display: block; color: var(--text-secondary); font-size: 0.78rem; margin-top: 6px;">${corr.migraineInWindow} of ${corr.migraineDays} migraine days were perimenstrual.</span>
+            </div>`);
         }
 
         function updateCycleTodayLine() {
@@ -8780,6 +8820,32 @@ Browser: ${navigator.userAgent}
                     yPos += 5;
                 }
                 yPos += 8;
+            }
+
+            // Menstrual migraine (only when the opt-in feature is enabled + data)
+            if (cycleData.enabled && sortedPeriodStarts().length >= 2) {
+                const starts = sortedPeriodStarts();
+                const endDate = parseLocalDate(toLocalDateStr(new Date()));
+                const corr = calculateMenstrualCorrelation(episodesInRange, starts[0], endDate);
+                if (corr.level && corr.level !== 'insufficient') {
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Menstrual Migraine', 20, yPos);
+                    yPos += 6;
+                    doc.setFont(undefined, 'normal');
+                    const obs = Math.round(corr.observedShare * 100);
+                    const exp = Math.round(corr.expectedShare * 100);
+                    const verdict = corr.level === 'strong'
+                        ? 'Migraines cluster in the perimenstrual window (likely menstrually-related).'
+                        : corr.level === 'moderate'
+                        ? 'Some association between migraines and the perimenstrual window.'
+                        : 'No strong association between migraines and the perimenstrual window.';
+                    doc.splitTextToSize(`${verdict} ${obs}% of migraine days were perimenstrual (day -2 to +3) vs ${exp}% expected by chance; ${corr.migraineInWindow}/${corr.migraineDays} migraine days. Average cycle length ${averageCycleLength()} days.`, 170).forEach(line => {
+                        doc.text(line, 20, yPos);
+                        yPos += 5;
+                    });
+                    yPos += 8;
+                }
             }
 
             // Pain Characteristics
