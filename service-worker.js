@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
 // Version 4.0.0 - Production Release
 
-const CACHE_NAME = 'aiding-migraine-v4.10.0-cycle';
+const CACHE_NAME = 'aiding-migraine-v5.0.0-encryption';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
