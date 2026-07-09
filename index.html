@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.5.0 - PRODUCTION
+           AIDING MIGRAINE v4.6.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -326,6 +326,106 @@
 
         .quick-log-card {
             scroll-margin-top: calc(18px + env(safe-area-inset-top));
+        }
+
+        /* Today's outlook (weather/ML risk) card */
+        .risk-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .risk-card-header h2 {
+            margin: 0;
+        }
+
+        .risk-card-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #fff;
+            background: var(--accent-green);
+            white-space: nowrap;
+        }
+
+        .risk-meter {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(237, 232, 223, 0.12);
+            overflow: hidden;
+        }
+
+        .risk-meter-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: var(--accent-green);
+            transition: width 0.4s ease, background-color 0.4s ease;
+        }
+
+        .risk-card-detail {
+            color: var(--text-primary);
+            font-size: 0.92rem;
+            margin: 12px 0 0;
+        }
+
+        .risk-card-trend {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 6px 0 0;
+        }
+
+        .risk-card-ml {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(107, 139, 184, 0.12);
+            border-left: 3px solid var(--accent-blue, #6b8bb8);
+        }
+
+        .risk-card-ml-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .risk-card-ml-caveat {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .risk-card-alerts {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .risk-alert {
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(212, 165, 116, 0.12);
+            border-left: 3px solid #d4a574;
+        }
+
+        .risk-alert-headline {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .risk-alert-rec {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
         }
 
         .pain-helper {
@@ -2126,7 +2226,23 @@
                     <span class="today-chip">Offline ready</span>
                 </div>
             </section>
-            
+
+            <!-- Today's outlook: surfaces the weather/ML risk predictions.
+                 Hidden until weather tracking has current data. -->
+            <section class="section-card today-risk-card" id="today-risk-card" style="display: none;" aria-labelledby="risk-card-title">
+                <div class="risk-card-header">
+                    <h2 id="risk-card-title">Today's outlook</h2>
+                    <span class="risk-card-badge" id="risk-card-label">—</span>
+                </div>
+                <div class="risk-meter" role="img" aria-label="Migraine risk meter">
+                    <div class="risk-meter-fill" id="risk-meter-fill" style="width: 0%;"></div>
+                </div>
+                <p class="risk-card-detail" id="risk-card-detail"></p>
+                <p class="risk-card-trend" id="risk-card-trend"></p>
+                <div class="risk-card-ml" id="risk-card-ml" style="display: none;"></div>
+                <div class="risk-card-alerts" id="risk-card-alerts" style="display: none;"></div>
+            </section>
+
             <div id="active-episode-section" style="display: none;">
                 <div class="active-episode-card">
                     <div class="active-header">
@@ -3298,7 +3414,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.5.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.6.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3336,7 +3452,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.5.0 Production</strong>
+                            <strong>v4.6.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3399,7 +3515,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '4.5.0';
+        const APP_VERSION = '4.6.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -5467,6 +5583,10 @@
                     comparison.textContent = '';
                 }
             }
+
+            // Refresh the Today outlook card (covers the load/render path when
+            // weather data is already present but no fresh fetch has fired).
+            updateTodayRiskCard();
         }
 
         function initializeHistory() {}
@@ -6620,7 +6740,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.5.0 - Debug Information
+            const debugInfo = `Aiding Migraine v4.6.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -8129,7 +8249,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.5.0</strong></p>
+                <p><strong>Aiding Migraine v4.6.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -10410,6 +10530,96 @@ Browser: ${navigator.userAgent}
             }
         }
 
+        // "Today's outlook" risk card — surfaces the already-computed weather
+        // risk score, the personal ML estimate (when the model is enabled and
+        // honestly gated), and upcoming forecast alerts at the top of Today.
+        function updateTodayRiskCard() {
+            const card = document.getElementById('today-risk-card');
+            if (!card) return;
+
+            // Hide when weather tracking is off or there's no current reading.
+            if (!weatherData.enabled || !weatherData.current || !weatherData.current.pressure) {
+                card.style.display = 'none';
+                return;
+            }
+
+            const risk = calculateDailyRiskScore();
+            if (!risk) {
+                card.style.display = 'none';
+                return;
+            }
+
+            card.style.display = 'block';
+
+            // 1. Headline label + 0-10 meter
+            const labelEl = document.getElementById('risk-card-label');
+            if (labelEl) {
+                labelEl.textContent = risk.label;
+                labelEl.style.background = risk.color;
+            }
+            const fill = document.getElementById('risk-meter-fill');
+            if (fill) {
+                fill.style.width = Math.round((risk.score / 10) * 100) + '%';
+                fill.style.background = risk.color;
+            }
+            const detailEl = document.getElementById('risk-card-detail');
+            if (detailEl) detailEl.textContent = `Risk ${risk.score}/10 — ${risk.detail}.`;
+
+            // 2. Pressure trend line
+            const trendEl = document.getElementById('risk-card-trend');
+            if (trendEl) {
+                const trend = getPressureTrend();
+                const change24h = getPressureChange24h();
+                let text = `Pressure: ${trend.text} ${trend.icon}`;
+                if (change24h !== null) text += ` · ${formatPressureChange(change24h)} in 24h`;
+                trendEl.textContent = text;
+            }
+
+            // 3. Personal ML estimate — only when the model is enabled (honest gate)
+            const mlEl = document.getElementById('risk-card-ml');
+            if (mlEl) {
+                let probability = null;
+                if (weatherData.mlModel && weatherData.mlModel.enabled) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const todayEntry = weatherData.history.find(h => h.date === today);
+                    probability = predictMigraineProbability({
+                        pressure: weatherData.current.pressure,
+                        change24h: getPressureChange24h(),
+                        changeRapid: todayEntry ? (todayEntry.maxChange3h || 0) : 0,
+                        tempChange24h: getTemperatureChange24h()
+                    });
+                }
+                if (probability !== null && probability !== undefined) {
+                    mlEl.innerHTML = safeHTML(
+                        `<span class="risk-card-ml-value">Your personal model: ~${probability}% chance of a migraine day today</span>` +
+                        `<span class="risk-card-ml-caveat">Learned from your logged history — a pattern estimate, not a diagnosis.</span>`
+                    );
+                    mlEl.style.display = 'block';
+                } else {
+                    mlEl.style.display = 'none';
+                }
+            }
+
+            // 4. Upcoming forecast alerts (top 1-2)
+            const alertsEl = document.getElementById('risk-card-alerts');
+            if (alertsEl) {
+                const alerts = generatePredictiveAlerts().slice(0, 2);
+                if (alerts.length > 0) {
+                    alertsEl.innerHTML = safeHTML(alerts.map(a => {
+                        const trigger = (a.triggers && a.triggers.length > 0) ? a.triggers[0] : 'Atmospheric change';
+                        const when = a.hoursUntil <= 1 ? 'within the hour' : `in ~${a.hoursUntil}h`;
+                        return `<div class="risk-alert">` +
+                            `<span class="risk-alert-headline">Heads up: ${safeText(trigger)} ${when}</span>` +
+                            `<span class="risk-alert-rec">${safeText(a.recommendation)}</span>` +
+                            `</div>`;
+                    }).join(''));
+                    alertsEl.style.display = 'flex';
+                } else {
+                    alertsEl.style.display = 'none';
+                }
+            }
+        }
+
         // Update weather forecast indicator on log screen (enhanced: risk score + plain language + 6-12h window)
         function updateLogWeatherDisplay() {
             const forecastIndicator = document.getElementById('weather-forecast-indicator');
@@ -10494,6 +10704,10 @@ Browser: ${navigator.userAgent}
             } else {
                 forecastIndicator.style.display = 'none';
             }
+
+            // Keep the always-visible Today outlook card in sync on every
+            // weather refresh (all five call sites route through here).
+            updateTodayRiskCard();
         }
 
         // Calculate weather correlation for analytics (improved accuracy)

@@ -5,6 +5,14 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.0] - 2026-07-09
+
+### Added — Today's Outlook Risk Card (P2-4)
+
+- **A "Today's outlook" card at the top of the Today page** surfaces the weather risk signals the app already computes but never displayed: a **0–10 daily risk score** shown as a colored meter with a plain-language label (Low/Moderate/Elevated/High), the current **pressure trend** and 24-hour change, and the most imminent **upcoming forecast alerts** with a recommendation.
+- When your **personal prediction model** is active (it turns on only after enough logged history and weather data, and only when it beats a baseline), the card also shows its estimated **chance of a migraine day today** — clearly framed as a learned pattern, not a diagnosis.
+- The card stays hidden unless weather tracking is on and has a current reading, and it refreshes automatically on every weather update.
+
 ## [4.5.0] - 2026-07-09
 
 ### Added — One-tap Attack Mode (P2-5)
