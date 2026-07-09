@@ -595,6 +595,63 @@
             outline-offset: 2px;
         }
 
+        /* Interactive head-pain map */
+        .head-map {
+            width: 100%;
+            max-width: 320px;
+            height: auto;
+            display: block;
+            margin: 0 auto 4px;
+        }
+
+        .head-outline {
+            fill: var(--bg-tertiary);
+            stroke: var(--border-color);
+            stroke-width: 1.5;
+            pointer-events: none;
+        }
+
+        .head-zone {
+            fill: transparent;
+            stroke: var(--accent-green);
+            stroke-width: 1.25;
+            opacity: 0.55;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .head-zone:hover {
+            opacity: 0.9;
+            fill: rgba(123, 166, 138, 0.2);
+        }
+
+        .head-zone.selected {
+            fill: var(--accent-green);
+            opacity: 0.85;
+        }
+
+        .head-zone:focus-visible {
+            outline: 2px solid var(--accent-green);
+            outline-offset: 2px;
+        }
+
+        .head-map-readonly .head-zone {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .head-map-caption {
+            fill: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .head-map-echo {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 4px 0 0;
+            text-align: center;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -2432,6 +2489,17 @@
                         </button>
                         <div id="optional-details-content" class="optional-details-content" style="display: none;">
                             <div class="form-group">
+                                <label>Where is the pain? (optional)</label>
+                                <p class="pain-helper" style="margin: 2px 0 8px;">Tap the areas on the head where you feel it.</p>
+                                <div id="log-head-map"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Pain quality (optional)</label>
+                                <div id="log-quality-chips" class="chip-group"></div>
+                            </div>
+
+                            <div class="form-group">
                                 <label style="display: flex; align-items: center; gap: 8px;">
                                     <svg class="icon icon-sm" viewBox="0 0 24 24">
                                         <circle cx="12" cy="12" r="10"></circle>
@@ -3807,10 +3875,41 @@
         const POSTDROME_KEYS = new Set(POSTDROME_OPTIONS.map(p => p.key));
         const POSTDROME_LABELS = Object.fromEntries(POSTDROME_OPTIONS.map(p => [p.key, p.label]));
 
+        // Head-pain location zones (controlled list). Keys carry _left/_right
+        // suffixes where sided, so laterality can be derived. Episodes store
+        // keys; the interactive head map + text render labels.
+        const HEAD_ZONES = [
+            { key: 'forehead', label: 'Forehead' },
+            { key: 'temple_left', label: 'Left temple' },
+            { key: 'temple_right', label: 'Right temple' },
+            { key: 'eye_left', label: 'Behind left eye' },
+            { key: 'eye_right', label: 'Behind right eye' },
+            { key: 'crown', label: 'Top of head' },
+            { key: 'side_left', label: 'Left side' },
+            { key: 'side_right', label: 'Right side' },
+            { key: 'occiput', label: 'Back of head' },
+            { key: 'neck', label: 'Neck / base of skull' }
+        ];
+        const HEAD_ZONE_KEYS = new Set(HEAD_ZONES.map(z => z.key));
+        const HEAD_ZONE_LABELS = Object.fromEntries(HEAD_ZONES.map(z => [z.key, z.label]));
+
+        // Pain quality (ICHD-3-aligned descriptors), a chip multi-select.
+        const PAIN_QUALITY_OPTIONS = [
+            { key: 'pulsating', label: 'Pulsating / throbbing' },
+            { key: 'pressing', label: 'Pressing / tight' },
+            { key: 'stabbing', label: 'Stabbing / sharp' },
+            { key: 'burning', label: 'Burning' },
+            { key: 'dull', label: 'Dull ache' }
+        ];
+        const PAIN_QUALITY_KEYS = new Set(PAIN_QUALITY_OPTIONS.map(q => q.key));
+        const PAIN_QUALITY_LABELS = Object.fromEntries(PAIN_QUALITY_OPTIONS.map(q => [q.key, q.label]));
+
         // Selections on the quick-log form (for the next new episode)
         let selectedSymptoms = new Set();
         let selectedTriggers = new Set();
         let selectedProdrome = new Set();
+        let selectedPainLocations = new Set();
+        let selectedQuality = new Set();
 
         // Map stored keys -> display labels for a controlled option list
         function optionLabels(keys, keySet, labelMap) {
@@ -3821,6 +3920,23 @@
         const triggerLabels = (keys) => optionLabels(keys, TRIGGER_KEYS, TRIGGER_LABELS);
         const prodromeLabels = (keys) => optionLabels(keys, PRODROME_KEYS, PRODROME_LABELS);
         const postdromeLabels = (keys) => optionLabels(keys, POSTDROME_KEYS, POSTDROME_LABELS);
+        const headZoneLabels = (keys) => optionLabels(keys, HEAD_ZONE_KEYS, HEAD_ZONE_LABELS);
+        const qualityLabels = (keys) => optionLabels(keys, PAIN_QUALITY_KEYS, PAIN_QUALITY_LABELS);
+
+        // Derive laterality from the selected head zones (no stored field):
+        // any _left + any _right -> Bilateral; only one side -> Left/Right;
+        // only central zones -> Central; none -> ''.
+        function deriveLaterality(keys) {
+            if (!Array.isArray(keys)) return '';
+            const valid = keys.filter(k => HEAD_ZONE_KEYS.has(k));
+            if (valid.length === 0) return '';
+            const hasLeft = valid.some(k => k.endsWith('_left'));
+            const hasRight = valid.some(k => k.endsWith('_right'));
+            if (hasLeft && hasRight) return 'Bilateral';
+            if (hasLeft) return 'Left';
+            if (hasRight) return 'Right';
+            return 'Central';
+        }
 
         // Render a chip multi-select. Chips carry data-chip-key; toggling is
         // handled by one delegated listener (bindOptionChips). No inline onclick
@@ -3863,6 +3979,88 @@
         const bindProdromeChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, PRODROME_OPTIONS, selectedSet, onToggle);
         const renderPostdromeChips = (containerId, selectedSet) => renderOptionChips(containerId, POSTDROME_OPTIONS, selectedSet);
         const bindPostdromeChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, POSTDROME_OPTIONS, selectedSet, onToggle);
+        const renderQualityChips = (containerId, selectedSet) => renderOptionChips(containerId, PAIN_QUALITY_OPTIONS, selectedSet);
+        const bindQualityChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, PAIN_QUALITY_OPTIONS, selectedSet, onToggle);
+
+        // Interactive head-pain map. Authored once as a constant SVG (no user
+        // data) so it can be injected via direct innerHTML — it must NOT pass
+        // through safeHTML, which strips <svg>. Two head outlines (front + back)
+        // with tappable elliptical hotspot zones. Left-labelled zones sit on the
+        // screen-left of both views (mirror style); the label text + the derived
+        // laterality are authoritative. Selected zones from left→right for both.
+        const HEAD_MAP_SVG = `
+            <svg viewBox="0 0 300 165" class="head-map" role="group" aria-label="Head pain location map" xmlns="http://www.w3.org/2000/svg">
+                <ellipse class="head-outline" cx="85" cy="78" rx="44" ry="54"></ellipse>
+                <ellipse class="head-outline" cx="215" cy="78" rx="44" ry="54"></ellipse>
+                <ellipse class="head-zone" data-zone="forehead" role="button" tabindex="0" cx="85" cy="46" rx="27" ry="14"><title>Forehead</title></ellipse>
+                <ellipse class="head-zone" data-zone="temple_left" role="button" tabindex="0" cx="50" cy="68" rx="13" ry="17"><title>Left temple</title></ellipse>
+                <ellipse class="head-zone" data-zone="temple_right" role="button" tabindex="0" cx="120" cy="68" rx="13" ry="17"><title>Right temple</title></ellipse>
+                <ellipse class="head-zone" data-zone="eye_left" role="button" tabindex="0" cx="68" cy="92" rx="12" ry="9"><title>Behind left eye</title></ellipse>
+                <ellipse class="head-zone" data-zone="eye_right" role="button" tabindex="0" cx="102" cy="92" rx="12" ry="9"><title>Behind right eye</title></ellipse>
+                <ellipse class="head-zone" data-zone="crown" role="button" tabindex="0" cx="215" cy="44" rx="29" ry="15"><title>Top of head</title></ellipse>
+                <ellipse class="head-zone" data-zone="side_left" role="button" tabindex="0" cx="180" cy="76" rx="13" ry="21"><title>Left side</title></ellipse>
+                <ellipse class="head-zone" data-zone="side_right" role="button" tabindex="0" cx="250" cy="76" rx="13" ry="21"><title>Right side</title></ellipse>
+                <ellipse class="head-zone" data-zone="occiput" role="button" tabindex="0" cx="215" cy="94" rx="24" ry="18"><title>Back of head</title></ellipse>
+                <ellipse class="head-zone" data-zone="neck" role="button" tabindex="0" cx="215" cy="128" rx="17" ry="12"><title>Neck / base of skull</title></ellipse>
+                <text class="head-map-caption" x="85" y="150" text-anchor="middle">Front</text>
+                <text class="head-map-caption" x="215" y="150" text-anchor="middle">Back</text>
+            </svg>
+            <p class="head-map-echo"></p>`;
+
+        function updateHeadMapEcho(container, selectedSet) {
+            const echo = container && container.querySelector('.head-map-echo');
+            if (!echo) return;
+            const arr = Array.from(selectedSet);
+            const labels = headZoneLabels(arr);
+            if (labels.length === 0) {
+                echo.textContent = 'Tap the areas where it hurts.';
+            } else {
+                const lat = deriveLaterality(arr);
+                echo.textContent = `Selected: ${labels.join(', ')}${lat ? ` (${lat})` : ''}`;
+            }
+        }
+
+        // Paint the map into a container and reflect the current selection.
+        // interactive=false leaves it read-only (e.g. Episode Details view).
+        function renderHeadMap(containerId, selectedSet, interactive = true) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = HEAD_MAP_SVG; // constant markup, no user data
+            container.classList.toggle('head-map-readonly', !interactive);
+            container.querySelectorAll('.head-zone').forEach(zone => {
+                const on = selectedSet.has(zone.dataset.zone);
+                zone.classList.toggle('selected', on);
+                zone.setAttribute('aria-pressed', String(on));
+                if (!interactive) zone.removeAttribute('tabindex');
+            });
+            updateHeadMapEcho(container, selectedSet);
+        }
+
+        // One idempotent delegated listener; handles click + Enter/Space.
+        function bindHeadMap(containerId, selectedSet, onToggle) {
+            const container = document.getElementById(containerId);
+            if (!container || container.dataset.delegated) return;
+            const toggleZone = (zone) => {
+                const key = zone.dataset.zone;
+                if (!HEAD_ZONE_KEYS.has(key)) return;
+                const isOn = !selectedSet.has(key);
+                if (isOn) selectedSet.add(key); else selectedSet.delete(key);
+                zone.classList.toggle('selected', isOn);
+                zone.setAttribute('aria-pressed', String(isOn));
+                updateHeadMapEcho(container, selectedSet);
+                if (onToggle) onToggle(key, isOn);
+            };
+            container.addEventListener('click', (e) => {
+                const zone = e.target.closest('[data-zone]');
+                if (zone) toggleZone(zone);
+            });
+            container.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const zone = e.target.closest('[data-zone]');
+                if (zone) { e.preventDefault(); toggleZone(zone); }
+            });
+            container.dataset.delegated = '1';
+        }
 
         // XSS Protection Helper
         // Sanitizes HTML to prevent XSS attacks when using innerHTML
@@ -4796,6 +4994,10 @@
             document.getElementById('update-pain-btn')?.addEventListener('click', updateActivePain);
             document.getElementById('end-episode-btn')?.addEventListener('click', endActiveMigraine);
             renderMedicationsList(); // Initialize empty medication list
+            renderHeadMap('log-head-map', selectedPainLocations);
+            bindHeadMap('log-head-map', selectedPainLocations);
+            renderQualityChips('log-quality-chips', selectedQuality);
+            bindQualityChips('log-quality-chips', selectedQuality);
             renderProdromeChips('log-prodrome-chips', selectedProdrome);
             bindProdromeChips('log-prodrome-chips', selectedProdrome);
             renderSymptomChips('log-symptom-chips', selectedSymptoms);
@@ -4865,7 +5067,9 @@
                 symptoms: [],
                 triggers: [],
                 prodrome: [],
-                postdrome: []
+                postdrome: [],
+                painLocations: [],
+                painQuality: []
             };
 
             activeMigraine = migraine;
@@ -4911,7 +5115,9 @@
                 symptoms: Array.from(selectedSymptoms),
                 triggers: Array.from(selectedTriggers),
                 prodrome: Array.from(selectedProdrome),
-                postdrome: []
+                postdrome: [],
+                painLocations: Array.from(selectedPainLocations),
+                painQuality: Array.from(selectedQuality)
             };
 
             activeMigraine = migraine;
@@ -4943,6 +5149,10 @@
             document.getElementById('notes-input').value = '';
             currentEpisodeMedications = [];
             renderMedicationsList();
+            selectedPainLocations.clear();
+            renderHeadMap('log-head-map', selectedPainLocations);
+            selectedQuality.clear();
+            renderQualityChips('log-quality-chips', selectedQuality);
             selectedProdrome.clear();
             renderProdromeChips('log-prodrome-chips', selectedProdrome);
             selectedSymptoms.clear();
