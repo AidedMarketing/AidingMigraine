@@ -5,6 +5,15 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.7.0] - 2026-07-09
+
+### Added — Triggers × Weather Correlation (P2)
+
+- **A new "Triggers × weather" analytics card** cross-tabulates the triggers you log against the **measured** barometric pressure recorded on each episode — so a self-reported trigger like "Weather change" can be checked against the actual barometer instead of taken at face value.
+- Each weather-tracked episode is classed as a **pressure-change day** when its recorded 6-hour or 24-hour change crossed your threshold. The card ranks every trigger by the share of its episodes that fell on pressure-change days and flags the ones above your personal baseline.
+- An honest **"Weather-change check"** verdict compares your "Weather change" logs to baseline and tells you plainly whether the barometer looks like a real trigger for you, doesn't line up, or is inconclusive so far.
+- The card stays hidden until weather tracking is on and there are enough weather-tracked, triggered episodes to say something meaningful.
+
 ## [4.6.0] - 2026-07-09
 
 ### Added — Today's Outlook Risk Card (P2-4)
