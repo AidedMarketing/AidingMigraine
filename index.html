@@ -5288,6 +5288,11 @@
                     ` : ''}
 
                     <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Warning signs before (prodrome)</label>
+                        <div id="edit-attack-prodrome-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 600;">Symptoms</label>
                         <div id="edit-attack-symptom-chips" class="chip-group"></div>
                     </div>
@@ -5295,6 +5300,11 @@
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 600;">Possible Triggers</label>
                         <div id="edit-attack-trigger-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">After-effects (postdrome)</label>
+                        <div id="edit-attack-postdrome-chips" class="chip-group"></div>
                     </div>
 
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green); font-size: 0.9rem; color: var(--text-secondary);">
@@ -5320,6 +5330,14 @@
                 ? attack.triggers.filter(k => TRIGGER_KEYS.has(k)) : []);
             renderTriggerChips('edit-attack-trigger-chips', tempEditTriggers);
             bindTriggerChips('edit-attack-trigger-chips', tempEditTriggers);
+            tempEditProdrome = new Set(Array.isArray(attack.prodrome)
+                ? attack.prodrome.filter(k => PRODROME_KEYS.has(k)) : []);
+            renderProdromeChips('edit-attack-prodrome-chips', tempEditProdrome);
+            bindProdromeChips('edit-attack-prodrome-chips', tempEditProdrome);
+            tempEditPostdrome = new Set(Array.isArray(attack.postdrome)
+                ? attack.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
+            renderPostdromeChips('edit-attack-postdrome-chips', tempEditPostdrome);
+            bindPostdromeChips('edit-attack-postdrome-chips', tempEditPostdrome);
 
             // Pain level selection
             body.querySelectorAll('.pain-btn').forEach(btn => {
@@ -5395,6 +5413,8 @@
                 notes: notes,
                 symptoms: Array.from(tempEditSymptoms),
                 triggers: Array.from(tempEditTriggers),
+                prodrome: Array.from(tempEditProdrome),
+                postdrome: Array.from(tempEditPostdrome),
                 lastModified: new Date().toISOString(),
                 editCount: (originalAttack.editCount || 0) + 1
             };
@@ -5803,6 +5823,8 @@
         // Symptoms being edited (rebuilt each time an edit modal opens)
         let tempEditSymptoms = new Set();
         let tempEditTriggers = new Set();
+        let tempEditProdrome = new Set();
+        let tempEditPostdrome = new Set();
 
         function editEpisode(id) {
             const migraine = migraines.find(m => m.id === id);
@@ -5814,6 +5836,10 @@
                 ? migraine.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : []);
             tempEditTriggers = new Set(Array.isArray(migraine.triggers)
                 ? migraine.triggers.filter(k => TRIGGER_KEYS.has(k)) : []);
+            tempEditProdrome = new Set(Array.isArray(migraine.prodrome)
+                ? migraine.prodrome.filter(k => PRODROME_KEYS.has(k)) : []);
+            tempEditPostdrome = new Set(Array.isArray(migraine.postdrome)
+                ? migraine.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
 
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
@@ -5842,12 +5868,20 @@
                                      color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${safeText(migraine.endNotes || '')}</textarea>
                 </div>
                 <div class="form-group">
+                    <label>Warning signs before (prodrome)</label>
+                    <div id="edit-prodrome-chips" class="chip-group"></div>
+                </div>
+                <div class="form-group">
                     <label>Symptoms</label>
                     <div id="edit-symptom-chips" class="chip-group"></div>
                 </div>
                 <div class="form-group">
                     <label>Possible Triggers</label>
                     <div id="edit-trigger-chips" class="chip-group"></div>
+                </div>
+                <div class="form-group">
+                    <label>After-effects (postdrome)</label>
+                    <div id="edit-postdrome-chips" class="chip-group"></div>
                 </div>
                 <div class="form-group">
                     <label>Relief Methods</label>
@@ -5871,10 +5905,14 @@
             modal.classList.add('active');
 
             // Render symptom chips and relief methods list
+            renderProdromeChips('edit-prodrome-chips', tempEditProdrome);
+            bindProdromeChips('edit-prodrome-chips', tempEditProdrome);
             renderSymptomChips('edit-symptom-chips', tempEditSymptoms);
             bindSymptomChips('edit-symptom-chips', tempEditSymptoms);
             renderTriggerChips('edit-trigger-chips', tempEditTriggers);
             bindTriggerChips('edit-trigger-chips', tempEditTriggers);
+            renderPostdromeChips('edit-postdrome-chips', tempEditPostdrome);
+            bindPostdromeChips('edit-postdrome-chips', tempEditPostdrome);
             renderEditReliefMethods();
 
             // Allow Enter key to add relief method
@@ -5969,6 +6007,8 @@
             migraine.reliefMethods = tempReliefMethods.length > 0 ? tempReliefMethods : null;
             migraine.symptoms = Array.from(tempEditSymptoms);
             migraine.triggers = Array.from(tempEditTriggers);
+            migraine.prodrome = Array.from(tempEditProdrome);
+            migraine.postdrome = Array.from(tempEditPostdrome);
 
             saveData();
             renderHistory();
@@ -7085,6 +7125,16 @@ Browser: ${navigator.userAgent}
             if (episode.triggers !== undefined) {
                 episode.triggers = Array.isArray(episode.triggers)
                     ? episode.triggers.filter(k => typeof k === 'string' && TRIGGER_KEYS.has(k))
+                    : [];
+            }
+            if (episode.prodrome !== undefined) {
+                episode.prodrome = Array.isArray(episode.prodrome)
+                    ? episode.prodrome.filter(k => typeof k === 'string' && PRODROME_KEYS.has(k))
+                    : [];
+            }
+            if (episode.postdrome !== undefined) {
+                episode.postdrome = Array.isArray(episode.postdrome)
+                    ? episode.postdrome.filter(k => typeof k === 'string' && POSTDROME_KEYS.has(k))
                     : [];
             }
 
