@@ -4664,6 +4664,98 @@
             return true;
         }
 
+        // ============================================
+        // AT-REST ENCRYPTION (WebCrypto, passphrase → AES-GCM vault)
+        // ============================================
+        // Real zero-knowledge encryption of the core health vault. The master
+        // key is derived from the user's passphrase via PBKDF2 and held ONLY in
+        // memory after unlock — never persisted in plaintext. encMeta (salt,
+        // iterations, verifier) is stored unencrypted; the vault ciphertext holds
+        // migraines/activeMigraine/cycleData/assessments/userMedications.
+
+        const ENC_KDF_ITERATIONS = 310000;   // PBKDF2-SHA256 rounds
+        const ENC_VERIFIER_TEXT = 'aiding-migraine-vault-v1';
+        let encMasterKey = null;              // CryptoKey, in memory only after unlock
+        let encMeta = null;                   // { enabled, salt, iterations, verifier, kdf, v }
+        let encUnlocked = false;              // true once the key is loaded this session
+
+        function loadEncMeta() {
+            try {
+                const raw = localStorage.getItem('encMeta');
+                encMeta = raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                console.error('[ERROR] Corrupt encMeta:', e);
+                encMeta = null;
+            }
+            return encMeta;
+        }
+        // Encryption is "on" once meta says enabled. Callers that read/write the
+        // vault additionally require encUnlocked (the key present in memory).
+        function encEnabled() {
+            return !!(encMeta && encMeta.enabled);
+        }
+
+        // --- base64 <-> ArrayBuffer helpers ---
+        function bufToB64(buf) {
+            const bytes = new Uint8Array(buf);
+            let bin = '';
+            for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+            return btoa(bin);
+        }
+        function b64ToBuf(b64) {
+            const bin = atob(b64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        // Derive an AES-GCM CryptoKey from a passphrase + salt via PBKDF2.
+        async function deriveKey(passphrase, saltBuf, iterations) {
+            const enc = new TextEncoder();
+            const baseKey = await crypto.subtle.importKey(
+                'raw', enc.encode(passphrase), { name: 'PBKDF2' }, false, ['deriveKey']
+            );
+            return crypto.subtle.deriveKey(
+                { name: 'PBKDF2', salt: saltBuf, iterations: iterations || ENC_KDF_ITERATIONS, hash: 'SHA-256' },
+                baseKey,
+                { name: 'AES-GCM', length: 256 },
+                false,
+                ['encrypt', 'decrypt']
+            );
+        }
+
+        // Encrypt an object → { iv, ct } (base64). A fresh 12-byte IV per write.
+        async function encryptWithKey(obj, key) {
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const enc = new TextEncoder();
+            const ct = await crypto.subtle.encrypt(
+                { name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(obj))
+            );
+            return { iv: bufToB64(iv), ct: bufToB64(ct) };
+        }
+
+        // Decrypt { iv, ct } → object. Throws if the key/passphrase is wrong
+        // (GCM authentication tag mismatch), which we use to validate unlock.
+        async function decryptWithKey(blob, key) {
+            const iv = new Uint8Array(b64ToBuf(blob.iv));
+            const pt = await crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv }, key, b64ToBuf(blob.ct)
+            );
+            return JSON.parse(new TextDecoder().decode(pt));
+        }
+
+        // Validate a candidate passphrase by decrypting the stored verifier.
+        async function verifyPassphrase(passphrase) {
+            if (!encMeta || !encMeta.salt || !encMeta.verifier) return null;
+            const key = await deriveKey(passphrase, b64ToBuf(encMeta.salt), encMeta.iterations);
+            try {
+                const check = await decryptWithKey(encMeta.verifier, key);
+                return check === ENC_VERIFIER_TEXT ? key : null;
+            } catch (e) {
+                return null; // wrong passphrase
+            }
+        }
+
         async function loadData() {
             let dataLoaded = false;
 
