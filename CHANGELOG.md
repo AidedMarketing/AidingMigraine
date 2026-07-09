@@ -5,6 +5,12 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.1] - 2026-07-09
+
+### Fixed
+
+- **Bottom navigation width on wide screens**: the fixed bottom navigation bar spanned the full viewport on tablets and desktops instead of matching the app's centered content column. It's now constrained to the app width (max 680px) and centered, staying aligned with the rest of the content while remaining full-width on phones.
+
 ## [5.1.0] - 2026-07-09
 
 ### Changed — PWA Install Experience & Backend Hardening (P3)
