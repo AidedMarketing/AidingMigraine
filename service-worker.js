@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
 // Version 4.0.0 - Production Release
 
-const CACHE_NAME = 'aiding-migraine-v4.6.0-risk-outlook';
+const CACHE_NAME = 'aiding-migraine-v4.7.0-trigger-weather';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
