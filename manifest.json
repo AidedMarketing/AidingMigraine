@@ -90,6 +90,22 @@
     }
   ],
   "categories": ["health", "medical", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "./icons/screenshot-narrow.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Log migraines and see your recent patterns at a glance"
+    },
+    {
+      "src": "./icons/screenshot-wide.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Episode history with symptoms and triggers"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Log migraine",
