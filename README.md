@@ -7,17 +7,29 @@ A Progressive Web App for tracking migraines, identifying patterns, and improvin
 [![PWA](https://img.shields.io/badge/PWA-enabled-blueviolet)](https://web.dev/progressive-web-apps/)
 [![Privacy First](https://img.shields.io/badge/Privacy-First-green)](./help/privacy.html)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-4.1.0-blue)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-4.10.0-blue)](./CHANGELOG.md)
 
 [Live Demo](https://aidedmarketing.github.io/AidingMigraine/) | [Documentation](https://aidedmarketing.github.io/AidingMigraine/help/) | [Report Bug](https://github.com/AidedMarketing/AidingMigraine/issues) | [Changelog](./CHANGELOG.md)
 
 ---
 
-## 🆕 What's New in v4.1.0
+## 🆕 What's New in v4.10.0
 
-### Critical Fixes & Honesty Pass
+### Competitive Feature Sprint (v4.2.0 – v4.10.0)
 
-**A focused reliability release** (see the [Changelog](./CHANGELOG.md) for the full list):
+**A major capability expansion** (see the [Changelog](./CHANGELOG.md) for full details):
+- **Symptom & aura, trigger, prodrome & postdrome tracking** — capture the full migraine picture across every phase with quick chip selectors
+- **Interactive head-pain location map + pain quality** — tap where it hurts on a head diagram (with derived laterality) and record throbbing/pressure/etc.
+- **MIDAS & HIT-6 disability assessments** — standard clinical questionnaires, scored and added to the doctor report
+- **One-tap "attack mode" logging** — start tracking in a single tap when an attack hits
+- **"Today's outlook" risk card** — surfaces the daily weather-risk score, personal ML estimate, and upcoming forecast alerts
+- **Triggers × weather correlation** — validates self-reported triggers against measured barometric data
+- **Optional menstrual cycle tracking** — device-only, opt-in period logging with a baseline-honest menstrual-migraine correlation
+- Everything exports to the PDF doctor report, CSV, and JSON
+
+### Previous: Critical Fixes & Honesty Pass (v4.1.0)
+
+**A focused reliability release:**
 - Fixed data-integrity bugs where deleted episodes could reappear and 0-pain entries were dropped
 - Closed backend security holes (push-endpoint SSRF, unauthenticated test relay) and hardened rate limiting
 - Removed two broken features that shipped non-functional: background sync and voice logging

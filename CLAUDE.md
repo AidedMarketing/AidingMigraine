@@ -4,14 +4,14 @@
 
 Aiding Migraine is a **privacy-first, offline-first Progressive Web App (PWA)** for migraine tracking and management. Users log migraines, track patterns, view analytics, manage medications, and export data for healthcare providers. All user data is stored locally on the device (IndexedDB/localStorage). An optional Node.js/Express notification server handles push notifications.
 
-- **Version:** 4.1.0
+- **Version:** 4.10.0
 - **License:** MIT
 - **Repository:** https://github.com/AidedMarketing/AidingMigraine
 
 ## Architecture
 
 ### Frontend (Vanilla JS PWA)
-- **Single-file app:** `index.html` (~12,600 lines) contains all HTML, CSS, and JavaScript inline
+- **Single-file app:** `index.html` (~14,800 lines) contains all HTML, CSS, and JavaScript inline
 - **No build step:** Served as static files — no bundler, transpiler, or framework
 - **Service worker:** `service-worker.js` handles offline caching and push notifications
 - **PWA manifest:** `manifest.json` defines installable app metadata
