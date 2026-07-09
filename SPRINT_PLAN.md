@@ -194,9 +194,9 @@ A second audit of the areas covered lightly in the first pass (weather/ML math, 
 
 - ~~**Real at-rest encryption** behind the lock~~ — ✅ **Shipped in v5.0.0.** Opt-in "Encrypt my data" derives an AES-256-GCM key from a passphrase via PBKDF2-SHA256 (WebCrypto) and encrypts the core health vault (episodes, cycle, assessments, medications); key in memory only; zero-knowledge (no recovery), unlock-once-per-session, and never auto-locks during an active episode. Makes the privacy copy true. Fast-follow: optional WebAuthn-PRF biometric unlock.
 - **Sleep & hydration logging** (already referenced by the risk science, not user-loggable).
-- **Manifest upgrades:** `screenshots` (richer install UI), `id`, `share_target`; more shortcuts.
+- ~~**Manifest upgrades:** `screenshots` (richer install UI), `id`; more shortcuts.~~ — ✅ **Shipped in v5.1.0.** Added `id`/`scope`/`lang`/`dir`/`launch_handler`, two captured install screenshots (narrow + wide), and three deep-linked shortcuts (Log / Patterns / Care). `share_target` still deferred.
 - **Rebuilt voice logging** (removed in P0-14) — attack-time ergonomics justify doing it properly.
-- **Backend:** Express 5, SQLite instead of JSON files, server-side prune job.
+- **Backend:** ~~server-side prune job~~ ✅ **Shipped in v5.1.0** (prune job + expired-subscription cleanup + graceful shutdown, no new deps). Express 5 / SQLite migration intentionally deferred (churn/risk not justified at this scale).
 - **Explicitly deprioritized:** community/social features — our differentiator is privacy, not community.
 
 ---

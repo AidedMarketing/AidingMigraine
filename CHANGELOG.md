@@ -5,6 +5,13 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.0] - 2026-07-09
+
+### Changed — PWA Install Experience & Backend Hardening (P3)
+
+- **Richer install experience**: the app manifest now includes a stable `id`, `scope`, `lang`/`dir`, a `launch_handler` (opening the app focuses an existing window instead of a new one), **app screenshots** (shown in the install prompt), and **three home-screen shortcuts** — Log migraine, View patterns, and Care & export — each deep-linking to the right screen.
+- **Notification server hardening** (optional backend): expired push subscriptions are now automatically removed (on a 410/404 from the push service) instead of being retried forever; a daily prune job drops old sent/stale scheduled records so the data files no longer grow without bound; and the server shuts down gracefully on SIGTERM/SIGINT, flushing pending writes so a deploy can't truncate a data file. No new dependencies.
+
 ## [5.0.0] - 2026-07-09
 
 ### Added — Real At-Rest Encryption (P3)
