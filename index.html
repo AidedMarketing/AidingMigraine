@@ -3394,6 +3394,30 @@
                     </p>
                 </div>
 
+                <!-- At-rest Encryption -->
+                <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
+                    <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                        <span style="font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Encrypt my data
+                        </span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="encryption-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 12px; margin-bottom: 12px;">
+                        Encrypt your migraine data at rest with a passphrase (AES-256). Your data is unreadable without it — even to us. There is no recovery if you forget it, so keep a backup.
+                    </p>
+                    <div id="encryption-status" style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 12px; padding: 10px; background: var(--bg-tertiary); border-radius: 8px;">Off</div>
+                    <div id="encryption-actions" style="display: none; margin-left: 12px; margin-top: 10px;">
+                        <button id="change-passphrase-btn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 12px;">Change passphrase</button>
+                    </div>
+                </div>
+
                 <!-- Biometric Authentication -->
                 <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
                     <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
@@ -4582,6 +4606,7 @@
             updateLoadingProgress(60, 'Loading settings...');
             initializeSettings();
             setupCycleUI();
+            setupEncryptionUI();
 
             updateLoadingProgress(65, 'Configuring notifications...');
             await initializeNotifications();
@@ -4832,6 +4857,160 @@
             if (useIndexedDB && db) {
                 try { await IDB.delete(DB_STORES.SETTINGS, 'encVault'); } catch (e) {}
             }
+        }
+
+        function saveEncMeta() {
+            localStorage.setItem('encMeta', JSON.stringify(encMeta));
+        }
+
+        // Turn encryption ON: derive a key from the passphrase, encrypt the
+        // current in-memory data into the vault, and wipe the plaintext copies.
+        async function enableEncryption(passphrase) {
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const key = await deriveKey(passphrase, salt.buffer, ENC_KDF_ITERATIONS);
+            const verifier = await encryptWithKey(ENC_VERIFIER_TEXT, key);
+            encMeta = { enabled: true, salt: bufToB64(salt.buffer), iterations: ENC_KDF_ITERATIONS, verifier, kdf: 'PBKDF2', v: 1 };
+            encMasterKey = key;
+            encUnlocked = true;
+            saveEncMeta();
+            await persistVault();
+            await wipePlaintextStores();
+        }
+
+        // Turn encryption OFF: write the in-memory data back as plaintext and
+        // remove the vault + metadata. Requires the key in memory (unlocked).
+        async function disableEncryption() {
+            if (!encMasterKey) return false;
+            encMeta = null; // encEnabled() now false → saves take the plaintext path
+            localStorage.removeItem('encMeta');
+            await saveData();
+            saveCycleData();
+            saveAssessments();
+            saveMedicationLibrary();
+            await removeVault();
+            encMasterKey = null;
+            encUnlocked = false;
+            return true;
+        }
+
+        // Re-key the vault with a new passphrase (old passphrase required).
+        async function changePassphrase(oldPass, newPass) {
+            const key = await verifyPassphrase(oldPass);
+            if (!key) return false;
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const newKey = await deriveKey(newPass, salt.buffer, ENC_KDF_ITERATIONS);
+            const verifier = await encryptWithKey(ENC_VERIFIER_TEXT, newKey);
+            encMeta = { enabled: true, salt: bufToB64(salt.buffer), iterations: ENC_KDF_ITERATIONS, verifier, kdf: 'PBKDF2', v: 1 };
+            encMasterKey = newKey;
+            saveEncMeta();
+            await persistVault();
+            return true;
+        }
+
+        // --- Encryption Settings UI ---
+
+        function syncEncryptionUI() {
+            const toggle = document.getElementById('encryption-toggle');
+            const status = document.getElementById('encryption-status');
+            const actions = document.getElementById('encryption-actions');
+            if (toggle) toggle.checked = encEnabled();
+            if (status) status.textContent = encEnabled()
+                ? 'On — your data is encrypted at rest with AES-256.'
+                : 'Off';
+            if (actions) actions.style.display = encEnabled() ? 'block' : 'none';
+        }
+
+        function openEnableEncryptionModal() {
+            const body = `
+                <div style="padding: 12px 14px; border-radius: 10px; background: var(--bg-tertiary); border-left: 3px solid var(--accent-red); margin-bottom: 14px; font-size: 0.9rem;">
+                    <strong>Important:</strong> your data will be encrypted with this passphrase. If you forget it, <strong>it cannot be recovered</strong> — there is no backdoor. Keep an unencrypted JSON backup (Export in Settings) somewhere safe first.
+                </div>
+                <div class="form-group">
+                    <label for="enc-pass">Passphrase (at least 8 characters)</label>
+                    <input type="password" id="enc-pass" placeholder="Choose a strong passphrase" autocomplete="new-password" style="width: 100%; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem;">
+                </div>
+                <div class="form-group">
+                    <label for="enc-pass2">Confirm passphrase</label>
+                    <input type="password" id="enc-pass2" placeholder="Re-enter passphrase" autocomplete="new-password" style="width: 100%; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem;">
+                </div>
+                <p id="enc-error" style="display: none; color: var(--accent-red); font-size: 0.85rem;"></p>`;
+            showModal('Encrypt your data', body, [
+                { text: 'Cancel', class: 'btn-secondary', action: () => { closeModal(); syncEncryptionUI(); } },
+                { text: 'Encrypt', class: 'btn-primary', action: async () => {
+                    const p1 = document.getElementById('enc-pass').value;
+                    const p2 = document.getElementById('enc-pass2').value;
+                    const err = document.getElementById('enc-error');
+                    const fail = (msg) => { if (err) { err.textContent = msg; err.style.display = 'block'; } };
+                    if (p1.length < 8) return fail('Passphrase must be at least 8 characters.');
+                    if (p1 !== p2) return fail('Passphrases do not match.');
+                    try {
+                        await enableEncryption(p1);
+                        closeModal();
+                        syncEncryptionUI();
+                        showModal('Encryption on', 'Your data is now encrypted at rest. You will be asked for your passphrase when you open the app.');
+                    } catch (e) {
+                        console.error('[ERROR] enableEncryption failed:', e);
+                        fail('Something went wrong enabling encryption. Your data was not changed.');
+                    }
+                }}
+            ]);
+        }
+
+        function openDisableEncryptionModal() {
+            showModal('Turn off encryption', '<p>Your data will be stored unencrypted again on this device. Continue?</p>', [
+                { text: 'Cancel', class: 'btn-secondary', action: () => { closeModal(); syncEncryptionUI(); } },
+                { text: 'Turn off', class: 'btn-danger', action: async () => {
+                    try {
+                        await disableEncryption();
+                        closeModal();
+                        syncEncryptionUI();
+                        showModal('Encryption off', 'Your data is no longer encrypted at rest.');
+                    } catch (e) {
+                        console.error('[ERROR] disableEncryption failed:', e);
+                        closeModal();
+                        syncEncryptionUI();
+                    }
+                }}
+            ]);
+        }
+
+        function openChangePassphraseModal() {
+            const body = `
+                <div class="form-group">
+                    <label for="enc-old">Current passphrase</label>
+                    <input type="password" id="enc-old" autocomplete="current-password" style="width: 100%; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem;">
+                </div>
+                <div class="form-group">
+                    <label for="enc-new">New passphrase (at least 8 characters)</label>
+                    <input type="password" id="enc-new" autocomplete="new-password" style="width: 100%; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem;">
+                </div>
+                <p id="enc-error" style="display: none; color: var(--accent-red); font-size: 0.85rem;"></p>`;
+            showModal('Change passphrase', body, [
+                { text: 'Cancel', class: 'btn-secondary', action: closeModal },
+                { text: 'Change', class: 'btn-primary', action: async () => {
+                    const oldP = document.getElementById('enc-old').value;
+                    const newP = document.getElementById('enc-new').value;
+                    const err = document.getElementById('enc-error');
+                    const fail = (msg) => { if (err) { err.textContent = msg; err.style.display = 'block'; } };
+                    if (newP.length < 8) return fail('New passphrase must be at least 8 characters.');
+                    const ok = await changePassphrase(oldP, newP);
+                    if (!ok) return fail('Current passphrase is incorrect.');
+                    closeModal();
+                    showModal('Passphrase changed', 'Your data has been re-encrypted with the new passphrase.');
+                }}
+            ]);
+        }
+
+        function setupEncryptionUI() {
+            const toggle = document.getElementById('encryption-toggle');
+            if (toggle) {
+                toggle.addEventListener('change', () => {
+                    if (toggle.checked && !encEnabled()) openEnableEncryptionModal();
+                    else if (!toggle.checked && encEnabled()) openDisableEncryptionModal();
+                });
+            }
+            document.getElementById('change-passphrase-btn')?.addEventListener('click', openChangePassphraseModal);
+            syncEncryptionUI();
         }
 
         async function loadData() {
