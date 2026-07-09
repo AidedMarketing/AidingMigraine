@@ -2722,6 +2722,11 @@
                 <h2>Common Triggers</h2>
                 <div id="trigger-analytics-content"></div>
             </div>
+
+            <div id="trigger-weather-card" class="section-card" style="display: none;">
+                <h2>Triggers &times; weather</h2>
+                <div id="trigger-weather-content"></div>
+            </div>
         </div>
 
         <div id="care-page" class="page">
@@ -11672,6 +11677,9 @@ Browser: ${navigator.userAgent}
             // Render symptom and trigger frequency breakdowns
             renderSymptomAnalytics(filteredData);
             renderTriggerAnalytics(filteredData);
+
+            // Cross-tabulate triggers against measured pressure activity
+            renderTriggerWeatherCorrelation(filteredData);
         }
 
         // Ranked frequency breakdown of a controlled option list across episodes.
@@ -11726,6 +11734,113 @@ Browser: ${navigator.userAgent}
 
         function renderTriggerAnalytics(data) {
             renderOptionAnalytics('trigger-analytics-card', 'trigger-analytics-content', data, 'triggers', TRIGGER_KEYS, TRIGGER_LABELS, 'triggers');
+        }
+
+        // Cross-tabulate each logged trigger against the MEASURED pressure
+        // activity stored on that episode (migraine.weather), so self-reported
+        // triggers — especially "Weather change" — can be validated against the
+        // barometer instead of taken at face value. Each episode is classed as
+        // a "pressure-change" episode when its recorded 6h or 24h change crossed
+        // the user's threshold; per-trigger rates are compared to the baseline
+        // rate across all weather-tracked episodes.
+        function calculateTriggerWeatherCorrelation(data) {
+            const t6 = weatherData.userThreshold6h || 5;
+            const t24 = weatherData.userThreshold24h || 5;
+
+            const hasWeather = (w) => w && (w.maxChange3h != null || w.change24h != null);
+            const hasPressureActivity = (w) =>
+                (w.maxChange3h != null && w.maxChange3h >= t6) ||
+                (w.change24h != null && Math.abs(w.change24h) >= t24);
+
+            const withWeather = data.filter(m => hasWeather(m.weather));
+            if (withWeather.length < 3) return null;
+
+            const baselineCount = withWeather.filter(m => hasPressureActivity(m.weather)).length;
+            const baselineRate = baselineCount / withWeather.length;
+
+            const perTrigger = [];
+            TRIGGER_OPTIONS.forEach(({ key }) => {
+                const eps = withWeather.filter(m => Array.isArray(m.triggers) && m.triggers.includes(key));
+                if (eps.length < 2) return; // Too few to be meaningful
+                const coincided = eps.filter(m => hasPressureActivity(m.weather)).length;
+                perTrigger.push({ key, total: eps.length, coincided, rate: coincided / eps.length });
+            });
+            perTrigger.sort((a, b) => b.rate - a.rate || b.total - a.total);
+
+            if (perTrigger.length === 0) return null;
+
+            return {
+                withWeatherCount: withWeather.length,
+                baselineCount,
+                baselineRate,
+                perTrigger,
+                weatherTrigger: perTrigger.find(p => p.key === 'weather') || null,
+                t6, t24
+            };
+        }
+
+        function renderTriggerWeatherCorrelation(data) {
+            const card = document.getElementById('trigger-weather-card');
+            const content = document.getElementById('trigger-weather-content');
+            if (!card || !content) return;
+
+            if (!weatherData.enabled) { card.style.display = 'none'; return; }
+
+            const corr = calculateTriggerWeatherCorrelation(data);
+            if (!corr) { card.style.display = 'none'; return; }
+
+            card.style.display = 'block';
+            const colors = getChartColors();
+            const basePct = Math.round(corr.baselineRate * 100);
+
+            // Honest validation of the self-reported "Weather change" trigger.
+            let verdict = '';
+            const wt = corr.weatherTrigger;
+            if (wt && wt.total >= 3) {
+                const wtPct = Math.round(wt.rate * 100);
+                let msg, color;
+                if (wt.rate >= Math.max(0.5, corr.baselineRate * 1.3)) {
+                    color = 'var(--accent-red)';
+                    msg = `Your "Weather change" logs line up with the barometer: ${wtPct}% fell on measured pressure-change days (vs ${basePct}% baseline). Pressure looks like a real trigger for you.`;
+                } else if (wt.rate <= corr.baselineRate * 0.8) {
+                    color = 'var(--accent-green)';
+                    msg = `Your "Weather change" logs don't line up with measured swings (${wtPct}% vs ${basePct}% baseline). The barometer may not be the driver, or changes are subtler than your threshold.`;
+                } else {
+                    color = '#d4a574';
+                    msg = `Your "Weather change" logs roughly match your baseline (${wtPct}% vs ${basePct}%) — no strong signal either way yet.`;
+                }
+                verdict = `<div style="padding: 12px 14px; border-radius: 10px; background: var(--bg-tertiary); border-left: 3px solid ${color}; margin-bottom: 14px;">
+                    <strong>Weather-change check:</strong> ${msg}</div>`;
+            }
+
+            const rows = corr.perTrigger.map(p => {
+                const pct = Math.round(p.rate * 100);
+                const barPct = pct;
+                const above = p.rate > corr.baselineRate + 0.0001;
+                const barColor = above ? colors.red : colors.primary;
+                const flag = above ? ` <span style="color: ${colors.red};" title="Above your baseline">▲</span>` : '';
+                return `
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px;">
+                            <span>${safeText(TRIGGER_LABELS[p.key])}${flag}</span>
+                            <span style="color: var(--text-secondary);">${p.coincided}/${p.total} (${pct}%)</span>
+                        </div>
+                        <div style="height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; width: ${barPct}%; background: ${barColor}; border-radius: 4px;"></div>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            content.innerHTML = safeHTML(`
+                ${verdict}
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 12px;">
+                    Share of each trigger's episodes that fell on a <strong>measured pressure-change day</strong>
+                    (&ge;${formatThreshold(corr.t6)} in 6h or &ge;${formatThreshold(corr.t24)} in 24h).
+                    Your baseline across ${corr.withWeatherCount} weather-tracked episodes is <strong>${basePct}%</strong>;
+                    &#9650; marks triggers above it.
+                </p>
+                ${rows}
+            `);
         }
 
         function updateAnalyticsMetrics(data, startDate, endDate) {
