@@ -4636,6 +4636,10 @@
             console.log('[RELOAD] Initializing UI - showing log page first');
             showPage('log');
 
+            // Apply any notification/shortcut deep-link AFTER the default page
+            // is set, so ?action=analytics/care/log lands on the right screen.
+            handleNotificationDeepLink();
+
             // Use robust retry mechanism to ensure UI updates when DOM is ready
             console.log('[RELOAD] Starting robust UI initialization with retry logic...');
 
@@ -10117,8 +10121,8 @@ Browser: ${navigator.userAgent}
 
         async function initializeNotifications() {
             loadNotificationPreferences();
-            // Handle deep links from notification clicks
-            handleNotificationDeepLink();
+            // Deep-link handling runs later in initApp, after the default page
+            // is shown (see handleNotificationDeepLink call there).
 
             // Attempt to update notification UI early (will succeed once settings page elements are available)
             await updateNotificationUI();
@@ -10493,6 +10497,8 @@ Browser: ${navigator.userAgent}
             const action = urlParams.get('action');
             const attackId = urlParams.get('attackId');
 
+            if (!action) return;
+
             if (action === 'log') {
                 showPage('log');
             } else if (action === 'analytics') {
@@ -10513,9 +10519,7 @@ Browser: ${navigator.userAgent}
             }
 
             // Clean up URL
-            if (action) {
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
 
         async function syncPreferencesWithServer() {
