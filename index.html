@@ -3204,6 +3204,24 @@
             </div>
 
             <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                    <div>
+                        <h2 style="margin-bottom: 8px;">Menstrual cycle tracking</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">
+                            Track period start dates to spot menstrual-migraine patterns.
+                        </p>
+                    </div>
+                    <label class="toggle-switch" style="flex-shrink: 0; margin-left: 16px;">
+                        <input type="checkbox" id="cycle-tracking-enabled">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.8rem; margin: 0; padding: 10px 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green);">
+                    Off by default. When on, your period dates are stored on this device only and never sent anywhere. Log periods and see your pattern on the <strong>Care</strong> page.
+                </p>
+            </div>
+
+            <div class="section-card">
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
                     <div>
                         <h2 style="margin-bottom: 8px;">Weather Tracking</h2>
@@ -3626,6 +3644,10 @@
         // disability. Stored locally as periodic self-assessments.
         let assessments = [];
 
+        // Menstrual cycle tracking (opt-in, off by default, device-only).
+        // periods = [{ id, startDate: 'YYYY-MM-DD' }] — start dates only.
+        let cycleData = { enabled: false, periods: [] };
+
         const MIDAS_QUESTIONS = [
             'On how many days in the last 3 months did you MISS work or school because of your headaches?',
             'On how many days was your productivity at work or school REDUCED BY HALF or more (do not include the days counted above)?',
@@ -3702,6 +3724,162 @@
             });
             if (added > 0) saveAssessments();
             return added;
+        }
+
+        // ============================================
+        // MENSTRUAL CYCLE TRACKING (opt-in, device-only)
+        // ============================================
+
+        function loadCycleData() {
+            const stored = localStorage.getItem('cycleData');
+            if (!stored) return;
+            try {
+                const parsed = JSON.parse(stored);
+                if (parsed && typeof parsed === 'object') {
+                    cycleData = {
+                        enabled: !!parsed.enabled,
+                        periods: Array.isArray(parsed.periods)
+                            ? parsed.periods.filter(p => p && typeof p.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.startDate))
+                            : []
+                    };
+                }
+            } catch (e) {
+                console.error('[ERROR] Corrupt cycleData, resetting:', e);
+                localStorage.removeItem('cycleData');
+                cycleData = { enabled: false, periods: [] };
+            }
+        }
+
+        function saveCycleData() {
+            localStorage.setItem('cycleData', JSON.stringify(cycleData));
+        }
+
+        // Restore cycle data from a backup: merge period dates (de-duped) and
+        // adopt the backup's enabled flag. Returns the number of periods added.
+        function mergeCycleData(incoming) {
+            if (!incoming || typeof incoming !== 'object') return 0;
+            if (typeof incoming.enabled === 'boolean') cycleData.enabled = incoming.enabled;
+            const known = new Set(cycleData.periods.map(p => p.startDate));
+            let added = 0;
+            if (Array.isArray(incoming.periods)) {
+                incoming.periods.forEach(p => {
+                    if (p && typeof p.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.startDate) && !known.has(p.startDate)) {
+                        cycleData.periods.push({ id: p.id || Date.now() + added, startDate: p.startDate });
+                        known.add(p.startDate);
+                        added++;
+                    }
+                });
+            }
+            saveCycleData();
+            return added;
+        }
+
+        // Parse a 'YYYY-MM-DD' string at LOCAL midnight (avoids the UTC/DST
+        // off-by-one that new Date('YYYY-MM-DD') causes in some timezones).
+        function parseLocalDate(str) {
+            if (typeof str !== 'string') return null;
+            const [y, m, d] = str.split('-').map(Number);
+            if (!y || !m || !d) return null;
+            return new Date(y, m - 1, d);
+        }
+        function toLocalDateStr(date) {
+            const pad = n => String(n).padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+        }
+        function daysBetween(a, b) {
+            return Math.round((a - b) / 86400000);
+        }
+
+        // Period starts as ascending Date objects
+        function sortedPeriodStarts() {
+            return cycleData.periods
+                .map(p => parseLocalDate(p.startDate))
+                .filter(Boolean)
+                .sort((a, b) => a - b);
+        }
+
+        // Median of the last ~6 consecutive gaps; clamp 21-35; default 28
+        function averageCycleLength() {
+            const starts = sortedPeriodStarts();
+            if (starts.length < 2) return 28;
+            const gaps = [];
+            for (let i = 1; i < starts.length; i++) gaps.push(daysBetween(starts[i], starts[i - 1]));
+            const recent = gaps.slice(-6).filter(g => g >= 15 && g <= 60).sort((a, b) => a - b);
+            if (recent.length === 0) return 28;
+            const mid = Math.floor(recent.length / 2);
+            const median = recent.length % 2 ? recent[mid] : Math.round((recent[mid - 1] + recent[mid]) / 2);
+            return Math.min(35, Math.max(21, median));
+        }
+
+        // Cycle day for a given date: days since the most recent start on/before
+        // it, +1 (so the start day itself is day 1). null if none prior.
+        function cycleDayFor(date) {
+            const starts = sortedPeriodStarts();
+            let last = null;
+            for (const s of starts) { if (s <= date) last = s; else break; }
+            if (!last) return null;
+            return daysBetween(date, last) + 1;
+        }
+
+        // Days until the next estimated period (last start + avg length)
+        function nextPeriodEstimate() {
+            const starts = sortedPeriodStarts();
+            if (starts.length === 0) return null;
+            const last = starts[starts.length - 1];
+            const next = new Date(last);
+            next.setDate(next.getDate() + averageCycleLength());
+            const today = parseLocalDate(toLocalDateStr(new Date()));
+            return { date: next, daysUntil: daysBetween(next, today) };
+        }
+
+        // Perimenstrual window: within [start-2, start+3] of any logged start
+        // (ICHD-3 menstrual-migraine window: day -2 to +3).
+        function isPerimenstrual(date) {
+            const starts = sortedPeriodStarts();
+            return starts.some(s => {
+                const diff = daysBetween(date, s);
+                return diff >= -2 && diff <= 3;
+            });
+        }
+
+        // Menstrual-migraine correlation over a date range. Mirrors the
+        // trigger x weather baseline honesty: compare the share of migraine
+        // days that fall in a perimenstrual window against the share of ALL
+        // days in range that are perimenstrual (expected by chance).
+        function calculateMenstrualCorrelation(migraines, startDate, endDate) {
+            const starts = sortedPeriodStarts();
+            if (starts.length < 2) return { level: 'insufficient', reason: 'periods' };
+
+            const migraineDays = new Set();
+            migraines.forEach(m => getMigraineDays(m).forEach(d => migraineDays.add(d)));
+            const migDayList = Array.from(migraineDays)
+                .map(parseLocalDate).filter(Boolean)
+                .filter(d => d >= startDate && d <= endDate);
+            if (migDayList.length < 3) return { level: 'insufficient', reason: 'migraines' };
+
+            const totalDays = Math.max(1, daysBetween(endDate, startDate) + 1);
+            let windowDays = 0;
+            for (let i = 0; i < totalDays; i++) {
+                const d = new Date(startDate);
+                d.setDate(d.getDate() + i);
+                if (isPerimenstrual(d)) windowDays++;
+            }
+            const migraineInWindow = migDayList.filter(isPerimenstrual).length;
+            const observedShare = migraineInWindow / migDayList.length;
+            const expectedShare = windowDays / totalDays;
+            const relativeRisk = expectedShare > 0 ? observedShare / expectedShare : 0;
+
+            let level;
+            if (migraineInWindow >= 2 && relativeRisk >= 2) level = 'strong';
+            else if (migraineInWindow >= 2 && relativeRisk >= 1.4) level = 'moderate';
+            else level = 'low';
+
+            return {
+                level,
+                migraineDays: migDayList.length,
+                migraineInWindow,
+                observedShare, expectedShare, relativeRisk
+            };
         }
 
         // --- Questionnaire modals ---
@@ -4195,6 +4373,7 @@
             updateLoadingProgress(25, 'Initializing medication library...');
             initializeMedicationLibrary();
             loadAssessments();
+            loadCycleData();
 
             updateLoadingProgress(30, 'Setting up theme...');
             initializeTheme();
@@ -7238,7 +7417,8 @@ Browser: ${navigator.userAgent}
                 exportDate: new Date().toISOString(),
                 totalEpisodes: exportMigraines.length,
                 migraines: exportMigraines,
-                assessments: assessments
+                assessments: assessments,
+                cycleData: cycleData
             };
             
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -7329,6 +7509,12 @@ Browser: ${navigator.userAgent}
                     if (Array.isArray(data.assessments)) {
                         mergeAssessments(data.assessments);
                         renderAssessments();
+                    }
+
+                    // Restore optional menstrual cycle data (opt-in feature)
+                    if (data.cycleData) {
+                        mergeCycleData(data.cycleData);
+                        if (typeof refreshCycleViews === 'function') refreshCycleViews();
                     }
 
                     if (data.migraines.length === 0) {
