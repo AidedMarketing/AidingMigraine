@@ -1,6 +1,6 @@
 {
   "name": "aiding-migraine-notification-server",
-  "version": "4.0.0",
+  "version": "5.1.0",
   "description": "Push notification server for Aiding Migraine PWA",
   "main": "index.js",
   "scripts": {

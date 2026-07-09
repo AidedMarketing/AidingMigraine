@@ -11,7 +11,9 @@ const {
     markFollowupAsSent,
     getActiveCheckinsDueNow,
     markActiveCheckinAsSent,
-    getSubscriptionByEndpoint
+    getSubscriptionByEndpoint,
+    removeSubscription,
+    pruneOldRecords
 } = require('./database');
 const {
     sendWebPushNotification,
@@ -52,11 +54,23 @@ function initializeScheduler() {
         }
     });
 
+    // Daily at 03:00 UTC: prune old sent/stale records so the data files
+    // don't grow without bound.
+    const pruneJob = schedule.scheduleJob('0 3 * * *', async () => {
+        try {
+            const removed = await pruneOldRecords(7);
+            if (removed > 0) console.log(`🧹 Pruned ${removed} old notification record(s)`);
+        } catch (error) {
+            console.error('❌ Error in prune job:', error);
+        }
+    });
+
     console.log('✅ Scheduler initialized');
     console.log('   - Hourly job for daily check-ins');
     console.log('   - Every 15 minutes for follow-ups and active check-ins');
+    console.log('   - Daily prune of old notification records');
 
-    return { hourlyJob, followupJob };
+    return { hourlyJob, followupJob, pruneJob };
 }
 
 async function processDailyCheckIns(currentHour, currentDay) {
@@ -91,6 +105,10 @@ async function processDailyCheckIns(currentHour, currentDay) {
                 sent++;
             } else {
                 failed++;
+                if (result.error === 'subscription_expired') {
+                    await removeSubscription(subscription.endpoint);
+                    console.log('   🧹 Removed expired subscription');
+                }
             }
         } catch (error) {
             console.error('   Error sending to subscription:', error);
@@ -137,6 +155,11 @@ async function processScheduledFollowUps() {
             } else {
                 failed++;
                 console.log(`   ❌ Failed to send follow-up for attack ${followup.attackId}`);
+                if (result.error === 'subscription_expired') {
+                    await removeSubscription(subscription.endpoint);
+                    await markFollowupAsSent(followup.id); // don't retry a dead endpoint
+                    console.log('   🧹 Removed expired subscription');
+                }
             }
         } catch (error) {
             console.error(`   Error processing follow-up ${followup.id}:`, error);
@@ -183,6 +206,11 @@ async function processActiveCheckins() {
             } else {
                 failed++;
                 console.log(`   ❌ Failed to send active check-in for attack ${checkin.attackId}`);
+                if (result.error === 'subscription_expired') {
+                    await removeSubscription(subscription.endpoint);
+                    await markActiveCheckinAsSent(checkin.id); // don't retry a dead endpoint
+                    console.log('   🧹 Removed expired subscription');
+                }
             }
         } catch (error) {
             console.error(`   Error processing active check-in ${checkin.id}:`, error);

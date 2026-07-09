@@ -2,9 +2,16 @@
   "name": "Aiding Migraine",
   "short_name": "AidMigraine",
   "description": "A calm, privacy-first migraine tracker built for mobile and offline use",
+  "id": "/",
   "start_url": "./",
+  "scope": "./",
+  "lang": "en",
+  "dir": "ltr",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
   "background_color": "#1c1815",
   "theme_color": "#1c1815",
   "orientation": "portrait-primary",
@@ -83,6 +90,22 @@
     }
   ],
   "categories": ["health", "medical", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "./icons/screenshot-narrow.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Log migraines and see your recent patterns at a glance"
+    },
+    {
+      "src": "./icons/screenshot-wide.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Episode history with symptoms and triggers"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Log migraine",
@@ -91,8 +114,32 @@
       "url": "./?action=log",
       "icons": [
         {
-          "src": "./icons/icon-384x384.png",
-          "sizes": "384x384"
+          "src": "./icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View patterns",
+      "short_name": "Patterns",
+      "description": "See your migraine analytics and trends",
+      "url": "./?action=analytics",
+      "icons": [
+        {
+          "src": "./icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Care & export",
+      "short_name": "Care",
+      "description": "Assessments, cycle tracking, and doctor reports",
+      "url": "./?action=care",
+      "icons": [
+        {
+          "src": "./icons/icon-192x192.png",
+          "sizes": "192x192"
         }
       ]
     }
