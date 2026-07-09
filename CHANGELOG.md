@@ -5,6 +5,17 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.9.0] - 2026-07-09
+
+### Added — Head-Pain Location Map & Pain Quality (P2)
+
+- **Mark where the pain is on an interactive head map** — tap zones on front and back head diagrams (forehead, temples, behind the eyes, crown, sides, back of head, neck). The app derives **laterality** (left / right / bilateral / central) automatically for your doctor report.
+- **Record what the pain feels like** — Pulsating/throbbing, Pressing/tight, Stabbing/sharp, Burning, or Dull ache — from a quick chip multi-select. Both are core descriptors clinicians use to classify migraine.
+- Both live in the log form's collapsed Optional Details (so first-time users aren't crowded) and are **editable on any past episode**. History cards and calendar day-details show location + laterality and quality; **Episode Details renders a read-only head map** highlighting the affected zones.
+- New **"Common pain locations"** and **"Pain quality"** analytics cards rank each over the selected range.
+- Exports: per-episode location (with laterality) and quality lines plus a "Common Pain Locations" summary in the **PDF doctor report**; `Pain Location` and `Pain Quality` columns in CSV export/import; JSON carries them automatically.
+- The head map is keyboard-accessible (Tab to a zone, Enter/Space to toggle) and imported values are filtered against the controlled lists.
+
 ## [4.8.0] - 2026-07-09
 
 ### Added — Prodrome & Postdrome Phase Tracking (P2)

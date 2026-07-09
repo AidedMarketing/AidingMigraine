@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.8.0 - PRODUCTION
+           AIDING MIGRAINE v4.9.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -593,6 +593,63 @@
         .chip:focus-visible {
             outline: 2px solid var(--accent-green);
             outline-offset: 2px;
+        }
+
+        /* Interactive head-pain map */
+        .head-map {
+            width: 100%;
+            max-width: 320px;
+            height: auto;
+            display: block;
+            margin: 0 auto 4px;
+        }
+
+        .head-outline {
+            fill: var(--bg-tertiary);
+            stroke: var(--border-color);
+            stroke-width: 1.5;
+            pointer-events: none;
+        }
+
+        .head-zone {
+            fill: transparent;
+            stroke: var(--accent-green);
+            stroke-width: 1.25;
+            opacity: 0.55;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .head-zone:hover {
+            opacity: 0.9;
+            fill: rgba(123, 166, 138, 0.2);
+        }
+
+        .head-zone.selected {
+            fill: var(--accent-green);
+            opacity: 0.85;
+        }
+
+        .head-zone:focus-visible {
+            outline: 2px solid var(--accent-green);
+            outline-offset: 2px;
+        }
+
+        .head-map-readonly .head-zone {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .head-map-caption {
+            fill: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .head-map-echo {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 4px 0 0;
+            text-align: center;
         }
 
         .form-group {
@@ -2432,6 +2489,17 @@
                         </button>
                         <div id="optional-details-content" class="optional-details-content" style="display: none;">
                             <div class="form-group">
+                                <label>Where is the pain? (optional)</label>
+                                <p class="pain-helper" style="margin: 2px 0 8px;">Tap the areas on the head where you feel it.</p>
+                                <div id="log-head-map"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Pain quality (optional)</label>
+                                <div id="log-quality-chips" class="chip-group"></div>
+                            </div>
+
+                            <div class="form-group">
                                 <label style="display: flex; align-items: center; gap: 8px;">
                                     <svg class="icon icon-sm" viewBox="0 0 24 24">
                                         <circle cx="12" cy="12" r="10"></circle>
@@ -2742,6 +2810,16 @@
             <div id="postdrome-analytics-card" class="section-card" style="display: none;">
                 <h2>Common after-effects</h2>
                 <div id="postdrome-analytics-content"></div>
+            </div>
+
+            <div id="location-analytics-card" class="section-card" style="display: none;">
+                <h2>Common pain locations</h2>
+                <div id="location-analytics-content"></div>
+            </div>
+
+            <div id="quality-analytics-card" class="section-card" style="display: none;">
+                <h2>Pain quality</h2>
+                <div id="quality-analytics-content"></div>
             </div>
         </div>
 
@@ -3435,7 +3513,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.8.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.9.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3473,7 +3551,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.8.0 Production</strong>
+                            <strong>v4.9.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3536,7 +3614,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '4.8.0';
+        const APP_VERSION = '4.9.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -3807,10 +3885,41 @@
         const POSTDROME_KEYS = new Set(POSTDROME_OPTIONS.map(p => p.key));
         const POSTDROME_LABELS = Object.fromEntries(POSTDROME_OPTIONS.map(p => [p.key, p.label]));
 
+        // Head-pain location zones (controlled list). Keys carry _left/_right
+        // suffixes where sided, so laterality can be derived. Episodes store
+        // keys; the interactive head map + text render labels.
+        const HEAD_ZONES = [
+            { key: 'forehead', label: 'Forehead' },
+            { key: 'temple_left', label: 'Left temple' },
+            { key: 'temple_right', label: 'Right temple' },
+            { key: 'eye_left', label: 'Behind left eye' },
+            { key: 'eye_right', label: 'Behind right eye' },
+            { key: 'crown', label: 'Top of head' },
+            { key: 'side_left', label: 'Left side' },
+            { key: 'side_right', label: 'Right side' },
+            { key: 'occiput', label: 'Back of head' },
+            { key: 'neck', label: 'Neck / base of skull' }
+        ];
+        const HEAD_ZONE_KEYS = new Set(HEAD_ZONES.map(z => z.key));
+        const HEAD_ZONE_LABELS = Object.fromEntries(HEAD_ZONES.map(z => [z.key, z.label]));
+
+        // Pain quality (ICHD-3-aligned descriptors), a chip multi-select.
+        const PAIN_QUALITY_OPTIONS = [
+            { key: 'pulsating', label: 'Pulsating / throbbing' },
+            { key: 'pressing', label: 'Pressing / tight' },
+            { key: 'stabbing', label: 'Stabbing / sharp' },
+            { key: 'burning', label: 'Burning' },
+            { key: 'dull', label: 'Dull ache' }
+        ];
+        const PAIN_QUALITY_KEYS = new Set(PAIN_QUALITY_OPTIONS.map(q => q.key));
+        const PAIN_QUALITY_LABELS = Object.fromEntries(PAIN_QUALITY_OPTIONS.map(q => [q.key, q.label]));
+
         // Selections on the quick-log form (for the next new episode)
         let selectedSymptoms = new Set();
         let selectedTriggers = new Set();
         let selectedProdrome = new Set();
+        let selectedPainLocations = new Set();
+        let selectedQuality = new Set();
 
         // Map stored keys -> display labels for a controlled option list
         function optionLabels(keys, keySet, labelMap) {
@@ -3821,6 +3930,23 @@
         const triggerLabels = (keys) => optionLabels(keys, TRIGGER_KEYS, TRIGGER_LABELS);
         const prodromeLabels = (keys) => optionLabels(keys, PRODROME_KEYS, PRODROME_LABELS);
         const postdromeLabels = (keys) => optionLabels(keys, POSTDROME_KEYS, POSTDROME_LABELS);
+        const headZoneLabels = (keys) => optionLabels(keys, HEAD_ZONE_KEYS, HEAD_ZONE_LABELS);
+        const qualityLabels = (keys) => optionLabels(keys, PAIN_QUALITY_KEYS, PAIN_QUALITY_LABELS);
+
+        // Derive laterality from the selected head zones (no stored field):
+        // any _left + any _right -> Bilateral; only one side -> Left/Right;
+        // only central zones -> Central; none -> ''.
+        function deriveLaterality(keys) {
+            if (!Array.isArray(keys)) return '';
+            const valid = keys.filter(k => HEAD_ZONE_KEYS.has(k));
+            if (valid.length === 0) return '';
+            const hasLeft = valid.some(k => k.endsWith('_left'));
+            const hasRight = valid.some(k => k.endsWith('_right'));
+            if (hasLeft && hasRight) return 'Bilateral';
+            if (hasLeft) return 'Left';
+            if (hasRight) return 'Right';
+            return 'Central';
+        }
 
         // Render a chip multi-select. Chips carry data-chip-key; toggling is
         // handled by one delegated listener (bindOptionChips). No inline onclick
@@ -3863,6 +3989,88 @@
         const bindProdromeChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, PRODROME_OPTIONS, selectedSet, onToggle);
         const renderPostdromeChips = (containerId, selectedSet) => renderOptionChips(containerId, POSTDROME_OPTIONS, selectedSet);
         const bindPostdromeChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, POSTDROME_OPTIONS, selectedSet, onToggle);
+        const renderQualityChips = (containerId, selectedSet) => renderOptionChips(containerId, PAIN_QUALITY_OPTIONS, selectedSet);
+        const bindQualityChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, PAIN_QUALITY_OPTIONS, selectedSet, onToggle);
+
+        // Interactive head-pain map. Authored once as a constant SVG (no user
+        // data) so it can be injected via direct innerHTML — it must NOT pass
+        // through safeHTML, which strips <svg>. Two head outlines (front + back)
+        // with tappable elliptical hotspot zones. Left-labelled zones sit on the
+        // screen-left of both views (mirror style); the label text + the derived
+        // laterality are authoritative. Selected zones from left→right for both.
+        const HEAD_MAP_SVG = `
+            <svg viewBox="0 0 300 165" class="head-map" role="group" aria-label="Head pain location map" xmlns="http://www.w3.org/2000/svg">
+                <ellipse class="head-outline" cx="85" cy="78" rx="44" ry="54"></ellipse>
+                <ellipse class="head-outline" cx="215" cy="78" rx="44" ry="54"></ellipse>
+                <ellipse class="head-zone" data-zone="forehead" role="button" tabindex="0" cx="85" cy="46" rx="27" ry="14"><title>Forehead</title></ellipse>
+                <ellipse class="head-zone" data-zone="temple_left" role="button" tabindex="0" cx="50" cy="68" rx="13" ry="17"><title>Left temple</title></ellipse>
+                <ellipse class="head-zone" data-zone="temple_right" role="button" tabindex="0" cx="120" cy="68" rx="13" ry="17"><title>Right temple</title></ellipse>
+                <ellipse class="head-zone" data-zone="eye_left" role="button" tabindex="0" cx="68" cy="92" rx="12" ry="9"><title>Behind left eye</title></ellipse>
+                <ellipse class="head-zone" data-zone="eye_right" role="button" tabindex="0" cx="102" cy="92" rx="12" ry="9"><title>Behind right eye</title></ellipse>
+                <ellipse class="head-zone" data-zone="crown" role="button" tabindex="0" cx="215" cy="44" rx="29" ry="15"><title>Top of head</title></ellipse>
+                <ellipse class="head-zone" data-zone="side_left" role="button" tabindex="0" cx="180" cy="76" rx="13" ry="21"><title>Left side</title></ellipse>
+                <ellipse class="head-zone" data-zone="side_right" role="button" tabindex="0" cx="250" cy="76" rx="13" ry="21"><title>Right side</title></ellipse>
+                <ellipse class="head-zone" data-zone="occiput" role="button" tabindex="0" cx="215" cy="94" rx="24" ry="18"><title>Back of head</title></ellipse>
+                <ellipse class="head-zone" data-zone="neck" role="button" tabindex="0" cx="215" cy="128" rx="17" ry="12"><title>Neck / base of skull</title></ellipse>
+                <text class="head-map-caption" x="85" y="150" text-anchor="middle">Front</text>
+                <text class="head-map-caption" x="215" y="150" text-anchor="middle">Back</text>
+            </svg>
+            <p class="head-map-echo"></p>`;
+
+        function updateHeadMapEcho(container, selectedSet) {
+            const echo = container && container.querySelector('.head-map-echo');
+            if (!echo) return;
+            const arr = Array.from(selectedSet);
+            const labels = headZoneLabels(arr);
+            if (labels.length === 0) {
+                echo.textContent = 'Tap the areas where it hurts.';
+            } else {
+                const lat = deriveLaterality(arr);
+                echo.textContent = `Selected: ${labels.join(', ')}${lat ? ` (${lat})` : ''}`;
+            }
+        }
+
+        // Paint the map into a container and reflect the current selection.
+        // interactive=false leaves it read-only (e.g. Episode Details view).
+        function renderHeadMap(containerId, selectedSet, interactive = true) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = HEAD_MAP_SVG; // constant markup, no user data
+            container.classList.toggle('head-map-readonly', !interactive);
+            container.querySelectorAll('.head-zone').forEach(zone => {
+                const on = selectedSet.has(zone.dataset.zone);
+                zone.classList.toggle('selected', on);
+                zone.setAttribute('aria-pressed', String(on));
+                if (!interactive) zone.removeAttribute('tabindex');
+            });
+            updateHeadMapEcho(container, selectedSet);
+        }
+
+        // One idempotent delegated listener; handles click + Enter/Space.
+        function bindHeadMap(containerId, selectedSet, onToggle) {
+            const container = document.getElementById(containerId);
+            if (!container || container.dataset.delegated) return;
+            const toggleZone = (zone) => {
+                const key = zone.dataset.zone;
+                if (!HEAD_ZONE_KEYS.has(key)) return;
+                const isOn = !selectedSet.has(key);
+                if (isOn) selectedSet.add(key); else selectedSet.delete(key);
+                zone.classList.toggle('selected', isOn);
+                zone.setAttribute('aria-pressed', String(isOn));
+                updateHeadMapEcho(container, selectedSet);
+                if (onToggle) onToggle(key, isOn);
+            };
+            container.addEventListener('click', (e) => {
+                const zone = e.target.closest('[data-zone]');
+                if (zone) toggleZone(zone);
+            });
+            container.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const zone = e.target.closest('[data-zone]');
+                if (zone) { e.preventDefault(); toggleZone(zone); }
+            });
+            container.dataset.delegated = '1';
+        }
 
         // XSS Protection Helper
         // Sanitizes HTML to prevent XSS attacks when using innerHTML
@@ -4796,6 +5004,10 @@
             document.getElementById('update-pain-btn')?.addEventListener('click', updateActivePain);
             document.getElementById('end-episode-btn')?.addEventListener('click', endActiveMigraine);
             renderMedicationsList(); // Initialize empty medication list
+            renderHeadMap('log-head-map', selectedPainLocations);
+            bindHeadMap('log-head-map', selectedPainLocations);
+            renderQualityChips('log-quality-chips', selectedQuality);
+            bindQualityChips('log-quality-chips', selectedQuality);
             renderProdromeChips('log-prodrome-chips', selectedProdrome);
             bindProdromeChips('log-prodrome-chips', selectedProdrome);
             renderSymptomChips('log-symptom-chips', selectedSymptoms);
@@ -4865,7 +5077,9 @@
                 symptoms: [],
                 triggers: [],
                 prodrome: [],
-                postdrome: []
+                postdrome: [],
+                painLocations: [],
+                painQuality: []
             };
 
             activeMigraine = migraine;
@@ -4911,7 +5125,9 @@
                 symptoms: Array.from(selectedSymptoms),
                 triggers: Array.from(selectedTriggers),
                 prodrome: Array.from(selectedProdrome),
-                postdrome: []
+                postdrome: [],
+                painLocations: Array.from(selectedPainLocations),
+                painQuality: Array.from(selectedQuality)
             };
 
             activeMigraine = migraine;
@@ -4943,6 +5159,10 @@
             document.getElementById('notes-input').value = '';
             currentEpisodeMedications = [];
             renderMedicationsList();
+            selectedPainLocations.clear();
+            renderHeadMap('log-head-map', selectedPainLocations);
+            selectedQuality.clear();
+            renderQualityChips('log-quality-chips', selectedQuality);
             selectedProdrome.clear();
             renderProdromeChips('log-prodrome-chips', selectedProdrome);
             selectedSymptoms.clear();
@@ -5298,6 +5518,16 @@
                     ` : ''}
 
                     <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Where is the pain?</label>
+                        <div id="edit-attack-head-map"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Pain quality</label>
+                        <div id="edit-attack-quality-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 600;">Warning signs before (prodrome)</label>
                         <div id="edit-attack-prodrome-chips" class="chip-group"></div>
                     </div>
@@ -5348,6 +5578,14 @@
                 ? attack.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
             renderPostdromeChips('edit-attack-postdrome-chips', tempEditPostdrome);
             bindPostdromeChips('edit-attack-postdrome-chips', tempEditPostdrome);
+            tempEditPainLocations = new Set(Array.isArray(attack.painLocations)
+                ? attack.painLocations.filter(k => HEAD_ZONE_KEYS.has(k)) : []);
+            renderHeadMap('edit-attack-head-map', tempEditPainLocations);
+            bindHeadMap('edit-attack-head-map', tempEditPainLocations);
+            tempEditQuality = new Set(Array.isArray(attack.painQuality)
+                ? attack.painQuality.filter(k => PAIN_QUALITY_KEYS.has(k)) : []);
+            renderQualityChips('edit-attack-quality-chips', tempEditQuality);
+            bindQualityChips('edit-attack-quality-chips', tempEditQuality);
 
             // Pain level selection
             body.querySelectorAll('.pain-btn').forEach(btn => {
@@ -5425,6 +5663,8 @@
                 triggers: Array.from(tempEditTriggers),
                 prodrome: Array.from(tempEditProdrome),
                 postdrome: Array.from(tempEditPostdrome),
+                painLocations: Array.from(tempEditPainLocations),
+                painQuality: Array.from(tempEditQuality),
                 lastModified: new Date().toISOString(),
                 editCount: (originalAttack.editCount || 0) + 1
             };
@@ -5755,6 +5995,8 @@
                                 <span class="detail-value">${safeText(m.category)}</span>
                             </div>
                         </div>
+                        ${headZoneLabels(m.painLocations).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Location:</strong> ${safeText(headZoneLabels(m.painLocations).join(', '))}${deriveLaterality(m.painLocations) ? ` (${deriveLaterality(m.painLocations)})` : ''}</p>` : ''}
+                        ${qualityLabels(m.painQuality).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Quality:</strong> ${safeText(qualityLabels(m.painQuality).join(', '))}</p>` : ''}
                         ${prodromeLabels(m.prodrome).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Warning signs:</strong> ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Symptoms:</strong> ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Triggers:</strong> ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
@@ -5791,6 +6033,21 @@
                     content += `<li>${formatTime(new Date(p.timestamp))}: ${p.level}/10</li>`;
                 });
                 content += `</ul>`;
+            }
+
+            // Pain location — read-only head map painted after the modal opens
+            // (the map's <svg> can't pass through showModal's safeHTML)
+            const viewLocations = headZoneLabels(migraine.painLocations);
+            if (viewLocations.length > 0) {
+                const lat = deriveLaterality(migraine.painLocations);
+                content += `<h3>Pain Location${lat ? ` (${lat})` : ''}</h3>`;
+                content += `<div id="view-head-map"></div>`;
+                content += `<p style="color: var(--text-secondary); font-size: 0.9rem;">${safeText(viewLocations.join(', '))}</p>`;
+            }
+
+            const viewQuality = qualityLabels(migraine.painQuality);
+            if (viewQuality.length > 0) {
+                content += `<h3>Pain Quality</h3><p>${safeText(viewQuality.join(', '))}</p>`;
             }
 
             const viewProdrome = prodromeLabels(migraine.prodrome);
@@ -5846,6 +6103,11 @@
             }
 
             showModal('Episode Details', content);
+
+            // Paint the read-only head map now that the placeholder exists
+            if (viewLocations.length > 0) {
+                renderHeadMap('view-head-map', new Set(migraine.painLocations), false);
+            }
         }
 
         // Temporary storage for relief methods being edited
@@ -5855,6 +6117,8 @@
         let tempEditTriggers = new Set();
         let tempEditProdrome = new Set();
         let tempEditPostdrome = new Set();
+        let tempEditPainLocations = new Set();
+        let tempEditQuality = new Set();
 
         function editEpisode(id) {
             const migraine = migraines.find(m => m.id === id);
@@ -5870,6 +6134,10 @@
                 ? migraine.prodrome.filter(k => PRODROME_KEYS.has(k)) : []);
             tempEditPostdrome = new Set(Array.isArray(migraine.postdrome)
                 ? migraine.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
+            tempEditPainLocations = new Set(Array.isArray(migraine.painLocations)
+                ? migraine.painLocations.filter(k => HEAD_ZONE_KEYS.has(k)) : []);
+            tempEditQuality = new Set(Array.isArray(migraine.painQuality)
+                ? migraine.painQuality.filter(k => PAIN_QUALITY_KEYS.has(k)) : []);
 
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
@@ -5896,6 +6164,14 @@
                               style="width: 100%; padding: 12px; background: var(--bg-tertiary);
                                      border: 1px solid var(--border-color); border-radius: 8px;
                                      color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${safeText(migraine.endNotes || '')}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Where is the pain?</label>
+                    <div id="edit-head-map"></div>
+                </div>
+                <div class="form-group">
+                    <label>Pain quality</label>
+                    <div id="edit-quality-chips" class="chip-group"></div>
                 </div>
                 <div class="form-group">
                     <label>Warning signs before (prodrome)</label>
@@ -5934,7 +6210,11 @@
             document.getElementById('modal-title').textContent = 'Edit Episode';
             modal.classList.add('active');
 
-            // Render symptom chips and relief methods list
+            // Render head map, chips, and relief methods list
+            renderHeadMap('edit-head-map', tempEditPainLocations);
+            bindHeadMap('edit-head-map', tempEditPainLocations);
+            renderQualityChips('edit-quality-chips', tempEditQuality);
+            bindQualityChips('edit-quality-chips', tempEditQuality);
             renderProdromeChips('edit-prodrome-chips', tempEditProdrome);
             bindProdromeChips('edit-prodrome-chips', tempEditProdrome);
             renderSymptomChips('edit-symptom-chips', tempEditSymptoms);
@@ -6039,6 +6319,8 @@
             migraine.triggers = Array.from(tempEditTriggers);
             migraine.prodrome = Array.from(tempEditProdrome);
             migraine.postdrome = Array.from(tempEditPostdrome);
+            migraine.painLocations = Array.from(tempEditPainLocations);
+            migraine.painQuality = Array.from(tempEditQuality);
 
             saveData();
             renderHistory();
@@ -6674,6 +6956,8 @@
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${headZoneLabels(m.painLocations).length > 0 ? `<p>Location: ${safeText(headZoneLabels(m.painLocations).join(', '))}${deriveLaterality(m.painLocations) ? ` (${deriveLaterality(m.painLocations)})` : ''}</p>` : ''}
+                        ${qualityLabels(m.painQuality).length > 0 ? `<p>Quality: ${safeText(qualityLabels(m.painQuality).join(', '))}</p>` : ''}
                         ${prodromeLabels(m.prodrome).length > 0 ? `<p>Warning signs: ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p>Triggers: ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
@@ -6695,6 +6979,8 @@
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${headZoneLabels(m.painLocations).length > 0 ? `<p>Location: ${safeText(headZoneLabels(m.painLocations).join(', '))}${deriveLaterality(m.painLocations) ? ` (${deriveLaterality(m.painLocations)})` : ''}</p>` : ''}
+                        ${qualityLabels(m.painQuality).length > 0 ? `<p>Quality: ${safeText(qualityLabels(m.painQuality).join(', '))}</p>` : ''}
                         ${prodromeLabels(m.prodrome).length > 0 ? `<p>Warning signs: ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p>Triggers: ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
@@ -6882,7 +7168,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.8.0 - Debug Information
+            const debugInfo = `Aiding Migraine v4.9.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -7169,6 +7455,16 @@ Browser: ${navigator.userAgent}
             if (episode.postdrome !== undefined) {
                 episode.postdrome = Array.isArray(episode.postdrome)
                     ? episode.postdrome.filter(k => typeof k === 'string' && POSTDROME_KEYS.has(k))
+                    : [];
+            }
+            if (episode.painLocations !== undefined) {
+                episode.painLocations = Array.isArray(episode.painLocations)
+                    ? episode.painLocations.filter(k => typeof k === 'string' && HEAD_ZONE_KEYS.has(k))
+                    : [];
+            }
+            if (episode.painQuality !== undefined) {
+                episode.painQuality = Array.isArray(episode.painQuality)
+                    ? episode.painQuality.filter(k => typeof k === 'string' && PAIN_QUALITY_KEYS.has(k))
                     : [];
             }
 
@@ -7545,7 +7841,7 @@ Browser: ${navigator.userAgent}
 
             // CSV Header with BOM for Excel compatibility
             const BOM = '\uFEFF';
-            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms,Triggers,Prodrome,Postdrome\n';
+            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms,Triggers,Prodrome,Postdrome,Pain Location,Pain Quality\n';
 
             // Sort by date (oldest first) - use slice() to avoid mutating original array
             const sorted = activeMigraines.slice().sort((a, b) =>
@@ -7583,9 +7879,11 @@ Browser: ${navigator.userAgent}
                 const triggers = neutralizeFormula(triggerLabels(m.triggers).join('; ')).replace(/"/g, '""');
                 const prodrome = neutralizeFormula(prodromeLabels(m.prodrome).join('; ')).replace(/"/g, '""');
                 const postdrome = neutralizeFormula(postdromeLabels(m.postdrome).join('; ')).replace(/"/g, '""');
+                const painLocation = neutralizeFormula(headZoneLabels(m.painLocations).join('; ')).replace(/"/g, '""');
+                const painQuality = neutralizeFormula(qualityLabels(m.painQuality).join('; ')).replace(/"/g, '""');
 
                 // Quote fields that might contain commas
-                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure},"${symptoms}","${triggers}","${prodrome}","${postdrome}"\n`;
+                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure},"${symptoms}","${triggers}","${prodrome}","${postdrome}","${painLocation}","${painQuality}"\n`;
             });
 
             // Create and download file
@@ -7692,6 +7990,8 @@ Browser: ${navigator.userAgent}
                 const triggersIdx = header.findIndex(h => h.includes('trigger'));
                 const prodromeIdx = header.findIndex(h => h.includes('prodrome'));
                 const postdromeIdx = header.findIndex(h => h.includes('postdrome'));
+                const locationIdx = header.findIndex(h => h.includes('location'));
+                const qualityIdx = header.findIndex(h => h.includes('quality'));
 
                 // Map exported labels back to controlled keys (case-insensitive)
                 const symptomLabelToKey = {};
@@ -7702,6 +8002,10 @@ Browser: ${navigator.userAgent}
                 PRODROME_OPTIONS.forEach(p => { prodromeLabelToKey[p.label.toLowerCase()] = p.key; });
                 const postdromeLabelToKey = {};
                 POSTDROME_OPTIONS.forEach(p => { postdromeLabelToKey[p.label.toLowerCase()] = p.key; });
+                const locationLabelToKey = {};
+                HEAD_ZONES.forEach(z => { locationLabelToKey[z.label.toLowerCase()] = z.key; });
+                const qualityLabelToKey = {};
+                PAIN_QUALITY_OPTIONS.forEach(q => { qualityLabelToKey[q.label.toLowerCase()] = q.key; });
 
                 // Parse data rows
                 const entries = [];
@@ -7796,6 +8100,18 @@ Browser: ${navigator.userAgent}
                             migraine.postdrome = stripFormulaGuard(row[postdromeIdx])
                                 .split(';')
                                 .map(s => postdromeLabelToKey[s.trim().toLowerCase()])
+                                .filter(Boolean);
+                        }
+                        if (locationIdx !== -1 && row[locationIdx]) {
+                            migraine.painLocations = stripFormulaGuard(row[locationIdx])
+                                .split(';')
+                                .map(s => locationLabelToKey[s.trim().toLowerCase()])
+                                .filter(Boolean);
+                        }
+                        if (qualityIdx !== -1 && row[qualityIdx]) {
+                            migraine.painQuality = stripFormulaGuard(row[qualityIdx])
+                                .split(';')
+                                .map(s => qualityLabelToKey[s.trim().toLowerCase()])
                                 .filter(Boolean);
                         }
 
@@ -8175,6 +8491,29 @@ Browser: ${navigator.userAgent}
             doc.text(`Range: ${formatDuration(minDuration)} - ${formatDuration(maxDuration)}`, 20, yPos);
             yPos += 15;
 
+            // Common pain locations summary
+            const locationCounts = {};
+            episodesInRange.forEach(m => {
+                headZoneLabels(m.painLocations).forEach(label => {
+                    locationCounts[label] = (locationCounts[label] || 0) + 1;
+                });
+            });
+            const rankedLocations = Object.entries(locationCounts).sort((a, b) => b[1] - a[1]);
+            if (rankedLocations.length > 0) {
+                doc.setFont(undefined, 'bold');
+                doc.text('Common Pain Locations', 20, yPos);
+                yPos += 6;
+                doc.setFont(undefined, 'normal');
+                const locationSummary = rankedLocations
+                    .map(([label, count]) => `${label} (${count})`)
+                    .join(', ');
+                doc.splitTextToSize(locationSummary, 170).forEach(line => {
+                    doc.text(line, 20, yPos);
+                    yPos += 5;
+                });
+                yPos += 10;
+            }
+
             // Common warning signs (prodrome) summary
             const prodromeCounts = {};
             episodesInRange.forEach(m => {
@@ -8365,6 +8704,37 @@ Browser: ${navigator.userAgent}
                     yPos += 5;
 
                     // Add prodrome (warning signs) sub-line if present
+                    // Add pain location (with laterality) sub-line if present
+                    const epLocations = headZoneLabels(episode.painLocations);
+                    if (epLocations.length > 0) {
+                        const lat = deriveLaterality(episode.painLocations);
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'italic');
+                        const locLines = doc.splitTextToSize(`Location: ${epLocations.join(', ')}${lat ? ` (${lat})` : ''}`, 170);
+                        for (const locLine of locLines) {
+                            if (yPos > 275) { doc.addPage(); yPos = 20; }
+                            doc.text(locLine, 25, yPos);
+                            yPos += 4;
+                        }
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                    }
+
+                    // Add pain quality sub-line if present
+                    const epQuality = qualityLabels(episode.painQuality);
+                    if (epQuality.length > 0) {
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'italic');
+                        const qualLines = doc.splitTextToSize(`Quality: ${epQuality.join(', ')}`, 170);
+                        for (const qualLine of qualLines) {
+                            if (yPos > 275) { doc.addPage(); yPos = 20; }
+                            doc.text(qualLine, 25, yPos);
+                            yPos += 4;
+                        }
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                    }
+
                     const epProdrome = prodromeLabels(episode.prodrome);
                     if (epProdrome.length > 0) {
                         doc.setFontSize(8);
@@ -8505,7 +8875,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.8.0</strong></p>
+                <p><strong>Aiding Migraine v4.9.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -11935,6 +12305,10 @@ Browser: ${navigator.userAgent}
             // Phase breakdowns: warning signs (prodrome) + after-effects (postdrome)
             renderOptionAnalytics('prodrome-analytics-card', 'prodrome-analytics-content', filteredData, 'prodrome', PRODROME_KEYS, PRODROME_LABELS, 'warning signs');
             renderOptionAnalytics('postdrome-analytics-card', 'postdrome-analytics-content', filteredData, 'postdrome', POSTDROME_KEYS, POSTDROME_LABELS, 'after-effects');
+
+            // Head-pain location + quality breakdowns
+            renderOptionAnalytics('location-analytics-card', 'location-analytics-content', filteredData, 'painLocations', HEAD_ZONE_KEYS, HEAD_ZONE_LABELS, 'pain locations');
+            renderOptionAnalytics('quality-analytics-card', 'quality-analytics-content', filteredData, 'painQuality', PAIN_QUALITY_KEYS, PAIN_QUALITY_LABELS, 'pain quality');
         }
 
         // Ranked frequency breakdown of a controlled option list across episodes.
