@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.4.0 - PRODUCTION
+           AIDING MIGRAINE v4.5.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -3298,7 +3298,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.4.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.5.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3336,7 +3336,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.4.0 Production</strong>
+                            <strong>v4.5.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3399,7 +3399,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '4.4.0';
+        const APP_VERSION = '4.5.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -4824,24 +4824,63 @@
 
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
-            
+
+            // Attack-mode episodes may still have no pain level. Require one at
+            // the end so the completed record (which enters analytics/history)
+            // always carries a real, numeric pain value.
+            const needsPain = activeMigraine.painLevel == null;
+
             body.innerHTML = `
                 <p>End this migraine episode?</p>
+                ${needsPain ? `
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>How bad was the pain? (required)</label>
+                    <div class="pain-scale" id="end-pain-scale">
+                        ${[0,1,2,3,4,5,6,7,8,9,10].map(i =>
+                            `<button type="button" class="pain-btn" data-pain="${i}">${i}</button>`
+                        ).join('')}
+                    </div>
+                    <p id="end-pain-error" style="display: none; color: var(--accent-red); font-size: 0.85rem; margin-top: 8px;">Please choose a pain level (0–10) before ending.</p>
+                </div>` : ''}
                 <div class="form-group" style="margin-top: 16px;">
                     <label>Final Notes (optional)</label>
                     <textarea id="end-notes" placeholder="How did it resolve? What helped?" rows="3"></textarea>
                 </div>
             `;
-            
+
             document.getElementById('modal-actions').innerHTML = `
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-primary" id="confirm-end">End Episode</button>
             `;
-            
+
             document.getElementById('modal-title').textContent = 'End Episode';
             modal.classList.add('active');
-            
+
+            if (needsPain) {
+                body.querySelectorAll('#end-pain-scale .pain-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        body.querySelectorAll('#end-pain-scale .pain-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        const err = document.getElementById('end-pain-error');
+                        if (err) err.style.display = 'none';
+                    });
+                });
+            }
+
             document.getElementById('confirm-end').addEventListener('click', () => {
+                if (needsPain) {
+                    const selected = body.querySelector('#end-pain-scale .pain-btn.selected');
+                    if (!selected) {
+                        const err = document.getElementById('end-pain-error');
+                        if (err) err.style.display = 'block';
+                        return;
+                    }
+                    const endPain = parseInt(selected.dataset.pain);
+                    activeMigraine.painLevel = endPain;
+                    activeMigraine.category = getPainCategory(endPain);
+                    activeMigraine.painHistory.push({ timestamp: new Date().toISOString(), level: endPain });
+                }
+
                 const endNotes = document.getElementById('end-notes').value.trim();
 
                 activeMigraine.endTime = new Date().toISOString();
@@ -6581,7 +6620,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.4.0 - Debug Information
+            const debugInfo = `Aiding Migraine v4.5.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -8090,7 +8129,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.4.0</strong></p>
+                <p><strong>Aiding Migraine v4.5.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
