@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.7.0 - PRODUCTION
+           AIDING MIGRAINE v4.8.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -2446,6 +2446,12 @@
                             </div>
 
                             <div class="form-group">
+                                <label>Warning signs before (prodrome, optional)</label>
+                                <p class="pain-helper" style="margin: 2px 0 8px;">Early signs you noticed in the hours or days before the headache.</p>
+                                <div id="log-prodrome-chips" class="chip-group"></div>
+                            </div>
+
+                            <div class="form-group">
                                 <label>Symptoms (optional)</label>
                                 <div id="log-symptom-chips" class="chip-group"></div>
                             </div>
@@ -2726,6 +2732,16 @@
             <div id="trigger-weather-card" class="section-card" style="display: none;">
                 <h2>Triggers &times; weather</h2>
                 <div id="trigger-weather-content"></div>
+            </div>
+
+            <div id="prodrome-analytics-card" class="section-card" style="display: none;">
+                <h2>Common warning signs</h2>
+                <div id="prodrome-analytics-content"></div>
+            </div>
+
+            <div id="postdrome-analytics-card" class="section-card" style="display: none;">
+                <h2>Common after-effects</h2>
+                <div id="postdrome-analytics-content"></div>
             </div>
         </div>
 
@@ -3419,7 +3435,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.7.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.8.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3457,7 +3473,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.7.0 Production</strong>
+                            <strong>v4.8.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3520,7 +3536,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '4.7.0';
+        const APP_VERSION = '4.8.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -3761,9 +3777,40 @@
         const TRIGGER_KEYS = new Set(TRIGGER_OPTIONS.map(t => t.key));
         const TRIGGER_LABELS = Object.fromEntries(TRIGGER_OPTIONS.map(t => [t.key, t.label]));
 
+        // Prodrome — premonitory warning signs in the hours/days BEFORE the
+        // headache. Controlled list; episodes store keys, UI renders labels.
+        const PRODROME_OPTIONS = [
+            { key: 'yawning', label: 'Excessive yawning' },
+            { key: 'food_cravings', label: 'Food cravings' },
+            { key: 'mood_change', label: 'Mood changes' },
+            { key: 'irritability', label: 'Irritability' },
+            { key: 'neck_stiffness', label: 'Neck stiffness' },
+            { key: 'fatigue', label: 'Fatigue / low energy' },
+            { key: 'difficulty_concentrating', label: 'Difficulty concentrating' },
+            { key: 'frequent_urination', label: 'Frequent urination' },
+            { key: 'light_sensitivity', label: 'Early light sensitivity' }
+        ];
+        const PRODROME_KEYS = new Set(PRODROME_OPTIONS.map(p => p.key));
+        const PRODROME_LABELS = Object.fromEntries(PRODROME_OPTIONS.map(p => [p.key, p.label]));
+
+        // Postdrome — the "migraine hangover" AFTER the pain resolves.
+        const POSTDROME_OPTIONS = [
+            { key: 'fatigue', label: 'Fatigue / drained' },
+            { key: 'brain_fog', label: 'Brain fog' },
+            { key: 'mood_change', label: 'Mood changes' },
+            { key: 'neck_stiffness', label: 'Neck stiffness' },
+            { key: 'dizziness', label: 'Dizziness' },
+            { key: 'weakness', label: 'Weakness' },
+            { key: 'body_aches', label: 'Body aches' },
+            { key: 'sensitivity_lingering', label: 'Lingering light/sound sensitivity' }
+        ];
+        const POSTDROME_KEYS = new Set(POSTDROME_OPTIONS.map(p => p.key));
+        const POSTDROME_LABELS = Object.fromEntries(POSTDROME_OPTIONS.map(p => [p.key, p.label]));
+
         // Selections on the quick-log form (for the next new episode)
         let selectedSymptoms = new Set();
         let selectedTriggers = new Set();
+        let selectedProdrome = new Set();
 
         // Map stored keys -> display labels for a controlled option list
         function optionLabels(keys, keySet, labelMap) {
@@ -3772,6 +3819,8 @@
         }
         const symptomLabels = (keys) => optionLabels(keys, SYMPTOM_KEYS, SYMPTOM_LABELS);
         const triggerLabels = (keys) => optionLabels(keys, TRIGGER_KEYS, TRIGGER_LABELS);
+        const prodromeLabels = (keys) => optionLabels(keys, PRODROME_KEYS, PRODROME_LABELS);
+        const postdromeLabels = (keys) => optionLabels(keys, POSTDROME_KEYS, POSTDROME_LABELS);
 
         // Render a chip multi-select. Chips carry data-chip-key; toggling is
         // handled by one delegated listener (bindOptionChips). No inline onclick
@@ -3810,6 +3859,10 @@
         const bindSymptomChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, SYMPTOM_OPTIONS, selectedSet, onToggle);
         const renderTriggerChips = (containerId, selectedSet) => renderOptionChips(containerId, TRIGGER_OPTIONS, selectedSet);
         const bindTriggerChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, TRIGGER_OPTIONS, selectedSet, onToggle);
+        const renderProdromeChips = (containerId, selectedSet) => renderOptionChips(containerId, PRODROME_OPTIONS, selectedSet);
+        const bindProdromeChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, PRODROME_OPTIONS, selectedSet, onToggle);
+        const renderPostdromeChips = (containerId, selectedSet) => renderOptionChips(containerId, POSTDROME_OPTIONS, selectedSet);
+        const bindPostdromeChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, POSTDROME_OPTIONS, selectedSet, onToggle);
 
         // XSS Protection Helper
         // Sanitizes HTML to prevent XSS attacks when using innerHTML
@@ -4743,6 +4796,8 @@
             document.getElementById('update-pain-btn')?.addEventListener('click', updateActivePain);
             document.getElementById('end-episode-btn')?.addEventListener('click', endActiveMigraine);
             renderMedicationsList(); // Initialize empty medication list
+            renderProdromeChips('log-prodrome-chips', selectedProdrome);
+            bindProdromeChips('log-prodrome-chips', selectedProdrome);
             renderSymptomChips('log-symptom-chips', selectedSymptoms);
             bindSymptomChips('log-symptom-chips', selectedSymptoms);
             renderTriggerChips('log-trigger-chips', selectedTriggers);
@@ -4808,7 +4863,9 @@
                 weather: getCurrentWeatherForEntry(),
                 category: null,
                 symptoms: [],
-                triggers: []
+                triggers: [],
+                prodrome: [],
+                postdrome: []
             };
 
             activeMigraine = migraine;
@@ -4852,7 +4909,9 @@
                 weather: getCurrentWeatherForEntry(),
                 category: getPainCategory(selectedPain),
                 symptoms: Array.from(selectedSymptoms),
-                triggers: Array.from(selectedTriggers)
+                triggers: Array.from(selectedTriggers),
+                prodrome: Array.from(selectedProdrome),
+                postdrome: []
             };
 
             activeMigraine = migraine;
@@ -4884,6 +4943,8 @@
             document.getElementById('notes-input').value = '';
             currentEpisodeMedications = [];
             renderMedicationsList();
+            selectedProdrome.clear();
+            renderProdromeChips('log-prodrome-chips', selectedProdrome);
             selectedSymptoms.clear();
             renderSymptomChips('log-symptom-chips', selectedSymptoms);
             selectedTriggers.clear();
@@ -4964,6 +5025,11 @@
                     <p id="end-pain-error" style="display: none; color: var(--accent-red); font-size: 0.85rem; margin-top: 8px;">Please choose a pain level (0–10) before ending.</p>
                 </div>` : ''}
                 <div class="form-group" style="margin-top: 16px;">
+                    <label>After-effects (postdrome, optional)</label>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 2px 0 8px;">How you feel now that the headache has eased — the "migraine hangover".</p>
+                    <div id="end-postdrome-chips" class="chip-group"></div>
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
                     <label>Final Notes (optional)</label>
                     <textarea id="end-notes" placeholder="How did it resolve? What helped?" rows="3"></textarea>
                 </div>
@@ -4976,6 +5042,12 @@
 
             document.getElementById('modal-title').textContent = 'End Episode';
             modal.classList.add('active');
+
+            // Postdrome chips — a local set seeded from any existing value
+            const endPostdrome = new Set(Array.isArray(activeMigraine.postdrome)
+                ? activeMigraine.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
+            renderPostdromeChips('end-postdrome-chips', endPostdrome);
+            bindPostdromeChips('end-postdrome-chips', endPostdrome);
 
             if (needsPain) {
                 body.querySelectorAll('#end-pain-scale .pain-btn').forEach(btn => {
@@ -5004,6 +5076,7 @@
 
                 const endNotes = document.getElementById('end-notes').value.trim();
 
+                activeMigraine.postdrome = Array.from(endPostdrome);
                 activeMigraine.endTime = new Date().toISOString();
                 activeMigraine.status = 'completed';
                 activeMigraine.endNotes = endNotes;
@@ -5225,6 +5298,11 @@
                     ` : ''}
 
                     <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Warning signs before (prodrome)</label>
+                        <div id="edit-attack-prodrome-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 600;">Symptoms</label>
                         <div id="edit-attack-symptom-chips" class="chip-group"></div>
                     </div>
@@ -5232,6 +5310,11 @@
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 600;">Possible Triggers</label>
                         <div id="edit-attack-trigger-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">After-effects (postdrome)</label>
+                        <div id="edit-attack-postdrome-chips" class="chip-group"></div>
                     </div>
 
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green); font-size: 0.9rem; color: var(--text-secondary);">
@@ -5257,6 +5340,14 @@
                 ? attack.triggers.filter(k => TRIGGER_KEYS.has(k)) : []);
             renderTriggerChips('edit-attack-trigger-chips', tempEditTriggers);
             bindTriggerChips('edit-attack-trigger-chips', tempEditTriggers);
+            tempEditProdrome = new Set(Array.isArray(attack.prodrome)
+                ? attack.prodrome.filter(k => PRODROME_KEYS.has(k)) : []);
+            renderProdromeChips('edit-attack-prodrome-chips', tempEditProdrome);
+            bindProdromeChips('edit-attack-prodrome-chips', tempEditProdrome);
+            tempEditPostdrome = new Set(Array.isArray(attack.postdrome)
+                ? attack.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
+            renderPostdromeChips('edit-attack-postdrome-chips', tempEditPostdrome);
+            bindPostdromeChips('edit-attack-postdrome-chips', tempEditPostdrome);
 
             // Pain level selection
             body.querySelectorAll('.pain-btn').forEach(btn => {
@@ -5332,6 +5423,8 @@
                 notes: notes,
                 symptoms: Array.from(tempEditSymptoms),
                 triggers: Array.from(tempEditTriggers),
+                prodrome: Array.from(tempEditProdrome),
+                postdrome: Array.from(tempEditPostdrome),
                 lastModified: new Date().toISOString(),
                 editCount: (originalAttack.editCount || 0) + 1
             };
@@ -5662,8 +5755,10 @@
                                 <span class="detail-value">${safeText(m.category)}</span>
                             </div>
                         </div>
+                        ${prodromeLabels(m.prodrome).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Warning signs:</strong> ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Symptoms:</strong> ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Triggers:</strong> ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
+                        ${postdromeLabels(m.postdrome).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>After-effects:</strong> ${safeText(postdromeLabels(m.postdrome).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">${safeText(m.notes)}</p>` : ''}
                         <div class="history-actions">
                             <button class="btn btn-secondary" data-action="view" data-id="${safeText(String(m.id))}">View Details</button>
@@ -5698,6 +5793,15 @@
                 content += `</ul>`;
             }
 
+            const viewProdrome = prodromeLabels(migraine.prodrome);
+            if (viewProdrome.length > 0) {
+                content += `<h3>Warning signs (prodrome)</h3><ul>`;
+                viewProdrome.forEach(label => {
+                    content += `<li>${safeText(label)}</li>`;
+                });
+                content += `</ul>`;
+            }
+
             const viewSymptoms = symptomLabels(migraine.symptoms);
             if (viewSymptoms.length > 0) {
                 content += `<h3>Symptoms</h3><ul>`;
@@ -5711,6 +5815,15 @@
             if (viewTriggers.length > 0) {
                 content += `<h3>Possible Triggers</h3><ul>`;
                 viewTriggers.forEach(label => {
+                    content += `<li>${safeText(label)}</li>`;
+                });
+                content += `</ul>`;
+            }
+
+            const viewPostdrome = postdromeLabels(migraine.postdrome);
+            if (viewPostdrome.length > 0) {
+                content += `<h3>After-effects (postdrome)</h3><ul>`;
+                viewPostdrome.forEach(label => {
                     content += `<li>${safeText(label)}</li>`;
                 });
                 content += `</ul>`;
@@ -5740,6 +5853,8 @@
         // Symptoms being edited (rebuilt each time an edit modal opens)
         let tempEditSymptoms = new Set();
         let tempEditTriggers = new Set();
+        let tempEditProdrome = new Set();
+        let tempEditPostdrome = new Set();
 
         function editEpisode(id) {
             const migraine = migraines.find(m => m.id === id);
@@ -5751,6 +5866,10 @@
                 ? migraine.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : []);
             tempEditTriggers = new Set(Array.isArray(migraine.triggers)
                 ? migraine.triggers.filter(k => TRIGGER_KEYS.has(k)) : []);
+            tempEditProdrome = new Set(Array.isArray(migraine.prodrome)
+                ? migraine.prodrome.filter(k => PRODROME_KEYS.has(k)) : []);
+            tempEditPostdrome = new Set(Array.isArray(migraine.postdrome)
+                ? migraine.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
 
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
@@ -5779,12 +5898,20 @@
                                      color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${safeText(migraine.endNotes || '')}</textarea>
                 </div>
                 <div class="form-group">
+                    <label>Warning signs before (prodrome)</label>
+                    <div id="edit-prodrome-chips" class="chip-group"></div>
+                </div>
+                <div class="form-group">
                     <label>Symptoms</label>
                     <div id="edit-symptom-chips" class="chip-group"></div>
                 </div>
                 <div class="form-group">
                     <label>Possible Triggers</label>
                     <div id="edit-trigger-chips" class="chip-group"></div>
+                </div>
+                <div class="form-group">
+                    <label>After-effects (postdrome)</label>
+                    <div id="edit-postdrome-chips" class="chip-group"></div>
                 </div>
                 <div class="form-group">
                     <label>Relief Methods</label>
@@ -5808,10 +5935,14 @@
             modal.classList.add('active');
 
             // Render symptom chips and relief methods list
+            renderProdromeChips('edit-prodrome-chips', tempEditProdrome);
+            bindProdromeChips('edit-prodrome-chips', tempEditProdrome);
             renderSymptomChips('edit-symptom-chips', tempEditSymptoms);
             bindSymptomChips('edit-symptom-chips', tempEditSymptoms);
             renderTriggerChips('edit-trigger-chips', tempEditTriggers);
             bindTriggerChips('edit-trigger-chips', tempEditTriggers);
+            renderPostdromeChips('edit-postdrome-chips', tempEditPostdrome);
+            bindPostdromeChips('edit-postdrome-chips', tempEditPostdrome);
             renderEditReliefMethods();
 
             // Allow Enter key to add relief method
@@ -5906,6 +6037,8 @@
             migraine.reliefMethods = tempReliefMethods.length > 0 ? tempReliefMethods : null;
             migraine.symptoms = Array.from(tempEditSymptoms);
             migraine.triggers = Array.from(tempEditTriggers);
+            migraine.prodrome = Array.from(tempEditProdrome);
+            migraine.postdrome = Array.from(tempEditPostdrome);
 
             saveData();
             renderHistory();
@@ -6541,8 +6674,10 @@
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${prodromeLabels(m.prodrome).length > 0 ? `<p>Warning signs: ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p>Triggers: ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
+                        ${postdromeLabels(m.postdrome).length > 0 ? `<p>After-effects: ${safeText(postdromeLabels(m.postdrome).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="margin-top: 8px;">Notes: ${safeText(m.notes)}</p>` : ''}
                         ${m.endNotes ? `<p style="margin-top: 8px;">Resolution: ${safeText(m.endNotes)}</p>` : ''}
                     </div>
@@ -6560,8 +6695,10 @@
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
                         <p>Duration: ${formatDuration(m.duration)}</p>
                         ${m.medication ? `<p>Medication: ${safeText(m.medication)}</p>` : ''}
+                        ${prodromeLabels(m.prodrome).length > 0 ? `<p>Warning signs: ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
                         ${symptomLabels(m.symptoms).length > 0 ? `<p>Symptoms: ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
                         ${triggerLabels(m.triggers).length > 0 ? `<p>Triggers: ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
+                        ${postdromeLabels(m.postdrome).length > 0 ? `<p>After-effects: ${safeText(postdromeLabels(m.postdrome).join(', '))}</p>` : ''}
                         ${m.notes ? `<p style="margin-top: 8px;">Notes: ${safeText(m.notes)}</p>` : ''}
                         ${m.endNotes ? `<p style="margin-top: 8px;">Resolution: ${safeText(m.endNotes)}</p>` : ''}
                     </div>
@@ -6745,7 +6882,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.7.0 - Debug Information
+            const debugInfo = `Aiding Migraine v4.8.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -7022,6 +7159,16 @@ Browser: ${navigator.userAgent}
             if (episode.triggers !== undefined) {
                 episode.triggers = Array.isArray(episode.triggers)
                     ? episode.triggers.filter(k => typeof k === 'string' && TRIGGER_KEYS.has(k))
+                    : [];
+            }
+            if (episode.prodrome !== undefined) {
+                episode.prodrome = Array.isArray(episode.prodrome)
+                    ? episode.prodrome.filter(k => typeof k === 'string' && PRODROME_KEYS.has(k))
+                    : [];
+            }
+            if (episode.postdrome !== undefined) {
+                episode.postdrome = Array.isArray(episode.postdrome)
+                    ? episode.postdrome.filter(k => typeof k === 'string' && POSTDROME_KEYS.has(k))
                     : [];
             }
 
@@ -7398,7 +7545,7 @@ Browser: ${navigator.userAgent}
 
             // CSV Header with BOM for Excel compatibility
             const BOM = '\uFEFF';
-            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms,Triggers\n';
+            let csv = BOM + 'Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms,Triggers,Prodrome,Postdrome\n';
 
             // Sort by date (oldest first) - use slice() to avoid mutating original array
             const sorted = activeMigraines.slice().sort((a, b) =>
@@ -7434,9 +7581,11 @@ Browser: ${navigator.userAgent}
                 const pressure = m.weather && m.weather.pressure ? m.weather.pressure.toFixed(1) : '';
                 const symptoms = neutralizeFormula(symptomLabels(m.symptoms).join('; ')).replace(/"/g, '""');
                 const triggers = neutralizeFormula(triggerLabels(m.triggers).join('; ')).replace(/"/g, '""');
+                const prodrome = neutralizeFormula(prodromeLabels(m.prodrome).join('; ')).replace(/"/g, '""');
+                const postdrome = neutralizeFormula(postdromeLabels(m.postdrome).join('; ')).replace(/"/g, '""');
 
                 // Quote fields that might contain commas
-                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure},"${symptoms}","${triggers}"\n`;
+                csv += `${date},${startTime},${endTime},${durationHours},${m.painLevel},${m.category},"${medication}","${notes}","${resolution}",${m.status},${pressure},"${symptoms}","${triggers}","${prodrome}","${postdrome}"\n`;
             });
 
             // Create and download file
@@ -7541,12 +7690,18 @@ Browser: ${navigator.userAgent}
                 const notesIdx = header.findIndex(h => h.includes('note'));
                 const symptomsIdx = header.findIndex(h => h.includes('symptom'));
                 const triggersIdx = header.findIndex(h => h.includes('trigger'));
+                const prodromeIdx = header.findIndex(h => h.includes('prodrome'));
+                const postdromeIdx = header.findIndex(h => h.includes('postdrome'));
 
                 // Map exported labels back to controlled keys (case-insensitive)
                 const symptomLabelToKey = {};
                 SYMPTOM_OPTIONS.forEach(s => { symptomLabelToKey[s.label.toLowerCase()] = s.key; });
                 const triggerLabelToKey = {};
                 TRIGGER_OPTIONS.forEach(t => { triggerLabelToKey[t.label.toLowerCase()] = t.key; });
+                const prodromeLabelToKey = {};
+                PRODROME_OPTIONS.forEach(p => { prodromeLabelToKey[p.label.toLowerCase()] = p.key; });
+                const postdromeLabelToKey = {};
+                POSTDROME_OPTIONS.forEach(p => { postdromeLabelToKey[p.label.toLowerCase()] = p.key; });
 
                 // Parse data rows
                 const entries = [];
@@ -7627,6 +7782,20 @@ Browser: ${navigator.userAgent}
                             migraine.triggers = stripFormulaGuard(row[triggersIdx])
                                 .split(';')
                                 .map(s => triggerLabelToKey[s.trim().toLowerCase()])
+                                .filter(Boolean);
+                        }
+
+                        // Parse prodrome / postdrome if present (labels -> keys)
+                        if (prodromeIdx !== -1 && row[prodromeIdx]) {
+                            migraine.prodrome = stripFormulaGuard(row[prodromeIdx])
+                                .split(';')
+                                .map(s => prodromeLabelToKey[s.trim().toLowerCase()])
+                                .filter(Boolean);
+                        }
+                        if (postdromeIdx !== -1 && row[postdromeIdx]) {
+                            migraine.postdrome = stripFormulaGuard(row[postdromeIdx])
+                                .split(';')
+                                .map(s => postdromeLabelToKey[s.trim().toLowerCase()])
                                 .filter(Boolean);
                         }
 
@@ -8006,6 +8175,29 @@ Browser: ${navigator.userAgent}
             doc.text(`Range: ${formatDuration(minDuration)} - ${formatDuration(maxDuration)}`, 20, yPos);
             yPos += 15;
 
+            // Common warning signs (prodrome) summary
+            const prodromeCounts = {};
+            episodesInRange.forEach(m => {
+                prodromeLabels(m.prodrome).forEach(label => {
+                    prodromeCounts[label] = (prodromeCounts[label] || 0) + 1;
+                });
+            });
+            const rankedProdrome = Object.entries(prodromeCounts).sort((a, b) => b[1] - a[1]);
+            if (rankedProdrome.length > 0) {
+                doc.setFont(undefined, 'bold');
+                doc.text('Common Warning Signs (prodrome)', 20, yPos);
+                yPos += 6;
+                doc.setFont(undefined, 'normal');
+                const prodromeSummary = rankedProdrome
+                    .map(([label, count]) => `${label} (${count})`)
+                    .join(', ');
+                doc.splitTextToSize(prodromeSummary, 170).forEach(line => {
+                    doc.text(line, 20, yPos);
+                    yPos += 5;
+                });
+                yPos += 10;
+            }
+
             // Common Symptoms summary
             const symptomCounts = {};
             episodesInRange.forEach(m => {
@@ -8048,6 +8240,29 @@ Browser: ${navigator.userAgent}
                     .join(', ');
                 const triggerSummaryLines = doc.splitTextToSize(triggerSummary, 170);
                 triggerSummaryLines.forEach(line => {
+                    doc.text(line, 20, yPos);
+                    yPos += 5;
+                });
+                yPos += 10;
+            }
+
+            // Common after-effects (postdrome) summary
+            const postdromeCounts = {};
+            episodesInRange.forEach(m => {
+                postdromeLabels(m.postdrome).forEach(label => {
+                    postdromeCounts[label] = (postdromeCounts[label] || 0) + 1;
+                });
+            });
+            const rankedPostdrome = Object.entries(postdromeCounts).sort((a, b) => b[1] - a[1]);
+            if (rankedPostdrome.length > 0) {
+                doc.setFont(undefined, 'bold');
+                doc.text('Common After-effects (postdrome)', 20, yPos);
+                yPos += 6;
+                doc.setFont(undefined, 'normal');
+                const postdromeSummary = rankedPostdrome
+                    .map(([label, count]) => `${label} (${count})`)
+                    .join(', ');
+                doc.splitTextToSize(postdromeSummary, 170).forEach(line => {
                     doc.text(line, 20, yPos);
                     yPos += 5;
                 });
@@ -8149,6 +8364,24 @@ Browser: ${navigator.userAgent}
 
                     yPos += 5;
 
+                    // Add prodrome (warning signs) sub-line if present
+                    const epProdrome = prodromeLabels(episode.prodrome);
+                    if (epProdrome.length > 0) {
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'italic');
+                        const proLines = doc.splitTextToSize(`Warning signs: ${epProdrome.join(', ')}`, 170);
+                        for (const proLine of proLines) {
+                            if (yPos > 275) {
+                                doc.addPage();
+                                yPos = 20;
+                            }
+                            doc.text(proLine, 25, yPos);
+                            yPos += 4;
+                        }
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                    }
+
                     // Add symptoms sub-line if present (page-break aware)
                     const epSymptoms = symptomLabels(episode.symptoms);
                     if (epSymptoms.length > 0) {
@@ -8179,6 +8412,24 @@ Browser: ${navigator.userAgent}
                                 yPos = 20;
                             }
                             doc.text(trigLine, 25, yPos);
+                            yPos += 4;
+                        }
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                    }
+
+                    // Add postdrome (after-effects) sub-line if present
+                    const epPostdrome = postdromeLabels(episode.postdrome);
+                    if (epPostdrome.length > 0) {
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'italic');
+                        const postLines = doc.splitTextToSize(`After-effects: ${epPostdrome.join(', ')}`, 170);
+                        for (const postLine of postLines) {
+                            if (yPos > 275) {
+                                doc.addPage();
+                                yPos = 20;
+                            }
+                            doc.text(postLine, 25, yPos);
                             yPos += 4;
                         }
                         doc.setFontSize(9);
@@ -8254,7 +8505,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.7.0</strong></p>
+                <p><strong>Aiding Migraine v4.8.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -11680,6 +11931,10 @@ Browser: ${navigator.userAgent}
 
             // Cross-tabulate triggers against measured pressure activity
             renderTriggerWeatherCorrelation(filteredData);
+
+            // Phase breakdowns: warning signs (prodrome) + after-effects (postdrome)
+            renderOptionAnalytics('prodrome-analytics-card', 'prodrome-analytics-content', filteredData, 'prodrome', PRODROME_KEYS, PRODROME_LABELS, 'warning signs');
+            renderOptionAnalytics('postdrome-analytics-card', 'postdrome-analytics-content', filteredData, 'postdrome', POSTDROME_KEYS, POSTDROME_LABELS, 'after-effects');
         }
 
         // Ranked frequency breakdown of a controlled option list across episodes.

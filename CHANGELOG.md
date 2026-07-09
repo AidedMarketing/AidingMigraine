@@ -5,6 +5,17 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.8.0] - 2026-07-09
+
+### Added — Prodrome & Postdrome Phase Tracking (P2)
+
+- **Log warning signs before an attack (prodrome)** — excessive yawning, food cravings, mood changes, neck stiffness, difficulty concentrating, and more — from a quick chip list inside the log form's Optional Details. Recognizing these early signs is one of the most useful things a tracker can surface.
+- **Log after-effects (postdrome)** — the "migraine hangover" of fatigue, brain fog, neck stiffness, and lingering sensitivity — right in the End-Episode screen, at the natural moment.
+- Both phases are **editable on any past episode** (History and calendar edit flows) and shown in History cards, Episode Details, and calendar day details, ordered before → during → after for a clear phase timeline.
+- New **"Common warning signs"** and **"Common after-effects"** analytics cards rank each phase's frequency over the selected range.
+- Exports: per-episode warning-signs and after-effects lines plus summaries in the **PDF doctor report**; `Prodrome` and `Postdrome` columns in CSV export/import; JSON carries them automatically.
+- Imported values are filtered against the controlled lists. Plain-language labels keep it approachable — the new fields sit in optional/secondary surfaces so first-time users aren't overwhelmed.
+
 ## [4.7.0] - 2026-07-09
 
 ### Added — Triggers × Weather Correlation (P2)
