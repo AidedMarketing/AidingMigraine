@@ -192,7 +192,7 @@ A second audit of the areas covered lightly in the first pass (weather/ML math, 
 
 ## P3 — Later
 
-- **Real at-rest encryption** behind the lock (WebCrypto, key wrapped via passkey/WebAuthn) — makes the P0-16 copy true again, stronger.
+- ~~**Real at-rest encryption** behind the lock~~ — ✅ **Shipped in v5.0.0.** Opt-in "Encrypt my data" derives an AES-256-GCM key from a passphrase via PBKDF2-SHA256 (WebCrypto) and encrypts the core health vault (episodes, cycle, assessments, medications); key in memory only; zero-knowledge (no recovery), unlock-once-per-session, and never auto-locks during an active episode. Makes the privacy copy true. Fast-follow: optional WebAuthn-PRF biometric unlock.
 - **Sleep & hydration logging** (already referenced by the risk science, not user-loggable).
 - **Manifest upgrades:** `screenshots` (richer install UI), `id`, `share_target`; more shortcuts.
 - **Rebuilt voice logging** (removed in P0-14) — attack-time ergonomics justify doing it properly.

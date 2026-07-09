@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v4.10.0 - PRODUCTION
+           AIDING MIGRAINE v5.0.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -3437,7 +3437,7 @@
                         </label>
                     </label>
                     <p style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 12px; margin-bottom: 12px;">
-                        Screen lock: require fingerprint or face recognition to open the app. Note: this hides the interface but does not encrypt the stored data.
+                        Screen lock: require fingerprint or face recognition to open the app. This hides the interface but does not encrypt the stored data — for real at-rest encryption, use "Encrypt my data" above.
                     </p>
                     <div id="biometric-status" style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 12px; padding: 10px; background: var(--bg-tertiary); border-radius: 8px;">
                         Checking availability...
@@ -3571,7 +3571,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v4.10.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.0.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3609,7 +3609,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v4.10.0 Production</strong>
+                            <strong>v5.0.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3672,7 +3672,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '4.10.0';
+        const APP_VERSION = '5.0.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -7912,7 +7912,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v4.10.0 - Debug Information
+            const debugInfo = `Aiding Migraine v5.0.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -9652,7 +9652,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v4.10.0</strong></p>
+                <p><strong>Aiding Migraine v5.0.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -9690,6 +9690,9 @@ Browser: ${navigator.userAgent}
                     <li><strong>Push notifications:</strong> sends your push subscription, timezone, notification schedule, and attack-onset timestamps (used to time follow-up reminders) to this project's notification server. No pain levels, notes, medications, or other health details are sent.</li>
                 </ul>
                 <p>Turning these features off stops all network activity. Everything else stays on your device.</p>
+
+                <h3>At-rest encryption</h3>
+                <p>Optional and off by default. When you turn on <strong>"Encrypt my data"</strong> in Settings, your health data (episodes, cycle data, assessments, medications) is encrypted on this device with <strong>AES-256</strong>, using a key derived from your passphrase that never leaves your device. We can't read it, and <strong>there is no recovery if you forget the passphrase</strong> — so keep an unencrypted JSON backup somewhere safe.</p>
 
                 <h3>Menstrual cycle tracking</h3>
                 <p>Optional and off by default. If you turn it on, the period start dates you log are stored <strong>on this device only and are never sent anywhere</strong> — the menstrual-migraine pattern is calculated locally. It's included in your own JSON backups and, if you choose, your PDF doctor report.</p>

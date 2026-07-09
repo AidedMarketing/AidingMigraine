@@ -5,6 +5,20 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-07-09
+
+### Added — Real At-Rest Encryption (P3)
+
+- **Optional "Encrypt my data"** (Settings, off by default) now provides **genuine at-rest encryption** — not just a screen overlay. Your health data (episodes, active episode, cycle data, assessments, medications) is encrypted on the device with **AES-256-GCM**, using a key derived from your passphrase via **PBKDF2-SHA256** (WebCrypto). The key lives only in memory while unlocked and is never written to disk or sent anywhere.
+- **Zero-knowledge**: no backdoor. A forgotten passphrase means the data cannot be recovered — the app warns you up front and nudges you to keep an unencrypted JSON backup.
+- **Low-friction, attack-aware**: you unlock once per session, and the app **never auto-locks while an episode is active**, so one-tap attack logging stays instant mid-attack. Auto-lock otherwise drops the key and re-requires the passphrase.
+- Enable, disable (writes your data back as plaintext), and change-passphrase (re-encrypts) flows included, with clear warnings.
+- The existing biometric "screen lock" copy now points to this feature for real encryption.
+
+### Changed
+
+- Version bumped to 5.0.0 to reflect the new encrypted storage capability.
+
 ## [4.10.0] - 2026-07-09
 
 ### Added — Menstrual / Hormonal Cycle Tracking (P2)

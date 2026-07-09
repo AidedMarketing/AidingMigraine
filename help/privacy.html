@@ -73,6 +73,15 @@
                 <li>✅ Deleted when you disable weather tracking</li>
             </ul>
 
+            <h3>At-Rest Encryption (Optional)</h3>
+            <p>Off by default. When you enable <strong>"Encrypt my data"</strong> in Settings, your health data on this device is encrypted:</p>
+            <ul>
+                <li>✅ <strong>AES-256-GCM</strong> encryption of your episodes, cycle data, assessments, and medications</li>
+                <li>✅ The key is derived from your passphrase (PBKDF2-SHA256) and is held only in memory while the app is unlocked — it is never written to disk or sent anywhere</li>
+                <li>✅ Zero-knowledge: no one, including us, can decrypt your data without your passphrase</li>
+                <li>⚠️ <strong>There is no recovery if you forget your passphrase</strong> — keep an unencrypted JSON backup somewhere safe before enabling</li>
+            </ul>
+
             <h3>Menstrual Cycle Tracking (Optional, Local Storage Only)</h3>
             <p>Cycle tracking is off by default. If you turn it on, the app stores on your device:</p>
             <ul>
