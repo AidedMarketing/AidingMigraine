@@ -2282,6 +2282,7 @@
                     <span class="today-chip" id="today-last-chip">Last episode: -</span>
                     <span class="today-chip">Offline ready</span>
                 </div>
+                <p class="today-status-copy" id="today-cycle-line" style="display: none; margin-top: 12px;"></p>
             </section>
 
             <!-- Today's outlook: surfaces the weather/ML risk predictions.
@@ -2885,6 +2886,19 @@
                         <span class="btn-subtitle">6 questions · headache impact</span>
                     </button>
                 </div>
+            </div>
+
+            <div class="section-card" id="cycle-card" style="display: none;">
+                <h2 class="mobile-section-title">Cycle</h2>
+                <p class="today-status-copy">Log period start dates to see whether your migraines follow your cycle. Stored on this device only.</p>
+                <div id="cycle-status" style="margin: 12px 0;"></div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
+                    <input type="date" id="cycle-date-input" style="flex: 1; min-width: 150px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.95rem;">
+                    <button id="cycle-add-btn" class="btn btn-secondary" style="white-space: nowrap;">Add date</button>
+                    <button id="cycle-today-btn" class="btn btn-primary" style="white-space: nowrap;">Started today</button>
+                </div>
+                <div id="cycle-recent"></div>
+                <div id="cycle-correlation" style="margin-top: 12px;"></div>
             </div>
         </div>
 
@@ -3882,6 +3896,134 @@
             };
         }
 
+        // --- Cycle UI ---
+
+        function addPeriod(dateStr) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
+            const todayStr = toLocalDateStr(new Date());
+            if (dateStr > todayStr) {
+                showModal('Future date', 'Please choose a period start date that is today or earlier.');
+                return;
+            }
+            if (cycleData.periods.some(p => p.startDate === dateStr)) {
+                showModal('Already logged', 'That period start date is already recorded.');
+                return;
+            }
+            cycleData.periods.push({ id: Date.now(), startDate: dateStr });
+            saveCycleData();
+            renderCycleCard();
+            updateCycleTodayLine();
+        }
+
+        function removePeriod(dateStr) {
+            cycleData.periods = cycleData.periods.filter(p => p.startDate !== dateStr);
+            saveCycleData();
+            renderCycleCard();
+            updateCycleTodayLine();
+        }
+
+        function renderCycleCard() {
+            const statusEl = document.getElementById('cycle-status');
+            const recentEl = document.getElementById('cycle-recent');
+            if (!statusEl || !recentEl) return;
+
+            const starts = sortedPeriodStarts();
+            if (starts.length === 0) {
+                statusEl.innerHTML = safeHTML('<p style="color: var(--text-secondary); font-size: 0.9rem;">No periods logged yet. Add your most recent period start date to begin.</p>');
+                recentEl.innerHTML = '';
+            } else {
+                const today = parseLocalDate(toLocalDateStr(new Date()));
+                const day = cycleDayFor(today);
+                const est = nextPeriodEstimate();
+                let statusHtml = `<div style="font-size: 1.05rem; font-weight: 600;">${day != null ? `Cycle day ${day}` : 'Cycle started'}</div>`;
+                if (est) {
+                    if (est.daysUntil > 0) statusHtml += `<div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 2px;">Next period in ~${est.daysUntil} days (estimated, ${averageCycleLength()}-day cycle)</div>`;
+                    else if (est.daysUntil === 0) statusHtml += `<div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 2px;">A period is estimated around today</div>`;
+                    else statusHtml += `<div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 2px;">Estimated period was ~${Math.abs(est.daysUntil)} days ago — log it if it has started</div>`;
+                }
+                statusEl.innerHTML = safeHTML(statusHtml);
+
+                const recent = starts.slice(-6).reverse();
+                const rows = recent.map(d => {
+                    const ds = toLocalDateStr(d);
+                    const label = d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+                    return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                        <span style="font-size: 0.9rem;">${safeText(label)}</span>
+                        <button class="btn btn-secondary" data-remove-period="${safeText(ds)}" style="padding: 4px 10px; font-size: 0.8rem;" aria-label="Remove ${safeText(label)}">Remove</button>
+                    </div>`;
+                }).join('');
+                recentEl.innerHTML = safeHTML(`<div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px;">Recent period starts</div>${rows}`);
+            }
+
+            renderCycleCorrelation();
+        }
+
+        // Filled in with the correlation verdict (see renderCycleCorrelation);
+        // defined as a no-op-safe stub until then.
+        function renderCycleCorrelation() {
+            const el = document.getElementById('cycle-correlation');
+            if (el) el.innerHTML = '';
+        }
+
+        function updateCycleTodayLine() {
+            const el = document.getElementById('today-cycle-line');
+            if (!el) return;
+            if (!cycleData.enabled || cycleData.periods.length === 0) {
+                el.style.display = 'none';
+                return;
+            }
+            const today = parseLocalDate(toLocalDateStr(new Date()));
+            const day = cycleDayFor(today);
+            const est = nextPeriodEstimate();
+            let text = day != null ? `Cycle day ${day}` : '';
+            if (est && est.daysUntil >= 0) text += `${text ? ' · ' : ''}next period in ~${est.daysUntil} days`;
+            el.textContent = text;
+            el.style.display = text ? 'block' : 'none';
+        }
+
+        // Toggle the Care card + Today line to match the enabled state, then
+        // repaint them.
+        function refreshCycleViews() {
+            const card = document.getElementById('cycle-card');
+            if (card) card.style.display = cycleData.enabled ? 'block' : 'none';
+            renderCycleCard();
+            updateCycleTodayLine();
+        }
+
+        function setupCycleUI() {
+            const toggle = document.getElementById('cycle-tracking-enabled');
+            if (toggle) {
+                toggle.checked = cycleData.enabled;
+                toggle.addEventListener('change', () => {
+                    cycleData.enabled = toggle.checked;
+                    saveCycleData();
+                    refreshCycleViews();
+                });
+            }
+            const dateInput = document.getElementById('cycle-date-input');
+            if (dateInput) {
+                const todayStr = toLocalDateStr(new Date());
+                dateInput.max = todayStr;
+                dateInput.value = todayStr;
+            }
+            document.getElementById('cycle-add-btn')?.addEventListener('click', () => {
+                const v = document.getElementById('cycle-date-input')?.value;
+                if (v) addPeriod(v);
+            });
+            document.getElementById('cycle-today-btn')?.addEventListener('click', () => addPeriod(toLocalDateStr(new Date())));
+
+            const recentEl = document.getElementById('cycle-recent');
+            if (recentEl && !recentEl.dataset.delegated) {
+                recentEl.addEventListener('click', (e) => {
+                    const btn = e.target.closest('[data-remove-period]');
+                    if (btn) removePeriod(btn.dataset.removePeriod);
+                });
+                recentEl.dataset.delegated = '1';
+            }
+
+            refreshCycleViews();
+        }
+
         // --- Questionnaire modals ---
         // showModal sanitizes the body; select/option/input are allowed tags.
         // Values are read from the DOM inside the programmatic submit action.
@@ -4395,6 +4537,7 @@
 
             updateLoadingProgress(60, 'Loading settings...');
             initializeSettings();
+            setupCycleUI();
 
             updateLoadingProgress(65, 'Configuring notifications...');
             await initializeNotifications();
@@ -6104,6 +6247,9 @@
             // Refresh the Today outlook card (covers the load/render path when
             // weather data is already present but no fresh fetch has fired).
             updateTodayRiskCard();
+
+            // Keep the optional cycle line in sync
+            updateCycleTodayLine();
         }
 
         function initializeHistory() {}
