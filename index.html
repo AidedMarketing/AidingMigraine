@@ -5508,6 +5508,16 @@
                     ` : ''}
 
                     <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Where is the pain?</label>
+                        <div id="edit-attack-head-map"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Pain quality</label>
+                        <div id="edit-attack-quality-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 600;">Warning signs before (prodrome)</label>
                         <div id="edit-attack-prodrome-chips" class="chip-group"></div>
                     </div>
@@ -5558,6 +5568,14 @@
                 ? attack.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
             renderPostdromeChips('edit-attack-postdrome-chips', tempEditPostdrome);
             bindPostdromeChips('edit-attack-postdrome-chips', tempEditPostdrome);
+            tempEditPainLocations = new Set(Array.isArray(attack.painLocations)
+                ? attack.painLocations.filter(k => HEAD_ZONE_KEYS.has(k)) : []);
+            renderHeadMap('edit-attack-head-map', tempEditPainLocations);
+            bindHeadMap('edit-attack-head-map', tempEditPainLocations);
+            tempEditQuality = new Set(Array.isArray(attack.painQuality)
+                ? attack.painQuality.filter(k => PAIN_QUALITY_KEYS.has(k)) : []);
+            renderQualityChips('edit-attack-quality-chips', tempEditQuality);
+            bindQualityChips('edit-attack-quality-chips', tempEditQuality);
 
             // Pain level selection
             body.querySelectorAll('.pain-btn').forEach(btn => {
@@ -5635,6 +5653,8 @@
                 triggers: Array.from(tempEditTriggers),
                 prodrome: Array.from(tempEditProdrome),
                 postdrome: Array.from(tempEditPostdrome),
+                painLocations: Array.from(tempEditPainLocations),
+                painQuality: Array.from(tempEditQuality),
                 lastModified: new Date().toISOString(),
                 editCount: (originalAttack.editCount || 0) + 1
             };
@@ -6065,6 +6085,8 @@
         let tempEditTriggers = new Set();
         let tempEditProdrome = new Set();
         let tempEditPostdrome = new Set();
+        let tempEditPainLocations = new Set();
+        let tempEditQuality = new Set();
 
         function editEpisode(id) {
             const migraine = migraines.find(m => m.id === id);
@@ -6080,6 +6102,10 @@
                 ? migraine.prodrome.filter(k => PRODROME_KEYS.has(k)) : []);
             tempEditPostdrome = new Set(Array.isArray(migraine.postdrome)
                 ? migraine.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
+            tempEditPainLocations = new Set(Array.isArray(migraine.painLocations)
+                ? migraine.painLocations.filter(k => HEAD_ZONE_KEYS.has(k)) : []);
+            tempEditQuality = new Set(Array.isArray(migraine.painQuality)
+                ? migraine.painQuality.filter(k => PAIN_QUALITY_KEYS.has(k)) : []);
 
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
@@ -6106,6 +6132,14 @@
                               style="width: 100%; padding: 12px; background: var(--bg-tertiary);
                                      border: 1px solid var(--border-color); border-radius: 8px;
                                      color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${safeText(migraine.endNotes || '')}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Where is the pain?</label>
+                    <div id="edit-head-map"></div>
+                </div>
+                <div class="form-group">
+                    <label>Pain quality</label>
+                    <div id="edit-quality-chips" class="chip-group"></div>
                 </div>
                 <div class="form-group">
                     <label>Warning signs before (prodrome)</label>
@@ -6144,7 +6178,11 @@
             document.getElementById('modal-title').textContent = 'Edit Episode';
             modal.classList.add('active');
 
-            // Render symptom chips and relief methods list
+            // Render head map, chips, and relief methods list
+            renderHeadMap('edit-head-map', tempEditPainLocations);
+            bindHeadMap('edit-head-map', tempEditPainLocations);
+            renderQualityChips('edit-quality-chips', tempEditQuality);
+            bindQualityChips('edit-quality-chips', tempEditQuality);
             renderProdromeChips('edit-prodrome-chips', tempEditProdrome);
             bindProdromeChips('edit-prodrome-chips', tempEditProdrome);
             renderSymptomChips('edit-symptom-chips', tempEditSymptoms);
@@ -6249,6 +6287,8 @@
             migraine.triggers = Array.from(tempEditTriggers);
             migraine.prodrome = Array.from(tempEditProdrome);
             migraine.postdrome = Array.from(tempEditPostdrome);
+            migraine.painLocations = Array.from(tempEditPainLocations);
+            migraine.painQuality = Array.from(tempEditQuality);
 
             saveData();
             renderHistory();
@@ -7379,6 +7419,16 @@ Browser: ${navigator.userAgent}
             if (episode.postdrome !== undefined) {
                 episode.postdrome = Array.isArray(episode.postdrome)
                     ? episode.postdrome.filter(k => typeof k === 'string' && POSTDROME_KEYS.has(k))
+                    : [];
+            }
+            if (episode.painLocations !== undefined) {
+                episode.painLocations = Array.isArray(episode.painLocations)
+                    ? episode.painLocations.filter(k => typeof k === 'string' && HEAD_ZONE_KEYS.has(k))
+                    : [];
+            }
+            if (episode.painQuality !== undefined) {
+                episode.painQuality = Array.isArray(episode.painQuality)
+                    ? episode.painQuality.filter(k => typeof k === 'string' && PAIN_QUALITY_KEYS.has(k))
                     : [];
             }
 
