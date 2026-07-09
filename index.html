@@ -2243,8 +2243,10 @@
     <!-- Lock Screen -->
     <div id="lock-screen" class="lock-screen" style="display: none;">
         <div class="lock-screen-icon">Lock</div>
-        <div class="lock-screen-title">App Locked</div>
-        <div class="lock-screen-subtitle">Unlock to access your migraine data</div>
+        <div class="lock-screen-title" id="lock-screen-title">App Locked</div>
+        <div class="lock-screen-subtitle" id="lock-screen-subtitle">Unlock to access your migraine data</div>
+        <input type="password" id="unlock-passphrase" placeholder="Passphrase" autocomplete="current-password" style="display: none; width: min(320px, 80vw); padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem; text-align: center;">
+        <p id="unlock-error" style="display: none; color: var(--accent-red); font-size: 0.85rem; margin-bottom: 12px;"></p>
         <button id="unlock-btn" class="unlock-btn">Unlock</button>
     </div>
 
@@ -4574,6 +4576,15 @@
 
         // Main app initialization (called after IndexedDB is ready)
         async function initApp() {
+            // If at-rest encryption is on, unlock (derive the key from the
+            // passphrase) BEFORE loading — the plaintext stores are wiped and
+            // the vault can't be read without the key.
+            loadEncMeta();
+            if (encEnabled() && !encUnlocked) {
+                updateLoadingProgress(8, 'Waiting for unlock...');
+                await showEncryptionUnlockGate();
+            }
+
             updateLoadingProgress(10, 'Loading your data...');
             await loadData();
 
@@ -14784,10 +14795,59 @@ Browser: ${navigator.userAgent}
             return false;
         }
 
+        // Resolves the startup gate promise once the user unlocks.
+        let pendingUnlockResolve = null;
+
+        // Prepare the lock screen for passphrase (encryption) unlock.
+        function showLockForEncryption() {
+            const input = document.getElementById('unlock-passphrase');
+            const err = document.getElementById('unlock-error');
+            const title = document.getElementById('lock-screen-title');
+            const sub = document.getElementById('lock-screen-subtitle');
+            if (title) title.textContent = 'Unlock your data';
+            if (sub) sub.textContent = 'Enter your passphrase to decrypt your migraine data.';
+            if (input) { input.style.display = 'block'; input.value = ''; setTimeout(() => input.focus(), 50); }
+            if (err) { err.style.display = 'none'; err.textContent = ''; }
+        }
+
+        // Validate the entered passphrase; on success restore the key + unlock.
+        async function attemptEncryptionUnlock() {
+            const input = document.getElementById('unlock-passphrase');
+            const err = document.getElementById('unlock-error');
+            const key = await verifyPassphrase(input ? input.value : '');
+            if (!key) {
+                if (err) { err.textContent = 'Incorrect passphrase. Try again.'; err.style.display = 'block'; }
+                return false;
+            }
+            encMasterKey = key;
+            encUnlocked = true;
+            if (input) { input.value = ''; input.style.display = 'none'; }
+            if (err) err.style.display = 'none';
+            unlockApp();
+            if (pendingUnlockResolve) { const r = pendingUnlockResolve; pendingUnlockResolve = null; r(); }
+            return true;
+        }
+
+        // Startup gate: show the lock screen and block until unlocked.
+        function showEncryptionUnlockGate() {
+            return new Promise(resolve => {
+                pendingUnlockResolve = resolve;
+                isAppLocked = true;
+                showLockForEncryption();
+                document.getElementById('lock-screen').style.display = 'flex';
+            });
+        }
+
         function lockApp() {
             isAppLocked = true;
-            const lockScreen = document.getElementById('lock-screen');
-            lockScreen.style.display = 'flex';
+            // With encryption on, locking drops the key from memory so the data
+            // is protected, and unlocking requires the passphrase again.
+            if (encEnabled()) {
+                encMasterKey = null;
+                encUnlocked = false;
+                showLockForEncryption();
+            }
+            document.getElementById('lock-screen').style.display = 'flex';
             console.log('Lock App locked');
         }
 
@@ -14801,6 +14861,10 @@ Browser: ${navigator.userAgent}
 
         // Unlock button handler
         document.getElementById('unlock-btn')?.addEventListener('click', async () => {
+            if (encEnabled()) {
+                await attemptEncryptionUnlock();
+                return;
+            }
             if (biometricAuthEnabled) {
                 const authenticated = await authenticateBiometric();
                 if (authenticated) {
@@ -14811,6 +14875,11 @@ Browser: ${navigator.userAgent}
             } else {
                 unlockApp();
             }
+        });
+
+        // Enter key in the passphrase field submits the encryption unlock
+        document.getElementById('unlock-passphrase')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); attemptEncryptionUnlock(); }
         });
 
         // ============================================
@@ -14831,6 +14900,9 @@ Browser: ${navigator.userAgent}
             }
 
             inactivityTimeout = setTimeout(() => {
+                // Least resistance during an attack: never auto-lock while an
+                // episode is in progress — re-arm the timer instead.
+                if (activeMigraine) { resetInactivityTimer(); return; }
                 lockApp();
             }, autoLockDelay);
         }
