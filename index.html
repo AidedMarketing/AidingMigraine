@@ -2446,6 +2446,12 @@
                             </div>
 
                             <div class="form-group">
+                                <label>Warning signs before (prodrome, optional)</label>
+                                <p class="pain-helper" style="margin: 2px 0 8px;">Early signs you noticed in the hours or days before the headache.</p>
+                                <div id="log-prodrome-chips" class="chip-group"></div>
+                            </div>
+
+                            <div class="form-group">
                                 <label>Symptoms (optional)</label>
                                 <div id="log-symptom-chips" class="chip-group"></div>
                             </div>
@@ -3761,9 +3767,40 @@
         const TRIGGER_KEYS = new Set(TRIGGER_OPTIONS.map(t => t.key));
         const TRIGGER_LABELS = Object.fromEntries(TRIGGER_OPTIONS.map(t => [t.key, t.label]));
 
+        // Prodrome — premonitory warning signs in the hours/days BEFORE the
+        // headache. Controlled list; episodes store keys, UI renders labels.
+        const PRODROME_OPTIONS = [
+            { key: 'yawning', label: 'Excessive yawning' },
+            { key: 'food_cravings', label: 'Food cravings' },
+            { key: 'mood_change', label: 'Mood changes' },
+            { key: 'irritability', label: 'Irritability' },
+            { key: 'neck_stiffness', label: 'Neck stiffness' },
+            { key: 'fatigue', label: 'Fatigue / low energy' },
+            { key: 'difficulty_concentrating', label: 'Difficulty concentrating' },
+            { key: 'frequent_urination', label: 'Frequent urination' },
+            { key: 'light_sensitivity', label: 'Early light sensitivity' }
+        ];
+        const PRODROME_KEYS = new Set(PRODROME_OPTIONS.map(p => p.key));
+        const PRODROME_LABELS = Object.fromEntries(PRODROME_OPTIONS.map(p => [p.key, p.label]));
+
+        // Postdrome — the "migraine hangover" AFTER the pain resolves.
+        const POSTDROME_OPTIONS = [
+            { key: 'fatigue', label: 'Fatigue / drained' },
+            { key: 'brain_fog', label: 'Brain fog' },
+            { key: 'mood_change', label: 'Mood changes' },
+            { key: 'neck_stiffness', label: 'Neck stiffness' },
+            { key: 'dizziness', label: 'Dizziness' },
+            { key: 'weakness', label: 'Weakness' },
+            { key: 'body_aches', label: 'Body aches' },
+            { key: 'sensitivity_lingering', label: 'Lingering light/sound sensitivity' }
+        ];
+        const POSTDROME_KEYS = new Set(POSTDROME_OPTIONS.map(p => p.key));
+        const POSTDROME_LABELS = Object.fromEntries(POSTDROME_OPTIONS.map(p => [p.key, p.label]));
+
         // Selections on the quick-log form (for the next new episode)
         let selectedSymptoms = new Set();
         let selectedTriggers = new Set();
+        let selectedProdrome = new Set();
 
         // Map stored keys -> display labels for a controlled option list
         function optionLabels(keys, keySet, labelMap) {
@@ -3772,6 +3809,8 @@
         }
         const symptomLabels = (keys) => optionLabels(keys, SYMPTOM_KEYS, SYMPTOM_LABELS);
         const triggerLabels = (keys) => optionLabels(keys, TRIGGER_KEYS, TRIGGER_LABELS);
+        const prodromeLabels = (keys) => optionLabels(keys, PRODROME_KEYS, PRODROME_LABELS);
+        const postdromeLabels = (keys) => optionLabels(keys, POSTDROME_KEYS, POSTDROME_LABELS);
 
         // Render a chip multi-select. Chips carry data-chip-key; toggling is
         // handled by one delegated listener (bindOptionChips). No inline onclick
@@ -3810,6 +3849,10 @@
         const bindSymptomChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, SYMPTOM_OPTIONS, selectedSet, onToggle);
         const renderTriggerChips = (containerId, selectedSet) => renderOptionChips(containerId, TRIGGER_OPTIONS, selectedSet);
         const bindTriggerChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, TRIGGER_OPTIONS, selectedSet, onToggle);
+        const renderProdromeChips = (containerId, selectedSet) => renderOptionChips(containerId, PRODROME_OPTIONS, selectedSet);
+        const bindProdromeChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, PRODROME_OPTIONS, selectedSet, onToggle);
+        const renderPostdromeChips = (containerId, selectedSet) => renderOptionChips(containerId, POSTDROME_OPTIONS, selectedSet);
+        const bindPostdromeChips = (containerId, selectedSet, onToggle) => bindOptionChips(containerId, POSTDROME_OPTIONS, selectedSet, onToggle);
 
         // XSS Protection Helper
         // Sanitizes HTML to prevent XSS attacks when using innerHTML
@@ -4743,6 +4786,8 @@
             document.getElementById('update-pain-btn')?.addEventListener('click', updateActivePain);
             document.getElementById('end-episode-btn')?.addEventListener('click', endActiveMigraine);
             renderMedicationsList(); // Initialize empty medication list
+            renderProdromeChips('log-prodrome-chips', selectedProdrome);
+            bindProdromeChips('log-prodrome-chips', selectedProdrome);
             renderSymptomChips('log-symptom-chips', selectedSymptoms);
             bindSymptomChips('log-symptom-chips', selectedSymptoms);
             renderTriggerChips('log-trigger-chips', selectedTriggers);
@@ -4808,7 +4853,9 @@
                 weather: getCurrentWeatherForEntry(),
                 category: null,
                 symptoms: [],
-                triggers: []
+                triggers: [],
+                prodrome: [],
+                postdrome: []
             };
 
             activeMigraine = migraine;
@@ -4852,7 +4899,9 @@
                 weather: getCurrentWeatherForEntry(),
                 category: getPainCategory(selectedPain),
                 symptoms: Array.from(selectedSymptoms),
-                triggers: Array.from(selectedTriggers)
+                triggers: Array.from(selectedTriggers),
+                prodrome: Array.from(selectedProdrome),
+                postdrome: []
             };
 
             activeMigraine = migraine;
@@ -4884,6 +4933,8 @@
             document.getElementById('notes-input').value = '';
             currentEpisodeMedications = [];
             renderMedicationsList();
+            selectedProdrome.clear();
+            renderProdromeChips('log-prodrome-chips', selectedProdrome);
             selectedSymptoms.clear();
             renderSymptomChips('log-symptom-chips', selectedSymptoms);
             selectedTriggers.clear();
@@ -4964,6 +5015,11 @@
                     <p id="end-pain-error" style="display: none; color: var(--accent-red); font-size: 0.85rem; margin-top: 8px;">Please choose a pain level (0–10) before ending.</p>
                 </div>` : ''}
                 <div class="form-group" style="margin-top: 16px;">
+                    <label>After-effects (postdrome, optional)</label>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 2px 0 8px;">How you feel now that the headache has eased — the "migraine hangover".</p>
+                    <div id="end-postdrome-chips" class="chip-group"></div>
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
                     <label>Final Notes (optional)</label>
                     <textarea id="end-notes" placeholder="How did it resolve? What helped?" rows="3"></textarea>
                 </div>
@@ -4976,6 +5032,12 @@
 
             document.getElementById('modal-title').textContent = 'End Episode';
             modal.classList.add('active');
+
+            // Postdrome chips — a local set seeded from any existing value
+            const endPostdrome = new Set(Array.isArray(activeMigraine.postdrome)
+                ? activeMigraine.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
+            renderPostdromeChips('end-postdrome-chips', endPostdrome);
+            bindPostdromeChips('end-postdrome-chips', endPostdrome);
 
             if (needsPain) {
                 body.querySelectorAll('#end-pain-scale .pain-btn').forEach(btn => {
@@ -5004,6 +5066,7 @@
 
                 const endNotes = document.getElementById('end-notes').value.trim();
 
+                activeMigraine.postdrome = Array.from(endPostdrome);
                 activeMigraine.endTime = new Date().toISOString();
                 activeMigraine.status = 'completed';
                 activeMigraine.endNotes = endNotes;
