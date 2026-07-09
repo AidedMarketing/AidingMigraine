@@ -13,9 +13,9 @@ Enable users to export migraine data to CSV format and import data from other mi
 
 ### Column Structure
 ```csv
-Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms,Triggers
-2024-01-15,14:30,18:45,4.25,7,Moderate,Sumatriptan 100mg,Triggered by stress,Resolved with rest,completed,1013.2,Nausea; Light sensitivity,Stress; Poor sleep
-2024-01-20,09:00,,,8,Severe,Ibuprofen 800mg,Aura present,Still ongoing,active,,Visual aura,Weather change
+Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,Resolution,Status,Pressure (hPa),Symptoms,Triggers,Prodrome,Postdrome
+2024-01-15,14:30,18:45,4.25,7,Moderate,Sumatriptan 100mg,Triggered by stress,Resolved with rest,completed,1013.2,Nausea; Light sensitivity,Stress; Poor sleep,Excessive yawning; Food cravings,Fatigue / drained; Brain fog
+2024-01-20,09:00,,,8,Severe,Ibuprofen 800mg,Aura present,Still ongoing,active,,Visual aura,Weather change,,
 ```
 
 ### Field Definitions
@@ -40,6 +40,12 @@ Date,Start Time,End Time,Duration (hours),Pain Level,Category,Medication,Notes,R
     unknown labels are ignored. Older CSVs without this column import fine.
 13. **Triggers** - Semicolon-separated trigger labels from the controlled list
     (e.g. `Stress; Poor sleep; Weather change`) or empty. Added in v4.3.0. Same
+    case-insensitive label→key matching and back-compat behavior as Symptoms.
+14. **Prodrome** - Semicolon-separated warning-sign labels from the controlled
+    list (e.g. `Excessive yawning; Food cravings`) or empty. Added in v4.8.0.
+    Same case-insensitive label→key matching and back-compat behavior as Symptoms.
+15. **Postdrome** - Semicolon-separated after-effect labels from the controlled
+    list (e.g. `Fatigue / drained; Brain fog`) or empty. Added in v4.8.0. Same
     case-insensitive label→key matching and back-compat behavior as Symptoms.
 
 ### Export Features
