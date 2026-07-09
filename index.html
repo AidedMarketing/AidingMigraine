@@ -3701,6 +3701,7 @@
         }
 
         function loadAssessments() {
+            if (encEnabled()) return; // vault already populated assessments
             const stored = localStorage.getItem('assessments');
             if (!stored) return;
             try {
@@ -3713,6 +3714,7 @@
         }
 
         function saveAssessments() {
+            if (encEnabled()) { persistVault(); return; }
             localStorage.setItem('assessments', JSON.stringify(assessments));
         }
 
@@ -3745,6 +3747,7 @@
         // ============================================
 
         function loadCycleData() {
+            if (encEnabled()) return; // vault already populated cycleData
             const stored = localStorage.getItem('cycleData');
             if (!stored) return;
             try {
@@ -3765,6 +3768,7 @@
         }
 
         function saveCycleData() {
+            if (encEnabled()) { persistVault(); return; }
             localStorage.setItem('cycleData', JSON.stringify(cycleData));
         }
 
@@ -4756,8 +4760,90 @@
             }
         }
 
+        // Serialize writes so overlapping saves can't interleave (each write
+        // re-encrypts the whole vault; a queue makes last-call-wins deterministic).
+        let vaultWriteChain = Promise.resolve();
+
+        // Encrypt the in-memory sensitive state and write it as one blob to the
+        // IndexedDB settings store + a localStorage mirror. No-op if locked.
+        function persistVault() {
+            if (!encEnabled() || !encMasterKey) return Promise.resolve(false);
+            vaultWriteChain = vaultWriteChain.then(async () => {
+                const vault = {
+                    migraines,
+                    activeMigraine,
+                    cycleData,
+                    assessments,
+                    userMedications
+                };
+                const blob = await encryptWithKey(vault, encMasterKey);
+                const json = JSON.stringify(blob);
+                if (useIndexedDB && db) {
+                    try { await IDB.put(DB_STORES.SETTINGS, { key: 'encVault', value: blob }); }
+                    catch (e) { console.error('[ERROR] vault IDB write failed:', e); }
+                }
+                localStorage.setItem('encVault', json);
+                return true;
+            }).catch(e => { console.error('[ERROR] persistVault failed:', e); return false; });
+            return vaultWriteChain;
+        }
+
+        // Decrypt the vault into the in-memory state. Requires the master key.
+        async function loadVault() {
+            if (!encEnabled() || !encMasterKey) return false;
+            let blob = null;
+            if (useIndexedDB && db) {
+                try {
+                    const rec = await IDB.get(DB_STORES.SETTINGS, 'encVault');
+                    if (rec && rec.value) blob = rec.value;
+                } catch (e) { console.error('[ERROR] vault IDB read failed:', e); }
+            }
+            if (!blob) {
+                const raw = localStorage.getItem('encVault');
+                if (raw) { try { blob = JSON.parse(raw); } catch (e) {} }
+            }
+            if (!blob) return false; // nothing stored yet (just enabled)
+            const vault = await decryptWithKey(blob, encMasterKey);
+            migraines = Array.isArray(vault.migraines) ? vault.migraines : [];
+            activeMigraine = vault.activeMigraine || null;
+            if (vault.cycleData && typeof vault.cycleData === 'object') cycleData = vault.cycleData;
+            assessments = Array.isArray(vault.assessments) ? vault.assessments : [];
+            userMedications = Array.isArray(vault.userMedications) ? vault.userMedications : [];
+            return true;
+        }
+
+        // Remove all plaintext copies of the sensitive stores (called when
+        // encryption is turned on, so the vault becomes the sole source).
+        async function wipePlaintextStores() {
+            ['migraines', 'activeMigraine', 'cycleData', 'assessments', 'userMedications'].forEach(k => localStorage.removeItem(k));
+            if (useIndexedDB && db) {
+                try {
+                    const keys = await IDB.getAllKeys(DB_STORES.MIGRAINES);
+                    for (const key of keys) await IDB.delete(DB_STORES.MIGRAINES, key);
+                    await IDB.delete(DB_STORES.SETTINGS, 'activeMigraine');
+                } catch (e) { console.error('[ERROR] wipePlaintextStores failed:', e); }
+            }
+        }
+
+        // Remove the encrypted vault (called when encryption is turned off,
+        // after the plaintext has been written back).
+        async function removeVault() {
+            localStorage.removeItem('encVault');
+            if (useIndexedDB && db) {
+                try { await IDB.delete(DB_STORES.SETTINGS, 'encVault'); } catch (e) {}
+            }
+        }
+
         async function loadData() {
             let dataLoaded = false;
+
+            // Encrypted mode: the sole source of truth is the vault, which is
+            // decrypted after unlock. If still locked, load nothing (the startup
+            // gate ensures unlock happens first); plaintext stores are wiped.
+            if (encEnabled()) {
+                if (encUnlocked) await loadVault();
+                return;
+            }
 
             // Try IndexedDB first
             if (useIndexedDB && db) {
@@ -4814,6 +4900,13 @@
         }
 
         async function saveData() {
+            // Encrypted mode: write the whole vault as one ciphertext blob and
+            // skip the plaintext IndexedDB/localStorage writes entirely.
+            if (encEnabled()) {
+                await persistVault();
+                return;
+            }
+
             // Save to IndexedDB if available
             if (useIndexedDB && db) {
                 try {
@@ -4863,10 +4956,13 @@
         // ============================================
 
         function initializeMedicationLibrary() {
-            // Load user-added medications
-            const stored = localStorage.getItem('userMedications');
-            if (stored) {
-                userMedications = JSON.parse(stored);
+            // Load user-added medications (skipped when encrypted — the vault
+            // already populated userMedications on unlock)
+            if (!encEnabled()) {
+                const stored = localStorage.getItem('userMedications');
+                if (stored) {
+                    userMedications = JSON.parse(stored);
+                }
             }
 
             // Pre-populated medication library (common migraine medications)
@@ -4927,6 +5023,7 @@
         }
 
         function saveMedicationLibrary() {
+            if (encEnabled()) { persistVault(); return; }
             localStorage.setItem('userMedications', JSON.stringify(userMedications));
         }
 
