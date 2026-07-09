@@ -5,6 +5,16 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.10.0] - 2026-07-09
+
+### Added — Menstrual / Hormonal Cycle Tracking (P2)
+
+- **Optional menstrual cycle tracking** (off by default, opt-in from Settings). When enabled, a **Cycle card on the Care page** lets you log period start dates and shows your current cycle day and an estimated next-period date derived from your average cycle length.
+- **Menstrual-migraine pattern**: the app compares how often your migraines fall in the perimenstrual window (ICHD-3 day −2 to +3 around your period) against what you'd expect by chance, and gives an honest verdict — menstrually-related, some association, or no strong link — mirroring the trigger × weather analysis.
+- A subtle **"Cycle day N · next period in ~M days"** line appears on the Today screen when tracking is enabled.
+- The menstrual-migraine summary is included in the **PDF doctor report**, and your cycle data rides along in JSON backups.
+- **Privacy**: period dates are stored **on your device only and are never sent anywhere** — the pattern is computed locally. Nothing changes on the log form, and the whole feature stays hidden unless you opt in.
+
 ## [4.9.0] - 2026-07-09
 
 ### Added — Head-Pain Location Map & Pain Quality (P2)
