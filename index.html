@@ -902,6 +902,7 @@
         .nav-btn,
         .segment-btn,
         .btn-inline,
+        .calendar-day,
         .chip {
             font-family: inherit;
             cursor: pointer;
@@ -941,6 +942,7 @@
         .segment-btn:active,
         .btn-inline:active,
         .chip:active,
+        .calendar-day:active,
         .nav-btn:active {
             transform: scale(0.97);
         }
@@ -1386,12 +1388,17 @@
 
         .calendar-day {
             aspect-ratio: 1;
+            /* 44px floor: with aspect-ratio alone these fell to ~36px on a
+               360px viewport, below a comfortable tap target. */
+            min-height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: var(--bg-tertiary);
+            color: var(--text-primary);
             border-radius: var(--radius-md);
             font-size: var(--text-md);
+            font-family: inherit;
             cursor: pointer;
             transition: var(--transition);
             border: 2px solid transparent;
@@ -7761,12 +7768,14 @@
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const today = new Date();
 
+            // The column headers and the leading blanks are presentational: each
+            // day button already announces its own weekday and date.
             let html = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d =>
-                `<div class="calendar-day empty" style="font-weight: 600;">${d}</div>`
+                `<div class="calendar-day empty" style="font-weight: 600;" aria-hidden="true">${d}</div>`
             ).join('');
 
             for (let i = 0; i < firstDay; i++) {
-                html += '<div class="calendar-day empty"></div>';
+                html += '<div class="calendar-day empty" aria-hidden="true"></div>';
             }
 
             const activeMigraines = getActiveMigraines();
@@ -7857,7 +7866,7 @@
                                 // Show rapid change indicator if available
                                 // Updated threshold: 5+ hPa in 6h (research-validated)
                                 if (weatherEntry.maxChange3h && weatherEntry.maxChange3h >= 5) {
-                                    icon = 'Active';
+                                    icon = '!';
                                     color = 'var(--accent-red)';
                                 } else if (change > 5) {
                                     icon = '↑';
@@ -7873,12 +7882,34 @@
                     }
                 }
 
-                html += `<div class="${classes}" onclick="showDayDetails('${dateStr}')">
-                    ${day}${pressureIndicator}
-                </div>`;
+                // A real button, so it is reachable and operable by keyboard and
+                // announces what it will show rather than just a number.
+                const dayLabel = date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+                const epCount = dayMigraines.length;
+                const contCount = continuationMigraines.length;
+                let stateText = 'no episodes logged';
+                if (epCount > 0) {
+                    stateText = `${epCount} episode${epCount === 1 ? '' : 's'} started`;
+                } else if (contCount > 0) {
+                    stateText = 'ongoing episode';
+                }
+                const ariaLabel = `${dayLabel} — ${stateText}`;
+
+                html += `<button type="button" class="${classes}" data-day="${dateStr}" aria-label="${safeText(ariaLabel)}">
+                    <span aria-hidden="true">${day}</span>${pressureIndicator}
+                </button>`;
             }
 
             calendarGridElem.innerHTML = html;
+
+            // One delegated listener rather than an inline onclick per cell.
+            if (!calendarGridElem.dataset.delegated) {
+                calendarGridElem.dataset.delegated = 'true';
+                calendarGridElem.addEventListener('click', (e) => {
+                    const cell = e.target.closest('[data-day]');
+                    if (cell) showDayDetails(cell.dataset.day);
+                });
+            }
         }
 
         function showDayDetails(dateStr) {
