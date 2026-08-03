@@ -192,6 +192,7 @@
         .container {
             max-width: 680px;
             margin: 0 auto;
+            transition: margin-top 0.3s ease;
             padding: calc(18px + env(safe-area-inset-top)) 18px 24px;
         }
 
@@ -595,14 +596,14 @@
             text-align: center;
         }
 
-        .stat-label {
+        .stat-item .stat-label {
             display: block;
             font-size: 0.85rem;
             color: var(--text-secondary);
             margin-bottom: 4px;
         }
 
-        .stat-value {
+        .stat-item .stat-value {
             display: block;
             font-size: 1.5rem;
             font-weight: 600;
@@ -976,7 +977,8 @@
             justify-content: center;
         }
 
-        .stat-number {
+        .stat-box .stat-number,
+        .mobile-insight .stat-number {
             width: 100%;
             min-height: 2.25rem;
             display: flex;
@@ -990,7 +992,8 @@
             overflow-wrap: anywhere;
         }
 
-        .stat-label {
+        .stat-box .stat-label,
+        .mobile-insight .stat-label {
             font-size: 0.9rem;
             color: var(--text-secondary);
             line-height: 1.2;
@@ -1126,7 +1129,7 @@
             margin-bottom: 0;
         }
 
-        .stat-number {
+        .monthly-stats-compact .stat-number {
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--text-primary);
@@ -1180,14 +1183,14 @@
             border: 1px solid var(--border-color);
         }
 
-        .stat-value {
+        .stat-card .stat-value {
             font-size: 2.5rem;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 4px;
         }
 
-        .stat-label {
+        .stat-card .stat-label {
             font-size: 0.9rem;
             color: var(--text-secondary);
             margin-bottom: 8px;
@@ -1503,11 +1506,6 @@
         .theme-btn.active {
             border-color: var(--accent-green);
             border-width: 3px;
-            background: var(--bg-secondary);
-        }
-
-        .theme-btn.active {
-            border-color: var(--accent-green);
             background: var(--bg-secondary);
         }
 
@@ -1901,10 +1899,6 @@
         }
 
         /* Push content down when banner is visible */
-        .container {
-            transition: margin-top 0.3s ease;
-        }
-
         .container.with-update-banner {
             margin-top: 60px;
         }
@@ -1962,10 +1956,10 @@
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             z-index: 9997;
-            animation: slideUp 0.4s ease-out;
+            animation: slide-up-sheet 0.4s ease-out;
         }
 
-        @keyframes slideUp {
+        @keyframes slide-up-sheet {
             from {
                 transform: translateY(100%);
                 opacity: 0;
@@ -2184,7 +2178,7 @@
             font-size: 24px;
             font-weight: 700;
             color: var(--bg-primary);
-            animation: pulse 2s ease-in-out infinite;
+            animation: pulse-scale 2s ease-in-out infinite;
         }
 
         .loading-title {
@@ -2238,7 +2232,7 @@
             to { transform: rotate(360deg); }
         }
 
-        @keyframes pulse {
+        @keyframes pulse-scale {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.05); opacity: 0.8; }
         }
