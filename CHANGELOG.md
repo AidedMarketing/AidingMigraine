@@ -5,6 +5,21 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.5.0] - 2026-08-03
+
+### Changed — UI/UX Review, Part 4: Accessibility
+
+Making the app usable without a mouse, and replacing the interruptions that blocked you mid-task.
+
+- **The calendar can be used with a keyboard.** It's the main way to browse your history and it was built from plain elements that couldn't be reached by keyboard at all. Each day is now a proper button, and instead of announcing just a number it says what it will show — "Saturday, August 1 — 1 episode started".
+- **Dialogs behave like dialogs.** Opening one now moves focus into it, keyboard navigation stays inside it rather than wandering into the page behind, **Escape closes it** (nothing in the app closed on Escape before), and closing returns you to whatever you were on. The close button had no accessible name at all.
+- **No more system pop-ups.** Seventeen native browser dialogs — concentrated in the notification settings and trash — interrupted you and, on an installed app, appeared as system sheets you had to dismiss before doing anything else. These are now unobtrusive in-app messages, announced to screen readers, with confirmations using the app's own dialog. Error messages stay until dismissed; confirmations clear themselves.
+- **Messages that were silent are now announced.** A wrong passphrase, a failed weather update and going offline all changed the screen without telling a screen reader anything.
+- **Everything is comfortably tappable.** Chips, the dialog close button, the update dismiss button, the Settings toggles and calendar days were all below a comfortable touch target — some as small as 24px. All are now at least 44px, with the toggles still *looking* the same size.
+- **Added a skip link and a main landmark**, and the navigation now announces which tab you're on rather than showing it in colour alone.
+- Replaced developer-facing error text that had shipped to users, including messages asking them to "check the console" or read a setup file from the source repository.
+- Fixed one more leftover from the old icon cleanup: the calendar's pressure indicator was rendering the literal word "Active" inside a day cell.
+
 ## [5.4.0] - 2026-08-03
 
 ### Changed — UI/UX Review, Part 3: How the App Responds

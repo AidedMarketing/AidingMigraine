@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v5.4.0 - PRODUCTION
+           AIDING MIGRAINE v5.5.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -623,7 +623,11 @@
         }
 
         .chip {
-            padding: 8px 14px;
+            /* inline-flex + a 44px floor so a chip is a comfortable tap target */
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            padding: var(--space-2) var(--space-4);
             background: var(--bg-secondary);
             color: var(--text-primary);
             border: 2px solid var(--border-color);
@@ -902,6 +906,7 @@
         .nav-btn,
         .segment-btn,
         .btn-inline,
+        .calendar-day,
         .chip {
             font-family: inherit;
             cursor: pointer;
@@ -941,6 +946,7 @@
         .segment-btn:active,
         .btn-inline:active,
         .chip:active,
+        .calendar-day:active,
         .nav-btn:active {
             transform: scale(0.97);
         }
@@ -1386,12 +1392,17 @@
 
         .calendar-day {
             aspect-ratio: 1;
+            /* 44px floor: with aspect-ratio alone these fell to ~36px on a
+               360px viewport, below a comfortable tap target. */
+            min-height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: var(--bg-tertiary);
+            color: var(--text-primary);
             border-radius: var(--radius-md);
             font-size: var(--text-md);
+            font-family: inherit;
             cursor: pointer;
             transition: var(--transition);
             border: 2px solid transparent;
@@ -1666,9 +1677,11 @@
         /* === TOGGLE SWITCH === */
         .toggle-switch {
             position: relative;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             width: 50px;
-            height: 26px;
+            /* The switch reads as 26px but takes a full 44px of hit area. */
+            height: 44px;
         }
 
         .toggle-switch input {
@@ -1677,15 +1690,18 @@
             height: 0;
         }
 
+        /* Drawn at 26px and centred within the 44px hit area, so the switch
+           looks unchanged while being comfortably tappable. */
         .toggle-slider {
             position: absolute;
             cursor: pointer;
-            top: 0;
+            top: 50%;
+            transform: translateY(-50%);
             left: 0;
             right: 0;
-            bottom: 0;
+            height: 26px;
             background-color: var(--border-color);
-            transition: 0.3s;
+            transition: background-color 0.3s;
             border-radius: var(--radius-pill);
         }
 
@@ -1832,11 +1848,12 @@
         .modal-close {
             background: none;
             border: none;
+            flex-shrink: 0;
             font-size: var(--text-2xl);
             color: var(--text-secondary);
             padding: 0;
-            width: 32px;
-            height: 32px;
+            width: 44px;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2015,6 +2032,8 @@
         }
 
         .dismiss-update-btn {
+            min-width: 44px;
+            min-height: 44px;
             background: transparent;
             border: none;
             color: var(--bg-primary);
@@ -2252,6 +2271,92 @@
            ============================================ */
 
         /* Respect user's motion preferences - critical for migraine sufferers */
+        .skip-link {
+            position: absolute;
+            left: var(--space-2);
+            top: -100px;
+            z-index: var(--z-loading);
+            padding: var(--space-3) var(--space-4);
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            text-decoration: none;
+            transition: top 0.15s ease;
+        }
+
+        .skip-link:focus {
+            top: var(--space-2);
+        }
+
+        /* === TOASTS ===
+           Brief confirmations that don't interrupt. Replaces the native
+           alert() dialogs, which on an installed PWA render as system sheets
+           the user must dismiss before they can carry on. */
+        .toast-region {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: calc(96px + env(safe-area-inset-bottom));
+            width: min(92vw, 420px);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+            z-index: var(--z-indicator);
+            pointer-events: none;
+        }
+
+        .toast {
+            pointer-events: auto;
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--card-border);
+            border-left: 4px solid var(--accent-green);
+            box-shadow: var(--card-shadow);
+            font-size: var(--text-md);
+            line-height: 1.4;
+            animation: slideUp 0.25s ease;
+        }
+
+        .toast.error {
+            border-left-color: var(--pain-severe);
+        }
+
+        .toast.warning {
+            border-left-color: var(--pain-moderate);
+        }
+
+        .toast-text {
+            flex: 1;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .toast-dismiss {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 900px) {
+            .toast-region {
+                bottom: auto;
+                top: 88px;
+            }
+        }
+
         /* === WIDE SCREENS ===
            The app is deliberately a single centred column, but a bar pinned to
            the bottom of a 1440px window reads as a phone UI someone forgot to
@@ -2476,7 +2581,7 @@
     </div>
 
     <!-- Offline/Online Status Banner -->
-    <div id="status-banner" class="status-banner" style="display: none;"></div>
+    <div id="status-banner" class="status-banner" role="status" aria-live="polite" style="display: none;"></div>
 
     <!-- Install Prompt -->
     <div id="install-prompt" class="install-prompt" style="display: none;">
@@ -2509,7 +2614,7 @@
     </div>
 
     <!-- Lock Screen -->
-    <div id="lock-screen" class="lock-screen" style="display: none;">
+    <div id="lock-screen" class="lock-screen" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="lock-screen-title">
         <svg class="lock-screen-icon" viewBox="0 0 24 24" aria-hidden="true">
             <rect x="3" y="11" width="18" height="11" rx="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -2517,11 +2622,13 @@
         <div class="lock-screen-title" id="lock-screen-title">App Locked</div>
         <div class="lock-screen-subtitle" id="lock-screen-subtitle">Unlock to access your migraine data</div>
         <input type="password" id="unlock-passphrase" placeholder="Passphrase" autocomplete="current-password" style="display: none; width: min(320px, 80vw); padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem; text-align: center;">
-        <p id="unlock-error" style="display: none; color: var(--accent-red); font-size: 0.85rem; margin-bottom: 12px;"></p>
+        <p id="unlock-error" role="alert" style="display: none; color: var(--accent-red); font-size: 0.85rem; margin-bottom: 12px;"></p>
         <button id="unlock-btn" class="unlock-btn">Unlock</button>
     </div>
 
-    <div class="container">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <main class="container" id="main-content" tabindex="-1">
         <div id="log-page" class="page active">
             <header class="app-topbar">
                 <div class="brand-lockup">
@@ -3520,7 +3627,7 @@
                                 Save
                             </button>
                         </div>
-                        <div id="weather-location-status" style="margin-top: 6px; font-size: 0.85rem;"></div>
+                        <div id="weather-location-status" role="status" aria-live="polite" style="margin-top: 6px; font-size: 0.85rem;"></div>
                     </div>
 
                     <!-- Current Conditions Display -->
@@ -3821,7 +3928,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.4.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.5.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3859,7 +3966,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v5.4.0 Production</strong>
+                            <strong>v5.5.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3868,9 +3975,12 @@
                     <button class="btn btn-primary" onclick="copyDebugInfo()">Copy Debug Info</button>
                 </div>
             </div>
-        </div>
+        </main>
 
-        <nav class="bottom-nav">
+        <!-- Announcements. polite so they never interrupt what is being read. -->
+        <div id="toast-region" class="toast-region" role="status" aria-live="polite" aria-atomic="false"></div>
+
+        <nav class="bottom-nav" aria-label="Main">
             <button class="nav-btn active" data-page="log">
                 <svg class="nav-icon icon" viewBox="0 0 24 24">
                     <path d="M3 12h5l2-7 4 14 2-7h5"></path>
@@ -3910,11 +4020,16 @@
         </nav>
     </div>
 
-    <div id="modal" class="modal">
+    <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modal-title"></h2>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" aria-label="Close dialog">
+                    <svg class="icon icon-md" viewBox="0 0 24 24" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
             <div class="modal-body" id="modal-body"></div>
             <div class="modal-actions" id="modal-actions"></div>
@@ -3922,7 +4037,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '5.4.0';
+        const APP_VERSION = '5.5.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -5496,7 +5611,7 @@
             `;
 
             document.getElementById('modal-title').textContent = 'Add Medication';
-            modal.classList.add('active');
+            openDialog(modal);
 
             // Search functionality
             const searchInput = document.getElementById('med-search');
@@ -5824,7 +5939,7 @@
             }
 
             // Start rating the first medication
-            modal.classList.add('active');
+            openDialog(modal);
             showMedicationRating(0);
 
             return true; // Indicates effectiveness modal was shown
@@ -6209,7 +6324,7 @@
             `;
             
             document.getElementById('modal-title').textContent = 'Update Pain Level';
-            modal.classList.add('active');
+            openDialog(modal);
             
             body.querySelectorAll('.pain-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -6276,7 +6391,7 @@
             `;
 
             document.getElementById('modal-title').textContent = 'End Episode';
-            modal.classList.add('active');
+            openDialog(modal);
 
             // Postdrome chips — a local set seeded from any existing value
             const endPostdrome = new Set(Array.isArray(activeMigraine.postdrome)
@@ -6574,7 +6689,7 @@
             `;
 
             document.getElementById('modal-title').textContent = 'Edit Migraine Episode';
-            modal.classList.add('active');
+            openDialog(modal);
 
             // Symptom + trigger chips (fresh modal body each open, so bind fresh)
             tempEditSymptoms = new Set(Array.isArray(attack.symptoms)
@@ -7215,7 +7330,7 @@
             `;
 
             document.getElementById('modal-title').textContent = 'Edit Episode';
-            modal.classList.add('active');
+            openDialog(modal);
 
             // Render head map, chips, and relief methods list
             renderHeadMap('edit-head-map', tempEditPainLocations);
@@ -7343,7 +7458,7 @@
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="confirmDelete(${id})">Move to Trash</button>
             `;
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         function confirmDelete(id) {
@@ -7401,18 +7516,17 @@
             const deletedCount = migraines.filter(m => m.deleted).length;
 
             if (deletedCount === 0) {
-                alert('Success: No deleted episodes found. All episodes are already active!');
+                showToast('No deleted episodes found — everything is already active.');
                 return;
             }
 
-            const confirmed = confirm(
-                `Found ${deletedCount} deleted episode(s).\n\n` +
-                `This will restore ALL deleted episodes, including those older than 30 days.\n\n` +
-                `Do you want to continue?`
+            const confirmed = await confirmAction(
+                'Restore deleted episodes',
+                `Found ${deletedCount} deleted episode${deletedCount === 1 ? '' : 's'}. This restores all of them, including any older than 30 days.`,
+                { confirmText: 'Restore all' }
             );
 
             if (!confirmed) {
-                console.log('[ERROR] Emergency restore cancelled by user');
                 return;
             }
 
@@ -7444,7 +7558,7 @@
                 initStatus: ` Restored ${restoredCount} episodes!`
             });
 
-            alert(`Success!\n\nRestored ${restoredCount} episode(s).\n\nYour data should now be visible on the dashboard and in History.`);
+            showToast(`Restored ${restoredCount} episode${restoredCount === 1 ? '' : 's'}. They're back in your history.`);
 
             // Optionally navigate to History page to show restored data
             if (restoredCount > 0) {
@@ -7523,7 +7637,7 @@
             document.getElementById('modal-title').textContent = `Trash (${deletedMigraines.length})`;
             body.innerHTML = content;
             actions.innerHTML = '<button class="btn btn-secondary" onclick="closeModal()">Close</button>';
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         function restoreEpisode(id) {
@@ -7756,12 +7870,14 @@
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const today = new Date();
 
+            // The column headers and the leading blanks are presentational: each
+            // day button already announces its own weekday and date.
             let html = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d =>
-                `<div class="calendar-day empty" style="font-weight: 600;">${d}</div>`
+                `<div class="calendar-day empty" style="font-weight: 600;" aria-hidden="true">${d}</div>`
             ).join('');
 
             for (let i = 0; i < firstDay; i++) {
-                html += '<div class="calendar-day empty"></div>';
+                html += '<div class="calendar-day empty" aria-hidden="true"></div>';
             }
 
             const activeMigraines = getActiveMigraines();
@@ -7852,7 +7968,7 @@
                                 // Show rapid change indicator if available
                                 // Updated threshold: 5+ hPa in 6h (research-validated)
                                 if (weatherEntry.maxChange3h && weatherEntry.maxChange3h >= 5) {
-                                    icon = 'Active';
+                                    icon = '!';
                                     color = 'var(--accent-red)';
                                 } else if (change > 5) {
                                     icon = '↑';
@@ -7868,12 +7984,34 @@
                     }
                 }
 
-                html += `<div class="${classes}" onclick="showDayDetails('${dateStr}')">
-                    ${day}${pressureIndicator}
-                </div>`;
+                // A real button, so it is reachable and operable by keyboard and
+                // announces what it will show rather than just a number.
+                const dayLabel = date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+                const epCount = dayMigraines.length;
+                const contCount = continuationMigraines.length;
+                let stateText = 'no episodes logged';
+                if (epCount > 0) {
+                    stateText = `${epCount} episode${epCount === 1 ? '' : 's'} started`;
+                } else if (contCount > 0) {
+                    stateText = 'ongoing episode';
+                }
+                const ariaLabel = `${dayLabel} — ${stateText}`;
+
+                html += `<button type="button" class="${classes}" data-day="${dateStr}" aria-label="${safeText(ariaLabel)}">
+                    <span aria-hidden="true">${day}</span>${pressureIndicator}
+                </button>`;
             }
 
             calendarGridElem.innerHTML = html;
+
+            // One delegated listener rather than an inline onclick per cell.
+            if (!calendarGridElem.dataset.delegated) {
+                calendarGridElem.dataset.delegated = 'true';
+                calendarGridElem.addEventListener('click', (e) => {
+                    const cell = e.target.closest('[data-day]');
+                    if (cell) showDayDetails(cell.dataset.day);
+                });
+            }
         }
 
         function showDayDetails(dateStr) {
@@ -8122,7 +8260,7 @@
             const modal = document.getElementById('debug-modal');
             if (!modal) {
                 console.error('[ERROR] Debug modal element not found!');
-                alert('Debug modal element not found. Please check the console.');
+                showToast('Debug information is unavailable right now.', { type: 'error' });
                 return;
             }
 
@@ -8156,10 +8294,10 @@
                 document.getElementById('debug-localstorage').textContent = localStorageStatus;
 
                 modal.style.display = 'flex';
-                console.log('[SUCCESS] Debug modal displayed successfully');
+                openDialog(modal, { activate: false });
             } catch (error) {
                 console.error('[ERROR] Error showing debug modal:', error);
-                alert('Error showing debug modal: ' + error.message);
+                showToast('Debug information could not be shown.', { type: 'error' });
             }
         }
 
@@ -8167,6 +8305,7 @@
             const modal = document.getElementById('debug-modal');
             if (modal) {
                 modal.style.display = 'none';
+                closeDialog(modal, { deactivate: false });
             }
         }
 
@@ -8174,7 +8313,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v5.4.0 - Debug Information
+            const debugInfo = `Aiding Migraine v5.5.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -8188,10 +8327,10 @@ Browser: ${navigator.userAgent}
 `;
 
             navigator.clipboard.writeText(debugInfo).then(() => {
-                alert('Success: Debug information copied to clipboard!');
+                showToast('Debug information copied to the clipboard.');
             }).catch((err) => {
                 console.error('Failed to copy:', err);
-                alert('Failed to copy. Please check console.');
+                showToast('Could not copy to the clipboard.', { type: 'error' });
             });
         }
 
@@ -8711,7 +8850,7 @@ Browser: ${navigator.userAgent}
             }
 
             document.getElementById('modal-title').textContent = 'Import Review';
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         function reviewConflicts(analysis) {
@@ -9222,7 +9361,7 @@ Browser: ${navigator.userAgent}
             `;
 
             document.getElementById('modal-title').textContent = 'Import Preview';
-            modal.classList.add('active');
+            openDialog(modal);
 
             document.getElementById('confirm-csv-import').addEventListener('click', () => {
                 importCSVEntries(toImport);
@@ -9273,7 +9412,7 @@ Browser: ${navigator.userAgent}
             `;
 
             document.getElementById('modal-title').textContent = 'Export PDF Report';
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         function showCustomDateRange() {
@@ -9927,7 +10066,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v5.4.0</strong></p>
+                <p><strong>Aiding Migraine v5.5.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -9994,7 +10133,7 @@ Browser: ${navigator.userAgent}
                 <button class="btn btn-secondary" onclick="exportJSON(); closeModal();">Export First</button>
                 <button class="btn btn-danger" onclick="confirmClearAll()">Delete All</button>
             `;
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         async function confirmClearAll() {
@@ -10064,12 +10203,149 @@ Browser: ${navigator.userAgent}
                 actionsEl.appendChild(btn);
             }
 
-            document.getElementById('modal').classList.add('active');
+            openDialog(document.getElementById('modal'));
         }
 
         function closeModal() {
-            document.getElementById('modal').classList.remove('active');
+            closeDialog(document.getElementById('modal'));
         }
+
+        // === TOASTS + IN-APP CONFIRM ===
+        // The app previously reported success and failure through native
+        // alert()/confirm(), which block the page and, in an installed PWA,
+        // appear as system sheets. These are announced through a polite live
+        // region instead, so screen-reader users hear them without the app
+        // stealing focus.
+        function showToast(message, { type = 'success', duration = 4000 } = {}) {
+            const region = document.getElementById('toast-region');
+            if (!region) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type === 'success' ? '' : type}`.trim();
+
+            const text = document.createElement('div');
+            text.className = 'toast-text';
+            text.textContent = message;
+            toast.appendChild(text);
+
+            const dismiss = document.createElement('button');
+            dismiss.className = 'toast-dismiss';
+            dismiss.setAttribute('aria-label', 'Dismiss message');
+            dismiss.innerHTML = safeHTML('<svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">' +
+                '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>');
+            const remove = () => { if (toast.parentNode) toast.remove(); };
+            dismiss.addEventListener('click', remove);
+            toast.appendChild(dismiss);
+
+            region.appendChild(toast);
+            // Errors stay until dismissed; confirmations clear themselves.
+            if (type !== 'error' && duration > 0) setTimeout(remove, duration);
+            return toast;
+        }
+
+        // Promise-based replacement for confirm(), using the app's own dialog
+        // so it inherits the focus trap and Escape handling.
+        function confirmAction(title, message, { confirmText = 'Confirm', danger = false } = {}) {
+            return new Promise(resolve => {
+                let settled = false;
+                const finish = (value) => {
+                    if (settled) return;
+                    settled = true;
+                    closeModal();
+                    resolve(value);
+                };
+                showModal(title, `<p>${safeText(message)}</p>`, [
+                    { text: 'Cancel', class: 'btn-secondary', action: () => finish(false) },
+                    { text: confirmText, class: danger ? 'btn-danger' : 'btn-primary', action: () => finish(true) }
+                ]);
+                // Escape and the backdrop resolve as a cancel rather than
+                // leaving the caller waiting forever.
+                const modal = document.getElementById('modal');
+                const observer = new MutationObserver(() => {
+                    if (!modal.classList.contains('active')) {
+                        observer.disconnect();
+                        if (!settled) { settled = true; resolve(false); }
+                    }
+                });
+                observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+            });
+        }
+
+        // === DIALOG FOCUS MANAGEMENT ===
+        // Shared by the main modal, the debug modal and the lock screen. Before
+        // this, opening a dialog left focus behind it, Tab walked straight into
+        // the page underneath, and no dialog anywhere in the app closed on
+        // Escape.
+        const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), ' +
+                          'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        let openDialogs = [];
+
+        function focusablesIn(dialog) {
+            return [...dialog.querySelectorAll(FOCUSABLE)]
+                .filter(el => el.offsetParent !== null || getComputedStyle(el).position === 'fixed');
+        }
+
+        function openDialog(dialog, { activate = true } = {}) {
+            if (!dialog) return;
+            if (!openDialogs.some(d => d.dialog === dialog)) {
+                openDialogs.push({ dialog, returnFocus: document.activeElement });
+            }
+            if (activate) dialog.classList.add('active');
+            // Move focus in so the dialog is where the keyboard actually is.
+            const targets = focusablesIn(dialog);
+            const first = targets.find(el => !el.classList.contains('modal-close')) || targets[0];
+            if (first) {
+                first.focus();
+            } else {
+                dialog.setAttribute('tabindex', '-1');
+                dialog.focus();
+            }
+        }
+
+        function closeDialog(dialog, { deactivate = true } = {}) {
+            if (!dialog) return;
+            if (deactivate) dialog.classList.remove('active');
+            const idx = openDialogs.findIndex(d => d.dialog === dialog);
+            if (idx === -1) return;
+            const { returnFocus } = openDialogs[idx];
+            openDialogs.splice(idx, 1);
+            // Send focus back where it came from, so a keyboard user resumes
+            // from the control they activated rather than the top of the page.
+            if (returnFocus && document.contains(returnFocus) && returnFocus.focus) {
+                returnFocus.focus();
+            }
+        }
+
+        function topDialog() {
+            return openDialogs.length ? openDialogs[openDialogs.length - 1].dialog : null;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const dialog = topDialog();
+            if (!dialog) return;
+
+            if (e.key === 'Escape') {
+                // The lock screen is a gate, not a dismissible dialog.
+                if (dialog.id === 'lock-screen') return;
+                e.preventDefault();
+                if (dialog.id === 'debug-modal') { closeDebugModal(); return; }
+                closeModal();
+                return;
+            }
+
+            if (e.key !== 'Tab') return;
+            const targets = focusablesIn(dialog);
+            if (!targets.length) return;
+            const first = targets[0], last = targets[targets.length - 1];
+            // Keep Tab inside the dialog instead of letting it walk the page behind.
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        });
 
         // Delegated handler for interactive elements inside sanitized modal
         // bodies (e.g. calendar day-details Edit buttons)
@@ -10118,7 +10394,7 @@ Browser: ${navigator.userAgent}
             `;
 
             document.getElementById('modal-title').textContent = '';
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         function closeWelcome() {
@@ -10610,7 +10886,7 @@ Browser: ${navigator.userAgent}
                 const permission = await Notification.requestPermission();
 
                 if (permission !== 'granted') {
-                    alert('Notification permission denied. Please enable it in your browser settings.');
+                    showToast('Notifications are blocked. You can allow them in your browser settings for this site.', { type: 'warning', duration: 7000 });
                     updateNotificationUI();
                     return;
                 }
@@ -10626,7 +10902,7 @@ Browser: ${navigator.userAgent}
                     // Server not configured yet - use local notifications only
                     notificationPreferences.enabled = true;
                     localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
-                    alert('Success: Notifications enabled (local only)!\n\nTo enable server push notifications, configure VAPID keys.\nSee NOTIFICATIONS_SETUP.md for details.');
+                    showToast('Notifications are on for this device. Reminders will only arrive while the app is open.', { duration: 6000 });
                     updateNotificationUI();
                     return;
                 }
@@ -10679,12 +10955,12 @@ Browser: ${navigator.userAgent}
                 notificationPreferences.pushSubscription = subscription.toJSON();
                 localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
 
-                alert('Success: Notifications enabled! You will receive daily check-ins and post-attack follow-ups.');
+                showToast('Notifications are on. You will get daily check-ins and follow-ups after an attack.', { duration: 6000 });
                 updateNotificationUI();
 
             } catch (error) {
                 console.error('Error enabling notifications:', error);
-                alert('Failed to enable notifications. ' + error.message);
+                showToast('Notifications could not be turned on. Please try again.', { type: 'error' });
             }
         }
 
@@ -10735,9 +11011,12 @@ Browser: ${navigator.userAgent}
         }
 
         async function disableNotifications() {
-            if (!confirm('Are you sure you want to disable all notifications?')) {
-                return;
-            }
+            const confirmed = await confirmAction(
+                'Turn off notifications',
+                'You will stop receiving daily check-ins and follow-ups after an attack.',
+                { confirmText: 'Turn off', danger: true }
+            );
+            if (!confirmed) return;
 
             try {
                 // Unsubscribe from push notifications if subscribed
@@ -10752,18 +11031,18 @@ Browser: ${navigator.userAgent}
                 notificationPreferences.pushSubscription = null;
                 localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
 
-                alert('Notifications disabled successfully.');
+                showToast('Notifications are off.');
                 updateNotificationUI();
 
             } catch (error) {
                 console.error('Error disabling notifications:', error);
-                alert('Failed to disable notifications. Please try again.');
+                showToast('Notifications could not be turned off. Please try again.', { type: 'error' });
             }
         }
 
         async function sendTestNotification() {
             if (Notification.permission !== 'granted') {
-                alert('Please enable notifications first.');
+                showToast('Turn notifications on first, then send a test.', { type: 'warning' });
                 return;
             }
 
@@ -10782,7 +11061,7 @@ Browser: ${navigator.userAgent}
 
             } catch (error) {
                 console.error('Error sending test notification:', error);
-                alert('Failed to send test notification.');
+                showToast('The test notification could not be sent.', { type: 'error' });
             }
         }
 
@@ -15248,7 +15527,9 @@ Browser: ${navigator.userAgent}
                 pendingUnlockResolve = resolve;
                 isAppLocked = true;
                 showLockForEncryption();
-                document.getElementById('lock-screen').style.display = 'flex';
+                const lock = document.getElementById('lock-screen');
+                lock.style.display = 'flex';
+                openDialog(lock, { activate: false });
             });
         }
 
@@ -15261,7 +15542,9 @@ Browser: ${navigator.userAgent}
                 encUnlocked = false;
                 showLockForEncryption();
             }
-            document.getElementById('lock-screen').style.display = 'flex';
+            const lockEl = document.getElementById('lock-screen');
+            lockEl.style.display = 'flex';
+            openDialog(lockEl, { activate: false });
             console.log('Lock App locked');
         }
 
@@ -15269,8 +15552,8 @@ Browser: ${navigator.userAgent}
             isAppLocked = false;
             const lockScreen = document.getElementById('lock-screen');
             lockScreen.style.display = 'none';
+            closeDialog(lockScreen, { deactivate: false });
             resetInactivityTimer();
-            console.log('🔓 App unlocked');
         }
 
         // Unlock button handler
@@ -15378,7 +15661,11 @@ Browser: ${navigator.userAgent}
             const archiveBtn = document.getElementById('archive-old-btn');
             if (archiveBtn) {
                 archiveBtn.addEventListener('click', async () => {
-                    const confirmed = confirm('Archive migraines older than 12 months? Archived data can still be exported.');
+                    const confirmed = await confirmAction(
+                        'Archive older episodes',
+                        'Episodes older than 12 months will be moved out of your history. They stay on this device and are still included in exports.',
+                        { confirmText: 'Archive' }
+                    );
                     if (confirmed) {
                         archiveBtn.disabled = true;
                         archiveBtn.textContent = 'Archiving...';
