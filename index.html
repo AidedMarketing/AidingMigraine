@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v5.1.1 - PRODUCTION
+           AIDING MIGRAINE v5.2.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -48,6 +48,35 @@
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             --radius: 12px;
             --transition: all 0.2s ease;
+
+            /* Surface tokens — every theme must define these. Anything painted
+               behind or on top of content (page background, nav, cards, chips)
+               reads from here so a theme switch changes the whole app, not just
+               the parts that happened to use a var(). */
+            --app-bg-gradient:
+                radial-gradient(circle at top left, rgba(143, 179, 148, 0.12), transparent 34rem),
+                linear-gradient(180deg, rgba(42, 36, 32, 0.96) 0%, var(--bg-primary) 22rem);
+            --card-border: rgba(237, 232, 223, 0.1);
+            --card-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+            --hero-tint-a: rgba(143, 179, 148, 0.18);
+            --hero-tint-b: rgba(201, 122, 111, 0.09);
+            --hero-border: rgba(143, 179, 148, 0.32);
+            --chip-bg: rgba(28, 24, 21, 0.36);
+            --chip-border: rgba(237, 232, 223, 0.12);
+            --surface-nav: rgba(42, 36, 32, 0.94);
+            --surface-nav-border: rgba(237, 232, 223, 0.1);
+            --surface-nav-shadow: 0 -16px 40px rgba(0, 0, 0, 0.28);
+            --nav-active-bg: rgba(143, 179, 148, 0.14);
+            --accent-green-hover: #a5c5ad;
+            --accent-soft: rgba(143, 179, 148, 0.18);
+            --surface-raised: rgba(237, 232, 223, 0.06);
+            --trend-up-bg: rgba(201, 122, 111, 0.18);
+            --trend-down-bg: rgba(143, 179, 148, 0.18);
+            --pain-mild-soft: rgba(143, 179, 148, 0.35);
+            --pain-moderate-soft: rgba(212, 165, 116, 0.35);
+            --pain-severe-soft: rgba(201, 122, 111, 0.35);
+            --surface-nav-blur: blur(18px);
+            --surface-overlay: rgba(0, 0, 0, 0.7);
         }
 
         /* === WARM LIGHT THEME === */
@@ -61,10 +90,37 @@
             --accent-green: #4a7c59;
             --accent-red: #b85050;
             --accent-blue: #4a6b9e;
+            /* Darker than the dark-theme amber so the white text drawn on it
+               (calendar day cells, legend dots) clears 4.5:1 on a light field. */
             --pain-mild: #4a7c59;
-            --pain-moderate: #d4a574;
+            --pain-moderate: #8a5d1f;
             --pain-severe: #b85050;
             --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+            --app-bg-gradient:
+                radial-gradient(circle at top left, rgba(74, 124, 89, 0.10), transparent 34rem),
+                linear-gradient(180deg, rgba(240, 237, 232, 0.96) 0%, var(--bg-primary) 22rem);
+            --card-border: rgba(58, 54, 52, 0.10);
+            --card-shadow: 0 14px 40px rgba(0, 0, 0, 0.07);
+            --hero-tint-a: rgba(74, 124, 89, 0.14);
+            --hero-tint-b: rgba(184, 80, 80, 0.07);
+            --hero-border: rgba(74, 124, 89, 0.30);
+            --chip-bg: rgba(58, 54, 52, 0.05);
+            --chip-border: rgba(58, 54, 52, 0.14);
+            --surface-nav: rgba(253, 252, 251, 0.94);
+            --surface-nav-border: rgba(58, 54, 52, 0.12);
+            --surface-nav-shadow: 0 -16px 40px rgba(0, 0, 0, 0.10);
+            --nav-active-bg: rgba(74, 124, 89, 0.12);
+            --accent-green-hover: #3d6849;
+            --accent-soft: rgba(74, 124, 89, 0.16);
+            --surface-raised: rgba(58, 54, 52, 0.04);
+            --trend-up-bg: rgba(184, 80, 80, 0.14);
+            --trend-down-bg: rgba(74, 124, 89, 0.14);
+            --pain-mild-soft: rgba(74, 124, 89, 0.22);
+            --pain-moderate-soft: rgba(138, 93, 31, 0.22);
+            --pain-severe-soft: rgba(184, 80, 80, 0.22);
+            --surface-nav-blur: blur(18px);
+            --surface-overlay: rgba(58, 54, 52, 0.45);
         }
 
         /* === HIGH CONTRAST THEME === */
@@ -82,20 +138,31 @@
             --pain-moderate: #ffaa00;
             --pain-severe: #ff4444;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-        }
 
-        /* === LIGHT THEME (backwards compatibility - maps to warm-light) === */
-        :root[data-theme="light"] {
-            --bg-primary: #f8f6f3;
-            --bg-secondary: #fdfcfb;
-            --bg-tertiary: #f0ede8;
-            --text-primary: #3a3634;
-            --text-secondary: #6b6560;
-            --border-color: #d4cfc8;
-            --accent-green: #4a7c59;
-            --accent-red: #b85050;
-            --accent-blue: #4a6b9e;
-            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            /* Flat and opaque on purpose: gradients, blur and soft shadows all
+               work against a high-contrast theme. */
+            --app-bg-gradient: none;
+            --card-border: #666666;
+            --card-shadow: none;
+            --hero-tint-a: transparent;
+            --hero-tint-b: transparent;
+            --hero-border: var(--accent-green);
+            --chip-bg: #2d2d2d;
+            --chip-border: #666666;
+            --surface-nav: #000000;
+            --surface-nav-border: #666666;
+            --surface-nav-shadow: none;
+            --nav-active-bg: #2d2d2d;
+            --accent-green-hover: #66ffb0;
+            --accent-soft: #2d2d2d;
+            --surface-raised: #2d2d2d;
+            --trend-up-bg: #2d2d2d;
+            --trend-down-bg: #2d2d2d;
+            --pain-mild-soft: #2d2d2d;
+            --pain-moderate-soft: #2d2d2d;
+            --pain-severe-soft: #2d2d2d;
+            --surface-nav-blur: none;
+            --surface-overlay: rgba(0, 0, 0, 0.85);
         }
 
         /* === BASE STYLES === */
@@ -111,9 +178,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(143, 179, 148, 0.12), transparent 34rem),
-                linear-gradient(180deg, rgba(42, 36, 32, 0.96) 0%, var(--bg-primary) 22rem);
+            background-color: var(--bg-primary);
+            background-image: var(--app-bg-gradient);
             color: var(--text-primary);
             line-height: 1.6;
             padding-bottom: calc(94px + env(safe-area-inset-bottom));
@@ -126,6 +192,7 @@
         .container {
             max-width: 680px;
             margin: 0 auto;
+            transition: margin-top 0.3s ease;
             padding: calc(18px + env(safe-area-inset-top)) 18px 24px;
         }
 
@@ -157,7 +224,7 @@
             top: 0;
             right: 0;
             background: var(--accent-green);
-            color: white;
+            color: var(--bg-primary);
             border: none;
             border-radius: 50%;
             width: 36px;
@@ -174,7 +241,7 @@
 
         .help-icon:hover {
             transform: scale(1.1);
-            background: #6b9177;
+            background: var(--accent-green-hover);
         }
 
         h2 {
@@ -189,8 +256,8 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 16px;
-            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
-            border: 1px solid rgba(237, 232, 223, 0.1);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--card-border);
             max-width: 100%;
             overflow: hidden;
         }
@@ -201,7 +268,7 @@
             padding: 20px;
             margin-bottom: 16px;
             box-shadow: var(--shadow);
-            border: 1px solid rgba(143, 179, 148, 0.72);
+            border: 1px solid var(--accent-green);
         }
 
         .app-topbar {
@@ -242,8 +309,8 @@
             width: 44px;
             height: 44px;
             border-radius: 8px;
-            border: 1px solid rgba(237, 232, 223, 0.12);
-            background: rgba(237, 232, 223, 0.06);
+            border: 1px solid var(--chip-border);
+            background: var(--surface-raised);
             color: var(--text-primary);
             display: inline-flex;
             align-items: center;
@@ -263,9 +330,9 @@
             position: relative;
             overflow: hidden;
             background:
-                linear-gradient(135deg, rgba(143, 179, 148, 0.18), rgba(201, 122, 111, 0.09)),
+                linear-gradient(135deg, var(--hero-tint-a), var(--hero-tint-b)),
                 var(--bg-secondary);
-            border: 1px solid rgba(143, 179, 148, 0.32);
+            border: 1px solid var(--hero-border);
         }
 
         .today-hero h2,
@@ -277,31 +344,10 @@
             font-weight: 700;
         }
 
-        .today-status-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 16px;
-            align-items: end;
-        }
-
         .today-status-copy {
             color: var(--text-secondary);
             font-size: 0.95rem;
             line-height: 1.45;
-        }
-
-        .today-status-number {
-            font-size: 3rem;
-            line-height: 0.9;
-            font-weight: 800;
-            color: var(--accent-green);
-        }
-
-        .today-status-label {
-            color: var(--text-secondary);
-            font-size: 0.78rem;
-            text-align: right;
-            margin-top: 8px;
         }
 
         .today-chips {
@@ -311,14 +357,23 @@
             margin-top: 18px;
         }
 
+        /* Orientation line under the topbar — deliberately not a card, so the
+           first card on the page is the primary action. */
+        .today-status-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: -6px 0 16px;
+        }
+
         .today-chip {
             display: inline-flex;
             align-items: center;
             gap: 6px;
             padding: 8px 10px;
             border-radius: 8px;
-            border: 1px solid rgba(237, 232, 223, 0.12);
-            background: rgba(28, 24, 21, 0.36);
+            border: 1px solid var(--chip-border);
+            background: var(--chip-bg);
             color: var(--text-secondary);
             font-size: 0.82rem;
             line-height: 1;
@@ -348,7 +403,7 @@
             border-radius: 999px;
             font-size: 0.8rem;
             font-weight: 600;
-            color: #fff;
+            color: var(--bg-primary);
             background: var(--accent-green);
             white-space: nowrap;
         }
@@ -357,7 +412,7 @@
             width: 100%;
             height: 10px;
             border-radius: 999px;
-            background: rgba(237, 232, 223, 0.12);
+            background: var(--surface-raised);
             overflow: hidden;
         }
 
@@ -412,7 +467,7 @@
             padding: 12px 14px;
             border-radius: 10px;
             background: rgba(212, 165, 116, 0.12);
-            border-left: 3px solid #d4a574;
+            border-left: 3px solid var(--pain-moderate);
         }
 
         .risk-alert-headline {
@@ -448,7 +503,7 @@
             padding: 16px 12px;
             border-radius: 8px;
             background: var(--bg-tertiary);
-            border: 1px solid rgba(237, 232, 223, 0.08);
+            border: 1px solid var(--card-border);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -489,7 +544,7 @@
             color: var(--text-primary);
             text-decoration: none;
             background: var(--bg-tertiary);
-            border: 1px solid rgba(237, 232, 223, 0.1);
+            border: 1px solid var(--card-border);
             border-radius: 8px;
         }
 
@@ -529,14 +584,14 @@
             text-align: center;
         }
 
-        .stat-label {
+        .stat-item .stat-label {
             display: block;
             font-size: 0.85rem;
             color: var(--text-secondary);
             margin-bottom: 4px;
         }
 
-        .stat-value {
+        .stat-item .stat-value {
             display: block;
             font-size: 1.5rem;
             font-weight: 600;
@@ -587,7 +642,7 @@
         .chip.selected {
             background: var(--accent-green);
             border-color: var(--accent-green);
-            color: #fff;
+            color: var(--bg-primary);
         }
 
         .chip:focus-visible {
@@ -622,7 +677,7 @@
 
         .head-zone:hover {
             opacity: 0.9;
-            fill: rgba(123, 166, 138, 0.2);
+            fill: var(--accent-soft);
         }
 
         .head-zone.selected {
@@ -761,7 +816,7 @@
         .pain-btn.selected {
             background: var(--accent-green);
             border-color: var(--accent-green);
-            color: white;
+            color: var(--bg-primary);
         }
 
         .pain-labels {
@@ -865,8 +920,8 @@
         }
 
         .btn-primary:hover {
-            background: #a5c5ad;
-            border-color: #a5c5ad;
+            background: var(--accent-green-hover);
+            border-color: var(--accent-green-hover);
             transform: translateY(-2px);
             box-shadow: var(--shadow);
         }
@@ -910,7 +965,8 @@
             justify-content: center;
         }
 
-        .stat-number {
+        .stat-box .stat-number,
+        .mobile-insight .stat-number {
             width: 100%;
             min-height: 2.25rem;
             display: flex;
@@ -924,7 +980,8 @@
             overflow-wrap: anywhere;
         }
 
-        .stat-label {
+        .stat-box .stat-label,
+        .mobile-insight .stat-label {
             font-size: 0.9rem;
             color: var(--text-secondary);
             line-height: 1.2;
@@ -1060,7 +1117,7 @@
             margin-bottom: 0;
         }
 
-        .stat-number {
+        .monthly-stats-compact .stat-number {
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--text-primary);
@@ -1081,12 +1138,12 @@
         }
 
         .stat-trend.positive {
-            background: rgba(255, 107, 107, 0.15);
+            background: var(--trend-up-bg);
             color: var(--pain-severe);
         }
 
         .stat-trend.negative {
-            background: rgba(76, 175, 80, 0.15);
+            background: var(--trend-down-bg);
             color: var(--accent-green);
         }
 
@@ -1114,14 +1171,14 @@
             border: 1px solid var(--border-color);
         }
 
-        .stat-value {
+        .stat-card .stat-value {
             font-size: 2.5rem;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 4px;
         }
 
-        .stat-label {
+        .stat-card .stat-label {
             font-size: 0.9rem;
             color: var(--text-secondary);
             margin-bottom: 8px;
@@ -1136,12 +1193,12 @@
         }
 
         .stat-change.positive {
-            background: rgba(255, 107, 107, 0.15);
+            background: var(--trend-up-bg);
             color: var(--pain-severe);
         }
 
         .stat-change.negative {
-            background: rgba(76, 175, 80, 0.15);
+            background: var(--trend-down-bg);
             color: var(--accent-green);
         }
 
@@ -1190,32 +1247,32 @@
 
         .calendar-day.mild {
             background: var(--pain-mild);
-            color: white;
+            color: var(--bg-primary);
         }
 
         .calendar-day.moderate {
             background: var(--pain-moderate);
-            color: white;
+            color: var(--bg-primary);
         }
 
         .calendar-day.severe {
             background: var(--pain-severe);
-            color: white;
+            color: var(--bg-primary);
         }
 
         .calendar-day.mild-continuation {
-            background: rgba(123, 166, 138, 0.35);
-            color: white;
+            background: var(--pain-mild-soft);
+            color: var(--text-primary);
         }
 
         .calendar-day.moderate-continuation {
-            background: rgba(212, 165, 116, 0.35);
-            color: white;
+            background: var(--pain-moderate-soft);
+            color: var(--text-primary);
         }
 
         .calendar-day.severe-continuation {
-            background: rgba(201, 104, 104, 0.35);
-            color: white;
+            background: var(--pain-severe-soft);
+            color: var(--text-primary);
         }
 
         .calendar-day.active-indicator::after {
@@ -1440,11 +1497,6 @@
             background: var(--bg-secondary);
         }
 
-        .theme-btn.active {
-            border-color: var(--accent-green);
-            background: var(--bg-secondary);
-        }
-
         .theme-btn span:first-child {
             font-size: 1.5rem;
         }
@@ -1513,15 +1565,15 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 680px;
-            background: rgba(42, 36, 32, 0.94);
-            border-top: 1px solid rgba(237, 232, 223, 0.1);
+            background: var(--surface-nav);
+            border-top: 1px solid var(--surface-nav-border);
             display: flex;
             justify-content: space-around;
             padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-            box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.28);
+            box-shadow: var(--surface-nav-shadow);
             z-index: 100;
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: var(--surface-nav-blur);
+            -webkit-backdrop-filter: var(--surface-nav-blur);
         }
 
         .nav-btn {
@@ -1546,7 +1598,7 @@
 
         .nav-btn.active {
             color: var(--accent-green);
-            background: rgba(143, 179, 148, 0.1);
+            background: var(--nav-active-bg);
         }
 
         .nav-icon {
@@ -1573,7 +1625,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: var(--surface-overlay);
             z-index: 1000;
             animation: fadeIn 0.2s ease;
         }
@@ -1763,8 +1815,8 @@
             top: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: var(--accent-blue);
+            color: var(--bg-primary);
             padding: 12px 16px;
             z-index: 9999;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
@@ -1790,7 +1842,7 @@
         }
 
         .update-icon {
-            font-size: 1.2rem;
+            flex-shrink: 0;
         }
 
         .update-text {
@@ -1800,8 +1852,8 @@
         }
 
         .update-btn {
-            background: white;
-            color: #667eea;
+            background: var(--bg-secondary);
+            color: var(--accent-blue);
             border: none;
             padding: 8px 20px;
             border-radius: 20px;
@@ -1822,7 +1874,7 @@
         .dismiss-update-btn {
             background: transparent;
             border: none;
-            color: white;
+            color: var(--bg-primary);
             font-size: 1.5rem;
             cursor: pointer;
             padding: 0 8px;
@@ -1835,10 +1887,6 @@
         }
 
         /* Push content down when banner is visible */
-        .container {
-            transition: margin-top 0.3s ease;
-        }
-
         .container.with-update-banner {
             margin-top: 60px;
         }
@@ -1862,13 +1910,13 @@
         }
 
         .offline-banner {
-            background: linear-gradient(135deg, #f5a623 0%, #f76b1c 100%);
-            color: white;
+            background: var(--pain-moderate);
+            color: var(--bg-primary);
         }
 
         .online-banner {
-            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-            color: white;
+            background: var(--accent-green);
+            color: var(--bg-primary);
         }
 
         .container.with-status-banner {
@@ -1890,16 +1938,16 @@
             right: 16px;
             max-width: 500px;
             margin: 0 auto;
-            background: linear-gradient(135deg, var(--accent-green) 0%, #6b9177 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-hover) 100%);
+            color: var(--bg-primary);
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             z-index: 9997;
-            animation: slideUp 0.4s ease-out;
+            animation: slide-up-sheet 0.4s ease-out;
         }
 
-        @keyframes slideUp {
+        @keyframes slide-up-sheet {
             from {
                 transform: translateY(100%);
                 opacity: 0;
@@ -1923,7 +1971,7 @@
         }
 
         .install-prompt-icon {
-            font-size: 2rem;
+            flex-shrink: 0;
         }
 
         .install-prompt-text {
@@ -1966,8 +2014,9 @@
         }
 
         .install-prompt-btn.secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+            background: transparent;
+            border: 2px solid var(--bg-primary);
+            color: var(--bg-primary);
         }
 
         .install-prompt-btn.secondary:hover {
@@ -1982,7 +2031,7 @@
             position: fixed;
             bottom: 100px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.7);
+            background: var(--surface-overlay);
             backdrop-filter: blur(10px);
             color: white;
             padding: 10px 16px;
@@ -1996,7 +2045,7 @@
         }
 
         .wake-lock-icon {
-            font-size: 1rem;
+            flex-shrink: 0;
         }
 
         /* ============================================
@@ -2019,7 +2068,13 @@
         }
 
         .lock-screen-icon {
-            font-size: 4rem;
+            width: 56px;
+            height: 56px;
+            stroke: var(--accent-green);
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         .lock-screen-title {
@@ -2038,7 +2093,7 @@
         .unlock-btn {
             padding: 16px 40px;
             background: var(--accent-green);
-            color: white;
+            color: var(--bg-primary);
             border: none;
             border-radius: 12px;
             font-size: 1.1rem;
@@ -2050,7 +2105,7 @@
 
         .unlock-btn:hover {
             transform: translateY(-2px);
-            background: #6a957a;
+            background: var(--accent-green-hover);
         }
 
         /* ============================================
@@ -2116,8 +2171,8 @@
             justify-content: center;
             font-size: 24px;
             font-weight: 700;
-            color: #fff;
-            animation: pulse 2s ease-in-out infinite;
+            color: var(--bg-primary);
+            animation: pulse-scale 2s ease-in-out infinite;
         }
 
         .loading-title {
@@ -2171,7 +2226,7 @@
             to { transform: rotate(360deg); }
         }
 
-        @keyframes pulse {
+        @keyframes pulse-scale {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.05); opacity: 0.8; }
         }
@@ -2209,10 +2264,13 @@
     <!-- Update Available Banner -->
     <div id="update-banner" class="update-banner" style="display: none;">
         <div class="update-content">
-            <span class="update-icon">Update</span>
+            <svg class="icon icon-md update-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12"></path><path d="M8 11l4 4 4-4"></path>
+                <path d="M20 17v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2"></path>
+            </svg>
             <span class="update-text">New version available!</span>
             <button id="update-btn" class="update-btn">Update Now</button>
-            <button id="dismiss-update-btn" class="dismiss-update-btn">✕</button>
+            <button id="dismiss-update-btn" class="dismiss-update-btn" aria-label="Dismiss update notice"><svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
     </div>
 
@@ -2223,7 +2281,11 @@
     <div id="install-prompt" class="install-prompt" style="display: none;">
         <div class="install-prompt-content">
             <div class="install-prompt-header">
-                <span class="install-prompt-icon">Install</span>
+                <svg class="icon icon-lg install-prompt-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="6" y="2" width="12" height="20" rx="2"></rect>
+                    <line x1="12" y1="8" x2="12" y2="14"></line>
+                    <line x1="9" y1="11" x2="15" y2="11"></line>
+                </svg>
                 <div class="install-prompt-text">
                     <div class="install-prompt-title">Install Aiding Migraine</div>
                     <div class="install-prompt-desc">Get quick access and track migraines offline</div>
@@ -2238,13 +2300,19 @@
 
     <!-- Wake Lock Indicator -->
     <div id="wake-lock-indicator" class="wake-lock-indicator" style="display: none;">
-        <span class="wake-lock-icon">Awake</span>
+        <svg class="icon icon-sm wake-lock-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </svg>
         <span>Screen staying awake</span>
     </div>
 
     <!-- Lock Screen -->
     <div id="lock-screen" class="lock-screen" style="display: none;">
-        <div class="lock-screen-icon">Lock</div>
+        <svg class="lock-screen-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
         <div class="lock-screen-title" id="lock-screen-title">App Locked</div>
         <div class="lock-screen-subtitle" id="lock-screen-subtitle">Unlock to access your migraine data</div>
         <input type="password" id="unlock-passphrase" placeholder="Passphrase" autocomplete="current-password" style="display: none; width: min(320px, 80vw); padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem; text-align: center;">
@@ -2270,40 +2338,13 @@
                 </div>
             </header>
 
-            <section class="section-card today-hero" aria-labelledby="today-summary-title">
-                <div class="today-status-row">
-                    <div>
-                        <h2 id="today-summary-title">Today</h2>
-                        <p class="today-status-copy" id="today-status-copy">Ready when you need to log symptoms, check patterns, or export notes for care.</p>
-                    </div>
-                    <div>
-                        <div class="today-status-number" id="today-pain-snapshot">0</div>
-                        <div class="today-status-label">current pain</div>
-                    </div>
-                </div>
-                <div class="today-chips">
-                    <span class="today-chip" id="today-week-chip">0 this week</span>
-                    <span class="today-chip" id="today-last-chip">Last episode: -</span>
-                    <span class="today-chip">Offline ready</span>
-                </div>
-                <p class="today-status-copy" id="today-cycle-line" style="display: none; margin-top: 12px;"></p>
-            </section>
-
-            <!-- Today's outlook: surfaces the weather/ML risk predictions.
-                 Hidden until weather tracking has current data. -->
-            <section class="section-card today-risk-card" id="today-risk-card" style="display: none;" aria-labelledby="risk-card-title">
-                <div class="risk-card-header">
-                    <h2 id="risk-card-title">Today's outlook</h2>
-                    <span class="risk-card-badge" id="risk-card-label">—</span>
-                </div>
-                <div class="risk-meter" role="img" aria-label="Migraine risk meter">
-                    <div class="risk-meter-fill" id="risk-meter-fill" style="width: 0%;"></div>
-                </div>
-                <p class="risk-card-detail" id="risk-card-detail"></p>
-                <p class="risk-card-trend" id="risk-card-trend"></p>
-                <div class="risk-card-ml" id="risk-card-ml" style="display: none;"></div>
-                <div class="risk-card-alerts" id="risk-card-alerts" style="display: none;"></div>
-            </section>
+            <!-- Slim status line rather than a card: orientation only, so the
+                 primary action (Log migraine) leads the page. -->
+            <div class="today-status-strip">
+                <span class="today-chip" id="today-week-chip">0 this week</span>
+                <span class="today-chip" id="today-last-chip">Last episode: -</span>
+                <span class="today-chip" id="today-cycle-line" style="display: none;"></span>
+            </div>
 
             <div id="active-episode-section" style="display: none;">
                 <div class="active-episode-card">
@@ -2447,11 +2488,11 @@
                             </div>
                         </div>
                         <!-- Pressure Alert State -->
-                        <div id="weather-warning" class="weather-forecast-box" style="display: none; background: rgba(212, 165, 116, 0.12); border-left: 4px solid #d4a574; padding: 12px 16px; border-radius: 0 8px 8px 0;">
+                        <div id="weather-warning" class="weather-forecast-box" style="display: none; background: var(--pain-moderate-soft); border-left: 4px solid var(--pain-moderate); padding: 12px 16px; border-radius: 0 8px 8px 0;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <svg viewBox="0 0 24 24" style="width: 1.2rem; height: 1.2rem; stroke: #d4a574; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                                <svg viewBox="0 0 24 24" style="width: 1.2rem; height: 1.2rem; stroke: var(--pain-moderate); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
                                 <div>
-                                    <div style="font-size: 0.9rem; font-weight: 500; color: #d4a574;">Pressure May Be a Factor</div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--pain-moderate);">Pressure May Be a Factor</div>
                                     <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;" id="weather-warning-detail">Significant pressure change detected</div>
                                 </div>
                             </div>
@@ -2548,6 +2589,23 @@
                 </div>
             </div>
 
+            <!-- Today's outlook: surfaces the weather/ML risk predictions.
+                 Hidden until weather tracking has current data. -->
+            <section class="section-card today-risk-card" id="today-risk-card" style="display: none;" aria-labelledby="risk-card-title">
+                <div class="risk-card-header">
+                    <h2 id="risk-card-title">Today's outlook</h2>
+                    <span class="risk-card-badge" id="risk-card-label">—</span>
+                </div>
+                <div class="risk-meter" role="img" aria-label="Migraine risk meter">
+                    <div class="risk-meter-fill" id="risk-meter-fill" style="width: 0%;"></div>
+                </div>
+                <p class="risk-card-detail" id="risk-card-detail"></p>
+                <p class="risk-card-trend" id="risk-card-trend"></p>
+                <div class="risk-card-ml" id="risk-card-ml" style="display: none;"></div>
+                <div class="risk-card-alerts" id="risk-card-alerts" style="display: none;"></div>
+            </section>
+
+
             <div class="section-card">
                 <h2 class="mobile-section-title">Recent pattern</h2>
                 <div class="stats-grid">
@@ -2620,7 +2678,7 @@
 
         <div id="analytics-page" class="page">
             <h1>
-                Analytics & Insights
+                Insights
                 <a href="./help/analytics.html" class="help-icon" title="Understanding Your Analytics">?</a>
             </h1>
 
@@ -2748,9 +2806,9 @@
                     Medication Usage
                 </h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Tracking medication usage frequency</p>
-                <div id="moh-warning" style="display: none; margin-bottom: 24px; padding: 20px; background: rgba(220, 38, 38, 0.15); border-left: 4px solid #dc2626; border-radius: 8px;">
-                    <h3 style="color: #dc2626; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke: #dc2626;">
+                <div id="moh-warning" style="display: none; margin-bottom: 24px; padding: 20px; background: var(--pain-severe-soft); border-left: 4px solid var(--pain-severe); border-radius: 8px;">
+                    <h3 style="color: var(--pain-severe); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke: var(--pain-severe);">
                             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                             <line x1="12" y1="9" x2="12" y2="13"></line>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -3573,7 +3631,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.1.1</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.2.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3611,7 +3669,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v5.1.1 Production</strong>
+                            <strong>v5.2.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3674,7 +3732,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '5.1.1';
+        const APP_VERSION = '5.2.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -4025,7 +4083,7 @@
                 color = 'var(--accent-red)';
                 verdict = `Your migraines cluster around your period: ${obs}% fell in the perimenstrual window (2 days before to 3 days after your period start), vs ${exp}% expected by chance. This looks like menstrually-related migraine — worth discussing with your clinician.`;
             } else if (corr.level === 'moderate') {
-                color = '#d4a574';
+                color = 'var(--pain-moderate)';
                 verdict = `Some of your migraines line up with your period: ${obs}% fell in the perimenstrual window vs ${exp}% expected by chance. There may be a menstrual component.`;
             } else {
                 color = 'var(--accent-green)';
@@ -5583,8 +5641,23 @@
             return true; // Indicates effectiveness modal was shown
         }
 
+        // Themes the picker offers. Anything else in storage (notably the
+        // retired 'light' theme) is migrated to its closest surviving match so
+        // it can't leave the app on a data-theme with no token block behind it.
+        const VALID_THEMES = new Set(['warm-dark', 'warm-light', 'high-contrast']);
+        const THEME_MIGRATIONS = { light: 'warm-light', dark: 'warm-dark' };
+
+        function normalizeTheme(theme) {
+            if (VALID_THEMES.has(theme)) return theme;
+            return THEME_MIGRATIONS[theme] || 'warm-dark';
+        }
+
         function initializeTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'warm-dark';
+            const storedTheme = localStorage.getItem('theme') || 'warm-dark';
+            const savedTheme = normalizeTheme(storedTheme);
+            if (savedTheme !== storedTheme) {
+                localStorage.setItem('theme', savedTheme);
+            }
             applyTheme(savedTheme);
             
             document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -6565,7 +6638,7 @@
                             style="background: none; border: none; color: var(--text-secondary);
                                    cursor: pointer; font-size: 1.1rem; padding: 4px 8px;
                                    transition: var(--transition); line-height: 1;"
-                            title="Remove this entry">✕</button>
+                            title="Remove this entry" aria-label="Remove this entry"><svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                 `);
 
                 entriesContainer.appendChild(entry);
@@ -6604,7 +6677,6 @@
 
             const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
             const thisMonth = activeMigraines.filter(m => new Date(m.startTime) >= monthStart).length;
-            const activePain = (activeMigraine && activeMigraine.painLevel != null) ? activeMigraine.painLevel : '—';
 
             // Check if dashboard elements exist before updating
             const totalElem = document.getElementById('total-episodes');
@@ -6624,8 +6696,6 @@
             lastEpisodeElem.textContent = lastEpisode;
 
             const dateLabel = document.getElementById('today-date-label');
-            const statusCopy = document.getElementById('today-status-copy');
-            const painSnapshot = document.getElementById('today-pain-snapshot');
             const weekChip = document.getElementById('today-week-chip');
             const lastChip = document.getElementById('today-last-chip');
             const monthDays = document.getElementById('mobile-care-days');
@@ -6638,13 +6708,6 @@
                     day: 'numeric'
                 });
             }
-            if (statusCopy) {
-                statusCopy.textContent = activeMigraine
-                    ? 'Active episode is being tracked. Keep notes brief and update pain as it changes.'
-                    : 'No active episode. Log quickly now, or review patterns before your next care visit.';
-            }
-            if (painSnapshot) painSnapshot.textContent = activeMigraine ? activePain : '-';
-            // (activePain already renders '—' when an active episode has no pain yet)
             if (weekChip) weekChip.textContent = `${thisWeek} this week`;
             if (lastChip) lastChip.textContent = `Last episode: ${lastEpisode}`;
             if (monthDays) monthDays.textContent = thisMonth;
@@ -7021,7 +7084,7 @@
                         <button data-relief-index="${index}"
                                 style="background: none; border: none; color: var(--text-secondary);
                                        cursor: pointer; font-size: 1.1rem; padding: 4px 8px;"
-                                title="Remove">✕</button>
+                                title="Remove" aria-label="Remove relief method"><svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                     </div>
                 `;
             }).join(''));
@@ -7700,7 +7763,7 @@
                 content += startedToday.map(m => `
                     <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; position: relative;">
                         <button data-edit-attack="${safeText(String(m.id))}" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
-                            ✏️ Edit
+                            Edit
                         </button>
                         <p><strong>Started: ${formatTime(new Date(m.startTime))}</strong></p>
                         <p>Pain: ${m.painLevel}/10 (${safeText(m.category)})</p>
@@ -7722,7 +7785,7 @@
                 content += ongoingToday.map(m => `
                     <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-blue); position: relative;">
                         <button data-edit-attack="${safeText(String(m.id))}" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
-                            ✏️ Edit
+                            Edit
                         </button>
                         <p><strong>Ongoing Attack</strong></p>
                         <p>Started: ${formatTime(new Date(m.startTime))}</p>
@@ -7918,7 +7981,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v5.1.1 - Debug Information
+            const debugInfo = `Aiding Migraine v5.2.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -8950,7 +9013,7 @@ Browser: ${navigator.userAgent}
                 </div>
 
                 ${duplicates.length > 0 ? `
-                <div style="background: rgba(212, 165, 116, 0.1); border-left: 3px solid #d4a574; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
+                <div style="background: var(--pain-moderate-soft); border-left: 3px solid var(--pain-moderate); padding: 12px; border-radius: 4px; margin-bottom: 16px;">
                     <p><strong>${duplicates.length}</strong> duplicate${duplicates.length > 1 ? 's' : ''} detected (will be skipped)</p>
                 </div>
                 ` : ''}
@@ -9636,7 +9699,7 @@ Browser: ${navigator.userAgent}
                 <h3>Logging Episodes</h3>
                 <p>1. Select your pain level (0-10)</p>
                 <p>2. Optionally add medication and notes</p>
-                <p>3. Tap "Log Episode"</p>
+                <p>3. Tap "Log migraine"</p>
                 
                 <h3>Active Episodes</h3>
                 <p>• Update pain as it changes</p>
@@ -9658,7 +9721,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v5.1.1</strong></p>
+                <p><strong>Aiding Migraine v5.2.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -9683,10 +9746,10 @@ Browser: ${navigator.userAgent}
             const content = `
                 <h3>Your Privacy Matters</h3>
 
-                <p><strong>✓ Local by default</strong><br>
+                <p><strong>Local by default</strong><br>
                 Your migraine data is stored only on this device using browser storage. There is no account, no tracking, and no analytics.</p>
 
-                <p><strong>✓ You own your data</strong><br>
+                <p><strong>You own your data</strong><br>
                 Export anytime, delete anytime.</p>
 
                 <h3>Optional features that use the network</h3>
@@ -9798,20 +9861,22 @@ Browser: ${navigator.userAgent}
 
             body.innerHTML = `
                 <div style="text-align: center; padding: 20px 0;">
-                    <div style="font-size: 4rem; margin-bottom: 20px;">🤕</div>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" style="width: 56px; height: 56px; margin-bottom: 20px; stroke: var(--accent-green); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;">
+                        <path d="M12 21a9 9 0 1 1 9-9c0 2.5-1.5 3.5-3 3.5s-2-1-3-1-1.5 1-1.5 2.5A4 4 0 0 1 12 21z"></path>
+                    </svg>
                     <h2 style="margin-bottom: 16px; font-size: 1.5rem;">Welcome to Aiding Migraine</h2>
                     <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.8;">
                         Your personal migraine tracking companion. Log episodes, track patterns,
                         and generate professional reports for your healthcare provider.
                     </p>
                     <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 20px; margin: 24px 0; text-align: left;">
-                        <h3 style="font-size: 1.1rem; margin-bottom: 12px; text-align: center;">Update Key Features</h3>
+                        <h3 style="font-size: 1.1rem; margin-bottom: 12px; text-align: center;">Key features</h3>
                         <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 2;">
-                            <li>Notes <strong>Easy Logging:</strong> Track pain levels, duration, and medications</li>
+                            <li><strong>Easy Logging:</strong> Track pain levels, duration, and medications</li>
                             <li><strong>Visual History:</strong> Calendar view and detailed statistics</li>
-                            <li>Document <strong>PDF Reports:</strong> Professional reports for doctor visits</li>
-                            <li>Save <strong>Secure Backup:</strong> Import/export your data safely</li>
-                            <li>Trash <strong>Smart Recovery:</strong> 30-day trash for deleted episodes</li>
+                            <li><strong>PDF Reports:</strong> Professional reports for doctor visits</li>
+                            <li><strong>Secure Backup:</strong> Import/export your data safely</li>
+                            <li><strong>Smart Recovery:</strong> 30-day trash for deleted episodes</li>
                         </ul>
                     </div>
                     <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
@@ -10480,7 +10545,7 @@ Browser: ${navigator.userAgent}
                 const registration = await navigator.serviceWorker.ready;
 
                 registration.showNotification('Aiding Migraine', {
-                    body: 'Test notification - Your notification system is working! 🎉',
+                    body: 'Test notification - Your notification system is working.',
                     icon: './icons/icon-192x192.png',
                     badge: './icons/icon-72x72.png',
                     tag: 'test-notification',
@@ -11782,9 +11847,9 @@ Browser: ${navigator.userAgent}
             if (rawScore <= 2) {
                 color = 'var(--accent-green)'; label = 'Low risk'; detail = 'Conditions stable';
             } else if (rawScore <= 4) {
-                color = '#d4a574'; label = 'Moderate risk'; detail = 'Some atmospheric change';
+                color = 'var(--pain-moderate)'; label = 'Moderate risk'; detail = 'Some atmospheric change';
             } else if (rawScore <= 6) {
-                color = '#c97c4a'; label = 'Elevated risk'; detail = 'Significant atmospheric shift';
+                color = 'var(--pain-severe)'; label = 'Elevated risk'; detail = 'Significant atmospheric shift';
             } else {
                 color = 'var(--accent-red)'; label = 'High risk'; detail = 'Major atmospheric change';
             }
@@ -11969,6 +12034,21 @@ Browser: ${navigator.userAgent}
             }
 
             card.style.display = 'block';
+
+            // The outlook sits below the log form by default so the primary
+            // action leads the page, and earns the slot above it only when the
+            // risk is high enough to be worth interrupting for.
+            const logSection = document.getElementById('logging-section');
+            if (logSection && logSection.parentNode) {
+                // "Elevated risk" (5) and above — matches the label bands below.
+                const shouldPromote = risk.score >= 5;
+                const isPromoted = card.nextElementSibling === logSection;
+                if (shouldPromote && !isPromoted) {
+                    logSection.parentNode.insertBefore(card, logSection);
+                } else if (!shouldPromote && isPromoted) {
+                    logSection.parentNode.insertBefore(card, logSection.nextSibling);
+                }
+            }
 
             // 1. Headline label + 0-10 meter
             const labelEl = document.getElementById('risk-card-label');
@@ -12985,25 +13065,53 @@ Browser: ${navigator.userAgent}
 
         // Light themes use a light chart palette; warm-dark and high-contrast
         // (a dark high-contrast theme) use the dark palette.
-        const LIGHT_THEMES = new Set(['light', 'warm-light']);
+        const LIGHT_THEMES = new Set(['warm-light']);
         function isDarkTheme() {
             return !LIGHT_THEMES.has(document.documentElement.getAttribute('data-theme'));
         }
 
-        // Get theme-aware colors for charts
+        // Read a CSS custom property off :root so charts follow whichever theme
+        // is live rather than carrying their own palette.
+        function themeToken(name, fallback) {
+            const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+            return value || fallback;
+        }
+
+        // Accepts #rgb / #rrggbb / rgb() / rgba() and returns an rgba() string.
+        function withAlpha(color, alpha) {
+            if (!color) return `rgba(0, 0, 0, ${alpha})`;
+            const hex = color.trim();
+            if (hex.startsWith('#')) {
+                let h = hex.slice(1);
+                if (h.length === 3) h = h.split('').map(c => c + c).join('');
+                const n = parseInt(h, 16);
+                if (h.length !== 6 || isNaN(n)) return `rgba(0, 0, 0, ${alpha})`;
+                return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+            }
+            const m = hex.match(/rgba?\(([^)]+)\)/);
+            if (m) {
+                const [r, g, b] = m[1].split(',').map(p => parseFloat(p));
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
+            return hex;
+        }
+
+        // Chart palette, derived from the active theme's brand tokens.
         function getChartColors() {
-            const isDark = isDarkTheme();
+            const primary = themeToken('--accent-green', '#8fb394');
+            const text = themeToken('--text-primary', '#ede8df');
 
             return {
-                text: isDark ? '#f0eeeb' : '#2a2a2a',
-                textSecondary: isDark ? '#d8d5cf' : '#666666',
-                grid: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
-                primary: isDark ? 'rgb(168, 85, 247)' : 'rgb(147, 51, 234)',  // Brighter purple for dark mode
-                primaryBg: isDark ? 'rgba(168, 85, 247, 0.2)' : 'rgba(147, 51, 234, 0.1)',
-                green: isDark ? '#9cd4ab' : '#4a7c59',  // Brighter green for dark mode
-                yellow: isDark ? '#ffd966' : '#ff9800',  // Brighter yellow for dark mode
-                red: isDark ? '#ff9e94' : '#f44336',  // Brighter red for dark mode
-                blue: isDark ? '#90bbff' : '#2196f3'  // Brighter blue for dark mode
+                text: text,
+                textSecondary: themeToken('--text-secondary', '#cfc7b8'),
+                grid: withAlpha(text, 0.12),
+                primary: primary,
+                primaryBg: withAlpha(primary, 0.2),
+                primaryFill: withAlpha(primary, 0.6),
+                green: themeToken('--pain-mild', '#8fb394'),
+                yellow: themeToken('--pain-moderate', '#d4a574'),
+                red: themeToken('--pain-severe', '#c97a6f'),
+                blue: themeToken('--accent-blue', '#7a95b8')
             };
         }
 
@@ -13125,11 +13233,13 @@ Browser: ${navigator.userAgent}
             }
             card.style.display = 'block';
 
-            const maxCount = ranked[0][1];
             const colors = getChartColors();
             const rows = ranked.map(([key, count]) => {
+                // Bar length must match the percentage printed beside it. It was
+                // previously scaled to the top item, so a lone "1 (14%)" entry
+                // drew a full-width bar.
                 const pct = Math.round((count / data.length) * 100);
-                const barPct = Math.round((count / maxCount) * 100);
+                const barPct = pct;
                 return `
                     <div style="margin-bottom: 10px;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px;">
@@ -13228,7 +13338,7 @@ Browser: ${navigator.userAgent}
                     color = 'var(--accent-green)';
                     msg = `Your "Weather change" logs don't line up with measured swings (${wtPct}% vs ${basePct}% baseline). The barometer may not be the driver, or changes are subtler than your threshold.`;
                 } else {
-                    color = '#d4a574';
+                    color = 'var(--pain-moderate)';
                     msg = `Your "Weather change" logs roughly match your baseline (${wtPct}% vs ${basePct}%) — no strong signal either way yet.`;
                 }
                 verdict = `<div style="padding: 12px 14px; border-radius: 10px; background: var(--bg-tertiary); border-left: 3px solid ${color}; margin-bottom: 14px;">
@@ -13468,7 +13578,7 @@ Browser: ${navigator.userAgent}
                     datasets: [{
                         label: 'Number of Migraines',
                         data: Object.values(timeBlocks),
-                        backgroundColor: colors.primaryBg.replace('0.2', '0.6'),
+                        backgroundColor: colors.primaryFill,
                         borderColor: colors.primary,
                         borderWidth: 2
                     }]
@@ -13615,7 +13725,7 @@ Browser: ${navigator.userAgent}
                 messageSuffix = `Pressure changes appear to be a real trigger for you.${rrNote}`;
             } else if (correlation.level === 'moderate') {
                 strengthText = 'Moderate correlation';
-                strengthColor = '#d4a574';
+                strengthColor = 'var(--pain-moderate)';
                 messageSuffix = `Pressure may be contributing to some of your attacks.${rrNote}`;
             } else {
                 // Honest disconfirmation — this is valuable information, not a failure
@@ -14018,7 +14128,7 @@ Browser: ${navigator.userAgent}
                     : 'N/A';
 
                 return `
-                    <div style="margin-bottom: 24px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-purple)'};">
+                    <div style="margin-bottom: 24px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-green)'};">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                             <div>
                                 <div style="font-weight: 600; font-size: 1.1rem;">${safeText(med.name)}</div>
@@ -14062,7 +14172,7 @@ Browser: ${navigator.userAgent}
 
                 const monthsHTML = stats.mohRisk.lastThreeMonths.map(month => {
                     const isWarning = month.atThreshold;
-                    return `<div style="color: ${isWarning ? '#dc2626' : 'var(--text-secondary)'}; padding: 4px 0;">
+                    return `<div style="color: ${isWarning ? 'var(--pain-severe)' : 'var(--text-secondary)'}; padding: 4px 0;">
                         ${month.name}: <strong>${month.count} days</strong>${month.highRiskCount > 0 && month.highRiskCount !== month.count ? ` (${month.highRiskCount} triptan/combination)` : ''} ${isWarning ? '[WARNING]' : ''}
                     </div>`;
                 }).join('');
@@ -14079,9 +14189,9 @@ Browser: ${navigator.userAgent}
                 <div style="margin-top: 16px;">
                     <h3 style="margin-bottom: 16px;">Medication Usage Frequency</h3>
                     ${sortedByUse.map(med => `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 6px; margin-bottom: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-purple)'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 6px; margin-bottom: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-green)'};">
                             <div>
-                                <div style="font-weight: 600;">${med.name}</div>
+                                <div style="font-weight: 600;">${safeText(med.name)}</div>
                                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
                                     ${med.type === 'abortive' ? 'Abortive' : 'Preventive'}
                                 </div>
@@ -14595,7 +14705,7 @@ Browser: ${navigator.userAgent}
             const container = document.querySelector('.container');
 
             banner.className = 'status-banner online-banner';
-            banner.textContent = '✓ Back online - Data synced';
+            banner.textContent = 'Back online - Data synced';
             banner.style.display = 'block';
             container.classList.add('with-status-banner');
 

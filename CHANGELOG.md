@@ -5,6 +5,21 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.0] - 2026-07-09
+
+### Changed — UI/UX Review, Part 1: Visual Correctness
+
+First of several passes going back over the whole app so it reads as one designed product rather than a set of separately-shipped features.
+
+- **The light theme is fixed.** The page background, bottom navigation, cards and chips were painted with hardcoded dark values that no theme overrode, so choosing "Warm Light" left the app title unreadable under a dark band, a dark brown nav against white cards, and grey-on-grey chips. Every surface is now theme-aware, and High Contrast deliberately drops gradients, blur and soft shadows.
+- **Charts now use the app's colours.** Analytics carried its own palette — a bright purple plus assorted Material colours — which matched nothing else in the app. Charts and ranked bars now follow whichever theme is active.
+- **Readable text on coloured backgrounds.** Thirteen places drew white text on a light accent fill (as low as 2.3:1). These now use the app's established on-accent colour, and the light theme's "moderate" amber was darkened so calendar text clears 4.5:1.
+- **The Today page no longer crowds its top.** Opening the app showed three stacked cards before the primary action. Status is now a single slim line, "Log migraine" leads the page, and "Today's outlook" is promoted above it only when risk is genuinely elevated. A meaningless "current pain" readout (a large dash when nothing was active) is gone.
+- **Icons are consistent.** Leftover words from an earlier emoji cleanup were still rendering as icons — "Lock" at 4rem on the lock screen, "Install", "Update", "Awake", and "Notes / Document / Save / Trash" in the welcome modal. All replaced with the same line-art icons used in the navigation. Rating stars stay, since they carry data.
+- **Ranked bars tell the truth.** In the symptom, trigger, warning-sign and related breakdowns, bar length was scaled to the largest item, so an entry labelled "1 (14%)" drew a full-width bar. Bars now match their own percentage.
+- **Fixed animations that overrode each other.** Two animation names were defined twice, so the active-episode indicator pulsed with a scale effect instead of the intended gentle fade, and modals flew up from off-screen instead of lifting subtly into place.
+- Assorted correctness: several duplicated style rules meant components silently rendered with another component's styling; the medication breakdown used an undefined colour; medication names are now escaped consistently; and the in-app help referred to a "Log Episode" button that is labelled "Log migraine".
+
 ## [5.1.1] - 2026-07-09
 
 ### Fixed
