@@ -2514,11 +2514,11 @@
                             </div>
                         </div>
                         <!-- Pressure Alert State -->
-                        <div id="weather-warning" class="weather-forecast-box" style="display: none; background: rgba(212, 165, 116, 0.12); border-left: 4px solid #d4a574; padding: 12px 16px; border-radius: 0 8px 8px 0;">
+                        <div id="weather-warning" class="weather-forecast-box" style="display: none; background: var(--pain-moderate-soft); border-left: 4px solid var(--pain-moderate); padding: 12px 16px; border-radius: 0 8px 8px 0;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <svg viewBox="0 0 24 24" style="width: 1.2rem; height: 1.2rem; stroke: #d4a574; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                                <svg viewBox="0 0 24 24" style="width: 1.2rem; height: 1.2rem; stroke: var(--pain-moderate); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
                                 <div>
-                                    <div style="font-size: 0.9rem; font-weight: 500; color: #d4a574;">Pressure May Be a Factor</div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--pain-moderate);">Pressure May Be a Factor</div>
                                     <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;" id="weather-warning-detail">Significant pressure change detected</div>
                                 </div>
                             </div>
@@ -2815,9 +2815,9 @@
                     Medication Usage
                 </h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Tracking medication usage frequency</p>
-                <div id="moh-warning" style="display: none; margin-bottom: 24px; padding: 20px; background: rgba(220, 38, 38, 0.15); border-left: 4px solid #dc2626; border-radius: 8px;">
-                    <h3 style="color: #dc2626; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke: #dc2626;">
+                <div id="moh-warning" style="display: none; margin-bottom: 24px; padding: 20px; background: var(--pain-severe-soft); border-left: 4px solid var(--pain-severe); border-radius: 8px;">
+                    <h3 style="color: var(--pain-severe); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke: var(--pain-severe);">
                             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                             <line x1="12" y1="9" x2="12" y2="13"></line>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -4092,7 +4092,7 @@
                 color = 'var(--accent-red)';
                 verdict = `Your migraines cluster around your period: ${obs}% fell in the perimenstrual window (2 days before to 3 days after your period start), vs ${exp}% expected by chance. This looks like menstrually-related migraine — worth discussing with your clinician.`;
             } else if (corr.level === 'moderate') {
-                color = '#d4a574';
+                color = 'var(--pain-moderate)';
                 verdict = `Some of your migraines line up with your period: ${obs}% fell in the perimenstrual window vs ${exp}% expected by chance. There may be a menstrual component.`;
             } else {
                 color = 'var(--accent-green)';
@@ -9032,7 +9032,7 @@ Browser: ${navigator.userAgent}
                 </div>
 
                 ${duplicates.length > 0 ? `
-                <div style="background: rgba(212, 165, 116, 0.1); border-left: 3px solid #d4a574; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
+                <div style="background: var(--pain-moderate-soft); border-left: 3px solid var(--pain-moderate); padding: 12px; border-radius: 4px; margin-bottom: 16px;">
                     <p><strong>${duplicates.length}</strong> duplicate${duplicates.length > 1 ? 's' : ''} detected (will be skipped)</p>
                 </div>
                 ` : ''}
@@ -11864,9 +11864,9 @@ Browser: ${navigator.userAgent}
             if (rawScore <= 2) {
                 color = 'var(--accent-green)'; label = 'Low risk'; detail = 'Conditions stable';
             } else if (rawScore <= 4) {
-                color = '#d4a574'; label = 'Moderate risk'; detail = 'Some atmospheric change';
+                color = 'var(--pain-moderate)'; label = 'Moderate risk'; detail = 'Some atmospheric change';
             } else if (rawScore <= 6) {
-                color = '#c97c4a'; label = 'Elevated risk'; detail = 'Significant atmospheric shift';
+                color = 'var(--pain-severe)'; label = 'Elevated risk'; detail = 'Significant atmospheric shift';
             } else {
                 color = 'var(--accent-red)'; label = 'High risk'; detail = 'Major atmospheric change';
             }
@@ -13072,20 +13072,48 @@ Browser: ${navigator.userAgent}
             return !LIGHT_THEMES.has(document.documentElement.getAttribute('data-theme'));
         }
 
-        // Get theme-aware colors for charts
+        // Read a CSS custom property off :root so charts follow whichever theme
+        // is live rather than carrying their own palette.
+        function themeToken(name, fallback) {
+            const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+            return value || fallback;
+        }
+
+        // Accepts #rgb / #rrggbb / rgb() / rgba() and returns an rgba() string.
+        function withAlpha(color, alpha) {
+            if (!color) return `rgba(0, 0, 0, ${alpha})`;
+            const hex = color.trim();
+            if (hex.startsWith('#')) {
+                let h = hex.slice(1);
+                if (h.length === 3) h = h.split('').map(c => c + c).join('');
+                const n = parseInt(h, 16);
+                if (h.length !== 6 || isNaN(n)) return `rgba(0, 0, 0, ${alpha})`;
+                return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+            }
+            const m = hex.match(/rgba?\(([^)]+)\)/);
+            if (m) {
+                const [r, g, b] = m[1].split(',').map(p => parseFloat(p));
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
+            return hex;
+        }
+
+        // Chart palette, derived from the active theme's brand tokens.
         function getChartColors() {
-            const isDark = isDarkTheme();
+            const primary = themeToken('--accent-green', '#8fb394');
+            const text = themeToken('--text-primary', '#ede8df');
 
             return {
-                text: isDark ? '#f0eeeb' : '#2a2a2a',
-                textSecondary: isDark ? '#d8d5cf' : '#666666',
-                grid: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
-                primary: isDark ? 'rgb(168, 85, 247)' : 'rgb(147, 51, 234)',  // Brighter purple for dark mode
-                primaryBg: isDark ? 'rgba(168, 85, 247, 0.2)' : 'rgba(147, 51, 234, 0.1)',
-                green: isDark ? '#9cd4ab' : '#4a7c59',  // Brighter green for dark mode
-                yellow: isDark ? '#ffd966' : '#ff9800',  // Brighter yellow for dark mode
-                red: isDark ? '#ff9e94' : '#f44336',  // Brighter red for dark mode
-                blue: isDark ? '#90bbff' : '#2196f3'  // Brighter blue for dark mode
+                text: text,
+                textSecondary: themeToken('--text-secondary', '#cfc7b8'),
+                grid: withAlpha(text, 0.12),
+                primary: primary,
+                primaryBg: withAlpha(primary, 0.2),
+                primaryFill: withAlpha(primary, 0.6),
+                green: themeToken('--pain-mild', '#8fb394'),
+                yellow: themeToken('--pain-moderate', '#d4a574'),
+                red: themeToken('--pain-severe', '#c97a6f'),
+                blue: themeToken('--accent-blue', '#7a95b8')
             };
         }
 
@@ -13310,7 +13338,7 @@ Browser: ${navigator.userAgent}
                     color = 'var(--accent-green)';
                     msg = `Your "Weather change" logs don't line up with measured swings (${wtPct}% vs ${basePct}% baseline). The barometer may not be the driver, or changes are subtler than your threshold.`;
                 } else {
-                    color = '#d4a574';
+                    color = 'var(--pain-moderate)';
                     msg = `Your "Weather change" logs roughly match your baseline (${wtPct}% vs ${basePct}%) — no strong signal either way yet.`;
                 }
                 verdict = `<div style="padding: 12px 14px; border-radius: 10px; background: var(--bg-tertiary); border-left: 3px solid ${color}; margin-bottom: 14px;">
@@ -13550,7 +13578,7 @@ Browser: ${navigator.userAgent}
                     datasets: [{
                         label: 'Number of Migraines',
                         data: Object.values(timeBlocks),
-                        backgroundColor: colors.primaryBg.replace('0.2', '0.6'),
+                        backgroundColor: colors.primaryFill,
                         borderColor: colors.primary,
                         borderWidth: 2
                     }]
@@ -13697,7 +13725,7 @@ Browser: ${navigator.userAgent}
                 messageSuffix = `Pressure changes appear to be a real trigger for you.${rrNote}`;
             } else if (correlation.level === 'moderate') {
                 strengthText = 'Moderate correlation';
-                strengthColor = '#d4a574';
+                strengthColor = 'var(--pain-moderate)';
                 messageSuffix = `Pressure may be contributing to some of your attacks.${rrNote}`;
             } else {
                 // Honest disconfirmation — this is valuable information, not a failure
@@ -14100,7 +14128,7 @@ Browser: ${navigator.userAgent}
                     : 'N/A';
 
                 return `
-                    <div style="margin-bottom: 24px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-purple)'};">
+                    <div style="margin-bottom: 24px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-green)'};">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                             <div>
                                 <div style="font-weight: 600; font-size: 1.1rem;">${safeText(med.name)}</div>
@@ -14144,7 +14172,7 @@ Browser: ${navigator.userAgent}
 
                 const monthsHTML = stats.mohRisk.lastThreeMonths.map(month => {
                     const isWarning = month.atThreshold;
-                    return `<div style="color: ${isWarning ? '#dc2626' : 'var(--text-secondary)'}; padding: 4px 0;">
+                    return `<div style="color: ${isWarning ? 'var(--pain-severe)' : 'var(--text-secondary)'}; padding: 4px 0;">
                         ${month.name}: <strong>${month.count} days</strong>${month.highRiskCount > 0 && month.highRiskCount !== month.count ? ` (${month.highRiskCount} triptan/combination)` : ''} ${isWarning ? '[WARNING]' : ''}
                     </div>`;
                 }).join('');
@@ -14161,7 +14189,7 @@ Browser: ${navigator.userAgent}
                 <div style="margin-top: 16px;">
                     <h3 style="margin-bottom: 16px;">Medication Usage Frequency</h3>
                     ${sortedByUse.map(med => `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 6px; margin-bottom: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-purple)'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 6px; margin-bottom: 8px; border-left: 3px solid ${med.type === 'abortive' ? 'var(--accent-blue)' : 'var(--accent-green)'};">
                             <div>
                                 <div style="font-weight: 600;">${med.name}</div>
                                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
