@@ -4737,7 +4737,6 @@
         function retryUntilSuccess(fn, checkFn, maxAttempts = 15, delayMs = 10, attemptNum = 1) {
             // checkFn returns true if we should execute fn
             if (checkFn()) {
-                console.log(`[SUCCESS] Executing ${fn.name} (attempt ${attemptNum})`);
                 fn();
                 return;
             }
@@ -5890,11 +5889,21 @@
             document.getElementById(`${pageName}-page`).classList.add('active');
 
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.page === pageName) {
-                    btn.classList.add('active');
+                const isCurrent = btn.dataset.page === pageName;
+                btn.classList.toggle('active', isCurrent);
+                // Colour alone doesn't tell a screen reader (or a colour-blind
+                // user) which tab they're on.
+                if (isCurrent) {
+                    btn.setAttribute('aria-current', 'page');
+                } else {
+                    btn.removeAttribute('aria-current');
                 }
             });
+
+            // Each page is its own view, so start it at the top. Without this,
+            // switching from the bottom of a long History list landed you
+            // partway down Insights.
+            window.scrollTo(0, 0);
 
             if (pageName === 'history') {
                 renderHistory();
@@ -5918,14 +5927,10 @@
                         return !!(statusText && enableSection);
                     }
                 );
-                setTimeout(() => {
-                    initializePhase1Settings();
-                    initializeDebugMode();
-                }, 100);
+                initializePhase1Settings();
+                initializeDebugMode();
             } else if (pageName === 'log') {
                 // Log page contains both the dashboard and the calendar
-                console.log('[ANALYTICS] Switching to log page, updating dashboard and calendar');
-
                 // Use retry mechanism to ensure elements are ready
                 retryUntilSuccess(
                     updateDashboard,
@@ -6860,7 +6865,6 @@
                 return;
             }
 
-            console.log('[SUCCESS] Dashboard updated:', total, 'episodes');
             totalElem.textContent = total;
             avgPainElem.textContent = avgPain;
             weekCountElem.textContent = thisWeek;
@@ -7851,7 +7855,6 @@
             }
 
             calendarGridElem.innerHTML = html;
-            console.log('[SUCCESS] Calendar rendered for', new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
         }
 
         function showDayDetails(dateStr) {
@@ -11309,7 +11312,6 @@ Browser: ${navigator.userAgent}
                         value: weatherData,
                         timestamp: Date.now()
                     });
-                    console.log('[SUCCESS] Weather data saved to IndexedDB');
                 } catch (error) {
                     console.error('[ERROR] Failed to save weather to IndexedDB:', error);
                 }
