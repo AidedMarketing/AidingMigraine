@@ -48,6 +48,35 @@
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             --radius: 12px;
             --transition: all 0.2s ease;
+
+            /* Surface tokens — every theme must define these. Anything painted
+               behind or on top of content (page background, nav, cards, chips)
+               reads from here so a theme switch changes the whole app, not just
+               the parts that happened to use a var(). */
+            --app-bg-gradient:
+                radial-gradient(circle at top left, rgba(143, 179, 148, 0.12), transparent 34rem),
+                linear-gradient(180deg, rgba(42, 36, 32, 0.96) 0%, var(--bg-primary) 22rem);
+            --card-border: rgba(237, 232, 223, 0.1);
+            --card-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+            --hero-tint-a: rgba(143, 179, 148, 0.18);
+            --hero-tint-b: rgba(201, 122, 111, 0.09);
+            --hero-border: rgba(143, 179, 148, 0.32);
+            --chip-bg: rgba(28, 24, 21, 0.36);
+            --chip-border: rgba(237, 232, 223, 0.12);
+            --surface-nav: rgba(42, 36, 32, 0.94);
+            --surface-nav-border: rgba(237, 232, 223, 0.1);
+            --surface-nav-shadow: 0 -16px 40px rgba(0, 0, 0, 0.28);
+            --nav-active-bg: rgba(143, 179, 148, 0.14);
+            --accent-green-hover: #a5c5ad;
+            --accent-soft: rgba(143, 179, 148, 0.18);
+            --surface-raised: rgba(237, 232, 223, 0.06);
+            --trend-up-bg: rgba(201, 122, 111, 0.18);
+            --trend-down-bg: rgba(143, 179, 148, 0.18);
+            --pain-mild-soft: rgba(143, 179, 148, 0.35);
+            --pain-moderate-soft: rgba(212, 165, 116, 0.35);
+            --pain-severe-soft: rgba(201, 122, 111, 0.35);
+            --surface-nav-blur: blur(18px);
+            --surface-overlay: rgba(0, 0, 0, 0.7);
         }
 
         /* === WARM LIGHT THEME === */
@@ -61,10 +90,37 @@
             --accent-green: #4a7c59;
             --accent-red: #b85050;
             --accent-blue: #4a6b9e;
+            /* Darker than the dark-theme amber so the white text drawn on it
+               (calendar day cells, legend dots) clears 4.5:1 on a light field. */
             --pain-mild: #4a7c59;
-            --pain-moderate: #d4a574;
+            --pain-moderate: #8a5d1f;
             --pain-severe: #b85050;
             --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+            --app-bg-gradient:
+                radial-gradient(circle at top left, rgba(74, 124, 89, 0.10), transparent 34rem),
+                linear-gradient(180deg, rgba(240, 237, 232, 0.96) 0%, var(--bg-primary) 22rem);
+            --card-border: rgba(58, 54, 52, 0.10);
+            --card-shadow: 0 14px 40px rgba(0, 0, 0, 0.07);
+            --hero-tint-a: rgba(74, 124, 89, 0.14);
+            --hero-tint-b: rgba(184, 80, 80, 0.07);
+            --hero-border: rgba(74, 124, 89, 0.30);
+            --chip-bg: rgba(58, 54, 52, 0.05);
+            --chip-border: rgba(58, 54, 52, 0.14);
+            --surface-nav: rgba(253, 252, 251, 0.94);
+            --surface-nav-border: rgba(58, 54, 52, 0.12);
+            --surface-nav-shadow: 0 -16px 40px rgba(0, 0, 0, 0.10);
+            --nav-active-bg: rgba(74, 124, 89, 0.12);
+            --accent-green-hover: #3d6849;
+            --accent-soft: rgba(74, 124, 89, 0.16);
+            --surface-raised: rgba(58, 54, 52, 0.04);
+            --trend-up-bg: rgba(184, 80, 80, 0.14);
+            --trend-down-bg: rgba(74, 124, 89, 0.14);
+            --pain-mild-soft: rgba(74, 124, 89, 0.22);
+            --pain-moderate-soft: rgba(138, 93, 31, 0.22);
+            --pain-severe-soft: rgba(184, 80, 80, 0.22);
+            --surface-nav-blur: blur(18px);
+            --surface-overlay: rgba(58, 54, 52, 0.45);
         }
 
         /* === HIGH CONTRAST THEME === */
@@ -82,20 +138,31 @@
             --pain-moderate: #ffaa00;
             --pain-severe: #ff4444;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-        }
 
-        /* === LIGHT THEME (backwards compatibility - maps to warm-light) === */
-        :root[data-theme="light"] {
-            --bg-primary: #f8f6f3;
-            --bg-secondary: #fdfcfb;
-            --bg-tertiary: #f0ede8;
-            --text-primary: #3a3634;
-            --text-secondary: #6b6560;
-            --border-color: #d4cfc8;
-            --accent-green: #4a7c59;
-            --accent-red: #b85050;
-            --accent-blue: #4a6b9e;
-            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            /* Flat and opaque on purpose: gradients, blur and soft shadows all
+               work against a high-contrast theme. */
+            --app-bg-gradient: none;
+            --card-border: #666666;
+            --card-shadow: none;
+            --hero-tint-a: transparent;
+            --hero-tint-b: transparent;
+            --hero-border: var(--accent-green);
+            --chip-bg: #2d2d2d;
+            --chip-border: #666666;
+            --surface-nav: #000000;
+            --surface-nav-border: #666666;
+            --surface-nav-shadow: none;
+            --nav-active-bg: #2d2d2d;
+            --accent-green-hover: #66ffb0;
+            --accent-soft: #2d2d2d;
+            --surface-raised: #2d2d2d;
+            --trend-up-bg: #2d2d2d;
+            --trend-down-bg: #2d2d2d;
+            --pain-mild-soft: #2d2d2d;
+            --pain-moderate-soft: #2d2d2d;
+            --pain-severe-soft: #2d2d2d;
+            --surface-nav-blur: none;
+            --surface-overlay: rgba(0, 0, 0, 0.85);
         }
 
         /* === BASE STYLES === */
@@ -111,9 +178,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(143, 179, 148, 0.12), transparent 34rem),
-                linear-gradient(180deg, rgba(42, 36, 32, 0.96) 0%, var(--bg-primary) 22rem);
+            background-color: var(--bg-primary);
+            background-image: var(--app-bg-gradient);
             color: var(--text-primary);
             line-height: 1.6;
             padding-bottom: calc(94px + env(safe-area-inset-bottom));
@@ -157,7 +223,7 @@
             top: 0;
             right: 0;
             background: var(--accent-green);
-            color: white;
+            color: var(--bg-primary);
             border: none;
             border-radius: 50%;
             width: 36px;
@@ -174,7 +240,7 @@
 
         .help-icon:hover {
             transform: scale(1.1);
-            background: #6b9177;
+            background: var(--accent-green-hover);
         }
 
         h2 {
@@ -189,8 +255,8 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 16px;
-            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
-            border: 1px solid rgba(237, 232, 223, 0.1);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--card-border);
             max-width: 100%;
             overflow: hidden;
         }
@@ -201,7 +267,7 @@
             padding: 20px;
             margin-bottom: 16px;
             box-shadow: var(--shadow);
-            border: 1px solid rgba(143, 179, 148, 0.72);
+            border: 1px solid var(--accent-green);
         }
 
         .app-topbar {
@@ -242,8 +308,8 @@
             width: 44px;
             height: 44px;
             border-radius: 8px;
-            border: 1px solid rgba(237, 232, 223, 0.12);
-            background: rgba(237, 232, 223, 0.06);
+            border: 1px solid var(--chip-border);
+            background: var(--surface-raised);
             color: var(--text-primary);
             display: inline-flex;
             align-items: center;
@@ -263,9 +329,9 @@
             position: relative;
             overflow: hidden;
             background:
-                linear-gradient(135deg, rgba(143, 179, 148, 0.18), rgba(201, 122, 111, 0.09)),
+                linear-gradient(135deg, var(--hero-tint-a), var(--hero-tint-b)),
                 var(--bg-secondary);
-            border: 1px solid rgba(143, 179, 148, 0.32);
+            border: 1px solid var(--hero-border);
         }
 
         .today-hero h2,
@@ -317,8 +383,8 @@
             gap: 6px;
             padding: 8px 10px;
             border-radius: 8px;
-            border: 1px solid rgba(237, 232, 223, 0.12);
-            background: rgba(28, 24, 21, 0.36);
+            border: 1px solid var(--chip-border);
+            background: var(--chip-bg);
             color: var(--text-secondary);
             font-size: 0.82rem;
             line-height: 1;
@@ -348,7 +414,7 @@
             border-radius: 999px;
             font-size: 0.8rem;
             font-weight: 600;
-            color: #fff;
+            color: var(--bg-primary);
             background: var(--accent-green);
             white-space: nowrap;
         }
@@ -357,7 +423,7 @@
             width: 100%;
             height: 10px;
             border-radius: 999px;
-            background: rgba(237, 232, 223, 0.12);
+            background: var(--surface-raised);
             overflow: hidden;
         }
 
@@ -412,7 +478,7 @@
             padding: 12px 14px;
             border-radius: 10px;
             background: rgba(212, 165, 116, 0.12);
-            border-left: 3px solid #d4a574;
+            border-left: 3px solid var(--pain-moderate);
         }
 
         .risk-alert-headline {
@@ -448,7 +514,7 @@
             padding: 16px 12px;
             border-radius: 8px;
             background: var(--bg-tertiary);
-            border: 1px solid rgba(237, 232, 223, 0.08);
+            border: 1px solid var(--card-border);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -489,7 +555,7 @@
             color: var(--text-primary);
             text-decoration: none;
             background: var(--bg-tertiary);
-            border: 1px solid rgba(237, 232, 223, 0.1);
+            border: 1px solid var(--card-border);
             border-radius: 8px;
         }
 
@@ -587,7 +653,7 @@
         .chip.selected {
             background: var(--accent-green);
             border-color: var(--accent-green);
-            color: #fff;
+            color: var(--bg-primary);
         }
 
         .chip:focus-visible {
@@ -622,7 +688,7 @@
 
         .head-zone:hover {
             opacity: 0.9;
-            fill: rgba(123, 166, 138, 0.2);
+            fill: var(--accent-soft);
         }
 
         .head-zone.selected {
@@ -761,7 +827,7 @@
         .pain-btn.selected {
             background: var(--accent-green);
             border-color: var(--accent-green);
-            color: white;
+            color: var(--bg-primary);
         }
 
         .pain-labels {
@@ -865,8 +931,8 @@
         }
 
         .btn-primary:hover {
-            background: #a5c5ad;
-            border-color: #a5c5ad;
+            background: var(--accent-green-hover);
+            border-color: var(--accent-green-hover);
             transform: translateY(-2px);
             box-shadow: var(--shadow);
         }
@@ -1081,12 +1147,12 @@
         }
 
         .stat-trend.positive {
-            background: rgba(255, 107, 107, 0.15);
+            background: var(--trend-up-bg);
             color: var(--pain-severe);
         }
 
         .stat-trend.negative {
-            background: rgba(76, 175, 80, 0.15);
+            background: var(--trend-down-bg);
             color: var(--accent-green);
         }
 
@@ -1136,12 +1202,12 @@
         }
 
         .stat-change.positive {
-            background: rgba(255, 107, 107, 0.15);
+            background: var(--trend-up-bg);
             color: var(--pain-severe);
         }
 
         .stat-change.negative {
-            background: rgba(76, 175, 80, 0.15);
+            background: var(--trend-down-bg);
             color: var(--accent-green);
         }
 
@@ -1190,32 +1256,32 @@
 
         .calendar-day.mild {
             background: var(--pain-mild);
-            color: white;
+            color: var(--bg-primary);
         }
 
         .calendar-day.moderate {
             background: var(--pain-moderate);
-            color: white;
+            color: var(--bg-primary);
         }
 
         .calendar-day.severe {
             background: var(--pain-severe);
-            color: white;
+            color: var(--bg-primary);
         }
 
         .calendar-day.mild-continuation {
-            background: rgba(123, 166, 138, 0.35);
-            color: white;
+            background: var(--pain-mild-soft);
+            color: var(--text-primary);
         }
 
         .calendar-day.moderate-continuation {
-            background: rgba(212, 165, 116, 0.35);
-            color: white;
+            background: var(--pain-moderate-soft);
+            color: var(--text-primary);
         }
 
         .calendar-day.severe-continuation {
-            background: rgba(201, 104, 104, 0.35);
-            color: white;
+            background: var(--pain-severe-soft);
+            color: var(--text-primary);
         }
 
         .calendar-day.active-indicator::after {
@@ -1513,15 +1579,15 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 680px;
-            background: rgba(42, 36, 32, 0.94);
-            border-top: 1px solid rgba(237, 232, 223, 0.1);
+            background: var(--surface-nav);
+            border-top: 1px solid var(--surface-nav-border);
             display: flex;
             justify-content: space-around;
             padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-            box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.28);
+            box-shadow: var(--surface-nav-shadow);
             z-index: 100;
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: var(--surface-nav-blur);
+            -webkit-backdrop-filter: var(--surface-nav-blur);
         }
 
         .nav-btn {
@@ -1546,7 +1612,7 @@
 
         .nav-btn.active {
             color: var(--accent-green);
-            background: rgba(143, 179, 148, 0.1);
+            background: var(--nav-active-bg);
         }
 
         .nav-icon {
@@ -1573,7 +1639,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: var(--surface-overlay);
             z-index: 1000;
             animation: fadeIn 0.2s ease;
         }
@@ -1763,8 +1829,8 @@
             top: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: var(--accent-blue);
+            color: var(--bg-primary);
             padding: 12px 16px;
             z-index: 9999;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
@@ -1800,8 +1866,8 @@
         }
 
         .update-btn {
-            background: white;
-            color: #667eea;
+            background: var(--bg-secondary);
+            color: var(--accent-blue);
             border: none;
             padding: 8px 20px;
             border-radius: 20px;
@@ -1822,7 +1888,7 @@
         .dismiss-update-btn {
             background: transparent;
             border: none;
-            color: white;
+            color: var(--bg-primary);
             font-size: 1.5rem;
             cursor: pointer;
             padding: 0 8px;
@@ -1862,13 +1928,13 @@
         }
 
         .offline-banner {
-            background: linear-gradient(135deg, #f5a623 0%, #f76b1c 100%);
-            color: white;
+            background: var(--pain-moderate);
+            color: var(--bg-primary);
         }
 
         .online-banner {
-            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-            color: white;
+            background: var(--accent-green);
+            color: var(--bg-primary);
         }
 
         .container.with-status-banner {
@@ -1890,8 +1956,8 @@
             right: 16px;
             max-width: 500px;
             margin: 0 auto;
-            background: linear-gradient(135deg, var(--accent-green) 0%, #6b9177 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-hover) 100%);
+            color: var(--bg-primary);
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -1966,8 +2032,9 @@
         }
 
         .install-prompt-btn.secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+            background: transparent;
+            border: 2px solid var(--bg-primary);
+            color: var(--bg-primary);
         }
 
         .install-prompt-btn.secondary:hover {
@@ -1982,7 +2049,7 @@
             position: fixed;
             bottom: 100px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.7);
+            background: var(--surface-overlay);
             backdrop-filter: blur(10px);
             color: white;
             padding: 10px 16px;
@@ -2038,7 +2105,7 @@
         .unlock-btn {
             padding: 16px 40px;
             background: var(--accent-green);
-            color: white;
+            color: var(--bg-primary);
             border: none;
             border-radius: 12px;
             font-size: 1.1rem;
@@ -2050,7 +2117,7 @@
 
         .unlock-btn:hover {
             transform: translateY(-2px);
-            background: #6a957a;
+            background: var(--accent-green-hover);
         }
 
         /* ============================================
@@ -2116,7 +2183,7 @@
             justify-content: center;
             font-size: 24px;
             font-weight: 700;
-            color: #fff;
+            color: var(--bg-primary);
             animation: pulse 2s ease-in-out infinite;
         }
 
@@ -5583,8 +5650,23 @@
             return true; // Indicates effectiveness modal was shown
         }
 
+        // Themes the picker offers. Anything else in storage (notably the
+        // retired 'light' theme) is migrated to its closest surviving match so
+        // it can't leave the app on a data-theme with no token block behind it.
+        const VALID_THEMES = new Set(['warm-dark', 'warm-light', 'high-contrast']);
+        const THEME_MIGRATIONS = { light: 'warm-light', dark: 'warm-dark' };
+
+        function normalizeTheme(theme) {
+            if (VALID_THEMES.has(theme)) return theme;
+            return THEME_MIGRATIONS[theme] || 'warm-dark';
+        }
+
         function initializeTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'warm-dark';
+            const storedTheme = localStorage.getItem('theme') || 'warm-dark';
+            const savedTheme = normalizeTheme(storedTheme);
+            if (savedTheme !== storedTheme) {
+                localStorage.setItem('theme', savedTheme);
+            }
             applyTheme(savedTheme);
             
             document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -12985,7 +13067,7 @@ Browser: ${navigator.userAgent}
 
         // Light themes use a light chart palette; warm-dark and high-contrast
         // (a dark high-contrast theme) use the dark palette.
-        const LIGHT_THEMES = new Set(['light', 'warm-light']);
+        const LIGHT_THEMES = new Set(['warm-light']);
         function isDarkTheme() {
             return !LIGHT_THEMES.has(document.documentElement.getAttribute('data-theme'));
         }
