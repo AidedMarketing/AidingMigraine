@@ -2509,7 +2509,7 @@
     </div>
 
     <!-- Lock Screen -->
-    <div id="lock-screen" class="lock-screen" style="display: none;">
+    <div id="lock-screen" class="lock-screen" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="lock-screen-title">
         <svg class="lock-screen-icon" viewBox="0 0 24 24" aria-hidden="true">
             <rect x="3" y="11" width="18" height="11" rx="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -3910,11 +3910,16 @@
         </nav>
     </div>
 
-    <div id="modal" class="modal">
+    <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modal-title"></h2>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" aria-label="Close dialog">
+                    <svg class="icon icon-md" viewBox="0 0 24 24" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
             <div class="modal-body" id="modal-body"></div>
             <div class="modal-actions" id="modal-actions"></div>
@@ -5496,7 +5501,7 @@
             `;
 
             document.getElementById('modal-title').textContent = 'Add Medication';
-            modal.classList.add('active');
+            openDialog(modal);
 
             // Search functionality
             const searchInput = document.getElementById('med-search');
@@ -5824,7 +5829,7 @@
             }
 
             // Start rating the first medication
-            modal.classList.add('active');
+            openDialog(modal);
             showMedicationRating(0);
 
             return true; // Indicates effectiveness modal was shown
@@ -6209,7 +6214,7 @@
             `;
             
             document.getElementById('modal-title').textContent = 'Update Pain Level';
-            modal.classList.add('active');
+            openDialog(modal);
             
             body.querySelectorAll('.pain-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -6276,7 +6281,7 @@
             `;
 
             document.getElementById('modal-title').textContent = 'End Episode';
-            modal.classList.add('active');
+            openDialog(modal);
 
             // Postdrome chips — a local set seeded from any existing value
             const endPostdrome = new Set(Array.isArray(activeMigraine.postdrome)
@@ -6574,7 +6579,7 @@
             `;
 
             document.getElementById('modal-title').textContent = 'Edit Migraine Episode';
-            modal.classList.add('active');
+            openDialog(modal);
 
             // Symptom + trigger chips (fresh modal body each open, so bind fresh)
             tempEditSymptoms = new Set(Array.isArray(attack.symptoms)
@@ -7215,7 +7220,7 @@
             `;
 
             document.getElementById('modal-title').textContent = 'Edit Episode';
-            modal.classList.add('active');
+            openDialog(modal);
 
             // Render head map, chips, and relief methods list
             renderHeadMap('edit-head-map', tempEditPainLocations);
@@ -7343,7 +7348,7 @@
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="confirmDelete(${id})">Move to Trash</button>
             `;
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         function confirmDelete(id) {
@@ -7523,7 +7528,7 @@
             document.getElementById('modal-title').textContent = `Trash (${deletedMigraines.length})`;
             body.innerHTML = content;
             actions.innerHTML = '<button class="btn btn-secondary" onclick="closeModal()">Close</button>';
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         function restoreEpisode(id) {
@@ -8156,7 +8161,7 @@
                 document.getElementById('debug-localstorage').textContent = localStorageStatus;
 
                 modal.style.display = 'flex';
-                console.log('[SUCCESS] Debug modal displayed successfully');
+                openDialog(modal, { activate: false });
             } catch (error) {
                 console.error('[ERROR] Error showing debug modal:', error);
                 alert('Error showing debug modal: ' + error.message);
@@ -8167,6 +8172,7 @@
             const modal = document.getElementById('debug-modal');
             if (modal) {
                 modal.style.display = 'none';
+                closeDialog(modal, { deactivate: false });
             }
         }
 
@@ -8711,7 +8717,7 @@ Browser: ${navigator.userAgent}
             }
 
             document.getElementById('modal-title').textContent = 'Import Review';
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         function reviewConflicts(analysis) {
@@ -9222,7 +9228,7 @@ Browser: ${navigator.userAgent}
             `;
 
             document.getElementById('modal-title').textContent = 'Import Preview';
-            modal.classList.add('active');
+            openDialog(modal);
 
             document.getElementById('confirm-csv-import').addEventListener('click', () => {
                 importCSVEntries(toImport);
@@ -9273,7 +9279,7 @@ Browser: ${navigator.userAgent}
             `;
 
             document.getElementById('modal-title').textContent = 'Export PDF Report';
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         function showCustomDateRange() {
@@ -9994,7 +10000,7 @@ Browser: ${navigator.userAgent}
                 <button class="btn btn-secondary" onclick="exportJSON(); closeModal();">Export First</button>
                 <button class="btn btn-danger" onclick="confirmClearAll()">Delete All</button>
             `;
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         async function confirmClearAll() {
@@ -10064,12 +10070,88 @@ Browser: ${navigator.userAgent}
                 actionsEl.appendChild(btn);
             }
 
-            document.getElementById('modal').classList.add('active');
+            openDialog(document.getElementById('modal'));
         }
 
         function closeModal() {
-            document.getElementById('modal').classList.remove('active');
+            closeDialog(document.getElementById('modal'));
         }
+
+        // === DIALOG FOCUS MANAGEMENT ===
+        // Shared by the main modal, the debug modal and the lock screen. Before
+        // this, opening a dialog left focus behind it, Tab walked straight into
+        // the page underneath, and no dialog anywhere in the app closed on
+        // Escape.
+        const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), ' +
+                          'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        let openDialogs = [];
+
+        function focusablesIn(dialog) {
+            return [...dialog.querySelectorAll(FOCUSABLE)]
+                .filter(el => el.offsetParent !== null || getComputedStyle(el).position === 'fixed');
+        }
+
+        function openDialog(dialog, { activate = true } = {}) {
+            if (!dialog) return;
+            if (!openDialogs.some(d => d.dialog === dialog)) {
+                openDialogs.push({ dialog, returnFocus: document.activeElement });
+            }
+            if (activate) dialog.classList.add('active');
+            // Move focus in so the dialog is where the keyboard actually is.
+            const targets = focusablesIn(dialog);
+            const first = targets.find(el => !el.classList.contains('modal-close')) || targets[0];
+            if (first) {
+                first.focus();
+            } else {
+                dialog.setAttribute('tabindex', '-1');
+                dialog.focus();
+            }
+        }
+
+        function closeDialog(dialog, { deactivate = true } = {}) {
+            if (!dialog) return;
+            if (deactivate) dialog.classList.remove('active');
+            const idx = openDialogs.findIndex(d => d.dialog === dialog);
+            if (idx === -1) return;
+            const { returnFocus } = openDialogs[idx];
+            openDialogs.splice(idx, 1);
+            // Send focus back where it came from, so a keyboard user resumes
+            // from the control they activated rather than the top of the page.
+            if (returnFocus && document.contains(returnFocus) && returnFocus.focus) {
+                returnFocus.focus();
+            }
+        }
+
+        function topDialog() {
+            return openDialogs.length ? openDialogs[openDialogs.length - 1].dialog : null;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const dialog = topDialog();
+            if (!dialog) return;
+
+            if (e.key === 'Escape') {
+                // The lock screen is a gate, not a dismissible dialog.
+                if (dialog.id === 'lock-screen') return;
+                e.preventDefault();
+                if (dialog.id === 'debug-modal') { closeDebugModal(); return; }
+                closeModal();
+                return;
+            }
+
+            if (e.key !== 'Tab') return;
+            const targets = focusablesIn(dialog);
+            if (!targets.length) return;
+            const first = targets[0], last = targets[targets.length - 1];
+            // Keep Tab inside the dialog instead of letting it walk the page behind.
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        });
 
         // Delegated handler for interactive elements inside sanitized modal
         // bodies (e.g. calendar day-details Edit buttons)
@@ -10118,7 +10200,7 @@ Browser: ${navigator.userAgent}
             `;
 
             document.getElementById('modal-title').textContent = '';
-            modal.classList.add('active');
+            openDialog(modal);
         }
 
         function closeWelcome() {
@@ -15248,7 +15330,9 @@ Browser: ${navigator.userAgent}
                 pendingUnlockResolve = resolve;
                 isAppLocked = true;
                 showLockForEncryption();
-                document.getElementById('lock-screen').style.display = 'flex';
+                const lock = document.getElementById('lock-screen');
+                lock.style.display = 'flex';
+                openDialog(lock, { activate: false });
             });
         }
 
@@ -15261,7 +15345,9 @@ Browser: ${navigator.userAgent}
                 encUnlocked = false;
                 showLockForEncryption();
             }
-            document.getElementById('lock-screen').style.display = 'flex';
+            const lockEl = document.getElementById('lock-screen');
+            lockEl.style.display = 'flex';
+            openDialog(lockEl, { activate: false });
             console.log('Lock App locked');
         }
 
@@ -15269,8 +15355,8 @@ Browser: ${navigator.userAgent}
             isAppLocked = false;
             const lockScreen = document.getElementById('lock-screen');
             lockScreen.style.display = 'none';
+            closeDialog(lockScreen, { deactivate: false });
             resetInactivityTimer();
-            console.log('🔓 App unlocked');
         }
 
         // Unlock button handler
