@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v5.3.0 - PRODUCTION
+           AIDING MIGRAINE v5.4.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -369,7 +369,6 @@
         .icon-btn:focus-visible {
             border-color: var(--accent-green);
             color: var(--accent-green);
-            outline: none;
         }
 
         .today-hero {
@@ -732,11 +731,18 @@
             transition: var(--transition);
         }
 
-        input[type="text"]:focus,
+        input:focus,
+        select:focus,
         textarea:focus {
-            outline: none;
             border-color: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(143, 179, 148, 0.1);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        /* Suppress the ring only for pointer focus; :focus-visible keeps it. */
+        input:focus:not(:focus-visible),
+        select:focus:not(:focus-visible),
+        textarea:focus:not(:focus-visible) {
+            outline: none;
         }
 
         textarea {
@@ -763,10 +769,8 @@
             border-color: var(--accent-green);
         }
 
-        .pain-dropdown:focus {
+        .pain-dropdown:focus:not(:focus-visible) {
             outline: none;
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(143, 179, 148, 0.1);
         }
 
         .pain-dropdown option {
@@ -902,6 +906,105 @@
             font-family: inherit;
             cursor: pointer;
             transition: var(--transition);
+        }
+
+        /* Busy state. The heaviest operations (PDF generation, key derivation)
+           block the main thread, so the button must visibly change *before*
+           the work starts or the app just appears frozen. */
+        .btn-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: var(--space-2);
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            border-radius: var(--radius-circle);
+            animation: spin 0.8s linear infinite;
+            vertical-align: -2px;
+        }
+
+        [aria-busy="true"] {
+            cursor: progress;
+        }
+
+        /* Press feedback. Every interactive control acknowledges a tap; before
+           this only two of them did, so most of the app felt inert on touch. */
+        .btn:active,
+        .settings-btn:active,
+        .theme-btn:active,
+        .pain-btn:active,
+        .relief-quick-btn:active,
+        .calendar-nav-btn:active,
+        .toggle-details-btn:active,
+        .install-prompt-btn:active,
+        .unlock-btn:active,
+        .segment-btn:active,
+        .btn-inline:active,
+        .chip:active,
+        .nav-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Disabled affordance. :disabled appeared nowhere in the stylesheet, so
+           a button that had been disabled mid-operation looked identical to one
+           waiting to be pressed. */
+        .btn:disabled,
+        .settings-btn:disabled,
+        .theme-btn:disabled,
+        .pain-btn:disabled,
+        .relief-quick-btn:disabled,
+        .calendar-nav-btn:disabled,
+        .toggle-details-btn:disabled,
+        .update-btn:disabled,
+        .install-prompt-btn:disabled,
+        .unlock-btn:disabled,
+        .segment-btn:disabled,
+        .btn-inline:disabled,
+        .chip:disabled,
+        input:disabled,
+        select:disabled,
+        textarea:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover,
+        .settings-btn:disabled:hover,
+        .theme-btn:disabled:hover,
+        .unlock-btn:disabled:hover,
+        .install-prompt-btn:disabled:hover {
+            background: inherit;
+            border-color: inherit;
+            transform: none;
+        }
+
+        /* A single visible focus ring. Only .chip and .head-zone had one, and
+           the shared field rule skipped select, date and time inputs. */
+        .btn:focus-visible,
+        .settings-btn:focus-visible,
+        .theme-btn:focus-visible,
+        .pain-btn:focus-visible,
+        .relief-quick-btn:focus-visible,
+        .calendar-nav-btn:focus-visible,
+        .toggle-details-btn:focus-visible,
+        .update-btn:focus-visible,
+        .dismiss-update-btn:focus-visible,
+        .install-prompt-btn:focus-visible,
+        .unlock-btn:focus-visible,
+        .modal-close:focus-visible,
+        .icon-btn:focus-visible,
+        .nav-btn:focus-visible,
+        .segment-btn:focus-visible,
+        .btn-inline:focus-visible,
+        .care-link:focus-visible,
+        .calendar-day:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible,
+        .toggle-switch input:focus-visible + .toggle-slider {
+            outline: 2px solid var(--accent-green);
+            outline-offset: 2px;
         }
 
         /* Segmented control — a set of mutually exclusive choices. Selection
@@ -2199,10 +2302,43 @@
                 scroll-behavior: auto !important;
             }
 
+            /* Killing the duration alone left every transform to jump straight
+               to its end state, which is the motion itself, not a softer
+               version of it. Suppress the movement instead. */
+            .btn:hover, .btn:active,
+            .settings-btn:hover, .settings-btn:active,
+            .theme-btn:hover, .theme-btn:active,
+            .pain-btn:hover, .pain-btn:active,
+            .relief-quick-btn:hover, .relief-quick-btn:active,
+            .calendar-nav-btn:hover, .calendar-nav-btn:active,
+            .toggle-details-btn:hover, .toggle-details-btn:active,
+            .update-btn:hover, .update-btn:active,
+            .install-prompt-btn:hover, .install-prompt-btn:active,
+            .unlock-btn:hover, .unlock-btn:active,
+            .segment-btn:hover, .segment-btn:active,
+            .btn-inline:hover, .btn-inline:active,
+            .chip:hover, .chip:active,
+            .nav-btn:hover, .nav-btn:active,
+            .help-icon:hover,
+            .history-item:hover,
+            .care-link:hover,
+            .calendar-day:hover {
+                transform: none !important;
+            }
+
             /* Completely disable the pulse animation */
             .pulse-indicator {
                 animation: none !important;
                 opacity: 1 !important;
+            }
+
+            .loading-logo,
+            .loading-spinner {
+                animation: none !important;
+            }
+
+            .loading-spinner {
+                border-top-color: var(--accent-green);
             }
         }
 
@@ -2307,17 +2443,6 @@
             50% { transform: scale(1.05); opacity: 0.8; }
         }
 
-        /* Reduced motion support for loading screen */
-        @media (prefers-reduced-motion: reduce) {
-            .loading-logo {
-                animation: none !important;
-            }
-
-            .loading-spinner {
-                animation: none !important;
-                border-top-color: var(--accent-green);
-            }
-        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
@@ -3696,7 +3821,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.3.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.4.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3734,7 +3859,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v5.3.0 Production</strong>
+                            <strong>v5.4.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -3797,7 +3922,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '5.3.0';
+        const APP_VERSION = '5.4.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -4631,7 +4756,6 @@
         function retryUntilSuccess(fn, checkFn, maxAttempts = 15, delayMs = 10, attemptNum = 1) {
             // checkFn returns true if we should execute fn
             if (checkFn()) {
-                console.log(`[SUCCESS] Executing ${fn.name} (attempt ${attemptNum})`);
                 fn();
                 return;
             }
@@ -5076,7 +5200,7 @@
                 <p id="enc-error" style="display: none; color: var(--accent-red); font-size: 0.85rem;"></p>`;
             showModal('Encrypt your data', body, [
                 { text: 'Cancel', class: 'btn-secondary', action: () => { closeModal(); syncEncryptionUI(); } },
-                { text: 'Encrypt', class: 'btn-primary', action: async () => {
+                { text: 'Encrypt', class: 'btn-primary', action: async (e) => {
                     const p1 = document.getElementById('enc-pass').value;
                     const p2 = document.getElementById('enc-pass2').value;
                     const err = document.getElementById('enc-error');
@@ -5084,7 +5208,7 @@
                     if (p1.length < 8) return fail('Passphrase must be at least 8 characters.');
                     if (p1 !== p2) return fail('Passphrases do not match.');
                     try {
-                        await enableEncryption(p1);
+                        await withBusy(e.currentTarget, 'Encrypting...', () => enableEncryption(p1));
                         closeModal();
                         syncEncryptionUI();
                         showModal('Encryption on', 'Your data is now encrypted at rest. You will be asked for your passphrase when you open the app.');
@@ -5099,9 +5223,9 @@
         function openDisableEncryptionModal() {
             showModal('Turn off encryption', '<p>Your data will be stored unencrypted again on this device. Continue?</p>', [
                 { text: 'Cancel', class: 'btn-secondary', action: () => { closeModal(); syncEncryptionUI(); } },
-                { text: 'Turn off', class: 'btn-danger', action: async () => {
+                { text: 'Turn off', class: 'btn-danger', action: async (e) => {
                     try {
-                        await disableEncryption();
+                        await withBusy(e.currentTarget, 'Decrypting...', () => disableEncryption());
                         closeModal();
                         syncEncryptionUI();
                         showModal('Encryption off', 'Your data is no longer encrypted at rest.');
@@ -5127,13 +5251,13 @@
                 <p id="enc-error" style="display: none; color: var(--accent-red); font-size: 0.85rem;"></p>`;
             showModal('Change passphrase', body, [
                 { text: 'Cancel', class: 'btn-secondary', action: closeModal },
-                { text: 'Change', class: 'btn-primary', action: async () => {
+                { text: 'Change', class: 'btn-primary', action: async (e) => {
                     const oldP = document.getElementById('enc-old').value;
                     const newP = document.getElementById('enc-new').value;
                     const err = document.getElementById('enc-error');
                     const fail = (msg) => { if (err) { err.textContent = msg; err.style.display = 'block'; } };
                     if (newP.length < 8) return fail('New passphrase must be at least 8 characters.');
-                    const ok = await changePassphrase(oldP, newP);
+                    const ok = await withBusy(e.currentTarget, 'Re-encrypting...', () => changePassphrase(oldP, newP));
                     if (!ok) return fail('Current passphrase is incorrect.');
                     closeModal();
                     showModal('Passphrase changed', 'Your data has been re-encrypted with the new passphrase.');
@@ -5784,11 +5908,21 @@
             document.getElementById(`${pageName}-page`).classList.add('active');
 
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.page === pageName) {
-                    btn.classList.add('active');
+                const isCurrent = btn.dataset.page === pageName;
+                btn.classList.toggle('active', isCurrent);
+                // Colour alone doesn't tell a screen reader (or a colour-blind
+                // user) which tab they're on.
+                if (isCurrent) {
+                    btn.setAttribute('aria-current', 'page');
+                } else {
+                    btn.removeAttribute('aria-current');
                 }
             });
+
+            // Each page is its own view, so start it at the top. Without this,
+            // switching from the bottom of a long History list landed you
+            // partway down Insights.
+            window.scrollTo(0, 0);
 
             if (pageName === 'history') {
                 renderHistory();
@@ -5812,14 +5946,10 @@
                         return !!(statusText && enableSection);
                     }
                 );
-                setTimeout(() => {
-                    initializePhase1Settings();
-                    initializeDebugMode();
-                }, 100);
+                initializePhase1Settings();
+                initializeDebugMode();
             } else if (pageName === 'log') {
                 // Log page contains both the dashboard and the calendar
-                console.log('[ANALYTICS] Switching to log page, updating dashboard and calendar');
-
                 // Use retry mechanism to ensure elements are ready
                 retryUntilSuccess(
                     updateDashboard,
@@ -6754,7 +6884,6 @@
                 return;
             }
 
-            console.log('[SUCCESS] Dashboard updated:', total, 'episodes');
             totalElem.textContent = total;
             avgPainElem.textContent = avgPain;
             weekCountElem.textContent = thisWeek;
@@ -7745,7 +7874,6 @@
             }
 
             calendarGridElem.innerHTML = html;
-            console.log('[SUCCESS] Calendar rendered for', new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
         }
 
         function showDayDetails(dateStr) {
@@ -8046,7 +8174,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v5.3.0 - Debug Information
+            const debugInfo = `Aiding Migraine v5.4.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -9125,13 +9253,13 @@ Browser: ${navigator.userAgent}
             body.innerHTML = `
                 <p style="margin-bottom: 20px; color: var(--text-secondary);">Select a date range for your doctor report:</p>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button class="settings-btn" onclick="exportPDF('7days')">
+                    <button class="settings-btn" onclick="exportPDF('7days', null, null, this)">
                         <span>Last 7 Days</span>
                     </button>
-                    <button class="settings-btn" onclick="exportPDF('30days')">
+                    <button class="settings-btn" onclick="exportPDF('30days', null, null, this)">
                         <span>Last 30 Days</span>
                     </button>
-                    <button class="settings-btn" onclick="exportPDF('90days')">
+                    <button class="settings-btn" onclick="exportPDF('90days', null, null, this)">
                         <span>Last 90 Days</span>
                     </button>
                     <button class="settings-btn" onclick="showCustomDateRange()">
@@ -9194,10 +9322,23 @@ Browser: ${navigator.userAgent}
                 return;
             }
 
-            exportPDF('custom', startDate, endDate);
+            exportPDF('custom', startDate, endDate, document.activeElement);
         }
 
-        function exportPDF(rangeType, customStart, customEnd) {
+        function exportPDF(rangeType, customStart, customEnd, triggerEl) {
+            if (!window.jspdf) {
+                showModal('Report unavailable', navigator.onLine
+                    ? '<p>The PDF library could not be loaded. Try reloading the app.</p>'
+                    : "<p>Building a PDF needs a connection the first time. You can still export a spreadsheet (CSV) or a JSON backup while offline.</p>");
+                return Promise.resolve();
+            }
+            // jsPDF runs synchronously on the main thread; a 90-day report
+            // visibly freezes the tab, so show a busy state first.
+            return withBusy(triggerEl, 'Building report...', () =>
+                buildPDFReport(rangeType, customStart, customEnd));
+        }
+
+        function buildPDFReport(rangeType, customStart, customEnd) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
@@ -9786,7 +9927,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v5.3.0</strong></p>
+                <p><strong>Aiding Migraine v5.4.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -9881,6 +10022,27 @@ Browser: ${navigator.userAgent}
 
             closeModal();
             showModal('Data Cleared', 'All data has been deleted.');
+        }
+
+        // Runs `task` with `el` shown as busy. Yields two frames first so the
+        // browser paints the busy state before any synchronous work begins —
+        // without that, a blocking task freezes the UI while the button still
+        // looks idle.
+        async function withBusy(el, label, task) {
+            if (!el) return task();
+            const prevHTML = el.innerHTML;
+            const prevDisabled = el.disabled;
+            el.disabled = true;
+            el.setAttribute('aria-busy', 'true');
+            el.innerHTML = safeHTML(`<span class="btn-spinner" aria-hidden="true"></span>${safeText(label)}`);
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+            try {
+                return await task();
+            } finally {
+                el.disabled = prevDisabled;
+                el.removeAttribute('aria-busy');
+                el.innerHTML = prevHTML;
+            }
         }
 
         function showModal(title, content, actions) {
@@ -11105,7 +11267,8 @@ Browser: ${navigator.userAgent}
 
             // Refresh button
             const refreshBtn = document.getElementById('weather-refresh-btn');
-            if (refreshBtn) refreshBtn.addEventListener('click', () => fetchWeatherData(true));
+            if (refreshBtn) refreshBtn.addEventListener('click', (e) =>
+                withBusy(e.currentTarget, 'Updating...', () => fetchWeatherData(true)));
 
             // GPS button
             const gpsBtn = document.getElementById('weather-gps-btn');
@@ -11203,7 +11366,6 @@ Browser: ${navigator.userAgent}
                         value: weatherData,
                         timestamp: Date.now()
                     });
-                    console.log('[SUCCESS] Weather data saved to IndexedDB');
                 } catch (error) {
                     console.error('[ERROR] Failed to save weather to IndexedDB:', error);
                 }
@@ -11536,9 +11698,18 @@ Browser: ${navigator.userAgent}
 
             } catch (error) {
                 console.error('Weather fetch error:', error);
+                const message = navigator.onLine
+                    ? "Couldn't update weather just now. Your logged data is unaffected."
+                    : "You're offline, so weather couldn't update. Everything else still works.";
                 const statusDiv = document.getElementById('weather-location-status');
                 if (statusDiv) {
-                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">Error fetching weather data. Please try again later.</span>';
+                    statusDiv.textContent = message;
+                    statusDiv.style.color = 'var(--accent-red)';
+                }
+                // The status element lives on Settings, so a fetch started from
+                // any other page would otherwise fail with no visible sign.
+                if (forced && currentPage !== 'settings') {
+                    showModal('Weather unavailable', `<p>${safeText(message)}</p>`);
                 }
             }
         }
@@ -13188,7 +13359,42 @@ Browser: ${navigator.userAgent}
             renderAnalytics();
         }
 
+        // Chart.js and jsPDF come from a CDN, but the app is offline-first: a
+        // first load without a connection, or a blocked CDN, leaves them
+        // undefined. Say so rather than rendering empty boxes under headings
+        // that promise trends.
+        function chartsAvailable() {
+            return typeof Chart !== 'undefined';
+        }
+
+        function showChartFallback() {
+            const message = navigator.onLine
+                ? 'Charts could not be loaded. Reconnect or reload to see them.'
+                : "Charts need a connection the first time they load. Everything else works offline, and your data is safe.";
+            ['frequency-chart', 'pain-chart', 'time-chart', 'dow-chart', 'pressure-chart'].forEach(id => {
+                const canvas = document.getElementById(id);
+                if (!canvas || !canvas.parentNode) return;
+                let note = canvas.parentNode.querySelector('.chart-fallback');
+                if (!note) {
+                    note = document.createElement('p');
+                    note.className = 'chart-fallback';
+                    note.style.cssText = 'color: var(--text-secondary); font-size: var(--text-md); padding: var(--space-4) 0;';
+                    canvas.parentNode.insertBefore(note, canvas);
+                }
+                note.textContent = message;
+                canvas.style.display = 'none';
+            });
+        }
+
         function renderAnalytics() {
+            if (!chartsAvailable()) {
+                // Everything below except the five canvases is plain DOM, so the
+                // metrics and the ranked breakdowns still render normally.
+                showChartFallback();
+                renderAnalyticsData();
+                return;
+            }
+
             // Check for reduced motion preference and disable Chart.js animations
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -13213,6 +13419,13 @@ Browser: ${navigator.userAgent}
                 };
             }
 
+            renderAnalyticsData();
+        }
+
+        // Everything that does not itself require Chart.js. Charts are rendered
+        // from here too, but each call is guarded so this whole path still works
+        // when the CDN library is unavailable.
+        function renderAnalyticsData() {
             const range = document.getElementById('analytics-range').value;
             const activeMigraines = getActiveMigraines();
 
@@ -13243,15 +13456,17 @@ Browser: ${navigator.userAgent}
             updateAnalyticsMetrics(filteredData, startDate, endDate);
 
             // Render charts
-            renderFrequencyChart(filteredData, startDate, endDate);
-            renderPainChart(filteredData);
-            renderTimeChart(filteredData);
-            renderDayOfWeekChart(filteredData);
+            if (chartsAvailable()) {
+                renderFrequencyChart(filteredData, startDate, endDate);
+                renderPainChart(filteredData);
+                renderTimeChart(filteredData);
+                renderDayOfWeekChart(filteredData);
+            }
 
             // Render weather-related analytics if enabled
             if (weatherData.enabled && weatherData.history.length >= 7) {
                 renderWeatherCorrelation(filteredData);
-                renderPressureChart(filteredData, startDate, endDate);
+                if (chartsAvailable()) renderPressureChart(filteredData, startDate, endDate);
             } else {
                 // Hide weather analytics if not enabled or insufficient data
                 document.getElementById('weather-correlation-card').style.display = 'none';
@@ -14999,10 +15214,21 @@ Browser: ${navigator.userAgent}
         }
 
         // Validate the entered passphrase; on success restore the key + unlock.
+        let unlockInProgress = false;
         async function attemptEncryptionUnlock() {
+            // Key derivation takes a moment; without a guard the passphrase
+            // field's Enter handler could start several derivations at once.
+            if (unlockInProgress) return false;
+            unlockInProgress = true;
             const input = document.getElementById('unlock-passphrase');
             const err = document.getElementById('unlock-error');
-            const key = await verifyPassphrase(input ? input.value : '');
+            const btn = document.getElementById('unlock-btn');
+            let key;
+            try {
+                key = await withBusy(btn, 'Unlocking...', () => verifyPassphrase(input ? input.value : ''));
+            } finally {
+                unlockInProgress = false;
+            }
             if (!key) {
                 if (err) { err.textContent = 'Incorrect passphrase. Try again.'; err.style.display = 'block'; }
                 return false;

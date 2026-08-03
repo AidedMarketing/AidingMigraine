@@ -5,6 +5,20 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.4.0] - 2026-08-03
+
+### Changed — UI/UX Review, Part 3: How the App Responds
+
+Parts 1 and 2 were about how the app looks. This one is about how it feels to use — whether it acknowledges you, and whether it tells you what it's doing.
+
+- **Buttons respond to being pressed.** The stylesheet previously contained no disabled styling at all and press feedback on exactly two controls, so most of the app felt inert on touch and a button that had been disabled mid-operation looked identical to one waiting to be tapped.
+- **Keyboard focus is visible.** Only two elements had a focus indicator, and three rules were actively removing the browser's — including on every text field and the pain-level dropdown. Focus is now clearly visible when navigating by keyboard, while staying out of the way when clicking. The Settings toggles, which had no visible focus at all, are included.
+- **The slow operations say they're working.** Generating a PDF report runs on the main thread and could visibly freeze the app for a moment with no explanation; the same was true of turning on encryption, which has to re-encrypt everything you've logged. These now show a working state on the button before they start, and unlocking can no longer be triggered several times over by holding Enter.
+- **Weather failures are visible.** A failed weather update wrote its message into a Settings panel, so if the update was triggered from anywhere else it failed silently. It now reports where you actually are, and says something useful depending on whether you're offline.
+- **Switching tabs starts at the top.** Moving from the bottom of a long History list to Insights previously left you partway down the page. The current tab is also now announced properly to screen readers instead of being indicated by colour alone.
+- **Insights degrades honestly offline.** Charts are loaded from the internet, so on a first load without a connection the page showed four empty boxes under headings promising trends. It now explains what happened, and every non-chart breakdown still works. PDF export explains itself the same way instead of failing silently.
+- **Reduced motion is respected properly.** The setting previously shortened animations but left movement effects to jump straight to their end state — which is the motion itself, not a gentler version of it.
+
 ## [5.3.0] - 2026-08-03
 
 ### Changed — UI/UX Review, Part 2: One Design System
