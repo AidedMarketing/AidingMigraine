@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
 // Version 4.0.0 - Production Release
 
-const CACHE_NAME = 'aiding-migraine-v5.5.0-accessibility';
+const CACHE_NAME = 'aiding-migraine-v5.6.0-empty-states';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
