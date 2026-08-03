@@ -278,12 +278,10 @@
             width: 36px;
             height: 36px;
             font-size: var(--text-lg);
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: var(--shadow);
-            transition: var(--transition);
             text-decoration: none;
         }
 
@@ -364,7 +362,6 @@
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            transition: var(--transition);
         }
 
         .icon-btn:hover,
@@ -679,8 +676,6 @@
             border: 2px solid var(--border-color);
             border-radius: var(--radius-pill);
             font-size: var(--text-sm);
-            cursor: pointer;
-            transition: var(--transition);
         }
 
         .chip:hover {
@@ -848,8 +843,6 @@
             color: var(--text-primary);
             font-size: var(--text-base);
             font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
             min-height: 48px;
             display: flex;
             align-items: center;
@@ -916,8 +909,6 @@
             color: var(--text-primary);
             font-size: var(--text-base);
             font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
             text-align: left;
             display: flex;
             align-items: center;
@@ -941,16 +932,107 @@
             padding-top: var(--space-4);
         }
 
+        /* === BUTTON FOUNDATION ===
+           Every button in the app shares these; the classes below then differ
+           only in the layout and colour that make them distinct. Previously
+           each of the 16 button classes re-declared cursor/transition/font,
+           and .update-btn and .install-prompt-btn omitted font-family so they
+           rendered in the user-agent font rather than the app's. */
+        .btn,
+        .settings-btn,
+        .theme-btn,
+        .pain-btn,
+        .relief-quick-btn,
+        .calendar-nav-btn,
+        .toggle-details-btn,
+        .update-btn,
+        .dismiss-update-btn,
+        .install-prompt-btn,
+        .unlock-btn,
+        .modal-close,
+        .icon-btn,
+        .help-icon,
+        .nav-btn,
+        .segment-btn,
+        .btn-inline,
+        .chip {
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        /* Segmented control — a set of mutually exclusive choices. Selection
+           is carried by aria-pressed, so the state is exposed to assistive
+           tech instead of being implied by a "primary action" colour. */
+        /* Compact action button used inside lists and cards. */
+        .btn-inline {
+            padding: var(--space-1) var(--space-3);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: var(--text-sm);
+            color: var(--bg-primary);
+            background: var(--accent-blue);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            min-height: 32px;
+        }
+
+        .btn-inline.danger {
+            background: var(--pain-moderate);
+        }
+
+        .btn-inline.floating {
+            position: absolute;
+            top: var(--space-2);
+            right: var(--space-2);
+        }
+
+        .segmented {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .segment-btn {
+            padding: var(--space-1) var(--space-3);
+            font-size: var(--text-sm);
+            font-weight: 600;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            min-height: 36px;
+        }
+
+        .segment-btn[aria-pressed="true"] {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        /* Base rule for the relief shortcuts, whose entire appearance was
+           previously an inline style repeated on all six buttons. */
+        .relief-quick-btn {
+            padding: var(--space-3);
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: var(--text-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            min-height: 48px;
+        }
+
         .btn {
             padding: 14px 24px;
             border: none;
             border-radius: var(--radius-md);
             font-size: var(--text-base);
             font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
             width: 100%;
-            font-family: inherit;
             min-width: 0;
             min-height: 48px;
             display: inline-flex;
@@ -1071,8 +1153,6 @@
             border-radius: var(--radius-md);
             color: var(--text-primary);
             font-size: var(--text-lg);
-            cursor: pointer;
-            transition: var(--transition);
             flex-shrink: 0;
         }
 
@@ -1477,8 +1557,6 @@
             border-radius: var(--radius-md);
             color: var(--text-primary);
             font-size: var(--text-base);
-            cursor: pointer;
-            transition: var(--transition);
             text-align: left;
             display: flex;
             flex-direction: column;
@@ -1526,8 +1604,6 @@
             border: 2px solid var(--border-color);
             border-radius: var(--radius-md);
             color: var(--text-primary);
-            cursor: pointer;
-            transition: var(--transition);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1635,8 +1711,6 @@
             border: none;
             border-radius: var(--radius-md);
             color: var(--text-secondary);
-            cursor: pointer;
-            transition: var(--transition);
             min-width: 0;
         }
 
@@ -1726,7 +1800,6 @@
             border: none;
             font-size: var(--text-2xl);
             color: var(--text-secondary);
-            cursor: pointer;
             padding: 0;
             width: 32px;
             height: 32px;
@@ -1734,7 +1807,6 @@
             align-items: center;
             justify-content: center;
             border-radius: var(--radius-circle);
-            transition: var(--transition);
         }
 
         .modal-close:hover {
@@ -1907,7 +1979,6 @@
             border-radius: var(--radius-pill);
             font-weight: 700;
             font-size: var(--text-md);
-            cursor: pointer;
             transition: transform 0.2s ease;
         }
 
@@ -2048,8 +2119,6 @@
             border: none;
             border-radius: var(--radius-md);
             font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
         }
 
         .install-prompt-btn.primary {
@@ -2146,8 +2215,6 @@
             border-radius: var(--radius-lg);
             font-size: var(--text-lg);
             font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
             box-shadow: var(--shadow);
         }
 
@@ -2453,38 +2520,38 @@
 
                             <!-- Quick Action Buttons -->
                             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px;">
-                                <button class="relief-quick-btn" data-relief="Medication" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <button class="relief-quick-btn" data-relief="Medication">
                                     <svg class="icon icon-md" viewBox="0 0 24 24">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <circle cx="12" cy="12" r="3"></circle>
                                     </svg>
                                     <span>Medication</span>
                                 </button>
-                                <button class="relief-quick-btn" data-relief="Ice/Cold Therapy" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <button class="relief-quick-btn" data-relief="Ice/Cold Therapy">
                                     <svg class="icon icon-md" viewBox="0 0 24 24">
                                         <path d="M12 2v20M17 7l-10 10M7 7l10 10"></path>
                                     </svg>
                                     <span>Ice/Cold</span>
                                 </button>
-                                <button class="relief-quick-btn" data-relief="Hydration/Electrolytes" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <button class="relief-quick-btn" data-relief="Hydration/Electrolytes">
                                     <svg class="icon icon-md" viewBox="0 0 24 24">
                                         <path d="M7 16.5c2.5 1.5 6.5 1.5 9 0M12 3v1m0 16v1m9-9h-1M3 12H2m16.5-6.5l-.7.7M6.2 17.8l-.7.7m12.5 0l.7-.7M6.2 6.2l.7-.7"></path>
                                     </svg>
                                     <span>Hydration</span>
                                 </button>
-                                <button class="relief-quick-btn" data-relief="Dark/Quiet Room" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <button class="relief-quick-btn" data-relief="Dark/Quiet Room">
                                     <svg class="icon icon-md" viewBox="0 0 24 24">
                                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                                     </svg>
                                     <span>Dark/Quiet</span>
                                 </button>
-                                <button class="relief-quick-btn" data-relief="Rest/Sleep" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <button class="relief-quick-btn" data-relief="Rest/Sleep">
                                     <svg class="icon icon-md" viewBox="0 0 24 24">
                                         <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
                                     </svg>
                                     <span>Rest/Sleep</span>
                                 </button>
-                                <button class="relief-quick-btn" data-relief="Caffeine" style="padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <button class="relief-quick-btn" data-relief="Caffeine">
                                     <svg class="icon icon-md" viewBox="0 0 24 24">
                                         <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
                                         <line x1="6" y1="1" x2="6" y2="4"></line>
@@ -3443,17 +3510,17 @@
                         <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 10px;">Display Units</div>
                         <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
                             <span style="font-size: 0.82rem; color: var(--text-secondary); flex: 0 0 80px;">Pressure</span>
-                            <div style="display: flex; gap: 6px;">
-                                <button id="unit-inhg-btn" class="btn btn-primary" style="padding: 5px 12px; font-size: 0.82rem;">inHg</button>
-                                <button id="unit-hpa-btn" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.82rem;">hPa</button>
+                            <div class="segmented" role="group" aria-label="Pressure units">
+                                <button id="unit-inhg-btn" class="segment-btn" aria-pressed="true">inHg</button>
+                                <button id="unit-hpa-btn" class="segment-btn" aria-pressed="false">hPa</button>
                             </div>
                             <span style="font-size: 0.75rem; color: var(--text-secondary);">US standard / international</span>
                         </div>
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <span style="font-size: 0.82rem; color: var(--text-secondary); flex: 0 0 80px;">Temperature</span>
-                            <div style="display: flex; gap: 6px;">
-                                <button id="unit-fahrenheit-btn" class="btn btn-primary" style="padding: 5px 12px; font-size: 0.82rem;">°F</button>
-                                <button id="unit-celsius-btn" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.82rem;">°C</button>
+                            <div class="segmented" role="group" aria-label="Temperature units">
+                                <button id="unit-fahrenheit-btn" class="segment-btn" aria-pressed="true">°F</button>
+                                <button id="unit-celsius-btn" class="segment-btn" aria-pressed="false">°C</button>
                             </div>
                         </div>
                     </div>
@@ -5514,7 +5581,7 @@
                             ${safeText(med.formulation || 'Not specified')} • ${new Date(med.timeTaken).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </div>
                     </div>
-                    <button data-med-index="${index}" style="background: var(--pain-moderate); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem;">Remove</button>
+                    <button data-med-index="${index}" class="btn-inline danger">Remove</button>
                 </div>
             `).join(''));
         }
@@ -7810,7 +7877,7 @@
             if (startedToday.length > 0) {
                 content += startedToday.map(m => `
                     <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; position: relative;">
-                        <button data-edit-attack="${safeText(String(m.id))}" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
+                        <button data-edit-attack="${safeText(String(m.id))}" class="btn-inline floating" title="Edit this episode">
                             Edit
                         </button>
                         <p><strong>Started: ${formatTime(new Date(m.startTime))}</strong></p>
@@ -7832,7 +7899,7 @@
             if (ongoingToday.length > 0) {
                 content += ongoingToday.map(m => `
                     <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-blue); position: relative;">
-                        <button data-edit-attack="${safeText(String(m.id))}" style="position: absolute; top: 8px; right: 8px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;" title="Edit this episode">
+                        <button data-edit-attack="${safeText(String(m.id))}" class="btn-inline floating" title="Edit this episode">
                             Edit
                         </button>
                         <p><strong>Ongoing Attack</strong></p>
@@ -9834,7 +9901,7 @@ Browser: ${navigator.userAgent}
             document.getElementById('modal-actions').innerHTML = `
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-secondary" onclick="exportJSON(); closeModal();">Export First</button>
-                <button class="btn btn-primary" style="background: var(--accent-red);" onclick="confirmClearAll()">Delete All</button>
+                <button class="btn btn-danger" onclick="confirmClearAll()">Delete All</button>
             `;
             modal.classList.add('active');
         }
@@ -11128,13 +11195,13 @@ Browser: ${navigator.userAgent}
                 const isInHg = weatherData.displayUnit === 'inHg';
                 const inHgBtn = document.getElementById('unit-inhg-btn');
                 const hpaBtn = document.getElementById('unit-hpa-btn');
-                if (inHgBtn) { inHgBtn.className = isInHg ? 'btn btn-primary' : 'btn btn-secondary'; inHgBtn.style.padding = '5px 12px'; inHgBtn.style.fontSize = '0.82rem'; }
-                if (hpaBtn) { hpaBtn.className = isInHg ? 'btn btn-secondary' : 'btn btn-primary'; hpaBtn.style.padding = '5px 12px'; hpaBtn.style.fontSize = '0.82rem'; }
+                if (inHgBtn) inHgBtn.setAttribute('aria-pressed', String(isInHg));
+                if (hpaBtn) hpaBtn.setAttribute('aria-pressed', String(!isInHg));
                 const isFahr = weatherData.temperatureUnit === 'fahrenheit';
                 const fahrBtn = document.getElementById('unit-fahrenheit-btn');
                 const celsiusBtn = document.getElementById('unit-celsius-btn');
-                if (fahrBtn) { fahrBtn.className = isFahr ? 'btn btn-primary' : 'btn btn-secondary'; fahrBtn.style.padding = '5px 12px'; fahrBtn.style.fontSize = '0.82rem'; }
-                if (celsiusBtn) { celsiusBtn.className = isFahr ? 'btn btn-secondary' : 'btn btn-primary'; celsiusBtn.style.padding = '5px 12px'; celsiusBtn.style.fontSize = '0.82rem'; }
+                if (fahrBtn) fahrBtn.setAttribute('aria-pressed', String(isFahr));
+                if (celsiusBtn) celsiusBtn.setAttribute('aria-pressed', String(!isFahr));
                 // Update slider display to match new unit
                 const sliderVal = parseInt((document.getElementById('weather-threshold-slider') || {}).value || 5);
                 const sliderDisp = document.getElementById('weather-threshold-display');
