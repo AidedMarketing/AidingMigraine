@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v5.5.0 - PRODUCTION
+           AIDING MIGRAINE v5.6.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -2979,8 +2979,25 @@
                 <a href="./help/analytics.html" class="help-icon" title="Understanding Your Analytics">?</a>
             </h1>
 
+            <!-- Shown instead of the metrics and charts when there is nothing
+                 to analyse, so a new user isn't met with fabricated-looking
+                 zeros under headings promising trends. -->
+            <div class="section-card" id="analytics-empty" style="display: none; text-align: center;">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="width: 44px; height: 44px; stroke: var(--accent-green); margin-bottom: var(--space-3);">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <h2 style="text-align: center;">Nothing to chart yet</h2>
+                <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                    Insights appear once you've logged a few episodes — patterns in timing,
+                    pain, symptoms and triggers all build from your own entries.
+                </p>
+                <button class="btn btn-primary" id="analytics-empty-cta" style="width: auto;">Log your first episode</button>
+            </div>
+
             <!-- Date Range Selector -->
-            <div class="section-card">
+            <div class="section-card" id="analytics-range-card">
                 <label for="analytics-range" style="display: block; margin-bottom: 8px; font-weight: 600;">Time Period</label>
                 <select id="analytics-range" style="width: 100%; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem;">
                     <option value="90">Last 3 Months</option>
@@ -2991,7 +3008,7 @@
             </div>
 
             <!-- Key Metrics Grid -->
-            <div class="analytics-metrics">
+            <div class="analytics-metrics" id="analytics-metrics">
                 <div class="stat-card">
                     <div class="stat-value" id="analytics-total-days">-</div>
                     <div class="stat-label">Total Migraine Days</div>
@@ -3928,7 +3945,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.5.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.6.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -3966,7 +3983,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v5.5.0 Production</strong>
+                            <strong>v5.6.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -4037,7 +4054,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '5.5.0';
+        const APP_VERSION = '5.6.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -5015,8 +5032,7 @@
                     const totalElem = document.getElementById('total-episodes');
                     const avgPainElem = document.getElementById('avg-pain');
                     const weekCountElem = document.getElementById('week-count');
-                    const lastEpisodeElem = document.getElementById('last-episode');
-                    return !!(totalElem && avgPainElem && weekCountElem && lastEpisodeElem);
+                    return !!(totalElem && avgPainElem && weekCountElem);
                 }
             );
 
@@ -6969,7 +6985,7 @@
             const total = activeMigraines.length;
             const avgPain = total > 0
                 ? (activeMigraines.reduce((sum, m) => sum + m.painLevel, 0) / total).toFixed(1)
-                : 0;
+                : '—';
 
             const now = new Date();
             const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
@@ -6992,17 +7008,14 @@
             const totalElem = document.getElementById('total-episodes');
             const avgPainElem = document.getElementById('avg-pain');
             const weekCountElem = document.getElementById('week-count');
-            const lastEpisodeElem = document.getElementById('last-episode');
-
-            if (!totalElem || !avgPainElem || !weekCountElem || !lastEpisodeElem) {
-                console.warn('[WARNING] Dashboard elements not found in DOM - total:', !!totalElem, 'avgPain:', !!avgPainElem, 'week:', !!weekCountElem, 'last:', !!lastEpisodeElem);
+            if (!totalElem || !avgPainElem || !weekCountElem) {
+                console.warn('[WARNING] Dashboard elements not found in DOM');
                 return;
             }
 
             totalElem.textContent = total;
             avgPainElem.textContent = avgPain;
             weekCountElem.textContent = thisWeek;
-            lastEpisodeElem.textContent = lastEpisode;
 
             const dateLabel = document.getElementById('today-date-label');
             const weekChip = document.getElementById('today-week-chip');
@@ -7811,9 +7824,18 @@
 
             monthDaysEl.textContent = currentMonthDays;
 
-            // Determine clinical status based on research thresholds
+            // Determine clinical status based on research thresholds.
+            // With nothing logged this month there is no frequency to classify —
+            // asserting "Low-Frequency" to someone who has recorded nothing
+            // states a clinical finding the data doesn't support.
             let status, statusColor;
-            if (currentMonthDays >= 15) {
+            if (migraines.filter(m => !m.deleted).length === 0) {
+                status = 'No episodes logged yet';
+                statusColor = 'var(--text-secondary)';
+            } else if (currentMonthDays === 0) {
+                status = 'None this month';
+                statusColor = 'var(--accent-green)';
+            } else if (currentMonthDays >= 15) {
                 status = 'Chronic Migraine';
                 statusColor = 'var(--pain-severe)';
             } else if (currentMonthDays >= 10) {
@@ -8313,7 +8335,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v5.5.0 - Debug Information
+            const debugInfo = `Aiding Migraine v5.6.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -10066,7 +10088,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v5.5.0</strong></p>
+                <p><strong>Aiding Migraine v5.6.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
@@ -10367,7 +10389,6 @@ Browser: ${navigator.userAgent}
                     <svg viewBox="0 0 24 24" aria-hidden="true" style="width: 56px; height: 56px; margin-bottom: 20px; stroke: var(--accent-green); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;">
                         <path d="M12 21a9 9 0 1 1 9-9c0 2.5-1.5 3.5-3 3.5s-2-1-3-1-1.5 1-1.5 2.5A4 4 0 0 1 12 21z"></path>
                     </svg>
-                    <h2 style="margin-bottom: 16px; font-size: 1.5rem;">Welcome to Aiding Migraine</h2>
                     <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.8;">
                         Your personal migraine tracking companion. Log episodes, track patterns,
                         and generate professional reports for your healthcare provider.
@@ -10393,7 +10414,7 @@ Browser: ${navigator.userAgent}
                 <button class="btn btn-primary" onclick="startGuidedTour()">Take a Tour</button>
             `;
 
-            document.getElementById('modal-title').textContent = '';
+            document.getElementById('modal-title').textContent = 'Welcome to Aiding Migraine';
             openDialog(modal);
         }
 
@@ -13634,6 +13655,12 @@ Browser: ${navigator.userAgent}
             // Set up event listener for range change
             document.getElementById('analytics-range').addEventListener('change', renderAnalytics);
 
+            const emptyCta = document.getElementById('analytics-empty-cta');
+            if (emptyCta && !emptyCta.dataset.wired) {
+                emptyCta.dataset.wired = 'true';
+                emptyCta.addEventListener('click', () => showPage('log'));
+            }
+
             // Initial render
             renderAnalytics();
         }
@@ -13704,7 +13731,28 @@ Browser: ${navigator.userAgent}
         // Everything that does not itself require Chart.js. Charts are rendered
         // from here too, but each call is guarded so this whole path still works
         // when the CDN library is unavailable.
+        // Show either the analysis or the empty state, never a mix of zeros and
+        // headings promising trends.
+        function setAnalyticsEmptyState(isEmpty) {
+            const empty = document.getElementById('analytics-empty');
+            if (empty) empty.style.display = isEmpty ? 'block' : 'none';
+            ['analytics-range-card', 'analytics-metrics'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = isEmpty ? 'none' : '';
+            });
+            ['frequency-chart', 'pain-chart', 'time-chart', 'dow-chart'].forEach(id => {
+                const card = document.getElementById(id)?.closest('.section-card');
+                if (card) card.style.display = isEmpty ? 'none' : '';
+            });
+        }
+
         function renderAnalyticsData() {
+            if (getActiveMigraines().length === 0) {
+                setAnalyticsEmptyState(true);
+                return;
+            }
+            setAnalyticsEmptyState(false);
+
             const range = document.getElementById('analytics-range').value;
             const activeMigraines = getActiveMigraines();
 
@@ -14743,6 +14791,15 @@ Browser: ${navigator.userAgent}
 
             // Show medication usage list
             const sortedByUse = [...stats.medications].sort((a, b) => b.uses - a.uses);
+
+            // Without this the heading rendered with nothing beneath it.
+            if (sortedByUse.length === 0) {
+                content.innerHTML = safeHTML(
+                    '<p style="color: var(--text-secondary); margin-top: var(--space-4);">' +
+                    'No medications recorded yet. Add what you take when logging an episode and ' +
+                    'usage patterns will appear here.</p>');
+                return;
+            }
 
             content.innerHTML = `
                 <div style="margin-top: 16px;">

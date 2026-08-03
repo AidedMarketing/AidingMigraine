@@ -5,6 +5,22 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.6.0] - 2026-08-03
+
+### Fixed — Today summary stopped updating in 5.3.0
+
+The Recent pattern tiles and the status line above them stopped reflecting your data in 5.3.0 and showed their starting values instead. Reorganising that card in 5.3.0 removed a tile the update routine still checked for, so the routine gave up before writing anything. Fixed, with a new test that checks logged data actually reaches the screen rather than only checking that it looks right.
+
+### Changed — UI/UX Review, Part 5: First Impressions
+
+The last pass: what the app says before you've given it anything.
+
+- **Insights no longer invents measurements.** With nothing logged it presented "0/10 Average Pain Level" and "0.0 Average Per Month" as if they'd been measured, above four charts with axes and no data, under headings promising trends. It now says plainly that insights build from your own entries, with a button to log your first one.
+- **The calendar no longer assigns you a clinical category.** With no episodes at all it stated "Status: Low-Frequency" — a clinical classification the app had no basis for. It now says "No episodes logged yet", and distinguishes that from a month where you genuinely had none.
+- **An average of nothing is no longer shown as zero.** The average pain tile shows a dash until there's something to average.
+- **The medication breakdown no longer shows an empty heading**, and explains how usage patterns get there.
+- **The welcome dialog has a proper title.** It set its title to empty and put a second heading inside its body, leaving the dialog with a blank name for screen readers.
+
 ## [5.5.0] - 2026-08-03
 
 ### Changed — UI/UX Review, Part 4: Accessibility
