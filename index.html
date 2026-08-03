@@ -265,9 +265,10 @@
             font-size: clamp(1.55rem, 5vw, 2.1rem);
             margin-bottom: var(--space-6);
             font-weight: 600;
-            text-align: center;
+            text-align: left;
             position: relative;
             letter-spacing: 0;
+            padding-right: 48px;
         }
 
         .help-icon {
@@ -294,10 +295,10 @@
         }
 
         h2 {
-            font-size: var(--text-xl);
-            margin-bottom: var(--space-4);
-            font-weight: 500;
-            text-align: center;
+            font-size: var(--text-lg);
+            margin-bottom: var(--space-2);
+            font-weight: 700;
+            text-align: left;
         }
 
         .section-card {
@@ -378,15 +379,6 @@
                 linear-gradient(135deg, var(--hero-tint-a), var(--hero-tint-b)),
                 var(--bg-secondary);
             border: 1px solid var(--hero-border);
-        }
-
-        .today-hero h2,
-        .quick-log-card h2,
-        .mobile-section-title {
-            text-align: left;
-            margin-bottom: var(--space-2);
-            font-size: var(--text-lg);
-            font-weight: 700;
         }
 
         .today-status-copy {
@@ -535,35 +527,6 @@
             color: var(--text-secondary);
             font-size: var(--text-md);
             margin: -10px 0 14px;
-        }
-
-        .mobile-insight-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: var(--space-3);
-            margin-top: var(--space-3);
-            align-items: stretch;
-        }
-
-
-
-        .mobile-insight strong {
-            display: block;
-            width: 100%;
-            min-height: 2.25rem;
-            font-size: clamp(1.55rem, 8vw, 2rem);
-            line-height: 1;
-            color: var(--text-primary);
-            overflow-wrap: anywhere;
-        }
-
-        .mobile-insight span {
-            display: block;
-            color: var(--text-secondary);
-            font-size: var(--text-md);
-            line-height: 1.2;
-            margin-top: var(--space-2);
-            min-height: 2.2em;
         }
 
         .care-grid {
@@ -871,8 +834,6 @@
             height: 16px;
         }
 
-
-
         .icon-lg {
             width: 24px;
             height: 24px;
@@ -1063,8 +1024,7 @@
             align-items: stretch;
         }
 
-        .stat-box,
-        .mobile-insight {
+        .stat-box {
             background: var(--bg-tertiary);
             padding: var(--space-4) var(--space-3);
             border-radius: var(--radius-md);
@@ -1078,8 +1038,7 @@
             justify-content: center;
         }
 
-        .stat-box .stat-number,
-        .mobile-insight .stat-number {
+        .stat-box .stat-number {
             width: 100%;
             min-height: 2.25rem;
             display: flex;
@@ -1093,8 +1052,7 @@
             overflow-wrap: anywhere;
         }
 
-        .stat-box .stat-label,
-        .mobile-insight .stat-label {
+        .stat-box .stat-label {
             font-size: var(--text-md);
             color: var(--text-secondary);
             line-height: 1.2;
@@ -1301,8 +1259,6 @@
             margin-bottom: var(--space-2);
         }
 
-
-
         .stat-change.positive {
             background: var(--trend-up-bg);
             color: var(--pain-severe);
@@ -1508,8 +1464,6 @@
             flex-direction: column;
             gap: var(--space-3);
         }
-
-
 
         .info-label {
             color: var(--text-secondary);
@@ -1861,22 +1815,13 @@
                 gap: var(--space-3);
             }
 
-            .mobile-insight-grid {
-                gap: var(--space-3);
-            }
-
-            .stat-box,
-            .mobile-insight {
+            .stat-box {
                 min-height: 100px;
                 padding: var(--space-3) var(--space-3);
             }
 
             .stat-label,
-            .mobile-insight span {
-                font-size: var(--text-sm);
-            }
-
-            .action-buttons,
+                .action-buttons,
             .active-actions {
                 gap: var(--space-3);
             }
@@ -2204,6 +2149,46 @@
            ============================================ */
 
         /* Respect user's motion preferences - critical for migraine sufferers */
+        /* === WIDE SCREENS ===
+           The app is deliberately a single centred column, but a bar pinned to
+           the bottom of a 1440px window reads as a phone UI someone forgot to
+           adapt. Above 900px the same nav moves to the top of the window, where
+           it reads as a header. Nothing else about the column changes. */
+        @media (min-width: 900px) {
+            .bottom-nav {
+                top: 0;
+                bottom: auto;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-width: none;
+                transform: none;
+                justify-content: center;
+                gap: var(--space-2);
+                padding: var(--space-2);
+                border-top: none;
+                border-bottom: 1px solid var(--surface-nav-border);
+                box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+            }
+
+            .nav-btn {
+                flex: 0 1 130px;
+                flex-direction: row;
+                gap: var(--space-2);
+                padding: var(--space-2) var(--space-4);
+            }
+
+            .nav-label {
+                font-size: var(--text-md);
+            }
+
+            body {
+                /* room for the header instead of the bottom bar */
+                padding-top: 72px;
+                padding-bottom: var(--space-8);
+            }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *,
             *::before,
@@ -2696,7 +2681,6 @@
                 <div class="risk-card-alerts" id="risk-card-alerts" style="display: none;"></div>
             </section>
 
-
             <div class="section-card">
                 <h2 class="mobile-section-title">Recent pattern</h2>
                 <div class="stats-grid">
@@ -2706,26 +2690,16 @@
                     </div>
                     <div class="stat-box">
                         <div class="stat-number" id="avg-pain">0</div>
-                        <div class="stat-label">Avg Pain</div>
+                        <div class="stat-label">Avg pain</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="mobile-care-days">0</div>
+                        <div class="stat-label">Days this month</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-number" id="week-count">0</div>
-                        <div class="stat-label">This Week</div>
+                        <div class="stat-label">This week</div>
                         <div class="stat-comparison" id="week-comparison"></div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-number" id="last-episode">-</div>
-                        <div class="stat-label">Last Episode</div>
-                    </div>
-                </div>
-                <div class="mobile-insight-grid">
-                    <div class="mobile-insight">
-                        <strong id="mobile-care-days">0</strong>
-                        <span>migraine days this month</span>
-                    </div>
-                    <div class="mobile-insight">
-                        <strong id="mobile-care-average">0</strong>
-                        <span>average pain level</span>
                     </div>
                 </div>
             </div>
