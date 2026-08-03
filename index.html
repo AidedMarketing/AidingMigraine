@@ -344,31 +344,10 @@
             font-weight: 700;
         }
 
-        .today-status-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 16px;
-            align-items: end;
-        }
-
         .today-status-copy {
             color: var(--text-secondary);
             font-size: 0.95rem;
             line-height: 1.45;
-        }
-
-        .today-status-number {
-            font-size: 3rem;
-            line-height: 0.9;
-            font-weight: 800;
-            color: var(--accent-green);
-        }
-
-        .today-status-label {
-            color: var(--text-secondary);
-            font-size: 0.78rem;
-            text-align: right;
-            margin-top: 8px;
         }
 
         .today-chips {
@@ -376,6 +355,15 @@
             flex-wrap: wrap;
             gap: 8px;
             margin-top: 18px;
+        }
+
+        /* Orientation line under the topbar — deliberately not a card, so the
+           first card on the page is the primary action. */
+        .today-status-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: -6px 0 16px;
         }
 
         .today-chip {
@@ -2331,40 +2319,13 @@
                 </div>
             </header>
 
-            <section class="section-card today-hero" aria-labelledby="today-summary-title">
-                <div class="today-status-row">
-                    <div>
-                        <h2 id="today-summary-title">Today</h2>
-                        <p class="today-status-copy" id="today-status-copy">Ready when you need to log symptoms, check patterns, or export notes for care.</p>
-                    </div>
-                    <div>
-                        <div class="today-status-number" id="today-pain-snapshot">0</div>
-                        <div class="today-status-label">current pain</div>
-                    </div>
-                </div>
-                <div class="today-chips">
-                    <span class="today-chip" id="today-week-chip">0 this week</span>
-                    <span class="today-chip" id="today-last-chip">Last episode: -</span>
-                    <span class="today-chip">Offline ready</span>
-                </div>
-                <p class="today-status-copy" id="today-cycle-line" style="display: none; margin-top: 12px;"></p>
-            </section>
-
-            <!-- Today's outlook: surfaces the weather/ML risk predictions.
-                 Hidden until weather tracking has current data. -->
-            <section class="section-card today-risk-card" id="today-risk-card" style="display: none;" aria-labelledby="risk-card-title">
-                <div class="risk-card-header">
-                    <h2 id="risk-card-title">Today's outlook</h2>
-                    <span class="risk-card-badge" id="risk-card-label">—</span>
-                </div>
-                <div class="risk-meter" role="img" aria-label="Migraine risk meter">
-                    <div class="risk-meter-fill" id="risk-meter-fill" style="width: 0%;"></div>
-                </div>
-                <p class="risk-card-detail" id="risk-card-detail"></p>
-                <p class="risk-card-trend" id="risk-card-trend"></p>
-                <div class="risk-card-ml" id="risk-card-ml" style="display: none;"></div>
-                <div class="risk-card-alerts" id="risk-card-alerts" style="display: none;"></div>
-            </section>
+            <!-- Slim status line rather than a card: orientation only, so the
+                 primary action (Log migraine) leads the page. -->
+            <div class="today-status-strip">
+                <span class="today-chip" id="today-week-chip">0 this week</span>
+                <span class="today-chip" id="today-last-chip">Last episode: -</span>
+                <span class="today-chip" id="today-cycle-line" style="display: none;"></span>
+            </div>
 
             <div id="active-episode-section" style="display: none;">
                 <div class="active-episode-card">
@@ -2608,6 +2569,23 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Today's outlook: surfaces the weather/ML risk predictions.
+                 Hidden until weather tracking has current data. -->
+            <section class="section-card today-risk-card" id="today-risk-card" style="display: none;" aria-labelledby="risk-card-title">
+                <div class="risk-card-header">
+                    <h2 id="risk-card-title">Today's outlook</h2>
+                    <span class="risk-card-badge" id="risk-card-label">—</span>
+                </div>
+                <div class="risk-meter" role="img" aria-label="Migraine risk meter">
+                    <div class="risk-meter-fill" id="risk-meter-fill" style="width: 0%;"></div>
+                </div>
+                <p class="risk-card-detail" id="risk-card-detail"></p>
+                <p class="risk-card-trend" id="risk-card-trend"></p>
+                <div class="risk-card-ml" id="risk-card-ml" style="display: none;"></div>
+                <div class="risk-card-alerts" id="risk-card-alerts" style="display: none;"></div>
+            </section>
+
 
             <div class="section-card">
                 <h2 class="mobile-section-title">Recent pattern</h2>
@@ -6680,7 +6658,6 @@
 
             const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
             const thisMonth = activeMigraines.filter(m => new Date(m.startTime) >= monthStart).length;
-            const activePain = (activeMigraine && activeMigraine.painLevel != null) ? activeMigraine.painLevel : '—';
 
             // Check if dashboard elements exist before updating
             const totalElem = document.getElementById('total-episodes');
@@ -6700,8 +6677,6 @@
             lastEpisodeElem.textContent = lastEpisode;
 
             const dateLabel = document.getElementById('today-date-label');
-            const statusCopy = document.getElementById('today-status-copy');
-            const painSnapshot = document.getElementById('today-pain-snapshot');
             const weekChip = document.getElementById('today-week-chip');
             const lastChip = document.getElementById('today-last-chip');
             const monthDays = document.getElementById('mobile-care-days');
@@ -6714,13 +6689,6 @@
                     day: 'numeric'
                 });
             }
-            if (statusCopy) {
-                statusCopy.textContent = activeMigraine
-                    ? 'Active episode is being tracked. Keep notes brief and update pain as it changes.'
-                    : 'No active episode. Log quickly now, or review patterns before your next care visit.';
-            }
-            if (painSnapshot) painSnapshot.textContent = activeMigraine ? activePain : '-';
-            // (activePain already renders '—' when an active episode has no pain yet)
             if (weekChip) weekChip.textContent = `${thisWeek} this week`;
             if (lastChip) lastChip.textContent = `Last episode: ${lastEpisode}`;
             if (monthDays) monthDays.textContent = thisMonth;
@@ -12045,6 +12013,21 @@ Browser: ${navigator.userAgent}
             }
 
             card.style.display = 'block';
+
+            // The outlook sits below the log form by default so the primary
+            // action leads the page, and earns the slot above it only when the
+            // risk is high enough to be worth interrupting for.
+            const logSection = document.getElementById('logging-section');
+            if (logSection && logSection.parentNode) {
+                // "Elevated risk" (5) and above — matches the label bands below.
+                const shouldPromote = risk.score >= 5;
+                const isPromoted = card.nextElementSibling === logSection;
+                if (shouldPromote && !isPromoted) {
+                    logSection.parentNode.insertBefore(card, logSection);
+                } else if (!shouldPromote && isPromoted) {
+                    logSection.parentNode.insertBefore(card, logSection.nextSibling);
+                }
+            }
 
             // 1. Headline label + 0-10 meter
             const labelEl = document.getElementById('risk-card-label');
