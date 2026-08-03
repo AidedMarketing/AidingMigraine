@@ -115,6 +115,7 @@
             --surface-nav-border: rgba(237, 232, 223, 0.1);
             --surface-nav-shadow: 0 -16px 40px rgba(0, 0, 0, 0.28);
             --nav-active-bg: rgba(143, 179, 148, 0.14);
+            --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23cfc7b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             --accent-green-hover: #a5c5ad;
             --accent-soft: rgba(143, 179, 148, 0.18);
             --surface-raised: rgba(237, 232, 223, 0.06);
@@ -159,6 +160,7 @@
             --surface-nav-border: rgba(58, 54, 52, 0.12);
             --surface-nav-shadow: 0 -16px 40px rgba(0, 0, 0, 0.10);
             --nav-active-bg: rgba(74, 124, 89, 0.12);
+            --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b6560' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             --accent-green-hover: #3d6849;
             --accent-soft: rgba(74, 124, 89, 0.16);
             --surface-raised: rgba(58, 54, 52, 0.04);
@@ -201,6 +203,7 @@
             --surface-nav-border: #666666;
             --surface-nav-shadow: none;
             --nav-active-bg: #2d2d2d;
+            --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23d0d0d0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             --accent-green-hover: #66ffb0;
             --accent-soft: #2d2d2d;
             --surface-raised: #2d2d2d;
@@ -308,13 +311,10 @@
             overflow: hidden;
         }
 
+        /* A .section-card that is drawing attention to itself. */
         .active-episode-card {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            padding: var(--space-5);
-            margin-bottom: var(--space-4);
+            border-color: var(--accent-green);
             box-shadow: var(--shadow);
-            border: 1px solid var(--accent-green);
         }
 
         .app-topbar {
@@ -480,12 +480,17 @@
             margin: var(--space-2) 0 0;
         }
 
+        .risk-card-ml,
+        .risk-alert {
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            border-left: 3px solid transparent;
+        }
+
         .risk-card-ml {
             margin-top: var(--space-3);
-            padding: 12px 14px;
-            border-radius: var(--radius-md);
-            background: rgba(107, 139, 184, 0.12);
-            border-left: 3px solid var(--accent-blue, #6b8bb8);
+            background: var(--accent-soft);
+            border-left-color: var(--accent-blue);
         }
 
         .risk-card-ml-value {
@@ -509,10 +514,8 @@
         }
 
         .risk-alert {
-            padding: 12px 14px;
-            border-radius: var(--radius-md);
-            background: rgba(212, 165, 116, 0.12);
-            border-left: 3px solid var(--pain-moderate);
+            background: var(--pain-moderate-soft);
+            border-left-color: var(--pain-moderate);
         }
 
         .risk-alert-headline {
@@ -542,19 +545,7 @@
             align-items: stretch;
         }
 
-        .mobile-insight {
-            min-width: 0;
-            min-height: 108px;
-            padding: var(--space-4) var(--space-3);
-            border-radius: var(--radius-md);
-            background: var(--bg-tertiary);
-            border: 1px solid var(--card-border);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
+
 
         .mobile-insight strong {
             display: block;
@@ -791,22 +782,16 @@
         }
 
         /* Pain Dropdown (replaces button grid) */
+        /* Inherits the shared field styling above; only the custom chevron
+           and the affordance differ. The chevron colour comes from a token
+           because a data URI cannot interpolate var(). */
         .pain-dropdown {
-            width: 100%;
-            padding: 14px 16px;
-            background: var(--bg-tertiary);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-size: var(--text-base);
             font-weight: 500;
             cursor: pointer;
-            transition: var(--transition);
-            font-family: inherit;
             appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23cfc7b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-image: var(--select-chevron);
             background-repeat: no-repeat;
-            background-position: right 12px center;
+            background-position: right var(--space-3) center;
             background-size: 20px;
             padding-right: 44px;
         }
@@ -886,10 +871,7 @@
             height: 16px;
         }
 
-        .icon-md {
-            width: 20px;
-            height: 20px;
-        }
+
 
         .icon-lg {
             width: 24px;
@@ -1081,7 +1063,8 @@
             align-items: stretch;
         }
 
-        .stat-box {
+        .stat-box,
+        .mobile-insight {
             background: var(--bg-tertiary);
             padding: var(--space-4) var(--space-3);
             border-radius: var(--radius-md);
@@ -1209,12 +1192,13 @@
             gap: var(--space-3);
         }
 
-        .detail-row {
+        .detail-row,
+        .info-row {
             display: flex;
             justify-content: space-between;
             padding: var(--space-3);
             background: var(--bg-tertiary);
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius-md);
             font-size: var(--text-md);
         }
 
@@ -1257,11 +1241,16 @@
             margin-left: var(--space-1);
         }
 
-        .stat-trend {
+        .stat-trend,
+        .stat-change {
             font-size: var(--text-sm);
             font-weight: 600;
-            padding: 2px 10px;
-            border-radius: var(--radius-lg);
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-pill);
+            display: inline-block;
+        }
+
+        .stat-trend {
             margin-left: var(--space-2);
         }
 
@@ -1312,13 +1301,7 @@
             margin-bottom: var(--space-2);
         }
 
-        .stat-change {
-            font-size: var(--text-sm);
-            font-weight: 600;
-            padding: var(--space-1) var(--space-3);
-            border-radius: var(--radius-pill);
-            display: inline-block;
-        }
+
 
         .stat-change.positive {
             background: var(--trend-up-bg);
@@ -1526,13 +1509,7 @@
             gap: var(--space-3);
         }
 
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: var(--space-3);
-            background: var(--bg-tertiary);
-            border-radius: var(--radius-md);
-        }
+
 
         .info-label {
             color: var(--text-secondary);
@@ -1865,8 +1842,7 @@
                 font-size: var(--text-sm);
             }
 
-            .section-card,
-            .active-episode-card {
+            .section-card {
                 padding: var(--space-4);
                 margin-bottom: var(--space-3);
             }
@@ -2462,7 +2438,7 @@
             </div>
 
             <div id="active-episode-section" style="display: none;">
-                <div class="active-episode-card">
+                <div class="section-card active-episode-card">
                     <div class="active-header">
                         <svg class="icon icon-lg pulse-indicator" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10"></circle>
