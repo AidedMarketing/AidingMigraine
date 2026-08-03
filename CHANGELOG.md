@@ -5,6 +5,21 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.3.0] - 2026-08-03
+
+### Changed — UI/UX Review, Part 2: One Design System
+
+Part 1 fixed what was visibly broken. This pass addresses why the app looked assembled rather than designed: components were authored independently over many sprints, so almost nothing agreed with anything else.
+
+- **The app now has scales.** There were none — 18 different spacing values, 26 font sizes and 11 corner radii were in use, which is why no two cards shared a geometry. Spacing, type, radius, elevation and layering are now defined once and used throughout. Values that sat between steps were snapped to the nearest one, and font sizes that were visually indistinguishable from each other (four different "small" sizes, three different "medium") were collapsed together.
+- **One button system instead of sixteen.** Every button class was separately re-declaring its own font, cursor and transition. Several never set a font at all — including the bottom navigation, which meant **the nav labels were rendering in the browser's default font rather than the app's**. Every button now shares one foundation.
+- **The weather unit switches are a real control.** They were reusing the "primary action" button style to show which option was selected, and rewriting their own styling on every click. They are now a proper segmented control that also announces its state to screen readers.
+- **Components that were the same thing under two names are now one.** Five pairs — including two different stat tiles, two different table rows and two different trend badges — looked subtly different depending on which page you were on.
+- **Consistent headings.** Card titles were left-aligned and bold on Today but centred and lighter everywhere else, and page titles were centred except on Today. Every page now starts the same way.
+- **Wide screens look deliberate.** On a desktop or tablet the navigation moves from a bar floating at the bottom of the window — which read as a phone app nobody had adapted — to a header across the top. The layout is otherwise unchanged.
+- **The Today summary no longer repeats itself.** It showed your average pain level twice, in two different tile styles with different label capitalisation, and repeated two figures from the line directly above it. It is now a single set of four: episodes, average pain, days this month, and this week with its trend.
+- The pain-level dropdown's arrow was drawn in a fixed colour that was nearly invisible against the light theme; it now follows the theme like everything else.
+
 ## [5.2.0] - 2026-07-09
 
 ### Changed — UI/UX Review, Part 1: Visual Correctness
