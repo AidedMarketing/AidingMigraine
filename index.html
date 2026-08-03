@@ -369,7 +369,6 @@
         .icon-btn:focus-visible {
             border-color: var(--accent-green);
             color: var(--accent-green);
-            outline: none;
         }
 
         .today-hero {
@@ -732,11 +731,18 @@
             transition: var(--transition);
         }
 
-        input[type="text"]:focus,
+        input:focus,
+        select:focus,
         textarea:focus {
-            outline: none;
             border-color: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(143, 179, 148, 0.1);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        /* Suppress the ring only for pointer focus; :focus-visible keeps it. */
+        input:focus:not(:focus-visible),
+        select:focus:not(:focus-visible),
+        textarea:focus:not(:focus-visible) {
+            outline: none;
         }
 
         textarea {
@@ -763,10 +769,8 @@
             border-color: var(--accent-green);
         }
 
-        .pain-dropdown:focus {
+        .pain-dropdown:focus:not(:focus-visible) {
             outline: none;
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(143, 179, 148, 0.1);
         }
 
         .pain-dropdown option {
@@ -902,6 +906,86 @@
             font-family: inherit;
             cursor: pointer;
             transition: var(--transition);
+        }
+
+        /* Press feedback. Every interactive control acknowledges a tap; before
+           this only two of them did, so most of the app felt inert on touch. */
+        .btn:active,
+        .settings-btn:active,
+        .theme-btn:active,
+        .pain-btn:active,
+        .relief-quick-btn:active,
+        .calendar-nav-btn:active,
+        .toggle-details-btn:active,
+        .install-prompt-btn:active,
+        .unlock-btn:active,
+        .segment-btn:active,
+        .btn-inline:active,
+        .chip:active,
+        .nav-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Disabled affordance. :disabled appeared nowhere in the stylesheet, so
+           a button that had been disabled mid-operation looked identical to one
+           waiting to be pressed. */
+        .btn:disabled,
+        .settings-btn:disabled,
+        .theme-btn:disabled,
+        .pain-btn:disabled,
+        .relief-quick-btn:disabled,
+        .calendar-nav-btn:disabled,
+        .toggle-details-btn:disabled,
+        .update-btn:disabled,
+        .install-prompt-btn:disabled,
+        .unlock-btn:disabled,
+        .segment-btn:disabled,
+        .btn-inline:disabled,
+        .chip:disabled,
+        input:disabled,
+        select:disabled,
+        textarea:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover,
+        .settings-btn:disabled:hover,
+        .theme-btn:disabled:hover,
+        .unlock-btn:disabled:hover,
+        .install-prompt-btn:disabled:hover {
+            background: inherit;
+            border-color: inherit;
+            transform: none;
+        }
+
+        /* A single visible focus ring. Only .chip and .head-zone had one, and
+           the shared field rule skipped select, date and time inputs. */
+        .btn:focus-visible,
+        .settings-btn:focus-visible,
+        .theme-btn:focus-visible,
+        .pain-btn:focus-visible,
+        .relief-quick-btn:focus-visible,
+        .calendar-nav-btn:focus-visible,
+        .toggle-details-btn:focus-visible,
+        .update-btn:focus-visible,
+        .dismiss-update-btn:focus-visible,
+        .install-prompt-btn:focus-visible,
+        .unlock-btn:focus-visible,
+        .modal-close:focus-visible,
+        .icon-btn:focus-visible,
+        .nav-btn:focus-visible,
+        .segment-btn:focus-visible,
+        .btn-inline:focus-visible,
+        .care-link:focus-visible,
+        .calendar-day:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible,
+        .toggle-switch input:focus-visible + .toggle-slider {
+            outline: 2px solid var(--accent-green);
+            outline-offset: 2px;
         }
 
         /* Segmented control — a set of mutually exclusive choices. Selection
@@ -2199,10 +2283,43 @@
                 scroll-behavior: auto !important;
             }
 
+            /* Killing the duration alone left every transform to jump straight
+               to its end state, which is the motion itself, not a softer
+               version of it. Suppress the movement instead. */
+            .btn:hover, .btn:active,
+            .settings-btn:hover, .settings-btn:active,
+            .theme-btn:hover, .theme-btn:active,
+            .pain-btn:hover, .pain-btn:active,
+            .relief-quick-btn:hover, .relief-quick-btn:active,
+            .calendar-nav-btn:hover, .calendar-nav-btn:active,
+            .toggle-details-btn:hover, .toggle-details-btn:active,
+            .update-btn:hover, .update-btn:active,
+            .install-prompt-btn:hover, .install-prompt-btn:active,
+            .unlock-btn:hover, .unlock-btn:active,
+            .segment-btn:hover, .segment-btn:active,
+            .btn-inline:hover, .btn-inline:active,
+            .chip:hover, .chip:active,
+            .nav-btn:hover, .nav-btn:active,
+            .help-icon:hover,
+            .history-item:hover,
+            .care-link:hover,
+            .calendar-day:hover {
+                transform: none !important;
+            }
+
             /* Completely disable the pulse animation */
             .pulse-indicator {
                 animation: none !important;
                 opacity: 1 !important;
+            }
+
+            .loading-logo,
+            .loading-spinner {
+                animation: none !important;
+            }
+
+            .loading-spinner {
+                border-top-color: var(--accent-green);
             }
         }
 
@@ -2307,17 +2424,6 @@
             50% { transform: scale(1.05); opacity: 0.8; }
         }
 
-        /* Reduced motion support for loading screen */
-        @media (prefers-reduced-motion: reduce) {
-            .loading-logo {
-                animation: none !important;
-            }
-
-            .loading-spinner {
-                animation: none !important;
-                border-top-color: var(--accent-green);
-            }
-        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
