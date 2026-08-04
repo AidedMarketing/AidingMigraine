@@ -5,6 +5,19 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.7.0] - 2026-08-04
+
+### Changed — Unifying where episode data gets entered
+
+Pain location, triggers, symptoms and medications could be entered in some places and not others, and one gap meant a whole feature was unreachable from the app's fastest logging path.
+
+- **Medications can now be added during an active episode, and while editing any episode.** Previously, the only place that fed the structured medication list — the one that unlocks a medication-effectiveness rating when an episode ends — was the detailed log form. One-tap "Start attack now" logging, the app's headline fast path, could never produce that rating, and neither could an episode that was edited afterward. Medications are now capturable from the active-episode card and the edit screen too, all writing to the same list.
+- **Editing an episode is one screen now, not two different ones.** The calendar and History previously opened separate edit modals with different fields — one had pain level and start/end time but no relief methods, the other had relief methods but no pain level or time, so no single place could edit both. There's now one edit screen, reachable the same way from the calendar, History, and a new "Edit details" button on the active-episode card, and it carries every field.
+- **Clearing a note now actually clears it.** One of the two edit modals silently kept a resolution note after the text was deleted; both now save an emptied field as empty.
+- **Editing an episode's date no longer leaves its weather snapshot attached to the wrong day.** Moving an episode to a different date now re-derives its weather from that day's local history, or clears it if none was recorded — rather than keeping a snapshot that belonged to the original day and silently misattributing it in weather-correlation analytics.
+- **The active-episode card leads with what matters mid-attack.** Symptoms and Triggers used to show all their options at once — 31 chips before you reached relief actions or End Episode. They're now tucked behind the same collapsed-by-default sections used on the log form, alongside a new Medications section in the same style.
+- Removed a leftover pain-scale button handler that bound to nothing at startup.
+
 ## [5.6.0] - 2026-08-03
 
 ### Fixed — Today summary stopped updating in 5.3.0
