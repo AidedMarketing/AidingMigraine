@@ -5638,11 +5638,19 @@
             `;
 
             document.getElementById('modal-actions').innerHTML = `
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-secondary" id="med-picker-cancel">Cancel</button>
             `;
 
             document.getElementById('modal-title').textContent = 'Add Medication';
             openDialog(modal);
+
+            // Callers editing a longer form (the episode-edit modal) pass
+            // onDone so Cancel returns to that form instead of closing
+            // everything and discarding unrelated in-progress edits.
+            document.getElementById('med-picker-cancel').addEventListener('click', () => {
+                if (medicationPickerContext.onDone) medicationPickerContext.onDone();
+                else closeModal();
+            });
 
             // Search functionality
             const searchInput = document.getElementById('med-search');
@@ -5765,8 +5773,16 @@
             };
 
             medicationPickerContext.getList().push(medication);
-            renderMedicationsList();
-            closeModal();
+            // onDone (the edit-episode modal) fully rebuilds its own form,
+            // which recreates the medications list container along with
+            // everything else, so redrawing it here first would be wasted
+            // work on a node that's about to be discarded.
+            if (medicationPickerContext.onDone) {
+                medicationPickerContext.onDone();
+            } else {
+                renderMedicationsList();
+                closeModal();
+            }
             if (medicationPickerContext.onChange) medicationPickerContext.onChange();
         }
 
@@ -6603,264 +6619,8 @@
         // ENTRY EDITING FUNCTIONS
         // ============================================
 
-        function editAttack(attackId) {
-            // Find the attack to edit (check both completed and active)
-            let attack = migraines.find(m => m.id === attackId);
-            const isActive = activeMigraine && activeMigraine.id === attackId;
-
-            if (isActive) {
-                attack = activeMigraine;
-            }
-
-            if (!attack) {
-                showModal('Error', 'Episode not found.');
-                return;
-            }
-
-            closeModal(); // Close the day details modal
-
-            // Create edit modal
-            const modal = document.getElementById('modal');
-            const body = document.getElementById('modal-body');
-
-            // Parse start and end times
-            const startDate = new Date(attack.startTime);
-            const startDateStr = startDate.toISOString().split('T')[0];
-            const startTimeStr = startDate.toTimeString().slice(0, 5);
-
-            let endDateStr = '';
-            let endTimeStr = '';
-            if (attack.endTime) {
-                const endDate = new Date(attack.endTime);
-                endDateStr = endDate.toISOString().split('T')[0];
-                endTimeStr = endDate.toTimeString().slice(0, 5);
-            }
-
-            body.innerHTML = `
-                <div style="max-height: 60vh; overflow-y: auto;">
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Start Date & Time</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="date" id="edit-start-date" value="${startDateStr}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
-                            <input type="time" id="edit-start-time" value="${startTimeStr}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
-                        </div>
-                    </div>
-
-                    ${attack.status === 'completed' ? `
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">End Date & Time</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="date" id="edit-end-date" value="${endDateStr}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
-                            <input type="time" id="edit-end-time" value="${endTimeStr}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
-                        </div>
-                    </div>
-                    ` : ''}
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Pain Level</label>
-                        <div class="pain-scale" style="display: grid; grid-template-columns: repeat(11, 1fr); gap: 8px;">
-                            ${[0,1,2,3,4,5,6,7,8,9,10].map(i =>
-                                `<button class="pain-btn ${attack.painLevel === i ? 'selected' : ''}" data-pain="${i}" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 1.1rem; font-weight: 600;">${i}</button>`
-                            ).join('')}
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="edit-medication" style="display: block; margin-bottom: 8px; font-weight: 600;">Medication</label>
-                        <input type="text" id="edit-medication" value="${safeText(attack.medication || '')}" placeholder="e.g., Sumatriptan 100mg" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="edit-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Notes</label>
-                        <textarea id="edit-notes" rows="4" placeholder="Any additional details..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${safeText(attack.notes || '')}</textarea>
-                    </div>
-
-                    ${attack.endNotes ? `
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="edit-end-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Resolution Notes</label>
-                        <textarea id="edit-end-notes" rows="3" placeholder="How did it resolve?" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${safeText(attack.endNotes || '')}</textarea>
-                    </div>
-                    ` : ''}
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Where is the pain?</label>
-                        <div id="edit-attack-head-map"></div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Pain quality</label>
-                        <div id="edit-attack-quality-chips" class="chip-group"></div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Warning signs before (prodrome)</label>
-                        <div id="edit-attack-prodrome-chips" class="chip-group"></div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Symptoms</label>
-                        <div id="edit-attack-symptom-chips" class="chip-group"></div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Possible Triggers</label>
-                        <div id="edit-attack-trigger-chips" class="chip-group"></div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">After-effects (postdrome)</label>
-                        <div id="edit-attack-postdrome-chips" class="chip-group"></div>
-                    </div>
-
-                    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green); font-size: 0.9rem; color: var(--text-secondary);">
-                        Weather data and attack ID will be preserved
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('modal-actions').innerHTML = `
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" id="save-edit-btn">Save Changes</button>
-            `;
-
-            document.getElementById('modal-title').textContent = 'Edit Migraine Episode';
-            openDialog(modal);
-
-            // Symptom + trigger chips (fresh modal body each open, so bind fresh)
-            tempEditSymptoms = new Set(Array.isArray(attack.symptoms)
-                ? attack.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : []);
-            renderSymptomChips('edit-attack-symptom-chips', tempEditSymptoms);
-            bindSymptomChips('edit-attack-symptom-chips', tempEditSymptoms);
-            tempEditTriggers = new Set(Array.isArray(attack.triggers)
-                ? attack.triggers.filter(k => TRIGGER_KEYS.has(k)) : []);
-            renderTriggerChips('edit-attack-trigger-chips', tempEditTriggers);
-            bindTriggerChips('edit-attack-trigger-chips', tempEditTriggers);
-            tempEditProdrome = new Set(Array.isArray(attack.prodrome)
-                ? attack.prodrome.filter(k => PRODROME_KEYS.has(k)) : []);
-            renderProdromeChips('edit-attack-prodrome-chips', tempEditProdrome);
-            bindProdromeChips('edit-attack-prodrome-chips', tempEditProdrome);
-            tempEditPostdrome = new Set(Array.isArray(attack.postdrome)
-                ? attack.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
-            renderPostdromeChips('edit-attack-postdrome-chips', tempEditPostdrome);
-            bindPostdromeChips('edit-attack-postdrome-chips', tempEditPostdrome);
-            tempEditPainLocations = new Set(Array.isArray(attack.painLocations)
-                ? attack.painLocations.filter(k => HEAD_ZONE_KEYS.has(k)) : []);
-            renderHeadMap('edit-attack-head-map', tempEditPainLocations);
-            bindHeadMap('edit-attack-head-map', tempEditPainLocations);
-            tempEditQuality = new Set(Array.isArray(attack.painQuality)
-                ? attack.painQuality.filter(k => PAIN_QUALITY_KEYS.has(k)) : []);
-            renderQualityChips('edit-attack-quality-chips', tempEditQuality);
-            bindQualityChips('edit-attack-quality-chips', tempEditQuality);
-
-            // Pain level selection
-            body.querySelectorAll('.pain-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    body.querySelectorAll('.pain-btn').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                });
-            });
-
-            // Save button handler
-            document.getElementById('save-edit-btn').addEventListener('click', () => {
-                saveEditedAttack(attack, isActive);
-            });
-        }
-
-        function saveEditedAttack(originalAttack, isActive) {
-            const startDate = document.getElementById('edit-start-date').value;
-            const startTime = document.getElementById('edit-start-time').value;
-            const selectedPainBtn = document.querySelector('.pain-btn.selected');
-            const medication = document.getElementById('edit-medication').value.trim();
-            const notes = document.getElementById('edit-notes').value.trim();
-
-            if (!startDate || !startTime) {
-                showModal('Error', 'Please provide start date and time.');
-                return;
-            }
-
-            if (!selectedPainBtn) {
-                showModal('Error', 'Please select a pain level.');
-                return;
-            }
-
-            const painLevel = parseInt(selectedPainBtn.dataset.pain);
-            const startDateTime = new Date(`${startDate}T${startTime}`);
-
-            // Validation: can't set future dates
-            if (startDateTime > new Date()) {
-                showModal('Error', 'Cannot set future dates.');
-                return;
-            }
-
-            // Handle end date for completed attacks
-            let endDateTime = null;
-            let duration = null;
-            if (originalAttack.status === 'completed') {
-                const endDate = document.getElementById('edit-end-date').value;
-                const endTime = document.getElementById('edit-end-time').value;
-
-                if (endDate && endTime) {
-                    endDateTime = new Date(`${endDate}T${endTime}`);
-
-                    // Validation: end must be after start
-                    if (endDateTime <= startDateTime) {
-                        showModal('Error', 'End time must be after start time.');
-                        return;
-                    }
-
-                    duration = Math.floor((endDateTime - startDateTime) / 1000);
-                }
-            }
-
-            // Get end notes if present
-            const endNotesElement = document.getElementById('edit-end-notes');
-            const endNotes = endNotesElement ? endNotesElement.value.trim() : originalAttack.endNotes;
-
-            // Update the attack object
-            const updatedAttack = {
-                ...originalAttack,
-                startTime: startDateTime.toISOString(),
-                painLevel: painLevel,
-                category: getPainCategory(painLevel),
-                medication: medication || null,
-                notes: notes,
-                symptoms: Array.from(tempEditSymptoms),
-                triggers: Array.from(tempEditTriggers),
-                prodrome: Array.from(tempEditProdrome),
-                postdrome: Array.from(tempEditPostdrome),
-                painLocations: Array.from(tempEditPainLocations),
-                painQuality: Array.from(tempEditQuality),
-                lastModified: new Date().toISOString(),
-                editCount: (originalAttack.editCount || 0) + 1
-            };
-
-            if (endDateTime) {
-                updatedAttack.endTime = endDateTime.toISOString();
-                updatedAttack.duration = duration;
-            }
-
-            if (endNotes) {
-                updatedAttack.endNotes = endNotes;
-            }
-
-            // Save to the appropriate location
-            if (isActive) {
-                activeMigraine = updatedAttack;
-            } else {
-                const index = migraines.findIndex(m => m.id === originalAttack.id);
-                if (index !== -1) {
-                    migraines[index] = updatedAttack;
-                }
-            }
-
-            saveData();
-            updateDashboard();
-            renderCalendar();
-            renderHistory();
-
-            closeModal();
-            showModal('Success', 'Episode updated successfully!');
-        }
+// (editAttack/saveEditedAttack removed - merged into editEpisode/saveEpisodeEdit below,
+        // which now handles both active and completed episodes.)
 
         // Relief Method Tracking Functions
         function initializeReliefMethods() {
@@ -7266,6 +7026,11 @@
 
         // Temporary storage for relief methods being edited
         let tempReliefMethods = [];
+        // Structured medications being edited (mirrors currentEpisodeMedications
+        // in the quick-log form; the legacy `medication` string is derived from
+        // this on save rather than edited directly, so there's one source of
+        // truth instead of two fields that can disagree).
+        let tempEditMedications = [];
         // Symptoms being edited (rebuilt each time an edit modal opens)
         let tempEditSymptoms = new Set();
         let tempEditTriggers = new Set();
@@ -7274,97 +7039,172 @@
         let tempEditPainLocations = new Set();
         let tempEditQuality = new Set();
 
+        // The single edit surface for an episode, active or completed.
+        // Reachable from the calendar day-detail, the history list, the
+        // notification deep-link, and (once opened) the active-episode
+        // card's "Edit details" button -- all of them call this the same way.
         function editEpisode(id) {
-            const migraine = migraines.find(m => m.id === id);
-            if (!migraine) return;
+            // Find the episode to edit -- check the active one first, since
+            // it won't be in `migraines` yet.
+            let episode = migraines.find(m => m.id === id);
+            const isActive = !!(activeMigraine && activeMigraine.id === id);
+            if (isActive) episode = activeMigraine;
 
-            // Copy relief methods to temporary storage
-            tempReliefMethods = migraine.reliefMethods ? [...migraine.reliefMethods] : [];
-            tempEditSymptoms = new Set(Array.isArray(migraine.symptoms)
-                ? migraine.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : []);
-            tempEditTriggers = new Set(Array.isArray(migraine.triggers)
-                ? migraine.triggers.filter(k => TRIGGER_KEYS.has(k)) : []);
-            tempEditProdrome = new Set(Array.isArray(migraine.prodrome)
-                ? migraine.prodrome.filter(k => PRODROME_KEYS.has(k)) : []);
-            tempEditPostdrome = new Set(Array.isArray(migraine.postdrome)
-                ? migraine.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
-            tempEditPainLocations = new Set(Array.isArray(migraine.painLocations)
-                ? migraine.painLocations.filter(k => HEAD_ZONE_KEYS.has(k)) : []);
-            tempEditQuality = new Set(Array.isArray(migraine.painQuality)
-                ? migraine.painQuality.filter(k => PAIN_QUALITY_KEYS.has(k)) : []);
+            if (!episode) {
+                showToast('Episode not found.', { type: 'error' });
+                return;
+            }
 
+            // If we were opened from another dialog (day-details, the active
+            // card), close it first -- the modal system shows one at a time.
+            closeModal();
+
+            tempReliefMethods = episode.reliefMethods ? [...episode.reliefMethods] : [];
+            tempEditMedications = episode.medications ? [...episode.medications] : [];
+            tempEditSymptoms = new Set(Array.isArray(episode.symptoms)
+                ? episode.symptoms.filter(k => SYMPTOM_KEYS.has(k)) : []);
+            tempEditTriggers = new Set(Array.isArray(episode.triggers)
+                ? episode.triggers.filter(k => TRIGGER_KEYS.has(k)) : []);
+            tempEditProdrome = new Set(Array.isArray(episode.prodrome)
+                ? episode.prodrome.filter(k => PRODROME_KEYS.has(k)) : []);
+            tempEditPostdrome = new Set(Array.isArray(episode.postdrome)
+                ? episode.postdrome.filter(k => POSTDROME_KEYS.has(k)) : []);
+            tempEditPainLocations = new Set(Array.isArray(episode.painLocations)
+                ? episode.painLocations.filter(k => HEAD_ZONE_KEYS.has(k)) : []);
+            tempEditQuality = new Set(Array.isArray(episode.painQuality)
+                ? episode.painQuality.filter(k => PAIN_QUALITY_KEYS.has(k)) : []);
+
+            renderEditEpisodeForm(episode, isActive);
+        }
+
+        // Builds and wires the edit form. Also used to return to the form
+        // after the "Add Medication" sub-flow, passing the plain-input values
+        // the user had already typed so they aren't lost -- everything else
+        // (chips, head map, relief methods, medications) lives in the
+        // tempEdit* variables above and survives a rebuild automatically.
+        function renderEditEpisodeForm(episode, isActive, fieldOverrides) {
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
 
+            const startDate = new Date(episode.startTime);
+            const startDateStr = fieldOverrides ? fieldOverrides.startDate : startDate.toISOString().split('T')[0];
+            const startTimeStr = fieldOverrides ? fieldOverrides.startTime : startDate.toTimeString().slice(0, 5);
+
+            let endDateStr = '', endTimeStr = '';
+            if (fieldOverrides) {
+                endDateStr = fieldOverrides.endDate || '';
+                endTimeStr = fieldOverrides.endTime || '';
+            } else if (episode.endTime) {
+                const endDate = new Date(episode.endTime);
+                endDateStr = endDate.toISOString().split('T')[0];
+                endTimeStr = endDate.toTimeString().slice(0, 5);
+            }
+
+            const painLevel = fieldOverrides ? fieldOverrides.painLevel : episode.painLevel;
+            const notesVal = fieldOverrides ? fieldOverrides.notes : (episode.notes || '');
+            const endNotesVal = fieldOverrides ? fieldOverrides.endNotes : (episode.endNotes || '');
+            const isCompleted = episode.status === 'completed';
+
             body.innerHTML = `
-                <div class="form-group">
-                    <label>Medication</label>
-                    <input type="text" id="edit-medication" value="${safeText(migraine.medication || '')}"
-                           placeholder="e.g. Sumatriptan 100mg"
-                           style="width: 100%; padding: 12px; background: var(--bg-tertiary);
-                                  border: 1px solid var(--border-color); border-radius: 8px;
-                                  color: var(--text-primary); font-size: 1rem;">
-                </div>
-                <div class="form-group">
-                    <label>Notes</label>
-                    <textarea id="edit-notes" rows="4" placeholder="Add any notes about this episode..."
-                              style="width: 100%; padding: 12px; background: var(--bg-tertiary);
-                                     border: 1px solid var(--border-color); border-radius: 8px;
-                                     color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${safeText(migraine.notes || '')}</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Resolution Notes</label>
-                    <textarea id="edit-end-notes" rows="3" placeholder="How did it resolve? What helped?"
-                              style="width: 100%; padding: 12px; background: var(--bg-tertiary);
-                                     border: 1px solid var(--border-color); border-radius: 8px;
-                                     color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 80px;">${safeText(migraine.endNotes || '')}</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Where is the pain?</label>
-                    <div id="edit-head-map"></div>
-                </div>
-                <div class="form-group">
-                    <label>Pain quality</label>
-                    <div id="edit-quality-chips" class="chip-group"></div>
-                </div>
-                <div class="form-group">
-                    <label>Warning signs before (prodrome)</label>
-                    <div id="edit-prodrome-chips" class="chip-group"></div>
-                </div>
-                <div class="form-group">
-                    <label>Symptoms</label>
-                    <div id="edit-symptom-chips" class="chip-group"></div>
-                </div>
-                <div class="form-group">
-                    <label>Possible Triggers</label>
-                    <div id="edit-trigger-chips" class="chip-group"></div>
-                </div>
-                <div class="form-group">
-                    <label>After-effects (postdrome)</label>
-                    <div id="edit-postdrome-chips" class="chip-group"></div>
-                </div>
-                <div class="form-group">
-                    <label>Relief Methods</label>
-                    <div id="edit-relief-methods-list" style="margin-bottom: 12px;"></div>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="new-relief-method" placeholder="Add relief method (e.g., Ice pack, Sumatriptan)"
-                               style="flex: 1; padding: 10px; background: var(--bg-tertiary);
-                                      border: 1px solid var(--border-color); border-radius: 8px;
-                                      color: var(--text-primary); font-size: 0.95rem;">
-                        <button onclick="addEditReliefMethod()" class="btn btn-secondary" style="white-space: nowrap;">Add</button>
+                <div style="max-height: 60vh; overflow-y: auto;">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Start Date &amp; Time</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="date" id="edit-start-date" value="${safeText(startDateStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                            <input type="time" id="edit-start-time" value="${safeText(startTimeStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                        </div>
+                    </div>
+
+                    ${isCompleted ? `
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">End Date &amp; Time</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="date" id="edit-end-date" value="${safeText(endDateStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                            <input type="time" id="edit-end-time" value="${safeText(endTimeStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Pain level${isCompleted ? '' : ' (optional)'}</label>
+                        <div class="pain-scale" style="display: grid; grid-template-columns: repeat(11, 1fr); gap: 8px;">
+                            ${[0,1,2,3,4,5,6,7,8,9,10].map(i =>
+                                `<button type="button" class="pain-btn ${painLevel === i ? 'selected' : ''}" data-pain="${i}" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 1.1rem; font-weight: 600;">${i}</button>`
+                            ).join('')}
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Where is the pain? (optional)</label>
+                        <div id="edit-head-map"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Pain quality (optional)</label>
+                        <div id="edit-quality-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Medications (optional)</label>
+                        <div id="edit-medications-list" style="margin-bottom: 12px;"></div>
+                        <button type="button" id="edit-add-medication-btn" class="btn btn-secondary" style="width: 100%; padding: 10px;">+ Add Medication</button>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Warning signs before (prodrome, optional)</label>
+                        <div id="edit-prodrome-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Symptoms (optional)</label>
+                        <div id="edit-symptom-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Possible Triggers (optional)</label>
+                        <div id="edit-trigger-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">After-effects (postdrome, optional)</label>
+                        <div id="edit-postdrome-chips" class="chip-group"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="edit-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Notes</label>
+                        <textarea id="edit-notes" rows="4" placeholder="Add any notes about this episode..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${safeText(notesVal)}</textarea>
+                    </div>
+
+                    ${isCompleted ? `
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="edit-end-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Resolution Notes</label>
+                        <textarea id="edit-end-notes" rows="3" placeholder="How did it resolve? What helped?" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${safeText(endNotesVal)}</textarea>
+                    </div>
+                    ` : ''}
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Relief Methods</label>
+                        <div id="edit-relief-methods-list" style="margin-bottom: 12px;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="new-relief-method" placeholder="Add relief method (e.g., Ice pack, Sumatriptan)" style="flex: 1; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 0.95rem;">
+                            <button type="button" id="add-edit-relief-btn" class="btn btn-secondary" style="white-space: nowrap;">Add</button>
+                        </div>
+                    </div>
+
+                    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green); font-size: 0.9rem; color: var(--text-secondary);" id="edit-weather-note">
+                        Weather data will be preserved
                     </div>
                 </div>
             `;
 
             document.getElementById('modal-actions').innerHTML = `
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveEpisodeEdit(${id})">Save Changes</button>
+                <button class="btn btn-secondary" id="edit-cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="save-edit-btn">Save Changes</button>
             `;
 
             document.getElementById('modal-title').textContent = 'Edit Episode';
             openDialog(modal);
 
-            // Render head map, chips, and relief methods list
             renderHeadMap('edit-head-map', tempEditPainLocations);
             bindHeadMap('edit-head-map', tempEditPainLocations);
             renderQualityChips('edit-quality-chips', tempEditQuality);
@@ -7378,13 +7218,59 @@
             renderPostdromeChips('edit-postdrome-chips', tempEditPostdrome);
             bindPostdromeChips('edit-postdrome-chips', tempEditPostdrome);
             renderEditReliefMethods();
+            // No onDone here: removing a medication redraws #edit-medications-list
+            // in place and never navigates away, so nothing to return to.
+            medicationPickerContext = {
+                containerId: 'edit-medications-list',
+                getList: () => tempEditMedications
+            };
+            renderMedicationsList();
 
-            // Allow Enter key to add relief method
-            document.getElementById('new-relief-method').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    addEditReliefMethod();
-                }
+            body.querySelectorAll('.pain-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    body.querySelectorAll('.pain-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                });
             });
+
+            document.getElementById('edit-add-medication-btn').addEventListener('click', () => {
+                // Snapshot the plain fields *before* handing off to the
+                // picker, which overwrites #modal-body -- reading them inside
+                // onDone would be too late, since by then this form's inputs
+                // no longer exist in the DOM.
+                const snapshot = readEditEpisodeFieldValues();
+                showAddMedicationModal({
+                    containerId: 'edit-medications-list',
+                    getList: () => tempEditMedications,
+                    onDone: () => renderEditEpisodeForm(episode, isActive, snapshot)
+                });
+            });
+
+            document.getElementById('new-relief-method').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addEditReliefMethod();
+            });
+            document.getElementById('add-edit-relief-btn').addEventListener('click', addEditReliefMethod);
+
+            document.getElementById('edit-cancel-btn').addEventListener('click', closeModal);
+            document.getElementById('save-edit-btn').addEventListener('click', () => {
+                saveEpisodeEdit(episode, isActive);
+            });
+        }
+
+        // Snapshots the plain inputs (everything not already tracked in a
+        // tempEdit* variable) so they survive a form rebuild -- used when
+        // returning from the "Add Medication" sub-flow.
+        function readEditEpisodeFieldValues() {
+            const selectedPainBtn = document.querySelector('#modal-body .pain-btn.selected');
+            return {
+                startDate: document.getElementById('edit-start-date')?.value,
+                startTime: document.getElementById('edit-start-time')?.value,
+                endDate: document.getElementById('edit-end-date')?.value,
+                endTime: document.getElementById('edit-end-time')?.value,
+                painLevel: selectedPainBtn ? parseInt(selectedPainBtn.dataset.pain) : null,
+                notes: document.getElementById('edit-notes')?.value,
+                endNotes: document.getElementById('edit-end-notes')?.value
+            };
         }
 
         function renderEditReliefMethods() {
@@ -7457,29 +7343,98 @@
             renderEditReliefMethods();
         }
 
-        function saveEpisodeEdit(id) {
-            const migraine = migraines.find(m => m.id === id);
-            if (!migraine) return;
+        function saveEpisodeEdit(originalEpisode, isActive) {
+            const startDate = document.getElementById('edit-start-date').value;
+            const startTime = document.getElementById('edit-start-time').value;
+            if (!startDate || !startTime) {
+                showToast('Please provide a start date and time.', { type: 'error' });
+                return;
+            }
+            const startDateTime = new Date(`${startDate}T${startTime}`);
+            if (startDateTime > new Date()) {
+                showToast('Start time cannot be in the future.', { type: 'error' });
+                return;
+            }
 
-            const medication = document.getElementById('edit-medication').value.trim();
+            const isCompleted = originalEpisode.status === 'completed';
+
+            // Pain level is required for a completed episode (it's the one
+            // fact every finished episode needs) but stays optional while
+            // active, matching attack mode's "add details anytime" design --
+            // editing the location or a symptom shouldn't be blocked on
+            // picking a pain number first.
+            const selectedPainBtn = document.querySelector('#modal-body .pain-btn.selected');
+            if (isCompleted && !selectedPainBtn) {
+                showToast('Please select a pain level.', { type: 'error' });
+                return;
+            }
+            const painLevel = selectedPainBtn ? parseInt(selectedPainBtn.dataset.pain) : (originalEpisode.painLevel ?? null);
+
+            let endDateTime = null, duration = null;
+            if (isCompleted) {
+                const endDate = document.getElementById('edit-end-date').value;
+                const endTime = document.getElementById('edit-end-time').value;
+                if (endDate && endTime) {
+                    endDateTime = new Date(`${endDate}T${endTime}`);
+                    if (endDateTime <= startDateTime) {
+                        showToast('End time must be after the start time.', { type: 'error' });
+                        return;
+                    }
+                    duration = Math.floor((endDateTime - startDateTime) / 1000);
+                }
+            }
+
             const notes = document.getElementById('edit-notes').value.trim();
-            const endNotes = document.getElementById('edit-end-notes').value.trim();
+            const endNotesEl = document.getElementById('edit-end-notes');
+            const endNotes = endNotesEl ? endNotesEl.value.trim() : (originalEpisode.endNotes || '');
 
-            migraine.medication = medication || null;
-            migraine.notes = notes || null;
-            migraine.endNotes = endNotes || null;
-            migraine.reliefMethods = tempReliefMethods.length > 0 ? tempReliefMethods : null;
-            migraine.symptoms = Array.from(tempEditSymptoms);
-            migraine.triggers = Array.from(tempEditTriggers);
-            migraine.prodrome = Array.from(tempEditProdrome);
-            migraine.postdrome = Array.from(tempEditPostdrome);
-            migraine.painLocations = Array.from(tempEditPainLocations);
-            migraine.painQuality = Array.from(tempEditQuality);
+            const medications = tempEditMedications.length > 0 ? [...tempEditMedications] : null;
+
+            const updatedEpisode = {
+                ...originalEpisode,
+                startTime: startDateTime.toISOString(),
+                painLevel: painLevel,
+                category: painLevel != null ? getPainCategory(painLevel) : null,
+                medications: medications,
+                // Kept for backwards compatibility; derived from the
+                // structured list above rather than edited directly, so the
+                // two can no longer disagree.
+                medication: medications
+                    ? medications.map(m => `${m.name}${m.dosage ? ' ' + m.dosage : ''}`).join(', ')
+                    : null,
+                notes: notes || null,
+                endNotes: endNotes || null,
+                reliefMethods: tempReliefMethods.length > 0 ? tempReliefMethods : null,
+                symptoms: Array.from(tempEditSymptoms),
+                triggers: Array.from(tempEditTriggers),
+                prodrome: Array.from(tempEditProdrome),
+                postdrome: Array.from(tempEditPostdrome),
+                painLocations: Array.from(tempEditPainLocations),
+                painQuality: Array.from(tempEditQuality),
+                lastModified: new Date().toISOString(),
+                editCount: (originalEpisode.editCount || 0) + 1
+            };
+
+            if (endDateTime) {
+                updatedEpisode.endTime = endDateTime.toISOString();
+                updatedEpisode.duration = duration;
+            }
+
+            if (isActive) {
+                activeMigraine = updatedEpisode;
+            } else {
+                const index = migraines.findIndex(m => m.id === originalEpisode.id);
+                if (index !== -1) migraines[index] = updatedEpisode;
+            }
 
             saveData();
+            updateDashboard();
+            renderCalendar();
             renderHistory();
+            if (isActive) updateActiveMigraineeDisplay();
+
             closeModal();
-            showModal('Changes Saved', 'Episode has been updated successfully.');
+            showToast('Episode updated.');
         }
 
         function deleteEpisode(id) {
@@ -10394,7 +10349,7 @@ Browser: ${navigator.userAgent}
             const editBtn = e.target.closest('[data-edit-attack]');
             if (editBtn) {
                 const raw = editBtn.dataset.editAttack;
-                editAttack(isNaN(Number(raw)) ? raw : Number(raw));
+                editEpisode(isNaN(Number(raw)) ? raw : Number(raw));
             }
         });
 
@@ -11126,7 +11081,7 @@ Browser: ${navigator.userAgent}
                 if (attack) {
                     showPage('history');
                     setTimeout(() => {
-                        editAttack(attack.id);
+                        editEpisode(attack.id);
                     }, 500);
                 }
             }
