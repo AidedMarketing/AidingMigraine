@@ -7255,6 +7255,29 @@
             document.getElementById('save-edit-btn').addEventListener('click', () => {
                 saveEpisodeEdit(episode, isActive);
             });
+
+            // Only claim weather will be "preserved" when that's actually
+            // true; update live as the date is edited rather than leaving a
+            // static claim that goes stale the moment the field changes.
+            const originalDateStr = new Date(episode.startTime).toISOString().split('T')[0];
+            const updateWeatherNote = () => {
+                const note = document.getElementById('edit-weather-note');
+                const dateInput = document.getElementById('edit-start-date');
+                if (!note || !dateInput) return;
+                if (!episode.weather && !weatherData.enabled) {
+                    note.style.display = 'none';
+                    return;
+                }
+                if (dateInput.value === originalDateStr) {
+                    note.textContent = episode.weather ? 'Weather data will be preserved.' : 'No weather data was recorded for this episode.';
+                } else if (weatherData.history.some(h => h.date === dateInput.value)) {
+                    note.textContent = "Weather data will be updated to match the new date.";
+                } else {
+                    note.textContent = "No local weather data for the new date — this episode's weather will be cleared.";
+                }
+            };
+            document.getElementById('edit-start-date').addEventListener('change', updateWeatherNote);
+            updateWeatherNote();
         }
 
         // Snapshots the plain inputs (everything not already tracked in a
@@ -7356,6 +7379,16 @@
                 return;
             }
 
+            // If the start date moved to a different day, the original
+            // weather snapshot belongs to the wrong day now. Re-derive it
+            // from local history for the new date, or drop it -- keeping the
+            // old value would silently misattribute it in weather-correlation
+            // analytics.
+            const originalDateStr = new Date(originalEpisode.startTime).toISOString().split('T')[0];
+            const newDateStr = startDateTime.toISOString().split('T')[0];
+            const dateChanged = newDateStr !== originalDateStr;
+            const weather = dateChanged ? deriveWeatherForDate(newDateStr) : originalEpisode.weather;
+
             const isCompleted = originalEpisode.status === 'completed';
 
             // Pain level is required for a completed episode (it's the one
@@ -7393,6 +7426,7 @@
             const updatedEpisode = {
                 ...originalEpisode,
                 startTime: startDateTime.toISOString(),
+                weather: weather,
                 painLevel: painLevel,
                 category: painLevel != null ? getPainCategory(painLevel) : null,
                 medications: medications,
@@ -12264,6 +12298,35 @@ Browser: ${navigator.userAgent}
             } else {
                 return { text: 'Falling rapidly', icon: '↓', significant: true };
             }
+        }
+
+        // Re-derives a weather snapshot for `dateStr` (YYYY-MM-DD) from
+        // locally stored history, for when an episode's start date is edited
+        // to a different day than it was originally logged on -- the
+        // original snapshot belongs to the old day and would otherwise keep
+        // silently feeding weather-correlation analytics under the new one.
+        // Only looks at data already on the device (no network call, unlike
+        // the live fetch this app otherwise only performs for "now"); returns
+        // null when there's no local history for that date, which the caller
+        // uses to clear a now-stale snapshot rather than keep it.
+        function deriveWeatherForDate(dateStr) {
+            if (!weatherData.enabled) return null;
+            const entry = weatherData.history.find(h => h.date === dateStr);
+            if (!entry) return null;
+            return {
+                pressure: entry.dailyAvg || null,
+                humidity: entry.dailyHumidityAvg ?? null,
+                temperature: entry.dailyTempAvg ?? null,
+                weatherCode: entry.weatherCode ?? null,
+                change24h: entry.maxChange24h ?? null,
+                maxChange3h: entry.maxChange3h ?? null,
+                // trend/riskScore describe "right now" relative to recent
+                // readings and have no meaning for a past day being
+                // retroactively assigned weather.
+                trend: null,
+                riskScore: null,
+                timestamp: new Date(dateStr).getTime()
+            };
         }
 
         // Get current weather for migraine entry
