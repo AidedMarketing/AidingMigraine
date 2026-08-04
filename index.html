@@ -4580,6 +4580,20 @@
         let userMedications = [];
         let currentEpisodeMedications = []; // Temporary storage for medications being logged
 
+        // The "Add Medication" flow (search/select/dosage/confirm) writes
+        // wherever this points. Each genuine entry point sets it explicitly
+        // before opening the modal; navigating "Back" mid-flow calls
+        // showAddMedicationModal() with no argument, which leaves it as-is so
+        // the same context carries through. Quick-log is the default so the
+        // page-load render and clearForm() (which call renderMedicationsList()
+        // directly, not through the modal) target the right list.
+        const QUICKLOG_MED_CONTEXT = {
+            containerId: 'medications-list',
+            getList: () => currentEpisodeMedications,
+            onChange: null
+        };
+        let medicationPickerContext = QUICKLOG_MED_CONTEXT;
+
         // Import flow state (avoids serializing datasets into DOM attributes)
         let pendingImportAnalysis = null;
 
@@ -5601,7 +5615,8 @@
             localStorage.setItem('userMedications', JSON.stringify(userMedications));
         }
 
-        function showAddMedicationModal() {
+        function showAddMedicationModal(context) {
+            if (context) medicationPickerContext = context;
             const modal = document.getElementById('modal');
             const body = document.getElementById('modal-body');
 
@@ -5749,18 +5764,22 @@
                 timeTaken: new Date().toISOString()
             };
 
-            currentEpisodeMedications.push(medication);
+            medicationPickerContext.getList().push(medication);
             renderMedicationsList();
             closeModal();
+            if (medicationPickerContext.onChange) medicationPickerContext.onChange();
         }
 
         function removeMedicationFromEpisode(index) {
-            currentEpisodeMedications.splice(index, 1);
+            medicationPickerContext.getList().splice(index, 1);
             renderMedicationsList();
+            if (medicationPickerContext.onChange) medicationPickerContext.onChange();
         }
 
         function renderMedicationsList() {
-            const listDiv = document.getElementById('medications-list');
+            const listDiv = document.getElementById(medicationPickerContext.containerId);
+            if (!listDiv) return;
+            const list = medicationPickerContext.getList();
 
             // Delegated click handler (attached once) - no inline onclick
             if (!listDiv.dataset.delegated) {
@@ -5773,12 +5792,12 @@
                 listDiv.dataset.delegated = '1';
             }
 
-            if (currentEpisodeMedications.length === 0) {
+            if (list.length === 0) {
                 listDiv.innerHTML = '';
                 return;
             }
 
-            listDiv.innerHTML = safeHTML(currentEpisodeMedications.map((med, index) => `
+            listDiv.innerHTML = safeHTML(list.map((med, index) => `
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--accent-blue);">
                     <div>
                         <div style="font-weight: 600;">${safeText(med.name)}${med.dosage ? ` ${safeText(med.dosage)}` : ''}</div>
@@ -6146,7 +6165,7 @@
             document.getElementById('start-attack-btn')?.addEventListener('click', startAttackMode);
             document.getElementById('log-btn').addEventListener('click', logEpisode);
             document.getElementById('clear-btn').addEventListener('click', clearForm);
-            document.getElementById('add-medication-btn').addEventListener('click', showAddMedicationModal);
+            document.getElementById('add-medication-btn').addEventListener('click', () => showAddMedicationModal(QUICKLOG_MED_CONTEXT));
             document.getElementById('update-pain-btn')?.addEventListener('click', updateActivePain);
             document.getElementById('end-episode-btn')?.addEventListener('click', endActiveMigraine);
             renderMedicationsList(); // Initialize empty medication list
