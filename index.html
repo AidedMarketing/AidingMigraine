@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v5.6.0 - PRODUCTION
+           AIDING MIGRAINE v5.7.0 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -2885,7 +2885,7 @@
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <circle cx="12" cy="12" r="3"></circle>
                                     </svg>
-                                    Medication Taken (optional)
+                                    Medications (optional)
                                 </label>
                                 <div id="medications-list" style="margin-bottom: 12px;"></div>
                                 <button type="button" id="add-medication-btn" class="btn btn-secondary" style="width: 100%; padding: 10px;">
@@ -2910,7 +2910,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="notes-input">Quick Notes (optional)</label>
+                                <label for="notes-input">Notes (optional)</label>
                                 <textarea id="notes-input" placeholder="Add any notes about this episode..." rows="3"></textarea>
                             </div>
                         </div>
@@ -3971,7 +3971,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.6.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.7.0</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -4009,7 +4009,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v5.6.0 Production</strong>
+                            <strong>v5.7.0 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -4080,7 +4080,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '5.6.0';
+        const APP_VERSION = '5.7.0';
 
         let migraines = [];
         let selectedPain = null;
@@ -6179,15 +6179,6 @@
                     selectedPain = value === '' ? null : parseInt(value);
                 });
             }
-
-            // Keep button handler for modals and edit forms
-            document.querySelectorAll('.pain-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    selectedPain = parseInt(btn.dataset.pain);
-                    document.querySelectorAll('.pain-btn').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                });
-            });
         }
 
         document.getElementById('toggle-details-btn')?.addEventListener('click', () => {
@@ -6477,7 +6468,7 @@
                     <div id="end-postdrome-chips" class="chip-group"></div>
                 </div>
                 <div class="form-group" style="margin-top: 16px;">
-                    <label>Final Notes (optional)</label>
+                    <label>Resolution Notes (optional)</label>
                     <textarea id="end-notes" placeholder="How did it resolve? What helped?" rows="3"></textarea>
                 </div>
             `;
@@ -7239,13 +7230,13 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="edit-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Notes</label>
+                        <label for="edit-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Notes (optional)</label>
                         <textarea id="edit-notes" rows="4" placeholder="Add any notes about this episode..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${safeText(notesVal)}</textarea>
                     </div>
 
                     ${isCompleted ? `
                     <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="edit-end-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Resolution Notes</label>
+                        <label for="edit-end-notes" style="display: block; margin-bottom: 8px; font-weight: 600;">Resolution Notes (optional)</label>
                         <textarea id="edit-end-notes" rows="3" placeholder="How did it resolve? What helped?" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); resize: vertical;">${safeText(endNotesVal)}</textarea>
                     </div>
                     ` : ''}
@@ -8411,7 +8402,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v5.6.0 - Debug Information
+            const debugInfo = `Aiding Migraine v5.7.0 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -10164,7 +10155,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v5.6.0</strong></p>
+                <p><strong>Aiding Migraine v5.7.0</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>
