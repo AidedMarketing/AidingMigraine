@@ -28,7 +28,7 @@
 
     <style>
         /* ============================================
-           AIDING MIGRAINE v5.7.0 - PRODUCTION
+           AIDING MIGRAINE v5.7.1 - PRODUCTION
            ============================================ */
 
         /* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
@@ -1737,8 +1737,13 @@
         .bottom-nav {
             position: fixed;
             bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
+            /* Centered via left/right/margin rather than a transform: iOS
+               Safari can desync a fixed element's transform from the
+               viewport during momentum scrolling, making it appear to
+               drift away from the true bottom of the screen. */
+            left: 0;
+            right: 0;
+            margin: 0 auto;
             width: 100%;
             max-width: 680px;
             background: var(--surface-nav);
@@ -3971,7 +3976,7 @@
             </div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.7.0</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.7.1</p>
                 <p>Production Release: Enhanced Data Management</p>
                 <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -4009,7 +4014,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v5.7.0 Production</strong>
+                            <strong>v5.7.1 Production</strong>
                         </div>
                     </div>
                 </div>
@@ -4080,7 +4085,7 @@
     </div>
 
     <script>
-        const APP_VERSION = '5.7.0';
+        const APP_VERSION = '5.7.1';
 
         let migraines = [];
         let selectedPain = null;
@@ -8402,7 +8407,7 @@
             const activeMigraines = getActiveMigraines();
             const deletedMigraines = getDeletedMigraines();
 
-            const debugInfo = `Aiding Migraine v5.7.0 - Debug Information
+            const debugInfo = `Aiding Migraine v5.7.1 - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -10155,7 +10160,7 @@ Browser: ${navigator.userAgent}
 
         function showAbout() {
             const content = `
-                <p><strong>Aiding Migraine v5.7.0</strong></p>
+                <p><strong>Aiding Migraine v5.7.1</strong></p>
                 <p>Built with care for migraine sufferers.</p>
 
                 <h3>Features</h3>

@@ -5,6 +5,12 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.7.1] - 2026-08-04
+
+### Fixed — Bottom nav drifting away from the screen edge on iOS
+
+The bottom navigation bar used `transform: translateX(-50%)` to center itself while pinned to the screen with `position: fixed`. iOS Safari has a long-standing bug where a fixed element's transform can desync from the viewport during momentum scrolling, so the nav would appear to detach and float up the page instead of staying flush with the bottom edge, exposing page content underneath it. Centered it with `left`/`right`/`margin` instead, which needs no transform.
+
 ## [5.7.0] - 2026-08-04
 
 ### Changed — Unifying where episode data gets entered
