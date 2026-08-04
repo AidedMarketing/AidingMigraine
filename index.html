@@ -871,11 +871,13 @@
             border-color: var(--accent-green);
         }
 
-        #details-arrow {
+        #details-arrow,
+        .toggle-arrow {
             transition: transform 0.2s ease;
         }
 
-        #details-arrow.rotated {
+        #details-arrow.rotated,
+        .toggle-arrow.rotated {
             transform: rotate(180deg);
         }
 
@@ -2685,16 +2687,39 @@
                         </div>
                     </div>
 
-                    <!-- Symptoms (adjustable during the attack) -->
-                    <div style="margin: 20px 0; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
-                        <div style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">Symptoms</div>
-                        <div id="active-symptom-chips" class="chip-group"></div>
+                    <!-- Symptoms, Triggers and Medications are all adjustable during the
+                         attack, but collapsed by default (like the quick-log form's
+                         Optional Details) so the card leads with Duration/Pain/Category,
+                         relief actions and End Episode rather than 31+ chips. -->
+                    <div class="optional-details">
+                        <button type="button" class="toggle-details-btn" data-toggle-target="active-symptoms-content">
+                            <span style="display: flex; align-items: center; gap: 10px;">Symptoms</span>
+                            <svg class="icon icon-sm toggle-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                        <div id="active-symptoms-content" class="optional-details-content" style="display: none;">
+                            <div id="active-symptom-chips" class="chip-group"></div>
+                        </div>
                     </div>
 
-                    <!-- Triggers (adjustable during the attack) -->
-                    <div style="margin: 20px 0; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
-                        <div style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">Possible Triggers</div>
-                        <div id="active-trigger-chips" class="chip-group"></div>
+                    <div class="optional-details">
+                        <button type="button" class="toggle-details-btn" data-toggle-target="active-triggers-content">
+                            <span style="display: flex; align-items: center; gap: 10px;">Possible Triggers</span>
+                            <svg class="icon icon-sm toggle-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                        <div id="active-triggers-content" class="optional-details-content" style="display: none;">
+                            <div id="active-trigger-chips" class="chip-group"></div>
+                        </div>
+                    </div>
+
+                    <div class="optional-details">
+                        <button type="button" class="toggle-details-btn" data-toggle-target="active-medications-content">
+                            <span style="display: flex; align-items: center; gap: 10px;">Medications</span>
+                            <svg class="icon icon-sm toggle-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                        <div id="active-medications-content" class="optional-details-content" style="display: none;">
+                            <div id="active-medications-list" style="margin-bottom: 12px;"></div>
+                            <button type="button" id="active-add-medication-btn" class="btn btn-secondary" style="width: 100%; padding: 10px;">+ Add Medication</button>
+                        </div>
                     </div>
 
                     <!-- Add Relief Method Section -->
@@ -2766,6 +2791,7 @@
                     </div>
 
                     <div class="active-actions">
+                        <button id="edit-active-episode-btn" class="btn btn-secondary">Edit details</button>
                         <button id="update-pain-btn" class="btn btn-secondary">Update Pain Level</button>
                         <button id="end-episode-btn" class="btn btn-primary">End Episode</button>
                     </div>
@@ -6184,6 +6210,26 @@
             document.getElementById('add-medication-btn').addEventListener('click', () => showAddMedicationModal(QUICKLOG_MED_CONTEXT));
             document.getElementById('update-pain-btn')?.addEventListener('click', updateActivePain);
             document.getElementById('end-episode-btn')?.addEventListener('click', endActiveMigraine);
+            document.getElementById('edit-active-episode-btn')?.addEventListener('click', () => {
+                if (activeMigraine) editEpisode(activeMigraine.id);
+            });
+            document.getElementById('active-add-medication-btn')?.addEventListener('click', () => {
+                showAddMedicationModal(activeMedicationContext());
+            });
+
+            // One delegated wiring for every collapsible section on the
+            // active card (Symptoms/Triggers/Medications) -- new sections
+            // just need the data-toggle-target attribute, no extra JS.
+            document.querySelectorAll('.toggle-details-btn[data-toggle-target]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const content = document.getElementById(btn.dataset.toggleTarget);
+                    const arrow = btn.querySelector('.toggle-arrow');
+                    const isHidden = !content.style.display || content.style.display === 'none';
+                    content.style.display = isHidden ? 'block' : 'none';
+                    if (arrow) arrow.classList.toggle('rotated', isHidden);
+                });
+            });
+
             renderMedicationsList(); // Initialize empty medication list
             renderHeadMap('log-head-map', selectedPainLocations);
             bindHeadMap('log-head-map', selectedPainLocations);
@@ -6536,6 +6582,7 @@
             updateReliefTimeline();
             updateActiveSymptomChips();
             updateActiveTriggerChips();
+            updateActiveMedicationsList();
         }
 
         // Symptom chips on the active-episode card write straight to the
@@ -6587,6 +6634,27 @@
                 });
                 container.dataset.delegated = '1';
             }
+        }
+
+        // Medications on the active-episode card, same live-write pattern as
+        // symptoms/triggers above. Unlike those two this needs the picker
+        // rather than a plain chip toggle, so it goes through
+        // medicationPickerContext instead of a delegated chip listener.
+        function activeMedicationContext() {
+            return {
+                containerId: 'active-medications-list',
+                getList: () => {
+                    if (!activeMigraine.medications) activeMigraine.medications = [];
+                    return activeMigraine.medications;
+                },
+                onChange: () => saveData()
+            };
+        }
+
+        function updateActiveMedicationsList() {
+            if (!activeMigraine) return;
+            medicationPickerContext = activeMedicationContext();
+            renderMedicationsList();
         }
 
         function startDurationTracking() {
