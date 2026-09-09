@@ -44,7 +44,7 @@ try {
 // Validate service worker registration
 try {
   console.log('📄 Checking service worker registration...');
-  const html = fs.readFileSync('index.html', 'utf8');
+  const html = require('./frontend-source').source;
 
   if (!html.includes('serviceWorker.register')) {
     console.error('❌ No service worker registration found in index.html');

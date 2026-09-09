@@ -1,10 +1,17 @@
 // Aiding Migraine - Service Worker
 // Version 4.0.0 - Production Release
 
-const CACHE_NAME = 'aiding-migraine-v5.7.1-nav-fixed';
+const CACHE_NAME = 'aiding-migraine-v5.8.0-draft1';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
+    './assets/app.js',
+    './assets/components.css',
+    './assets/device.js',
+    './assets/storage.js',
+    './assets/tracking.js',
+    './assets/updates.js',
+    './assets/shell.css',
     './manifest.json',
     './icons/favicon-16x16.png',
     './icons/favicon-32x32.png',
@@ -35,7 +42,8 @@ self.addEventListener('install', (event) => {
             .then(() => {
                 // Auto-skip waiting to activate new service worker immediately
                 console.log('Service Worker: Auto-activating new version');
-                return self.skipWaiting();
+                // Wait for the user to apply updates, so an open form is not interrupted.
+                return undefined;
             })
     );
 });
@@ -55,7 +63,7 @@ self.addEventListener('activate', (event) => {
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cache) => {
-                    if (cache !== CACHE_NAME) {
+                    if (cache.startsWith('aiding-migraine-') && cache !== CACHE_NAME) {
                         console.log('Service Worker: Clearing old cache', cache);
                         return caches.delete(cache);
                     }
