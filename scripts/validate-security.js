@@ -8,7 +8,7 @@ let warnings = [];
 let errors = [];
 
 try {
-  const html = fs.readFileSync('index.html', 'utf8');
+  const html = require('./frontend-source').source;
   const sw = fs.readFileSync('service-worker.js', 'utf8');
 
   // Check for inline event handlers (XSS risk)

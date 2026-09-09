@@ -86,6 +86,18 @@ try {
   exitCode = 1;
 }
 
+// Extracted scripts are part of the same runtime and must remain in the CI gate.
+try {
+  const { scripts } = require('./frontend-source');
+  for (const file of scripts) {
+    require('child_process').execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' });
+    console.log('✅ ' + file);
+  }
+} catch (error) {
+  console.error('❌ External application script failed validation:', error.message);
+  exitCode = 1;
+}
+
 if (exitCode === 0) {
   console.log('✅ All syntax validation passed!\n');
 } else {
