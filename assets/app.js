@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.9.0-draft.1';
+const APP_VERSION = '5.10.0-draft.1';
 
 let migraines = [];
 let selectedPain = null;
@@ -1591,6 +1591,7 @@ function showAddMedicationModal(context) {
 
         <div style="border-top: 1px solid var(--border-color); padding-top: 16px;">
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">Or enter custom medication:</p>
+            <label for="custom-med-name">Medication name</label>
             <input type="text" id="custom-med-name" placeholder="Medication name" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); margin-bottom: 8px;">
             <button class="btn btn-secondary" id="add-custom-med-btn" style="width: 100%;">Add Custom Medication</button>
         </div>
@@ -1655,12 +1656,12 @@ function searchMedications(query) {
     }
 
     resultsDiv.innerHTML = safeHTML(matches.slice(0, 10).map(med => `
-        <div class="med-result-item" data-med-name="${safeText(med.name)}" style="padding: 12px; margin-bottom: 8px; background: var(--bg-tertiary); border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
-            <div style="font-weight: 600;">${safeText(med.name)}</div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
+        <button type="button" class="med-result-item" data-med-name="${safeText(med.name)}" style="padding: 12px; margin-bottom: 8px; background: var(--bg-tertiary); border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
+            <span style="display: block; font-weight: 600;">${safeText(med.name)}</span>
+            <span style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
                 ${med.type === 'abortive' ? 'Abortive' : 'Preventive'} • ${safeText(med.category)}
-            </div>
-        </div>
+            </span>
+        </button>
     `).join(''));
 }
 
@@ -1681,7 +1682,7 @@ function selectMedication(medName) {
                 ${med.dosages ? med.dosages.map(d => `<option value="${safeText(d)}">${safeText(d)}</option>`).join('') : '<option value="">Not specified</option>'}
                 <option value="custom">Custom...</option>
             </select>
-            <input type="text" id="custom-dosage" placeholder="Enter custom dosage" style="width: 100%; padding: 10px; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); display: none;">
+            <input type="text" aria-label="Custom dosage" id="custom-dosage" placeholder="Enter custom dosage" style="width: 100%; padding: 10px; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); display: none;">
         </div>
 
         <div class="form-group">
@@ -1721,7 +1722,7 @@ function selectMedication(medName) {
     });
 }
 
-function addMedicationToEpisode(medData) {
+async function addMedicationToEpisode(medData) {
     const medication = {
         name: medData.name,
         dosage: medData.dosage || null,
@@ -1731,7 +1732,20 @@ function addMedicationToEpisode(medData) {
         timeTaken: new Date().toISOString()
     };
 
-    medicationPickerContext.getList().push(medication);
+    const context = medicationPickerContext;
+    const list = context.getList();
+    const confirm = document.getElementById('confirm-add-med') || document.getElementById('add-custom-med-btn');
+    if (confirm?.disabled) return;
+    if (confirm) confirm.disabled = true;
+    list.push(medication);
+    try {
+        if (context.onChange) await context.onChange();
+    } catch {
+        list.splice(list.indexOf(medication), 1);
+        if (confirm) confirm.disabled = false;
+        showToast('Could not save medication. Please try again.', { type: 'error' });
+        return;
+    }
     // onDone (the edit-episode modal) fully rebuilds its own form,
     // which recreates the medications list container along with
     // everything else, so redrawing it here first would be wasted
@@ -1742,7 +1756,8 @@ function addMedicationToEpisode(medData) {
         renderMedicationsList();
         closeModal();
     }
-    if (medicationPickerContext.onChange) medicationPickerContext.onChange();
+    if (confirm) confirm.disabled = false;
+    if (context.onChange) showToast('Medication saved.');
 }
 
 function removeMedicationFromEpisode(index) {
@@ -1991,7 +2006,7 @@ function applyTheme(theme) {
         button.setAttribute('aria-pressed', String(selected));
     });
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = { 'warm-dark': '#191d1c', 'warm-light': '#f5f3ed', 'high-contrast': '#000000' }[theme] || '#191d1c';
+    if (meta) meta.content = { 'warm-dark': '#1c1c27', 'warm-light': '#f7f4ef', 'high-contrast': '#000000' }[theme] || '#1c1c27';
     if (typeof currentPage !== 'undefined' && currentPage === 'analytics' && chartsAvailable()) renderAnalytics();
 }
 
@@ -2138,7 +2153,7 @@ function renderHistory() {
         const date = new Date(entry.startTime);
         const day = date.toLocaleDateString([], { day: 'numeric' });
         const month = date.toLocaleDateString([], { month: 'short' });
-        const title = date.toLocaleDateString([], { weekday: 'long', year: 'numeric' });
+        const title = date.toLocaleDateString([], { weekday: 'long' }) + (date.getFullYear() === new Date().getFullYear() ? '' : ` · ${date.getFullYear()}`);
         const duration = entry.duration == null ? 'Duration not recorded' : formatDuration(entry.duration);
         const pain = entry.painLevel == null ? '—' : String(entry.painLevel);
         return `<button class="history-entry" data-action="view" data-id="${safeText(String(entry.id))}"
@@ -2310,12 +2325,16 @@ function editEpisode(id) {
 // the user had already typed so they aren't lost -- everything else
 // (chips, head map, relief methods, medications) lives in the
 // tempEdit* variables above and survives a rebuild automatically.
+function localInputDate(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 function renderEditEpisodeForm(episode, isActive, fieldOverrides) {
     const modal = document.getElementById('modal');
     const body = document.getElementById('modal-body');
 
     const startDate = new Date(episode.startTime);
-    const startDateStr = fieldOverrides ? fieldOverrides.startDate : startDate.toISOString().split('T')[0];
+    const startDateStr = fieldOverrides ? fieldOverrides.startDate : localInputDate(startDate);
     const startTimeStr = fieldOverrides ? fieldOverrides.startTime : startDate.toTimeString().slice(0, 5);
 
     let endDateStr = '', endTimeStr = '';
@@ -2324,7 +2343,7 @@ function renderEditEpisodeForm(episode, isActive, fieldOverrides) {
         endTimeStr = fieldOverrides.endTime || '';
     } else if (episode.endTime) {
         const endDate = new Date(episode.endTime);
-        endDateStr = endDate.toISOString().split('T')[0];
+        endDateStr = localInputDate(endDate);
         endTimeStr = endDate.toTimeString().slice(0, 5);
     }
 
@@ -2334,12 +2353,12 @@ function renderEditEpisodeForm(episode, isActive, fieldOverrides) {
     const isCompleted = episode.status === 'completed';
 
     body.innerHTML = `
-        <div style="max-height: 60vh; overflow-y: auto;">
+        <div class="episode-edit-fields">
             <div class="form-group" style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 600;">Start Date &amp; Time</label>
                 <div style="display: flex; gap: 10px;">
-                    <input type="date" id="edit-start-date" value="${safeText(startDateStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
-                    <input type="time" id="edit-start-time" value="${safeText(startTimeStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                    <input type="date" aria-label="Start date" id="edit-start-date" value="${safeText(startDateStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                    <input type="time" aria-label="Start time" id="edit-start-time" value="${safeText(startTimeStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
                 </div>
             </div>
 
@@ -2347,17 +2366,17 @@ function renderEditEpisodeForm(episode, isActive, fieldOverrides) {
             <div class="form-group" style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 600;">End Date &amp; Time</label>
                 <div style="display: flex; gap: 10px;">
-                    <input type="date" id="edit-end-date" value="${safeText(endDateStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
-                    <input type="time" id="edit-end-time" value="${safeText(endTimeStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                    <input type="date" aria-label="End date" id="edit-end-date" value="${safeText(endDateStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                    <input type="time" aria-label="End time" id="edit-end-time" value="${safeText(endTimeStr)}" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
                 </div>
             </div>
             ` : ''}
 
             <div class="form-group" style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 600;">Pain level${isCompleted ? '' : ' (optional)'}</label>
-                <div class="pain-scale" style="display: grid; grid-template-columns: repeat(11, 1fr); gap: 8px;">
+                <div class="pain-scale">
                     ${[0,1,2,3,4,5,6,7,8,9,10].map(i =>
-                        `<button type="button" class="pain-btn ${painLevel === i ? 'selected' : ''}" data-pain="${i}" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer; font-size: 1.1rem; font-weight: 600;">${i}</button>`
+                        `<button type="button" class="pain-btn ${painLevel === i ? 'selected' : ''}" data-pain="${i}" aria-label="Pain ${i} out of 10" aria-pressed="${painLevel === i}">${i}</button>`
                     ).join('')}
                 </div>
             </div>
@@ -2456,8 +2475,9 @@ function renderEditEpisodeForm(episode, isActive, fieldOverrides) {
 
     body.querySelectorAll('.pain-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            body.querySelectorAll('.pain-btn').forEach(b => b.classList.remove('selected'));
+            body.querySelectorAll('.pain-btn').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed', 'false'); });
             btn.classList.add('selected');
+            btn.setAttribute('aria-pressed', 'true');
         });
     });
 
@@ -2594,14 +2614,16 @@ function deleteEditReliefMethod(index) {
     renderEditReliefMethods();
 }
 
-function saveEpisodeEdit(originalEpisode, isActive) {
+async function saveEpisodeEdit(originalEpisode, isActive) {
     const startDate = document.getElementById('edit-start-date').value;
     const startTime = document.getElementById('edit-start-time').value;
     if (!startDate || !startTime) {
         showToast('Please provide a start date and time.', { type: 'error' });
         return;
     }
-    const startDateTime = new Date(`${startDate}T${startTime}`);
+    const originalStart = new Date(originalEpisode.startTime);
+    const startUnchanged = startDate === localInputDate(originalStart) && startTime === originalStart.toTimeString().slice(0, 5);
+    const startDateTime = startUnchanged ? originalStart : new Date(`${startDate}T${startTime}`);
     if (startDateTime > new Date()) {
         showToast('Start time cannot be in the future.', { type: 'error' });
         return;
@@ -2636,7 +2658,9 @@ function saveEpisodeEdit(originalEpisode, isActive) {
         const endDate = document.getElementById('edit-end-date').value;
         const endTime = document.getElementById('edit-end-time').value;
         if (endDate && endTime) {
-            endDateTime = new Date(`${endDate}T${endTime}`);
+            const originalEnd = new Date(originalEpisode.endTime);
+            const endUnchanged = endDate === localInputDate(originalEnd) && endTime === originalEnd.toTimeString().slice(0, 5);
+            endDateTime = endUnchanged ? originalEnd : new Date(`${endDate}T${endTime}`);
             if (endDateTime <= startDateTime) {
                 showToast('End time must be after the start time.', { type: 'error' });
                 return;
@@ -2689,7 +2713,19 @@ function saveEpisodeEdit(originalEpisode, isActive) {
         if (index !== -1) migraines[index] = updatedEpisode;
     }
 
-    saveData();
+    const saveButton = document.getElementById('save-edit-btn');
+    saveButton.disabled = true;
+    try { await saveData(); }
+    catch {
+        if (isActive) activeMigraine = originalEpisode;
+        else {
+            const index = migraines.findIndex(m => m.id === originalEpisode.id);
+            if (index !== -1) migraines[index] = originalEpisode;
+        }
+        saveButton.disabled = false;
+        showToast('Could not save your changes. Please try again.', { type: 'error' });
+        return;
+    }
     updateDashboard();
     renderCalendar();
     renderHistory();
@@ -5536,6 +5572,7 @@ function confirmAction(title, message, { confirmText = 'Confirm', danger = false
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), ' +
                   'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 let openDialogs = [];
+let dialogScrollY = 0;
 
 function focusablesIn(dialog) {
     return [...dialog.querySelectorAll(FOCUSABLE)]
@@ -5544,10 +5581,22 @@ function focusablesIn(dialog) {
 
 function openDialog(dialog, { activate = true } = {}) {
     if (!dialog) return;
+    if (!openDialogs.length) {
+        dialogScrollY = window.scrollY;
+        document.body.style.top = `-${dialogScrollY}px`;
+        document.body.classList.add('dialog-open');
+        document.querySelector('main').inert = true;
+        document.querySelector('.bottom-nav').inert = true;
+    }
     if (!openDialogs.some(d => d.dialog === dialog)) {
         openDialogs.push({ dialog, returnFocus: document.activeElement });
     }
     if (activate) dialog.classList.add('active');
+    const feedback = document.getElementById('toast-region');
+    if (feedback) {
+        feedback.querySelectorAll('.toast:not(.error)').forEach(toast => toast.remove());
+        (dialog.querySelector('.modal-content') || document.body).appendChild(feedback);
+    }
     // Move focus in so the dialog is where the keyboard actually is.
     const targets = focusablesIn(dialog);
     const first = targets.find(el => !el.classList.contains('modal-close')) || targets[0];
@@ -5566,10 +5615,19 @@ function closeDialog(dialog, { deactivate = true } = {}) {
     if (idx === -1) return;
     const { returnFocus } = openDialogs[idx];
     openDialogs.splice(idx, 1);
+    if (!openDialogs.length) {
+        document.body.classList.remove('dialog-open');
+        document.body.style.top = '';
+        document.querySelector('main').inert = false;
+        document.querySelector('.bottom-nav').inert = false;
+        window.scrollTo(0, dialogScrollY);
+    }
+    const feedback = document.getElementById('toast-region');
+    if (feedback) (topDialog()?.querySelector('.modal-content') || document.body).appendChild(feedback);
     // Send focus back where it came from, so a keyboard user resumes
     // from the control they activated rather than the top of the page.
     if (returnFocus && document.contains(returnFocus) && returnFocus.focus) {
-        returnFocus.focus();
+        returnFocus.focus({ preventScroll: true });
     }
 }
 

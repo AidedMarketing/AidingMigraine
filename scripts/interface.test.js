@@ -58,3 +58,57 @@ test('theme bootstrap honors saved choices and provides a safe default with unav
     vm.runInContext(fs.readFileSync('assets/theme.js','utf8'), ctx);
     assert.equal(actual, 'warm-dark');
 });
+
+test('medication waits for persistence and rolls back a failed save', async () => {
+    for (const fails of [false, true]) {
+        const list = [], notices = [];
+        const button = { disabled: false };
+        let finish, closed = false;
+        const persistence = new Promise((resolve, reject) => { finish = () => fails ? reject(Error('full')) : resolve(); });
+        const ctx = vm.createContext({ Date, document: { getElementById: () => button },
+            medicationPickerContext: { getList: () => list, onChange: () => persistence },
+            renderMedicationsList() {}, closeModal() { closed = true; }, showToast: text => notices.push(text) });
+        vm.runInContext(declaration(app, 'addMedicationToEpisode'), ctx);
+        const saving = ctx.addMedicationToEpisode({ name: 'Test medication' });
+        assert.equal(button.disabled, true);
+        assert.equal(closed, false, 'Do not dismiss the sheet before storage completes');
+        finish(); await saving;
+        assert.equal(list.length, fails ? 0 : 1);
+        assert.equal(closed, !fails);
+        assert.match(notices.at(-1), fails ? /Could not save/ : /saved/);
+    }
+});
+
+test('date input formatting uses the local calendar day, not the UTC day', () => {
+    const ctx = vm.createContext({});
+    vm.runInContext(declaration(app, 'localInputDate'), ctx);
+    const previous = process.env.TZ;
+    process.env.TZ = 'America/New_York';
+    try {
+        for (const [iso, expected] of [['2026-09-10T02:15:00Z', '2026-09-09'], ['2026-01-01T02:15:00Z', '2025-12-31'], ['2026-03-08T06:30:00Z', '2026-03-08']]) {
+            assert.equal(ctx.localInputDate(new Date(iso)), expected);
+        }
+    } finally {
+        if (previous === undefined) delete process.env.TZ;
+        else process.env.TZ = previous;
+    }
+});
+
+test('the service worker serves a matching installed release even when the network changes', async () => {
+    const handlers = {};
+    let networkCalls = 0, pending;
+    const cache = { match: async (request, options) => {
+        assert.equal(options.ignoreSearch, true);
+        return new Response('installed release');
+    } };
+    const ctx = vm.createContext({ URL, Response, console,
+        self: { location: { origin: 'https://example.test' }, registration: { scope: 'https://example.test/app/' }, addEventListener: (name, fn) => { handlers[name] = fn; } },
+        caches: { open: async () => cache }, fetch: async () => { networkCalls++; return new Response('new release'); }
+    });
+    vm.runInContext(fs.readFileSync('service-worker.js', 'utf8'), ctx);
+    for (const url of ['https://example.test/app/', 'https://example.test/app/assets/app.js?v=release']) {
+        handlers.fetch({ request: new Request(url), respondWith: promise => { pending = promise; } });
+        assert.equal(await (await pending).text(), 'installed release');
+    }
+    assert.equal(networkCalls, 0, 'HTML cannot advance independently of the installed CSS/JS');
+});

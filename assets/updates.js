@@ -1,4 +1,5 @@
 let newWorker;
+let updateRequested = false;
 
 function showUpdateBanner() {
     const banner = document.getElementById('update-banner');
@@ -20,6 +21,7 @@ function hideUpdateBanner() {
 
 function updateApp() {
     if (newWorker) {
+updateRequested = true;
 console.log('Active Updating app...');
 // Send message to skip waiting
 newWorker.postMessage({ type: 'SKIP_WAITING' });
@@ -35,6 +37,9 @@ navigator.serviceWorker.register('./service-worker.js')
         // Immediately check for updates on load
         registration.update().then(() => {
             console.log('[SEARCH] Checked for updates');
+        }).catch(() => {
+            // An installed journal remains usable when the update server is offline.
+            console.info('Update check deferred until a connection is available.');
         });
 
         // Check if there's already a waiting service worker
@@ -46,7 +51,7 @@ navigator.serviceWorker.register('./service-worker.js')
         // Check for updates every hour
         setInterval(() => {
             console.log('⏰ Hourly update check...');
-            registration.update();
+            registration.update().catch(() => {});
         }, 60 * 60 * 1000);
 
         // Listen for waiting service worker
@@ -75,8 +80,8 @@ navigator.serviceWorker.register('./service-worker.js')
 
 // Listen for service worker controller change
 navigator.serviceWorker.addEventListener('controllerchange', () => {
-    console.log('[RELOAD] New service worker activated, reloading page...');
-    window.location.reload();
+    // A first install or an update in another tab must not interrupt an open form.
+    if (updateRequested) window.location.reload();
 });
 
 // Update button click handler

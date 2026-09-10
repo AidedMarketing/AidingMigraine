@@ -1,10 +1,11 @@
 // Aiding Migraine - Service Worker
 // Version 4.0.0 - Production Release
 
-const CACHE_NAME = 'aiding-migraine-v5.9.0-design1';
+const CACHE_NAME = 'aiding-migraine-v5.10.0-mobile1';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
+    './assets/vendor/purify.min.js',
     './assets/app.js',
     './assets/interface.js',
     './assets/tokens.css',
@@ -88,51 +89,22 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    const acceptHeader = event.request.headers.get('accept') || '';
-
-    // Network-first strategy for HTML files to ensure users get latest version
-    if (acceptHeader.includes('text/html') ||
-        url.pathname.endsWith('.html') ||
-        url.pathname === '/' ||
-        url.pathname === '/index.html') {
-
-        event.respondWith(
-            fetch(event.request)
-                .then((fetchResponse) => {
-                    // Clone and cache the new version
-                    const responseToCache = fetchResponse.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseToCache);
-                    });
-                    return fetchResponse;
-                })
-                .catch(() => {
-                    // Fallback to cache if offline
-                    return caches.match(event.request);
-                })
-        );
-    } else {
-        // Cache-first strategy for assets (CSS, JS, images, etc.)
-        event.respondWith(
-            caches.match(event.request)
-                .then((response) => {
-                    return response || fetch(event.request)
-                        .then((fetchResponse) => {
-                            const responseToCache = fetchResponse.clone();
-                            caches.open(CACHE_NAME).then((cache) => {
-                                cache.put(event.request, responseToCache);
-                            });
-                            return fetchResponse;
-                        });
-                })
-                .catch(() => {
-                    // Same-origin asset miss while offline: return a real
-                    // error rather than handing back the HTML shell (which
-                    // would corrupt a script/style/JSON consumer).
-                    return Response.error();
-                })
-        );
-    }
+    // Serve HTML and assets from the same installed release. Network-first
+    // HTML with cache-first CSS previously mixed releases in installed PWAs.
+    event.respondWith((async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(event.request, { ignoreSearch: true });
+        if (cached) return cached;
+        if (event.request.mode === 'navigate' && url.pathname === new URL('./', self.registration.scope).pathname) {
+            const shell = await cache.match('./index.html');
+            if (shell) return shell;
+        }
+        try {
+            return await fetch(event.request);
+        } catch {
+            return Response.error();
+        }
+    })());
 });
 
 // ============================================

@@ -7,7 +7,7 @@
 
     <!-- PWA Configuration -->
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#191d1c">
+    <meta name="theme-color" content="#1c1c27">
     <meta name="description" content="Track and manage your migraine symptoms with ease">
 
     <!-- iOS PWA Support -->
@@ -23,13 +23,13 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512x512.png">
 
-    <script src="./assets/theme.js"></script>
+    <script src="./assets/theme.js?v=5.10.0-mobile1"></script>
     <!-- DOMPurify for XSS Protection -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" integrity="sha384-cwS6YdhLI7XS60eoDiC+egV0qHp8zI+Cms46R0nbn8JrmoAzV9uFL60etMZhAnSu" crossorigin="anonymous"></script>
+    <script src="./assets/vendor/purify.min.js?v=5.10.0-mobile1"></script>
 
-    <link rel="stylesheet" href="./assets/components.css">
-    <link rel="stylesheet" href="./assets/tokens.css">
-    <link rel="stylesheet" href="./assets/shell.css">
+    <link rel="stylesheet" href="./assets/components.css?v=5.10.0-mobile1">
+    <link rel="stylesheet" href="./assets/tokens.css?v=5.10.0-mobile1">
+    <link rel="stylesheet" href="./assets/shell.css?v=5.10.0-mobile1">
 </head>
 <body>
     <!-- App Loading Screen -->
@@ -108,8 +108,9 @@
     <a class="skip-link" href="#main-content">Skip to content</a>
 
     <main class="container" id="main-content" tabindex="-1">
+            <header class="app-topbar"><a class="brand-lockup" href="#today" aria-label="Aiding Migraine, Today"><span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h5l2-6 4 12 2-6h5"/></svg></span><span class="brand-name">Aiding Migraine</span></a><button class="icon-btn settings-shortcut" data-destination="settings" aria-label="Appearance and settings"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg><span>Settings</span></button></header>
         <div id="log-page" class="page active" data-screen="today">
-            <header class="app-topbar"><a class="brand-lockup" href="#today" aria-label="Aiding Migraine, Today"><span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h5l2-6 4 12 2-6h5"/></svg></span><span class="brand-name">Aiding Migraine</span></a><button class="icon-btn" data-destination="settings" aria-label="Appearance and settings"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></button></header>
+
             <div class="today-heading"><div><h1>Today</h1></div><p id="today-date-label" class="brand-subtitle">Today</p></div>
 
             <div id="active-episode-section" style="display: none;">
@@ -118,7 +119,7 @@
                         <svg class="icon icon-lg pulse-indicator" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10"></circle>
                         </svg>
-                        <div><p class="eyebrow">CURRENT ATTACK</p><h2 tabindex="-1" id="active-title">Migraine in progress</h2></div>
+                        <div><p class="eyebrow">● TRACKING YOUR MIGRAINE</p><h2 tabindex="-1" id="active-title">Migraine in progress</h2></div>
                     </div>
                     <div class="active-stats">
                         <div class="stat-item">
@@ -135,7 +136,7 @@
                         </div>
                     </div>
 
-                    <p class="pain-helper">Your start time is saved. Add only what you feel up to.</p>
+                    <p class="pain-helper">Your start time is saved. You can close the app and come back.</p>
                     <div class="attack-actions">
                         <button id="update-pain-btn" class="btn btn-secondary"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h5l2-6 4 12 2-6h5"/></svg><span>Update pain</span></button>
                         <button id="quick-medication-btn" class="btn btn-secondary"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m10 5-5 5a6 6 0 0 0 9 9l5-5a6 6 0 0 0-9-9Z"/><path d="m8 8 8 8"/></svg><span>Medication</span></button>
@@ -264,14 +265,19 @@
 
             <div id="logging-section">
                 <section class="section-card quick-log-card" id="quick-log-card" aria-labelledby="start-heading">
-                <div class="surface-symbol"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h5l2-6 4 12 2-6h5"/></svg></div>
-                <h2 id="start-heading">A migraine starting?</h2>
-                <p class="pain-helper">Let’s save the time.<br>You can fill in the rest later.</p>
+                <div class="journal-emblem" aria-hidden="true"><svg viewBox="0 0 80 80"><path d="M16 48c0-18 10-30 24-30s24 12 24 30M24 48c0-13 6-22 16-22s16 9 16 22M32 48c0-8 3-14 8-14s8 6 8 14"/><path d="M16 58h48"/></svg></div><p class="eyebrow">HERE WHEN YOU NEED IT</p>
+                <h2 id="start-heading">Log it. Then rest.</h2>
+                <p class="pain-helper">A migraine starting? Save the time with one tap. Add the details when you’re ready.</p>
                 <button id="start-attack-btn" class="btn btn-primary start-attack"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Start migraine</span></button>
-                <p class="start-caption">Start time saved when you tap.</p>
+                <p class="start-caption">No form to fill out first.</p>
             </section>
+                <button id="recent-entry" class="recent-entry" data-destination="history">
+                    <span class="recent-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M4 5h6a3 3 0 0 1 3 3v13a4 4 0 0 0-4-2H4zM13 8a3 3 0 0 1 3-3h4v14h-3a4 4 0 0 0-4 2"/></svg></span>
+                    <span class="recent-copy"><strong id="recent-entry-title">Your journal, at your pace</strong><small id="recent-entry-detail">Saved attacks will be here when you need them.</small></span>
+                    <span aria-hidden="true">→</span>
+                </button>
                 <details id="detailed-log" class="quiet-disclosure">
-                    <summary>Prefer to add details first?</summary>
+                    <summary>Start with more details</summary>
                     <div class="disclosure-body">
                             <div class="form-group">
                         <label for="pain-select">Pain level</label>
@@ -364,7 +370,7 @@
                 </details>
             </div>
 
-            <p class="device-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg><span>Just for you. Saved on this device.</span></p>
+            <p class="device-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg><span>Private by default. Saved on this device.</span></p>
         </div>
 
         <div id="history-page" class="page">
@@ -377,8 +383,9 @@
                 <span class="today-chip" id="today-cycle-line" style="display: none;"></span>
             </div>
 
-            <div class="section-card">
-                <h2>Your calendar</h2>
+            <details class="history-calendar">
+                <summary><span>Browse by calendar</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg></summary>
+                <div class="section-card">
                 <div class="calendar-header">
                     <button id="prev-month" class="calendar-nav-btn" aria-label="Previous month">←</button>
                     <h3 id="current-month"></h3>
@@ -404,6 +411,7 @@
                     <span style="opacity: 0.5;">Faded = Continuation Days</span>
                 </div>
             </div>
+            </details>
             <h2 class="history-list-heading">Past attacks</h2>
             <div id="history-list"></div>
         </div>
@@ -1267,12 +1275,13 @@
             </div></details></div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.9.0 draft</p>
-                <p>Production Release: Enhanced Data Management</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.10.0 draft</p>
+                <p>Your personal migraine journal</p>
                 <p style="font-size: .875rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
         </div>
 
+    </main>
         <!-- Hidden Debug Modal -->
         <div id="debug-modal" class="modal" style="display: none;">
             <div class="modal-content" style="max-width: 600px;">
@@ -1305,7 +1314,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v5.9.0 Design Draft</strong>
+                            <strong>v5.10.0 Mobile Draft</strong>
                         </div>
                     </div>
                 </div>
@@ -1315,7 +1324,7 @@
                 </div>
             </div>
         </div>
-    </main>
+
 
         <!-- Announcements. polite so they never interrupt what is being read. -->
         <div id="toast-region" class="toast-region" role="status" aria-live="polite" aria-atomic="false"></div>
@@ -1351,17 +1360,17 @@
         </div>
     </div>
 
-    <script src="./assets/app.js"></script>
+    <script src="./assets/app.js?v=5.10.0-mobile1"></script>
 
     <!-- Phase 2: IndexedDB Data Layer -->
-    <script src="./assets/tracking.js"></script>
-    <script src="./assets/storage.js"></script>
+    <script src="./assets/tracking.js?v=5.10.0-mobile1"></script>
+    <script src="./assets/storage.js?v=5.10.0-mobile1"></script>
 
     <!-- Phase 1: Advanced PWA Features -->
-    <script src="./assets/device.js"></script>
+    <script src="./assets/device.js?v=5.10.0-mobile1"></script>
 
     <!-- Service Worker Registration with Update Detection -->
-    <script src="./assets/updates.js"></script>
-    <script src="./assets/interface.js"></script>
+    <script src="./assets/updates.js?v=5.10.0-mobile1"></script>
+    <script src="./assets/interface.js?v=5.10.0-mobile1"></script>
 </body>
 </html>

@@ -12,8 +12,8 @@
   "launch_handler": {
     "client_mode": ["navigate-existing", "auto"]
   },
-  "background_color": "#1c1815",
-  "theme_color": "#1c1815",
+  "background_color": "#1c1c27",
+  "theme_color": "#1c1c27",
   "orientation": "portrait-primary",
   "icons": [
     {

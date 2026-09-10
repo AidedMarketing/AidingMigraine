@@ -14,3 +14,17 @@ jobs:
           node-version: '20'
       - name: Validate source, offline assets, and tracking regressions
         run: npm test
+  mobile-browsers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install browser test tools
+        run: npm install --no-save --package-lock=false playwright@1.62.1
+      - name: Install Chromium and WebKit
+        run: npx playwright install --with-deps chromium webkit
+      - name: Check mobile layouts, tracking and offline use
+        run: npm run test:mobile

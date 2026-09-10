@@ -241,7 +241,7 @@ function updateActivePain() {
 
     document.getElementById('modal-actions').innerHTML = `
         <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary" id="confirm-pain-update">Update</button>
+        <button class="btn btn-primary" id="confirm-pain-update" disabled>Save pain</button>
     `;
 
     document.getElementById('modal-title').textContent = 'Update pain';
@@ -252,6 +252,7 @@ function updateActivePain() {
             body.querySelectorAll('.pain-btn').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed', 'false'); });
             btn.classList.add('selected');
             btn.setAttribute('aria-pressed', 'true');
+            document.getElementById('confirm-pain-update').disabled = false;
         });
     });
 
@@ -336,7 +337,7 @@ function endActiveMigraine() {
     if (needsPain) {
         body.querySelectorAll('#end-pain-scale .pain-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                body.querySelectorAll('#end-pain-scale .pain-btn').forEach(b => b.classList.remove('selected'));
+                body.querySelectorAll('#end-pain-scale .pain-btn').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed', 'false'); });
                 btn.classList.add('selected');
             btn.setAttribute('aria-pressed', 'true');
                 const err = document.getElementById('end-pain-error');
@@ -671,6 +672,7 @@ function deleteReliefMethod(index) {
 }
 
 function updateDashboard() {
+    if (typeof refreshRecentEntry === 'function') refreshRecentEntry();
     const activeMigraines = getActiveMigraines();
     const total = activeMigraines.length;
     const avgPain = total > 0
@@ -688,7 +690,7 @@ function updateDashboard() {
     }).length;
 
     const lastEpisode = total > 0
-        ? formatRelativeTime(activeMigraines[activeMigraines.length - 1].startTime)
+        ? formatRelativeTime([...activeMigraines].sort((a, b) => new Date(b.startTime) - new Date(a.startTime))[0].startTime)
         : '-';
 
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
