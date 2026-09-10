@@ -1,6 +1,6 @@
 {
   "name": "aiding-migraine",
-  "version": "5.9.0-draft.1",
+  "version": "5.10.0-draft.1",
   "description": "A Progressive Web App for tracking migraines, identifying patterns, and improving communication with healthcare providers",
   "main": "index.html",
   "scripts": {
@@ -11,7 +11,8 @@
     "test:all": "npm test",
     "validate": "npm test",
     "test:tracking": "node --test scripts/tracking.test.js",
-    "test:interface": "node --test scripts/interface.test.js"
+    "test:interface": "node --test scripts/interface.test.js",
+    "test:mobile": "node --test scripts/mobile.test.js"
   },
   "repository": {
     "type": "git",

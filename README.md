@@ -2,7 +2,7 @@
 
 A private, device-local migraine tracker. Start an attack with one tap and add details when you can.
 
-**5.9.0 draft 1 — complete interface redesign.** This branch is a review draft. The existing [published app](https://aidedmarketing.github.io/AidingMigraine/) changes only after release.
+**5.10.0 draft 1 — mobile journal rebuild.** This branch is a review draft. The existing [published app](https://aidedmarketing.github.io/AidingMigraine/) changes only after release.
 
 ## The core experience
 
@@ -50,8 +50,10 @@ Scripts remain ordered classic scripts with a shared global scope. Extraction re
 
 ## Review and release
 
+Read [the mobile review and browser validation](docs/MOBILE-REBUILD.md) for this pass. It includes the installed-PWA cache correction, layout findings, screenshots workflow, and device-testing limits. `npm run test:mobile` runs Chromium/WebKit after installing the Playwright test tools documented there.
+
 Read [the interface review](docs/INTERFACE-OVERHAUL.md) for this design pass and [the foundation review](docs/REDESIGN-DRAFT.md) for the earlier structural cleanup. In particular, completed episodes still require a pain score under the existing report/import contract. Making that optional needs a coordinated change to analytics and data validation.
 
-Run `npm test` before committing. GitHub Actions runs the same checks on pull requests. Static checks are not a substitute for device testing; this draft still needs mobile, accessibility, and real-browser offline/encryption review before merging.
+Run `npm test` before committing. GitHub Actions runs the same checks on pull requests. Static checks are not a substitute for device testing; this draft still needs physical-iPhone, assistive-technology, and real-device encryption review before merging. Browser layout and offline scenarios are now covered by the automated mobile suite.
 
 [Help](help/index.html) · [Issues](https://github.com/AidedMarketing/AidingMigraine/issues) · [License](LICENSE)

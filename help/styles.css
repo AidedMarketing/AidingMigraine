@@ -434,3 +434,6 @@ a:not(.back-button) { color: var(--accent-blue); }
 .back-button:hover, .help-card:hover { transform: none; box-shadow: none; }
 a:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
 @media (max-width: 600px) { .help-container { padding: 24px 18px; }.help-header h1 { font-size: 1.625rem; } }
+
+/* Installed iPhone safe areas match the journal. */
+.help-container { padding-top: calc(20px + env(safe-area-inset-top)); padding-bottom: calc(40px + env(safe-area-inset-bottom)); padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
