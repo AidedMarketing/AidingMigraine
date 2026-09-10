@@ -4,15 +4,15 @@
 
 Aiding Migraine is a **privacy-first, offline-first Progressive Web App (PWA)** for migraine tracking and management. Users log migraines, track patterns, view analytics, manage medications, and export data for healthcare providers. All user data is stored locally on the device (IndexedDB/localStorage). An optional Node.js/Express notification server handles push notifications.
 
-- **Version:** 5.8.0-draft.1
+- **Version:** 5.9.0-draft.1
 - **License:** MIT
 - **Repository:** https://github.com/AidedMarketing/AidingMigraine
 
 ## Architecture
 
-### Draft architecture (5.8.0)
+### Draft architecture (5.9.0)
 
-The attack-first redesign separates page markup in `index.html` from classic scripts in `assets/` and styles in `assets/components.css` and `assets/shell.css`. Preserve script order and shared global scope for now. `assets/tracking.js` owns the core attack lifecycle; `assets/app.js` holds shared feature logic; `assets/storage.js`, `assets/device.js`, and `assets/updates.js` retain their existing responsibilities. All local runtime assets must be precached in `service-worker.js`. Charts and PDFs load on demand. See README.md and docs/REDESIGN-DRAFT.md for the current source map.
+The attack-first redesign separates page markup in `index.html` from classic scripts in `assets/` and styles in `assets/components.css` and `assets/shell.css`. Preserve script order and shared global scope for now. `assets/tracking.js` owns the core attack lifecycle; `assets/app.js` holds shared feature logic; `assets/storage.js`, `assets/device.js`, and `assets/updates.js` retain their existing responsibilities. All local runtime assets must be precached in `service-worker.js`. Charts and PDFs load on demand. Shared theme tokens are in assets/tokens.css; theme.js runs in the head and interface.js controls insight presentation. See README.md and docs/INTERFACE-OVERHAUL.md for the current source map.
 
 The older single-file descriptions below document the pre-redesign architecture. For new edits, use the split source layout above; do not restore the monolith.
 

@@ -2,7 +2,7 @@
 
 A private, device-local migraine tracker. Start an attack with one tap and add details when you can.
 
-**5.8.0 draft 1 — attack-first redesign.** This branch is a review draft. The existing [published app](https://aidedmarketing.github.io/AidingMigraine/) changes only after release.
+**5.9.0 draft 1 — complete interface redesign.** This branch is a review draft. The existing [published app](https://aidedmarketing.github.io/AidingMigraine/) changes only after release.
 
 ## The core experience
 
@@ -31,7 +31,10 @@ The optional notification server has its own setup in [notification-server/READM
 | File | Responsibility |
 | --- | --- |
 | `index.html` | Page markup and ordered script entrypoints |
-| `assets/shell.css` | Attack-first layout and navigation |
+| `assets/shell.css` | Responsive layouts, journal, settings groups, and dialogs |
+| `assets/tokens.css` | Shared color and type tokens for all three themes |
+| `assets/theme.js` | Apply the selected theme before first paint, including Help |
+| `assets/interface.js` | Insight category visibility and chart resizing |
 | `assets/components.css` | Shared component styles and three themes |
 | `assets/tracking.js` | Start, update, end, active state, relief, and dashboard summaries |
 | `assets/app.js` | Shared state, feature logic, navigation, exports, analytics, and optional library loading |
@@ -47,7 +50,7 @@ Scripts remain ordered classic scripts with a shared global scope. Extraction re
 
 ## Review and release
 
-Read [the first-draft review](docs/REDESIGN-DRAFT.md) for scope, limitations, and acceptance checks. In particular, completed episodes still require a pain score under the existing report/import contract. Making that optional needs a coordinated change to analytics and data validation.
+Read [the interface review](docs/INTERFACE-OVERHAUL.md) for this design pass and [the foundation review](docs/REDESIGN-DRAFT.md) for the earlier structural cleanup. In particular, completed episodes still require a pain score under the existing report/import contract. Making that optional needs a coordinated change to analytics and data validation.
 
 Run `npm test` before committing. GitHub Actions runs the same checks on pull requests. Static checks are not a substitute for device testing; this draft still needs mobile, accessibility, and real-browser offline/encryption review before merging.
 

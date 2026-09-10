@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>iOS Notification Setup - Aiding Migraine</title>
+    <script src="../assets/theme.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../assets/tokens.css">
     <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
 </head>
 <body>
     <div class="help-container">
         <header class="help-header">
-            <h1>🔔 iOS Notification Setup</h1>
+            <h1>iOS Notification Setup</h1>
             <a href="index.html" class="back-button">← Back to Help</a>
         </header>
 
@@ -18,11 +20,11 @@
             <p>Getting notifications to work on iOS requires a few specific steps. This guide will walk you through the complete setup process and troubleshoot common issues.</p>
 
             <div class="info-box warning">
-                <h4>⚠️ Critical Requirement</h4>
+                <h4>Critical Requirement</h4>
                 <p><strong>You MUST install Aiding Migraine to your home screen for notifications to work on iOS.</strong> Safari's web browser alone cannot receive push notifications - only installed Progressive Web Apps can.</p>
             </div>
 
-            <h2>📋 Prerequisites</h2>
+            <h2>Prerequisites</h2>
 
             <p>Before setting up notifications, make sure you have:</p>
             <ul>
@@ -32,7 +34,7 @@
                 <li><strong>Network connection</strong> (Required for initial setup only)</li>
             </ul>
 
-            <h2>📱 Step 1: Install to Home Screen</h2>
+            <h2>Step 1: Install to Home Screen</h2>
 
             <ol class="step-list">
                 <li>
@@ -58,7 +60,7 @@
             </ol>
 
             <div class="info-box success">
-                <h4>✅ How to Tell It's Installed Correctly</h4>
+                <h4>How to Tell It's Installed Correctly</h4>
                 <p>When you open Aiding Migraine from your home screen, it should:</p>
                 <ul style="margin-top: 10px;">
                     <li>Open in its own window (not Safari)</li>
@@ -68,7 +70,7 @@
                 </ul>
             </div>
 
-            <h2>🔔 Step 2: Enable Notifications in App</h2>
+            <h2>Step 2: Enable Notifications in App</h2>
 
             <ol class="step-list">
                 <li>
@@ -98,7 +100,7 @@
             </ol>
 
             <div class="info-box">
-                <h4>💡 Didn't See the Permission Prompt?</h4>
+                <h4>Didn't See the Permission Prompt?</h4>
                 <p>If you didn't see the notification permission request:</p>
                 <ul style="margin-top: 10px;">
                     <li>You may have previously denied it - see troubleshooting below</li>
@@ -107,7 +109,7 @@
                 </ul>
             </div>
 
-            <h2>⚙️ Step 3: Verify iOS System Settings</h2>
+            <h2>Step 3: Verify iOS System Settings</h2>
 
             <p>Double-check that iOS system settings are configured correctly:</p>
 
@@ -137,7 +139,7 @@
                 </li>
             </ol>
 
-            <h2>🧪 Step 4: Test Your Notifications</h2>
+            <h2>Step 4: Test Your Notifications</h2>
 
             <p>The best way to confirm notifications are working:</p>
 
@@ -161,13 +163,13 @@
             </ol>
 
             <div class="info-box success">
-                <h4>✅ Success!</h4>
+                <h4>Success!</h4>
                 <p>If you received the notification, you're all set! Change your check-in time back to your preferred schedule (we recommend 8-9 PM).</p>
             </div>
 
-            <h2>🔧 Troubleshooting</h2>
+            <h2>Troubleshooting</h2>
 
-            <h3>❌ "I didn't get the permission prompt"</h3>
+            <h3>"I didn't get the permission prompt"</h3>
             <p><strong>Most common cause:</strong> You previously denied notification permission.</p>
             <p><strong>Fix:</strong></p>
             <ol>
@@ -177,7 +179,7 @@
                 <li>Return to the app and toggle notifications on</li>
             </ol>
 
-            <h3>❌ "I don't see Aiding Migraine in iOS Settings → Notifications"</h3>
+            <h3>"I don't see Aiding Migraine in iOS Settings → Notifications"</h3>
             <p><strong>Most common cause:</strong> The app wasn't properly installed to the home screen.</p>
             <p><strong>Fix:</strong></p>
             <ol>
@@ -187,7 +189,7 @@
                 <li>Make sure you open it from the home screen icon (not Safari)</li>
             </ol>
 
-            <h3>❌ "Notifications were working, but stopped"</h3>
+            <h3>"Notifications were working, but stopped"</h3>
             <p><strong>Possible causes:</strong></p>
             <ul>
                 <li><strong>Focus Mode/Do Not Disturb:</strong> Check if you have Focus mode enabled (Settings → Focus)</li>
@@ -196,7 +198,7 @@
                 <li><strong>Notification settings changed:</strong> Verify iOS Settings → Notifications → Aiding Migraine</li>
             </ul>
 
-            <h3>❌ "Notifications arrive late or inconsistently"</h3>
+            <h3>"Notifications arrive late or inconsistently"</h3>
             <p>iOS manages background tasks aggressively to save battery. This is normal behavior. Notifications might arrive a few minutes late, especially if:</p>
             <ul>
                 <li>Your device is in Low Power Mode</li>
@@ -205,7 +207,7 @@
             </ul>
             <p><strong>This is an iOS limitation, not an app bug.</strong> Notifications will arrive, just potentially a few minutes after the scheduled time.</p>
 
-            <h3>❌ "I'm getting notifications at the wrong time"</h3>
+            <h3>"I'm getting notifications at the wrong time"</h3>
             <p><strong>Check your timezone settings:</strong></p>
             <ol>
                 <li>Go to iOS Settings → General → Date & Time</li>
@@ -214,7 +216,7 @@
                 <li>In Aiding Migraine Settings, toggle notifications off and on to resync</li>
             </ol>
 
-            <h3>❌ "Notifications work in Test, but not for Daily Check-Ins"</h3>
+            <h3>"Notifications work in Test, but not for Daily Check-Ins"</h3>
             <p>Daily check-in notifications are scheduled server-side. If test notifications work but dailies don't:</p>
             <ol>
                 <li>Make sure you have an active internet connection when enabling notifications</li>
@@ -223,7 +225,7 @@
                 <li>Wait until tomorrow's scheduled time to see if they resume</li>
             </ol>
 
-            <h2>📞 Still Having Issues?</h2>
+            <h2>Still Having Issues?</h2>
 
             <p>If you've tried all the troubleshooting steps and notifications still aren't working:</p>
 
@@ -240,7 +242,7 @@
                 <li>Or <a href="https://github.com/AidedMarketing/AidingMigraine/issues" target="_blank">report an issue on GitHub</a></li>
             </ol>
 
-            <h2>💡 Quick Reference</h2>
+            <h2>Quick Reference</h2>
 
             <table>
                 <tr>
@@ -281,25 +283,6 @@
         </footer>
     </div>
 
-    <script>
-        // Sync theme with main app
-        function syncTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                document.documentElement.setAttribute('data-theme', savedTheme);
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        }
 
-        syncTheme();
-
-        // Listen for theme changes
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'theme') {
-                syncTheme();
-            }
-        });
-    </script>
 </body>
 </html>

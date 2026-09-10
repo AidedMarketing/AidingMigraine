@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.8.0-draft.1';
+const APP_VERSION = '5.9.0-draft.1';
 
 let migraines = [];
 let selectedPain = null;
@@ -833,7 +833,7 @@ function safeHTML(html) {
         // through here - interactivity uses addEventListener with
         // data-* attributes instead
         return DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: ['div', 'span', 'p', 'b', 'i', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'a', 'button', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'select', 'option', 'input', 'label', 'textarea', 'form'],
+            ALLOWED_TAGS: ['div', 'span', 'small', 'p', 'b', 'i', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'a', 'button', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'select', 'option', 'input', 'label', 'textarea', 'form'],
             ALLOWED_ATTR: ['class', 'style', 'href', 'target', 'id', 'value', 'type', 'placeholder', 'checked', 'selected', 'disabled', 'name', 'for', 'title'],
             ALLOW_DATA_ATTR: true
         });
@@ -1975,26 +1975,24 @@ function initializeTheme() {
     applyTheme(savedTheme);
 
     document.querySelectorAll('.theme-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.theme === savedTheme) {
-            btn.classList.add('active');
-        }
-    });
-
-    document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const theme = btn.dataset.theme;
             applyTheme(theme);
             localStorage.setItem('theme', theme);
-
-            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
         });
     });
 }
 
 function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
+    document.querySelectorAll('.theme-btn').forEach(button => {
+        const selected = button.dataset.theme === theme;
+        button.classList.toggle('active', selected);
+        button.setAttribute('aria-pressed', String(selected));
+    });
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = { 'warm-dark': '#191d1c', 'warm-light': '#f5f3ed', 'high-contrast': '#000000' }[theme] || '#191d1c';
+    if (typeof currentPage !== 'undefined' && currentPage === 'analytics' && chartsAvailable()) renderAnalytics();
 }
 
 function initializeNavigation() {
@@ -2116,84 +2114,39 @@ function initializeHistory() {}
 
 function renderHistory() {
     const list = document.getElementById('history-list');
-    const activeMigraines = getActiveMigraines();
-
-    // Delegated click handler (attached once) - no inline onclick
+    const entries = [...getActiveMigraines()].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
     if (!list.dataset.delegated) {
-        list.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-action][data-id]');
-            if (!btn) return;
-            const raw = btn.dataset.id;
+        list.addEventListener('click', event => {
+            const button = event.target.closest('[data-action]');
+            if (!button) return;
+            if (button.dataset.action === 'start') { showPage('log'); return; }
+            const raw = button.dataset.id;
             const id = isNaN(Number(raw)) ? raw : Number(raw);
-            if (btn.dataset.action === 'view') viewEpisode(id);
-            else if (btn.dataset.action === 'edit') editEpisode(id);
-            else if (btn.dataset.action === 'delete') deleteEpisode(id);
+            if (button.dataset.action === 'view') viewEpisode(id);
         });
         list.dataset.delegated = '1';
     }
-
-    if (activeMigraines.length === 0) {
-        list.innerHTML = `
-            <div class="section-card" style="text-align: center; padding: 40px;">
-                <div style="display: flex; justify-content: center; margin-bottom: 16px;">
-                    <svg class="icon" style="width: 48px; height: 48px; stroke: var(--text-secondary);" viewBox="0 0 24 24">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                </div>
-                <h2>No Episodes Yet</h2>
-                <p style="color: var(--text-secondary); margin-top: 12px;">
-                    Your migraine history will appear here after you log your first episode.
-                </p>
-            </div>
-        `;
+    if (!entries.length) {
+        list.innerHTML = `<div class="empty-state">
+            <h2>Your story starts here</h2>
+            <p>Completed attacks will appear here. There’s nothing you need to catch up on.</p>
+            <button class="btn btn-secondary" data-action="start">Go to Today</button>
+        </div>`;
         return;
     }
-
-    const sorted = [...activeMigraines].reverse();
-
-    list.innerHTML = safeHTML(sorted.map(m => {
-        const start = new Date(m.startTime);
-        const painProgress = getPainProgression(m);
-
-        return `
-            <div class="history-item">
-                <div class="history-header">
-                    <div>
-                        <div class="history-date">${formatDate(start)}</div>
-                        <div class="history-time">${formatTime(start)}</div>
-                    </div>
-                </div>
-                <div class="history-details">
-                    <div class="history-detail">
-                        <span class="detail-label">Pain</span>
-                        <span class="detail-value">${safeText(painProgress)}</span>
-                    </div>
-                    <div class="history-detail">
-                        <span class="detail-label">Duration</span>
-                        <span class="detail-value">${formatDuration(m.duration)}</span>
-                    </div>
-                    <div class="history-detail">
-                        <span class="detail-label">Category</span>
-                        <span class="detail-value">${safeText(m.category)}</span>
-                    </div>
-                </div>
-                ${headZoneLabels(m.painLocations).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Location:</strong> ${safeText(headZoneLabels(m.painLocations).join(', '))}${deriveLaterality(m.painLocations) ? ` (${deriveLaterality(m.painLocations)})` : ''}</p>` : ''}
-                ${qualityLabels(m.painQuality).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Quality:</strong> ${safeText(qualityLabels(m.painQuality).join(', '))}</p>` : ''}
-                ${prodromeLabels(m.prodrome).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Warning signs:</strong> ${safeText(prodromeLabels(m.prodrome).join(', '))}</p>` : ''}
-                ${symptomLabels(m.symptoms).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Symptoms:</strong> ${safeText(symptomLabels(m.symptoms).join(', '))}</p>` : ''}
-                ${triggerLabels(m.triggers).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>Triggers:</strong> ${safeText(triggerLabels(m.triggers).join(', '))}</p>` : ''}
-                ${postdromeLabels(m.postdrome).length > 0 ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;"><strong>After-effects:</strong> ${safeText(postdromeLabels(m.postdrome).join(', '))}</p>` : ''}
-                ${m.notes ? `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">${safeText(m.notes)}</p>` : ''}
-                <div class="history-actions">
-                    <button class="btn btn-secondary" data-action="view" data-id="${safeText(String(m.id))}">View Details</button>
-                    <button class="btn btn-secondary" data-action="edit" data-id="${safeText(String(m.id))}">Edit</button>
-                    <button class="btn btn-secondary" data-action="delete" data-id="${safeText(String(m.id))}">Delete</button>
-                </div>
-            </div>
-        `;
+    list.innerHTML = safeHTML(entries.map(entry => {
+        const date = new Date(entry.startTime);
+        const day = date.toLocaleDateString([], { day: 'numeric' });
+        const month = date.toLocaleDateString([], { month: 'short' });
+        const title = date.toLocaleDateString([], { weekday: 'long', year: 'numeric' });
+        const duration = entry.duration == null ? 'Duration not recorded' : formatDuration(entry.duration);
+        const pain = entry.painLevel == null ? '—' : String(entry.painLevel);
+        return `<button class="history-entry" data-action="view" data-id="${safeText(String(entry.id))}"
+            aria-label="View migraine, ${safeText(formatDate(date))}, pain ${safeText(pain)}, ${safeText(duration)}">
+            <span class="entry-date"><strong>${safeText(day)}</strong><small>${safeText(month)}</small></span>
+            <span class="entry-copy"><strong>${safeText(title)}</strong><small>${safeText(formatTime(date))} · ${safeText(duration)}</small></span>
+            <span class="entry-pain">${safeText(pain)}<small> / 10</small></span>
+        </button>`;
     }).join(''));
 }
 
@@ -2287,7 +2240,11 @@ function viewEpisode(id) {
         content += `<h3>Resolution Notes</h3><p>${safeText(migraine.endNotes)}</p>`;
     }
 
-    showModal('Episode Details', content);
+    showModal('Migraine details', content, [
+        { text: 'Edit', class: 'btn-primary', action: () => editEpisode(id) },
+        { text: 'Delete', class: 'btn-danger', action: () => deleteEpisode(id) },
+        { text: 'Done', class: 'btn-secondary', action: closeModal }
+    ]);
 
     // Paint the read-only head map now that the placeholder exists
     if (viewLocations.length > 0) {
@@ -2743,14 +2700,10 @@ function saveEpisodeEdit(originalEpisode, isActive) {
 }
 
 function deleteEpisode(id) {
-    const modal = document.getElementById('modal');
-    document.getElementById('modal-title').textContent = 'Delete Episode?';
-    document.getElementById('modal-body').innerHTML = '<p>This episode will be moved to trash and can be recovered within 30 days.</p>';
-    document.getElementById('modal-actions').innerHTML = `
-        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="confirmDelete(${id})">Move to Trash</button>
-    `;
-    openDialog(modal);
+    showModal('Move to recently deleted?', '<p>You can restore this attack from Settings for 30 days.</p>', [
+        { text: 'Keep record', class: 'btn-secondary', action: closeModal },
+        { text: 'Move to trash', class: 'btn-danger', action: () => confirmDelete(id) }
+    ]);
 }
 
 function confirmDelete(id) {
@@ -2763,7 +2716,7 @@ function confirmDelete(id) {
         updateDashboard();
         renderCalendar();
         closeModal();
-        showModal('Moved to Trash', 'Episode moved to trash. You can restore it from Settings within 30 days.');
+        showToast('Moved to Recently deleted. Restore it in Settings.');
     }
 }
 
@@ -8953,11 +8906,16 @@ function getChartColors() {
 }
 
 async function initializeAnalytics() {
+    renderAnalytics();
     if (!chartsAvailable()) {
         try { await loadOptionalLibrary('chart'); } catch { /* Existing fallback explains missing charts. */ }
     }
     // Set up event listener for range change
-    document.getElementById('analytics-range').addEventListener('change', renderAnalytics);
+    const rangeControl = document.getElementById('analytics-range');
+    if (!rangeControl.dataset.wired) {
+        rangeControl.addEventListener('change', renderAnalytics);
+        rangeControl.dataset.wired = 'true';
+    }
 
     const emptyCta = document.getElementById('analytics-empty-cta');
     if (emptyCta && !emptyCta.dataset.wired) {
@@ -9005,29 +8963,12 @@ function renderAnalytics() {
         return;
     }
 
-    // Check for reduced motion preference and disable Chart.js animations
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (prefersReducedMotion) {
-        Chart.defaults.animation = false;
-        Chart.defaults.animations = {
-            colors: false,
-            x: false,
-            y: false
-        };
-        Chart.defaults.transitions = {
-            active: { animation: { duration: 0 } },
-            resize: { animation: { duration: 0 } },
-            show: { animation: { duration: 0 } },
-            hide: { animation: { duration: 0 } }
-        };
-    } else {
-        // Enable smooth animations for users who haven't opted out
-        Chart.defaults.animation = {
-            duration: 400,
-            easing: 'easeInOutQuart'
-        };
-    }
+    Chart.defaults.animation = false;
+    document.querySelectorAll('.chart-fallback').forEach(note => note.remove());
+    ['frequency-chart', 'pain-chart', 'time-chart', 'dow-chart', 'pressure-chart'].forEach(id => {
+        const canvas = document.getElementById(id);
+        if (canvas) canvas.style.display = '';
+    });
 
     renderAnalyticsData();
 }
@@ -9053,6 +8994,7 @@ function setAnalyticsEmptyState(isEmpty) {
 function renderAnalyticsData() {
     if (getActiveMigraines().length === 0) {
         setAnalyticsEmptyState(true);
+        refreshInsightSections();
         return;
     }
     setAnalyticsEmptyState(false);
@@ -9121,6 +9063,7 @@ function renderAnalyticsData() {
     // Head-pain location + quality breakdowns
     renderOptionAnalytics('location-analytics-card', 'location-analytics-content', filteredData, 'painLocations', HEAD_ZONE_KEYS, HEAD_ZONE_LABELS, 'pain locations');
     renderOptionAnalytics('quality-analytics-card', 'quality-analytics-content', filteredData, 'painQuality', PAIN_QUALITY_KEYS, PAIN_QUALITY_LABELS, 'pain quality');
+    refreshInsightSections();
 }
 
 // Ranked frequency breakdown of a controlled option list across episodes.

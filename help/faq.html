@@ -4,20 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frequently Asked Questions - Aiding Migraine</title>
+    <script src="../assets/theme.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../assets/tokens.css">
     <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
 </head>
 <body>
     <div class="help-container">
         <header class="help-header">
-            <h1>💡 Frequently Asked Questions</h1>
+            <h1>Frequently Asked Questions</h1>
             <a href="index.html" class="back-button">← Back to Help</a>
         </header>
 
         <main class="help-content">
             <p>Find answers to common questions about Aiding Migraine. Can't find what you're looking for? <a href="mailto:support@aidingmigraine.com">Contact us</a>.</p>
 
-            <h2>🔒 Privacy & Data</h2>
+            <h2>Privacy & Data</h2>
 
             <h3>Is my data private?</h3>
             <p><strong>Local by default.</strong> All your migraine entries, analytics, and personal health information are stored exclusively on your device using browser local storage &mdash; your migraine data itself is never transmitted anywhere. Two features are optional and off by default: if you enable them, notifications send a push subscription/timezone/schedule to our notification server, and weather tracking sends your location to Open-Meteo and Nominatim. See the <a href="privacy.html">Privacy Policy</a> for the full details.</p>
@@ -51,7 +53,7 @@
                 <li>Enable auto-lock on your device</li>
             </ul>
 
-            <h2>💻 Technical</h2>
+            <h2>Technical</h2>
 
             <h3>Does this work offline?</h3>
             <p><strong>Yes!</strong> Once installed, Aiding Migraine works completely offline. You can:</p>
@@ -119,7 +121,7 @@
                 <li><strong>Total footprint:</strong> Less than most photos on your phone</li>
             </ul>
 
-            <h2>📝 Tracking</h2>
+            <h2>Tracking</h2>
 
             <h3>How do I log a multi-day migraine?</h3>
             <p>If your migraine lasts across multiple calendar days:</p>
@@ -173,7 +175,7 @@
                 </tr>
             </table>
 
-            <h2>🔔 Notifications</h2>
+            <h2>Notifications</h2>
 
             <h3>Why aren't my notifications working?</h3>
             <p>Troubleshooting steps:</p>
@@ -222,7 +224,7 @@
             </ul>
             <p>Expect delivery within 5-15 minutes of scheduled time. This is an OS limitation, not an app bug.</p>
 
-            <h2>📄 Export</h2>
+            <h2>Export</h2>
 
             <h3>What format is the export?</h3>
             <p>Aiding Migraine offers three export formats:</p>
@@ -258,7 +260,7 @@
             </ol>
             <p><strong>Tip:</strong> Export 1-2 days before your appointment so you have time to review it yourself first.</p>
 
-            <h2>🆘 Support</h2>
+            <h2>Support</h2>
 
             <h3>How do I report a bug?</h3>
             <p>Found something not working right? Report it:</p>
@@ -299,7 +301,7 @@
                 <li><strong>Response time:</strong> Usually within 24-48 hours</li>
             </ul>
 
-            <h2>♿ Accessibility</h2>
+            <h2>Accessibility</h2>
 
             <h3>Does this app support reduced motion preferences?</h3>
             <p><strong>Yes!</strong> Aiding Migraine respects your device's motion settings:</p>
@@ -345,7 +347,7 @@
             </ul>
             <p>You can switch to light mode if preferred - the app follows your system's color scheme setting.</p>
 
-            <h2>☁️ Weather Tracking</h2>
+            <h2>Weather Tracking</h2>
 
             <h3>What is weather tracking?</h3>
             <p><strong>Barometric pressure tracking (optional feature).</strong> Research shows that 15-20% of migraine sufferers are sensitive to atmospheric pressure changes. Aiding Migraine can track local pressure and correlate it with your migraine patterns.</p>
@@ -391,7 +393,7 @@
             <h3>What if I'm not weather-sensitive?</h3>
             <p><strong>You don't need to use this feature!</strong> Weather tracking is completely optional. If the correlation is weak, that's valuable information too - it tells you to focus on other potential triggers.</p>
 
-            <h2>📱 Updates & Features</h2>
+            <h2>Updates & Features</h2>
 
             <h3>How do I update the app?</h3>
             <p>Aiding Migraine updates automatically! When a new version is available:</p>
@@ -425,25 +427,6 @@
         </footer>
     </div>
 
-    <script>
-        // Sync theme with main app
-        function syncTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                document.documentElement.setAttribute('data-theme', savedTheme);
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        }
 
-        syncTheme();
-
-        // Listen for theme changes
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'theme') {
-                syncTheme();
-            }
-        });
-    </script>
 </body>
 </html>
