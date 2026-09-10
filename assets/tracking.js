@@ -41,9 +41,11 @@ document.getElementById('toggle-details-btn')?.addEventListener('click', () => {
     if (content.style.display === 'none') {
         content.style.display = 'block';
         arrow.classList.add('rotated');
+        document.getElementById('toggle-details-btn').setAttribute('aria-expanded', 'true');
     } else {
         content.style.display = 'none';
         arrow.classList.remove('rotated');
+        document.getElementById('toggle-details-btn').setAttribute('aria-expanded', 'false');
     }
 });
 
@@ -228,7 +230,7 @@ function updateActivePain() {
 
     body.innerHTML = `
         <div class="form-group">
-            <label>New Pain Level</label>
+            <label>How strong is the pain?</label><p class="pain-helper">0 is no pain. 10 is the worst imaginable.</p>
             <div class="pain-scale">
                 ${[0,1,2,3,4,5,6,7,8,9,10].map(i => 
                     `<button class="pain-btn" aria-label="Pain ${i} out of 10" aria-pressed="false" data-pain="${i}">${i}</button>`
@@ -242,7 +244,7 @@ function updateActivePain() {
         <button class="btn btn-primary" id="confirm-pain-update">Update</button>
     `;
 
-    document.getElementById('modal-title').textContent = 'Update Pain Level';
+    document.getElementById('modal-title').textContent = 'Update pain';
     openDialog(modal);
 
     body.querySelectorAll('.pain-btn').forEach(btn => {
@@ -293,7 +295,7 @@ function endActiveMigraine() {
     const needsPain = activeMigraine.painLevel == null;
 
     body.innerHTML = `
-        <p>End this migraine episode?</p>
+        <p>We’ll save the end time now. You can edit it in History.</p>
         ${needsPain ? `
         <div class="form-group" style="margin-top: 16px;">
             <label>How bad was the pain? (required)</label>
@@ -319,10 +321,10 @@ function endActiveMigraine() {
 
     document.getElementById('modal-actions').innerHTML = `
         <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary" id="confirm-end">End Episode</button>
+        <button class="btn btn-primary" id="confirm-end">Save &amp; end</button>
     `;
 
-    document.getElementById('modal-title').textContent = 'End Episode';
+    document.getElementById('modal-title').textContent = 'End this migraine?';
     openDialog(modal);
 
     // Postdrome chips — a local set seeded from any existing value

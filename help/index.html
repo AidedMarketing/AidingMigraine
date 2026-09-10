@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Help & Documentation - Aiding Migraine</title>
+    <script src="../assets/theme.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../assets/tokens.css">
     <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
 </head>
 <body>
     <div class="help-container">
         <header class="help-header">
-            <h1>📚 Help & Documentation</h1>
+            <h1>Help & Documentation</h1>
             <a href="../index.html" class="back-button">← Back to App</a>
         </header>
 
@@ -21,7 +23,7 @@
                 </p>
 
                 <nav class="help-nav">
-                    <h2>📖 Getting Started</h2>
+                    <h2>Getting Started</h2>
                     <ul>
                         <li>
                             <a href="quick-start.html">
@@ -39,7 +41,7 @@
                 </nav>
 
                 <nav class="help-nav">
-                    <h2>📊 Features & Analytics</h2>
+                    <h2>Features & Analytics</h2>
                     <ul>
                         <li>
                             <a href="analytics.html">
@@ -51,7 +53,7 @@
                 </nav>
 
                 <nav class="help-nav">
-                    <h2>❓ Support & Information</h2>
+                    <h2>Support & Information</h2>
                     <ul>
                         <li>
                             <a href="faq.html">
@@ -69,7 +71,7 @@
                 </nav>
 
                 <div class="info-box success" style="margin-top: 40px;">
-                    <h4>💬 Still Need Help?</h4>
+                    <h4>Still Need Help?</h4>
                     <p>Can't find what you're looking for? <a href="mailto:support@aidingmigraine.com">Contact our support team</a> or <a href="https://github.com/AidedMarketing/AidingMigraine/issues" target="_blank">report an issue on GitHub</a>.</p>
                 </div>
             </div>
@@ -81,25 +83,6 @@
         </footer>
     </div>
 
-    <script>
-        // Sync theme with main app
-        function syncTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                document.documentElement.setAttribute('data-theme', savedTheme);
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        }
 
-        syncTheme();
-
-        // Listen for theme changes
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'theme') {
-                syncTheme();
-            }
-        });
-    </script>
 </body>
 </html>

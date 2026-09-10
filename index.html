@@ -7,7 +7,7 @@
 
     <!-- PWA Configuration -->
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#1c1815">
+    <meta name="theme-color" content="#191d1c">
     <meta name="description" content="Track and manage your migraine symptoms with ease">
 
     <!-- iOS PWA Support -->
@@ -23,10 +23,12 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512x512.png">
 
+    <script src="./assets/theme.js"></script>
     <!-- DOMPurify for XSS Protection -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" integrity="sha384-cwS6YdhLI7XS60eoDiC+egV0qHp8zI+Cms46R0nbn8JrmoAzV9uFL60etMZhAnSu" crossorigin="anonymous"></script>
 
     <link rel="stylesheet" href="./assets/components.css">
+    <link rel="stylesheet" href="./assets/tokens.css">
     <link rel="stylesheet" href="./assets/shell.css">
 </head>
 <body>
@@ -35,7 +37,7 @@
         <div class="loading-content">
             <div class="loading-logo">AM</div>
             <div class="loading-title">Aiding Migraine</div>
-            <div class="loading-subtitle">Initializing your health tracker...</div>
+            <div class="loading-subtitle">Opening your journal…</div>
             <div class="loading-spinner"></div>
             <div class="loading-progress">
                 <div id="loading-progress-bar" class="loading-progress-bar"></div>
@@ -51,7 +53,7 @@
                 <path d="M12 3v12"></path><path d="M8 11l4 4 4-4"></path>
                 <path d="M20 17v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2"></path>
             </svg>
-            <span class="update-text">New version available!</span>
+            <span class="update-text">An update is ready</span>
             <button id="update-btn" class="update-btn">Update Now</button>
             <button id="dismiss-update-btn" class="dismiss-update-btn" aria-label="Dismiss update notice"><svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
@@ -99,29 +101,16 @@
         <div class="lock-screen-title" id="lock-screen-title">App Locked</div>
         <div class="lock-screen-subtitle" id="lock-screen-subtitle">Unlock to access your migraine data</div>
         <input type="password" id="unlock-passphrase" placeholder="Passphrase" autocomplete="current-password" style="display: none; width: min(320px, 80vw); padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem; text-align: center;">
-        <p id="unlock-error" role="alert" style="display: none; color: var(--accent-red); font-size: 0.85rem; margin-bottom: 12px;"></p>
+        <p id="unlock-error" role="alert" style="display: none; color: var(--accent-red); font-size: .875rem; margin-bottom: 12px;"></p>
         <button id="unlock-btn" class="unlock-btn">Unlock</button>
     </div>
 
     <a class="skip-link" href="#main-content">Skip to content</a>
 
     <main class="container" id="main-content" tabindex="-1">
-        <div id="log-page" class="page active">
-            <header class="app-topbar">
-                <div class="brand-lockup">
-                    <h1 class="brand-title">Aiding Migraine</h1>
-                    <div class="brand-subtitle" id="today-date-label">Today</div>
-                </div>
-                <div class="topbar-actions">
-                    <a href="./help/index.html" class="icon-btn" title="Help & Documentation" aria-label="Help and documentation">
-                        <svg class="icon icon-md" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M9.1 9a3 3 0 1 1 5.8 1c-.8 1.2-2.1 1.5-2.6 2.7"></path>
-                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                        </svg>
-                    </a>
-                </div>
-            </header>
+        <div id="log-page" class="page active" data-screen="today">
+            <header class="app-topbar"><a class="brand-lockup" href="#today" aria-label="Aiding Migraine, Today"><span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h5l2-6 4 12 2-6h5"/></svg></span><span class="brand-name">Aiding Migraine</span></a><button class="icon-btn" data-destination="settings" aria-label="Appearance and settings"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></button></header>
+            <div class="today-heading"><div><h1>Today</h1></div><p id="today-date-label" class="brand-subtitle">Today</p></div>
 
             <div id="active-episode-section" style="display: none;">
                 <div class="section-card active-episode-card">
@@ -129,7 +118,7 @@
                         <svg class="icon icon-lg pulse-indicator" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10"></circle>
                         </svg>
-                        <h2 tabindex="-1" id="active-title">Migraine in progress</h2>
+                        <div><p class="eyebrow">CURRENT ATTACK</p><h2 tabindex="-1" id="active-title">Migraine in progress</h2></div>
                     </div>
                     <div class="active-stats">
                         <div class="stat-item">
@@ -137,7 +126,7 @@
                             <span id="active-duration" class="stat-value">0h 0m</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">Pain Level</span>
+                            <span class="stat-label">Pain</span>
                             <span id="active-pain-display" class="stat-value">-</span>
                         </div>
                         <div class="stat-item">
@@ -146,19 +135,19 @@
                         </div>
                     </div>
 
-                    <p class="pain-helper">You can put your phone down. The start time is saved.</p>
+                    <p class="pain-helper">Your start time is saved. Add only what you feel up to.</p>
                     <div class="attack-actions">
-                        <button id="update-pain-btn" class="btn btn-secondary">Update pain</button>
-                        <button id="quick-medication-btn" class="btn btn-secondary">Log medication</button>
-                        <button id="end-episode-btn" class="btn btn-primary">End migraine</button>
+                        <button id="update-pain-btn" class="btn btn-secondary"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h5l2-6 4 12 2-6h5"/></svg><span>Update pain</span></button>
+                        <button id="quick-medication-btn" class="btn btn-secondary"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m10 5-5 5a6 6 0 0 0 9 9l5-5a6 6 0 0 0-9-9Z"/><path d="m8 8 8 8"/></svg><span>Medication</span></button>
+                        <button id="end-episode-btn" class="btn btn-primary"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><span>End migraine</span></button>
                     </div>
                     <details class="quiet-disclosure" id="attack-details">
-                        <summary>More details &amp; relief</summary>
+                        <summary>Symptoms, notes &amp; relief</summary>
                         <div class="disclosure-body">
                             <button id="edit-active-episode-btn" class="btn btn-secondary">Edit start time &amp; details</button>
                     <!-- Relief Methods Timeline -->
                     <div id="active-relief-timeline" style="display: none; margin: 20px 0; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">
-                        <div style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">Relief Methods</div>
+                        <div style="font-size: .875rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">Relief Methods</div>
                         <div id="relief-timeline-entries" style="display: flex; flex-direction: column; gap: 8px;">
                             <!-- Timeline entries will be added here -->
                         </div>
@@ -169,7 +158,7 @@
                          Optional Details) so the card leads with Duration/Pain/Category,
                          relief actions and End Episode rather than 31+ chips. -->
                     <div class="optional-details">
-                        <button type="button" class="toggle-details-btn" data-toggle-target="active-symptoms-content">
+                        <button type="button" class="toggle-details-btn" data-toggle-target="active-symptoms-content" aria-expanded="false" aria-controls="active-symptoms-content">
                             <span style="display: flex; align-items: center; gap: 10px;">Symptoms</span>
                             <svg class="icon icon-sm toggle-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </button>
@@ -179,7 +168,7 @@
                     </div>
 
                     <div class="optional-details">
-                        <button type="button" class="toggle-details-btn" data-toggle-target="active-triggers-content">
+                        <button type="button" class="toggle-details-btn" data-toggle-target="active-triggers-content" aria-expanded="false" aria-controls="active-triggers-content">
                             <span style="display: flex; align-items: center; gap: 10px;">Possible Triggers</span>
                             <svg class="icon icon-sm toggle-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </button>
@@ -189,7 +178,7 @@
                     </div>
 
                     <div class="optional-details">
-                        <button type="button" class="toggle-details-btn" data-toggle-target="active-medications-content">
+                        <button type="button" class="toggle-details-btn" data-toggle-target="active-medications-content" aria-expanded="false" aria-controls="active-medications-content">
                             <span style="display: flex; align-items: center; gap: 10px;">Medications</span>
                             <svg class="icon icon-sm toggle-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </button>
@@ -274,18 +263,15 @@
             </div>
 
             <div id="logging-section">
-                <div class="section-card quick-log-card" id="quick-log-card">
-                    <p class="eyebrow">TODAY</p>
-                    <h2>Here when you need it.</h2>
-                    <p class="pain-helper">Start tracking now. Add details when you can.</p>
-                    <button id="start-attack-btn" class="btn btn-primary start-attack">
-                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
-                        <span>Start migraine</span>
-                    </button>
-                    <p class="start-caption">Saves the start time. Nothing to fill in.</p>
-                </div>
+                <section class="section-card quick-log-card" id="quick-log-card" aria-labelledby="start-heading">
+                <div class="surface-symbol"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h5l2-6 4 12 2-6h5"/></svg></div>
+                <h2 id="start-heading">A migraine starting?</h2>
+                <p class="pain-helper">Let’s save the time.<br>You can fill in the rest later.</p>
+                <button id="start-attack-btn" class="btn btn-primary start-attack"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Start migraine</span></button>
+                <p class="start-caption">Start time saved when you tap.</p>
+            </section>
                 <details id="detailed-log" class="quiet-disclosure">
-                    <summary>Start with details</summary>
+                    <summary>Prefer to add details first?</summary>
                     <div class="disclosure-body">
                             <div class="form-group">
                         <label for="pain-select">Pain level</label>
@@ -306,7 +292,7 @@
                     </div>
 
                     <div class="optional-details">
-                        <button id="toggle-details-btn" class="toggle-details-btn">
+                        <button id="toggle-details-btn" aria-expanded="false" aria-controls="optional-details-content" class="toggle-details-btn">
                             <span style="display: flex; align-items: center; gap: 10px;">
                                 <svg class="icon icon-sm" viewBox="0 0 24 24">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -378,14 +364,11 @@
                 </details>
             </div>
 
-            <p class="device-note">Saved on this device. No account needed.</p>
+            <p class="device-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg><span>Just for you. Saved on this device.</span></p>
         </div>
 
         <div id="history-page" class="page">
-            <h1>
-                History
-                <a href="./help/index.html" class="help-icon" title="Help & Documentation">?</a>
-            </h1>
+            <header class="screen-header"><p class="eyebrow">AIDING MIGRAINE</p><h1>Your history</h1><p class="page-intro">A record of what you’ve been through.</p></header>
             <!-- Slim status line rather than a card: orientation only, so the
                  primary action (Log migraine) leads the page. -->
             <div class="today-status-strip">
@@ -426,41 +409,13 @@
         </div>
 
         <div id="more-page" class="page">
-            <h1>More</h1>
-            <p class="page-intro">For when you have a little more space.</p>
-            <div class="more-links">
-                <button class="destination" data-destination="analytics"><span>Insights<small>Patterns, pain &amp; weather</small></span><span aria-hidden="true">›</span></button>
-                <button class="destination" data-destination="care"><span>Doctor visit<small>Reports &amp; assessments</small></span><span aria-hidden="true">›</span></button>
-                <button class="destination" data-destination="settings"><span>Settings &amp; backup<small>Appearance, privacy &amp; your data</small></span><span aria-hidden="true">›</span></button>
-                <a class="destination" href="./help/index.html"><span>Help<small>Using Aiding Migraine</small></span><span aria-hidden="true">›</span></a>
-            </div>
+            <header class="screen-header"><p class="eyebrow">AIDING MIGRAINE</p><h1>Your space</h1><p class="page-intro">Patterns, care, and the way you like to track.</p></header>
+            <div class="more-links"><button class="destination" data-destination="analytics"><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 15v-3m5 3V6m5 9V9"/></svg></span><span class="destination-copy"><strong>Insights</strong><small>Look back at your patterns</small></span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button><button class="destination" data-destination="care"><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/></svg></span><span class="destination-copy"><strong>Doctor visit</strong><small>Reports &amp; questions for your appointment</small></span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button><button class="destination" data-destination="settings"><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></span><span class="destination-copy"><strong>Settings &amp; backup</strong><small>Your comfort. Your data.</small></span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button><a class="destination" href="./help/index.html"><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3v.01"/></svg></span><span class="destination-copy"><strong>Help &amp; guidance</strong><small>Find your way around</small></span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></div>
             <p class="device-note">Your records stay on this device. Keep a backup in Settings.</p>
         </div>
 
         <div id="analytics-page" class="page">
-            <button class="back-link" data-destination="more">‹ More</button>
-            <h1>
-                Insights
-                <a href="./help/analytics.html" class="help-icon" title="Understanding Your Analytics">?</a>
-            </h1>
-
-            <!-- Today's outlook: surfaces the weather/ML risk predictions.
-                 Hidden until weather tracking has current data. -->
-            <section class="section-card today-risk-card" id="today-risk-card" style="display: none;" aria-labelledby="risk-card-title">
-                <div class="risk-card-header">
-                    <h2 id="risk-card-title">Today's outlook</h2>
-                    <span class="risk-card-badge" id="risk-card-label">—</span>
-                </div>
-                <div class="risk-meter" role="img" aria-label="Migraine risk meter">
-                    <div class="risk-meter-fill" id="risk-meter-fill" style="width: 0%;"></div>
-                </div>
-                <p class="risk-card-detail" id="risk-card-detail"></p>
-                <p class="risk-card-trend" id="risk-card-trend"></p>
-                <div class="risk-card-ml" id="risk-card-ml" style="display: none;"></div>
-                <div class="risk-card-alerts" id="risk-card-alerts" style="display: none;"></div>
-            </section>
-
-            <div class="section-card">
+            <header class="screen-header"><button class="back-link" data-destination="more">‹ More</button><p class="eyebrow">AIDING MIGRAINE</p><h1>Your patterns</h1><p class="page-intro">A little perspective, at your pace.</p></header><div hidden aria-hidden="true"><div class="section-card">
                 <h2 class="mobile-section-title">Recent pattern</h2>
                 <div class="stats-grid">
                     <div class="stat-box">
@@ -481,38 +436,7 @@
                         <div class="stat-comparison" id="week-comparison"></div>
                     </div>
                 </div>
-            </div>
-
-
-            <!-- Atmospheric Pressure Indicator -->
-                    <div id="weather-forecast-indicator" style="display: none; margin-bottom: 20px;">
-                        <!-- Stable / Low-Risk State -->
-                        <div id="weather-clear" class="weather-forecast-box" style="display: none; background: rgba(123, 166, 138, 0.1); border-left: 4px solid var(--accent-green); padding: 12px 16px; border-radius: 0 8px 8px 0;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <svg viewBox="0 0 24 24" style="width: 1.1rem; height: 1.1rem; stroke: var(--accent-green); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                <div>
-                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--accent-green);">Pressure Stable</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;" id="weather-clear-detail">No significant pressure changes</div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Pressure Alert State -->
-                        <div id="weather-warning" class="weather-forecast-box" style="display: none; background: var(--pain-moderate-soft); border-left: 4px solid var(--pain-moderate); padding: 12px 16px; border-radius: 0 8px 8px 0;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <svg viewBox="0 0 24 24" style="width: 1.2rem; height: 1.2rem; stroke: var(--pain-moderate); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
-                                <div>
-                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--pain-moderate);">Pressure May Be a Factor</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;" id="weather-warning-detail">Significant pressure change detected</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-            <!-- Shown instead of the metrics and charts when there is nothing
-                 to analyse, so a new user isn't met with fabricated-looking
-                 zeros under headings promising trends. -->
-            <div class="section-card" id="analytics-empty" style="display: none; text-align: center;">
+            </div></div><div class="section-card" id="analytics-empty" style="display: none; text-align: center;">
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="width: 44px; height: 44px; stroke: var(--accent-green); margin-bottom: var(--space-3);">
                     <line x1="18" y1="20" x2="18" y2="10"></line>
                     <line x1="12" y1="20" x2="12" y2="4"></line>
@@ -524,10 +448,7 @@
                     pain, symptoms and triggers all build from your own entries.
                 </p>
                 <button class="btn btn-primary" id="analytics-empty-cta" style="width: auto;">Log your first episode</button>
-            </div>
-
-            <!-- Date Range Selector -->
-            <div class="section-card" id="analytics-range-card">
+            </div><div class="section-card" id="analytics-range-card">
                 <label for="analytics-range" style="display: block; margin-bottom: 8px; font-weight: 600;">Time Period</label>
                 <select id="analytics-range" style="width: 100%; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem;">
                     <option value="90">Last 3 Months</option>
@@ -535,10 +456,7 @@
                     <option value="365">Last Year</option>
                     <option value="all">All Time</option>
                 </select>
-            </div>
-
-            <!-- Key Metrics Grid -->
-            <div class="analytics-metrics" id="analytics-metrics">
+            </div><div class="analytics-metrics" id="analytics-metrics">
                 <div class="stat-card">
                     <div class="stat-value" id="analytics-total-days">-</div>
                     <div class="stat-label">Total Migraine Days</div>
@@ -555,80 +473,41 @@
                     <div class="stat-value" id="analytics-avg-duration">-</div>
                     <div class="stat-label">Average Duration</div>
                 </div>
-            </div>
-
-            <!-- Frequency Trend Chart -->
-            <div class="section-card">
+            </div><div class="insight-tabs" role="group" aria-label="Insight category"><button type="button" data-insight="overview" aria-pressed="true">Overview</button><button type="button" data-insight="symptoms" aria-pressed="false">Symptoms</button><button type="button" data-insight="treatment" aria-pressed="false">Treatment</button><button type="button" data-insight="weather" aria-pressed="false">Weather</button></div><section class="insight-panel" id="insight-overview"  aria-label="Overview insights"><p class="category-empty" hidden>Your attack patterns will appear here.</p><div class="insight-grid"><div class="section-card">
                 <h2>Migraine Frequency Trend</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Migraine days per month over time</p>
                 <canvas id="frequency-chart"></canvas>
-            </div>
-
-            <!-- Pain Level Distribution -->
-            <div class="section-card">
+            </div><div class="section-card">
                 <h2>Pain Level Distribution</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Breakdown of pain severity</p>
                 <canvas id="pain-chart"></canvas>
-            </div>
-
-            <!-- Time of Day Patterns -->
-            <div class="section-card">
+            </div><div class="section-card">
                 <h2>Time of Day Patterns</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">When migraines typically start</p>
                 <canvas id="time-chart"></canvas>
-            </div>
-
-            <!-- Day of Week Patterns -->
-            <div class="section-card">
+            </div><div class="section-card">
                 <h2>Day of Week Patterns</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Which days have the most migraines</p>
                 <canvas id="dow-chart"></canvas>
-            </div>
-
-            <!-- Weather Correlation (if enabled) -->
-            <div id="weather-correlation-card" class="section-card" style="display: none;">
-                <h2>Pressure Correlation</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 16px;">Does atmospheric pressure predict your attacks? Based on your own data.</p>
-
-                <div class="correlation-summary">
-                    <div class="correlation-stat">
-                        <div class="correlation-label">Attacks on pressure-change days</div>
-                        <div id="correlation-strength" class="correlation-value">-</div>
-                        <div id="correlation-description" class="correlation-desc">-</div>
-                    </div>
-                    <div class="correlation-details">
-                        <div class="detail-row">
-                            <span>Significant pressure days:</span>
-                            <strong id="correlation-changes">-</strong>
-                        </div>
-                        <div class="detail-row">
-                            <span>Attacks on those days:</span>
-                            <strong id="correlation-migraines">-</strong>
-                        </div>
-                        <div class="detail-row">
-                            <span>Your correlation rate:</span>
-                            <strong id="correlation-percent">-</strong>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="info-box" style="margin-top: 16px; font-size: 0.9rem;" id="correlation-info-box">
-                    More attacks will improve the accuracy of this analysis.
-                </div>
-            </div>
-
-            <!-- Pressure Trend Chart (if enabled) -->
-            <div id="pressure-chart-card" class="section-card" style="display: none;">
-                <h2>Barometric Pressure &amp; Attacks</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 16px;">Up to 60 days of pressure history with your attack days overlaid</p>
-                <canvas id="pressure-chart"></canvas>
-                <div style="margin-top: 12px; font-size: 0.82rem; color: var(--text-secondary);">
-                    Red dots mark attack days on the pressure line &nbsp;·&nbsp; Shaded columns indicate attack days &nbsp;·&nbsp; Y-axis fixed 980–1040 hPa so a 5 hPa drop always looks the same
-                </div>
-            </div>
-
-            <!-- Medication Effectiveness -->
-            <div id="medication-effectiveness-card" class="section-card" style="display: none;">
+            </div></div></section><section class="insight-panel" id="insight-symptoms" hidden aria-label="Symptoms insights"><p class="category-empty" hidden>Add symptoms or other details to an attack to see them here.</p><div class="insight-grid"><div id="symptom-analytics-card" class="section-card" style="display: none;">
+                <h2>Common Symptoms</h2>
+                <div id="symptom-analytics-content"></div>
+            </div><div id="trigger-analytics-card" class="section-card" style="display: none;">
+                <h2>Common Triggers</h2>
+                <div id="trigger-analytics-content"></div>
+            </div><div id="prodrome-analytics-card" class="section-card" style="display: none;">
+                <h2>Common warning signs</h2>
+                <div id="prodrome-analytics-content"></div>
+            </div><div id="postdrome-analytics-card" class="section-card" style="display: none;">
+                <h2>Common after-effects</h2>
+                <div id="postdrome-analytics-content"></div>
+            </div><div id="location-analytics-card" class="section-card" style="display: none;">
+                <h2>Common pain locations</h2>
+                <div id="location-analytics-content"></div>
+            </div><div id="quality-analytics-card" class="section-card" style="display: none;">
+                <h2>Pain quality</h2>
+                <div id="quality-analytics-content"></div>
+            </div></div></section><section class="insight-panel" id="insight-treatment" hidden aria-label="Treatment insights"><p class="category-empty" hidden>Log medication during an attack to build a treatment history.</p><div class="insight-grid"><div id="medication-effectiveness-card" class="section-card" style="display: none;">
                 <h2 style="display: flex; align-items: center; gap: 10px;">
                     <svg class="icon icon-md" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -638,10 +517,7 @@
                 </h2>
                 <p style="color: var(--text-secondary); margin-bottom: 16px;">Average effectiveness ratings for each medication</p>
                 <div id="medication-effectiveness-content"></div>
-            </div>
-
-            <!-- Medication Usage & MOH Warning -->
-            <div id="medication-usage-card" class="section-card" style="display: none;">
+            </div><div id="medication-usage-card" class="section-card" style="display: none;">
                 <h2 style="display: flex; align-items: center; gap: 10px;">
                     <svg class="icon icon-md" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -692,63 +568,87 @@
                     </div>
                 </div>
                 <div id="medication-usage-content"></div>
-            </div>
+            </div></div></section><section class="insight-panel" id="insight-weather" hidden aria-label="Weather insights"><p class="category-empty" hidden>Enable weather in Settings to start collecting context for your patterns.</p><div class="insight-grid"><section class="section-card today-risk-card" id="today-risk-card" style="display: none;" aria-labelledby="risk-card-title">
+                <div class="risk-card-header">
+                    <h2 id="risk-card-title">Today's outlook</h2>
+                    <span class="risk-card-badge" id="risk-card-label">—</span>
+                </div>
+                <div class="risk-meter" role="img" aria-label="Migraine risk meter">
+                    <div class="risk-meter-fill" id="risk-meter-fill" style="width: 0%;"></div>
+                </div>
+                <p class="risk-card-detail" id="risk-card-detail"></p>
+                <p class="risk-card-trend" id="risk-card-trend"></p>
+                <div class="risk-card-ml" id="risk-card-ml" style="display: none;"></div>
+                <div class="risk-card-alerts" id="risk-card-alerts" style="display: none;"></div>
+            </section><div id="weather-forecast-indicator" style="display: none; margin-bottom: 20px;">
+                        <!-- Stable / Low-Risk State -->
+                        <div id="weather-clear" class="weather-forecast-box" style="display: none; background: rgba(123, 166, 138, 0.1); border-left: 4px solid var(--accent-green); padding: 12px 16px; border-radius: 0 8px 8px 0;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <svg viewBox="0 0 24 24" style="width: 1.1rem; height: 1.1rem; stroke: var(--accent-green); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--accent-green);">Pressure Stable</div>
+                                    <div style="font-size: .875rem; color: var(--text-secondary); margin-top: 2px;" id="weather-clear-detail">No significant pressure changes</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Pressure Alert State -->
+                        <div id="weather-warning" class="weather-forecast-box" style="display: none; background: var(--pain-moderate-soft); border-left: 4px solid var(--pain-moderate); padding: 12px 16px; border-radius: 0 8px 8px 0;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <svg viewBox="0 0 24 24" style="width: 1.2rem; height: 1.2rem; stroke: var(--pain-moderate); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                                <div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--pain-moderate);">Pressure May Be a Factor</div>
+                                    <div style="font-size: .875rem; color: var(--text-secondary); margin-top: 2px;" id="weather-warning-detail">Significant pressure change detected</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div><div id="weather-correlation-card" class="section-card" style="display: none;">
+                <h2>Pressure Correlation</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Does atmospheric pressure predict your attacks? Based on your own data.</p>
 
-            <div id="symptom-analytics-card" class="section-card" style="display: none;">
-                <h2>Common Symptoms</h2>
-                <div id="symptom-analytics-content"></div>
-            </div>
+                <div class="correlation-summary">
+                    <div class="correlation-stat">
+                        <div class="correlation-label">Attacks on pressure-change days</div>
+                        <div id="correlation-strength" class="correlation-value">-</div>
+                        <div id="correlation-description" class="correlation-desc">-</div>
+                    </div>
+                    <div class="correlation-details">
+                        <div class="detail-row">
+                            <span>Significant pressure days:</span>
+                            <strong id="correlation-changes">-</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Attacks on those days:</span>
+                            <strong id="correlation-migraines">-</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Your correlation rate:</span>
+                            <strong id="correlation-percent">-</strong>
+                        </div>
+                    </div>
+                </div>
 
-            <div id="trigger-analytics-card" class="section-card" style="display: none;">
-                <h2>Common Triggers</h2>
-                <div id="trigger-analytics-content"></div>
-            </div>
-
-            <div id="trigger-weather-card" class="section-card" style="display: none;">
+                <div class="info-box" style="margin-top: 16px; font-size: 0.9rem;" id="correlation-info-box">
+                    More attacks will improve the accuracy of this analysis.
+                </div>
+            </div><div id="pressure-chart-card" class="section-card" style="display: none;">
+                <h2>Barometric Pressure &amp; Attacks</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Up to 60 days of pressure history with your attack days overlaid</p>
+                <canvas id="pressure-chart"></canvas>
+                <div style="margin-top: 12px; font-size: .875rem; color: var(--text-secondary);">
+                    Red dots mark attack days on the pressure line &nbsp;·&nbsp; Shaded columns indicate attack days &nbsp;·&nbsp; Y-axis fixed 980–1040 hPa so a 5 hPa drop always looks the same
+                </div>
+            </div><div id="trigger-weather-card" class="section-card" style="display: none;">
                 <h2>Triggers &times; weather</h2>
                 <div id="trigger-weather-content"></div>
-            </div>
-
-            <div id="prodrome-analytics-card" class="section-card" style="display: none;">
-                <h2>Common warning signs</h2>
-                <div id="prodrome-analytics-content"></div>
-            </div>
-
-            <div id="postdrome-analytics-card" class="section-card" style="display: none;">
-                <h2>Common after-effects</h2>
-                <div id="postdrome-analytics-content"></div>
-            </div>
-
-            <div id="location-analytics-card" class="section-card" style="display: none;">
-                <h2>Common pain locations</h2>
-                <div id="location-analytics-content"></div>
-            </div>
-
-            <div id="quality-analytics-card" class="section-card" style="display: none;">
-                <h2>Pain quality</h2>
-                <div id="quality-analytics-content"></div>
-            </div>
-        </div>
+            </div></div></section></div>
 
         <div id="care-page" class="page">
-            <button class="back-link" data-destination="more">‹ More</button>
-            <h1>
-                Care
-                <a href="./help/index.html" class="help-icon" title="Help & Documentation">?</a>
-            </h1>
+            <header class="screen-header"><button class="back-link" data-destination="more">‹ More</button><p class="eyebrow">AIDING MIGRAINE</p><h1>Doctor visit</h1><p class="page-intro">Bring your experience into the conversation.</p></header>
 
-            <div class="section-card today-hero">
-                <h2 class="mobile-section-title">Care-ready notes</h2>
-                <p class="today-status-copy">Keep your data portable, private, and easy to share before appointments.</p>
-                <div class="today-chips">
-                    <span class="today-chip">Local data</span>
-                    <span class="today-chip">PDF reports</span>
-                    <span class="today-chip">CSV export</span>
-                </div>
-            </div>
+
 
             <div class="section-card">
-                <h2 class="mobile-section-title">Share with your clinician</h2>
+                <h2 class="mobile-section-title">Your appointment summary</h2>
                 <div class="care-grid">
                     <button class="settings-btn" id="care-export-pdf-btn">
                         <span>Doctor report</span>
@@ -780,8 +680,8 @@
             </div>
 
             <div class="section-card">
-                <h2 class="mobile-section-title">Disability assessments</h2>
-                <p class="today-status-copy">Standardized questionnaires clinicians use to gauge migraine burden. Included in your doctor report.</p>
+                <h2 class="mobile-section-title">How migraine affects your life</h2>
+                <p class="today-status-copy">Optional questionnaires to help describe the impact. Results are included in your report.</p>
                 <div id="assessments-content" style="margin: 12px 0;"></div>
                 <div class="care-grid">
                     <button class="settings-btn" id="take-midas-btn">
@@ -810,22 +710,22 @@
         </div>
 
         <div id="settings-page" class="page">
-            <button class="back-link" data-destination="more">‹ More</button>
-            <h1>
-                Settings
-                <a href="./help/index.html" class="help-icon" title="Help & Documentation">?</a>
-            </h1>
+            <header class="screen-header"><button class="back-link" data-destination="more">‹ More</button><p class="eyebrow">AIDING MIGRAINE</p><h1>Make it yours</h1><p class="page-intro">Comfort, privacy, and a copy of your records.</p></header>
 
-            <div class="section-card">
-                <h2 style="display: flex; align-items: center; gap: 10px;">
-                    <svg class="icon icon-md" viewBox="0 0 24 24">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                    </svg>
-                    Storage & Backup
-                </h2>
-                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
+            <div class="settings-panels"><details class="settings-panel" open ><summary><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></span><span><strong>Appearance</strong><small>Choose the screen that feels comfortable</small></span></summary><div class="settings-panel-body">
+                <div class="settings-group">
+                    <div class="settings-label">Color Theme</div>
+                    <p style="color: var(--text-secondary); font-size: .875rem; margin-bottom: 16px;">
+                        Choose a color scheme that's comfortable for your eyes
+                    </p>
+                    <div class="theme-options" role="group" aria-label="Color theme">
+<button class="theme-btn active" data-theme="warm-dark" aria-pressed="true"><span class="theme-swatch swatch-dark"><i></i><i></i><i></i></span><strong>Warm dark</strong><small>A softer evening screen</small></button>
+<button class="theme-btn" data-theme="warm-light" aria-pressed="false"><span class="theme-swatch swatch-light"><i></i><i></i><i></i></span><strong>Warm light</strong><small>A quiet daytime screen</small></button>
+<button class="theme-btn" data-theme="high-contrast" aria-pressed="false"><span class="theme-swatch swatch-contrast"><i></i><i></i><i></i></span><strong>High contrast</strong><small>Clearer separation</small></button>
+</div>
+                </div>
+            </div></details><details class="settings-panel"  ><summary><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/></svg></span><span><strong>Backup & export</strong><small>Keep a copy or bring your records with you</small></span></summary><div class="settings-panel-body">
+                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: .875rem;">
                     Your data is stored securely on your device. Export regularly for backups.
                 </p>
                 <div class="settings-info">
@@ -842,32 +742,7 @@
                         <span class="info-value" id="last-backup">Never</span>
                     </div>
                 </div>
-            </div>
-
-            <div class="section-card">
-                <h2>Recently Deleted</h2>
-                <div class="settings-info" style="margin-bottom: 16px;">
-                    <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
-                        Deleted episodes are kept for 30 days before being permanently removed.
-                    </p>
-                </div>
-                <div class="settings-actions">
-                    <button class="settings-btn" id="view-trash-btn">
-                        <span>View Trash</span>
-                        <span class="btn-subtitle" id="trash-subtitle">0 items</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="section-card" id="data-management-section">
-                <h2 style="display: flex; align-items: center; gap: 10px;">
-                    <svg class="icon icon-md" viewBox="0 0 24 24">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    Data Management
-                </h2>
+            <div id="data-management-section">
                 <div class="settings-actions">
                     <button class="settings-btn" id="export-json-btn">
                         <span style="display: flex; align-items: center; gap: 8px;">
@@ -927,79 +802,7 @@
                 </div>
                 <input type="file" id="import-file-input" accept=".json" style="display: none;">
                 <input type="file" id="import-csv-input" accept=".csv" style="display: none;">
-            </div>
-
-            <div class="section-card">
-                <h2 style="display: flex; align-items: center; gap: 10px;">
-                    <svg class="icon icon-md" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    Appearance
-                </h2>
-                <div class="settings-group">
-                    <label class="settings-label">Color Theme</label>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px;">
-                        Choose a color scheme that's comfortable for your eyes
-                    </p>
-                    <div class="theme-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
-                        <button class="theme-btn active" data-theme="warm-dark">
-                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="5" fill="#d4a574"></circle>
-                                <line x1="12" y1="1" x2="12" y2="3" stroke="#d4a574"></line>
-                                <line x1="12" y1="21" x2="12" y2="23" stroke="#d4a574"></line>
-                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="#d4a574"></line>
-                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="#d4a574"></line>
-                                <line x1="1" y1="12" x2="3" y2="12" stroke="#d4a574"></line>
-                                <line x1="21" y1="12" x2="23" y2="12" stroke="#d4a574"></line>
-                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="#d4a574"></line>
-                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="#d4a574"></line>
-                            </svg>
-                            <span style="font-weight: 600; margin-bottom: 4px;">Warm Dark</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Evening / Default</span>
-                        </button>
-                        <button class="theme-btn" data-theme="warm-light">
-                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="5" fill="#4a7c59"></circle>
-                                <line x1="12" y1="1" x2="12" y2="3" stroke="#4a7c59"></line>
-                                <line x1="12" y1="21" x2="12" y2="23" stroke="#4a7c59"></line>
-                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="#4a7c59"></line>
-                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="#4a7c59"></line>
-                                <line x1="1" y1="12" x2="3" y2="12" stroke="#4a7c59"></line>
-                                <line x1="21" y1="12" x2="23" y2="12" stroke="#4a7c59"></line>
-                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="#4a7c59"></line>
-                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="#4a7c59"></line>
-                            </svg>
-                            <span style="font-weight: 600; margin-bottom: 4px;">Warm Light</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Daytime</span>
-                        </button>
-                        <button class="theme-btn" data-theme="high-contrast">
-                            <svg class="icon icon-md" style="margin-bottom: 8px;" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" fill="none" stroke="#00ff88" stroke-width="3"></circle>
-                                <path d="M12 2 L12 22 M12 12 L22 12" stroke="#00ff88" stroke-width="2"></path>
-                            </svg>
-                            <span style="font-weight: 600; margin-bottom: 4px;">High Contrast</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Accessibility</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-card" id="notification-section">
-                <h2 style="display: flex; align-items: center; gap: 10px;">
-                    <svg class="icon icon-md" viewBox="0 0 24 24">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    Notifications
-                </h2>
+            </div></div></details><details class="settings-panel"  id="notification-section"><summary><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span><strong>Reminders</strong><small>Only the check-ins you want</small></span></summary><div class="settings-panel-body">
                 <div class="settings-info" style="margin-bottom: 16px;">
                     <div id="notification-status" class="info-banner" style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: var(--bg-tertiary); text-align: center;">
                         <span id="notification-status-text">Loading...</span>
@@ -1036,13 +839,13 @@
                     <div id="notification-preferences" style="display: none;">
                         <!-- Daily Check-in -->
                         <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
-                            <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                 <span>Daily Check-in</span>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" id="daily-checkin-enabled" checked>
+                                    <input type="checkbox" id="daily-checkin-enabled" aria-label="Daily check-in reminders" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
-                            </label>
+                            </div>
                             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px;">
                                 Daily reminder to log your migraine status
                             </p>
@@ -1063,13 +866,13 @@
 
                         <!-- Active Attack Check-in -->
                         <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
-                            <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                 <span>Active Attack Check-in</span>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" id="active-checkin-enabled" checked>
+                                    <input type="checkbox" id="active-checkin-enabled" aria-label="Active attack check-ins" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
-                            </label>
+                            </div>
                             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px;">
                                 Reminder during an ongoing attack to update pain level or end episode
                             </p>
@@ -1088,13 +891,13 @@
 
                         <!-- Post-Attack Follow-up -->
                         <div class="settings-group" style="margin-bottom: 20px;">
-                            <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                 <span>Post-Attack Follow-up</span>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" id="followup-enabled" checked>
+                                    <input type="checkbox" id="followup-enabled" aria-label="Post-attack follow-up reminders" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
-                            </label>
+                            </div>
                             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px;">
                                 Reminder to update status after logging an attack
                             </p>
@@ -1123,36 +926,32 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="section-card">
+            </div></details><details class="settings-panel"  ><summary><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4m8-4v4M4 11h16"/></svg></span><span><strong>Weather & cycle</strong><small>Optional context for your patterns</small></span></summary><div class="settings-panel-body">
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                     <div>
                         <h2 style="margin-bottom: 8px;">Menstrual cycle tracking</h2>
-                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">
+                        <p style="color: var(--text-secondary); font-size: .875rem; margin: 0;">
                             Track period start dates to spot menstrual-migraine patterns.
                         </p>
                     </div>
                     <label class="toggle-switch" style="flex-shrink: 0; margin-left: 16px;">
-                        <input type="checkbox" id="cycle-tracking-enabled">
+                        <input type="checkbox" id="cycle-tracking-enabled" aria-label="Menstrual cycle tracking">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <p style="color: var(--text-secondary); font-size: 0.8rem; margin: 0; padding: 10px 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green);">
+                <p style="color: var(--text-secondary); font-size: .875rem; margin: 0; padding: 10px 12px; background: var(--bg-tertiary); border-radius: 8px; border-left: 3px solid var(--accent-green);">
                     Off by default. When on, your period dates are stored on this device only and never sent anywhere. Log periods and see your pattern on the <strong>Care</strong> page.
                 </p>
-            </div>
 
-            <div class="section-card">
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
                     <div>
                         <h2 style="margin-bottom: 8px;">Weather Tracking</h2>
-                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">
+                        <p style="color: var(--text-secondary); font-size: .875rem; margin: 0;">
                             Track barometric pressure patterns • 15-20% of sufferers are weather-sensitive
                         </p>
                     </div>
                     <label class="toggle-switch" style="flex-shrink: 0; margin-left: 16px;">
-                        <input type="checkbox" id="weather-tracking-enabled">
+                        <input type="checkbox" id="weather-tracking-enabled" aria-label="Weather tracking">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -1169,59 +968,59 @@
                                 placeholder="City name or ZIP code"
                                 style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 0.95rem;"
                             >
-                            <button id="weather-gps-btn" class="btn btn-secondary" style="padding: 10px 12px; font-size: 0.85rem; white-space: nowrap;" title="Use my current location">
+                            <button id="weather-gps-btn" class="btn btn-secondary" style="padding: 10px 12px; font-size: .875rem; white-space: nowrap;" title="Use my current location">
                                 <svg viewBox="0 0 24 24" style="width: 1rem; height: 1rem; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle;"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"></path></svg>
                             </button>
                             <button id="weather-location-save" class="btn btn-primary" style="padding: 10px 14px; font-size: 0.9rem;">
                                 Save
                             </button>
                         </div>
-                        <div id="weather-location-status" role="status" aria-live="polite" style="margin-top: 6px; font-size: 0.85rem;"></div>
+                        <div id="weather-location-status" role="status" aria-live="polite" style="margin-top: 6px; font-size: .875rem;"></div>
                     </div>
 
                     <!-- Current Conditions Display -->
                     <div id="weather-current-display" style="display: none; background: var(--bg-tertiary); padding: 14px; border-radius: 8px; margin-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                             <div>
-                                <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">Location</div>
+                                <div style="font-size: .875rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">Location</div>
                                 <div id="weather-location-display" style="font-weight: 500; font-size: 0.95rem; margin-top: 2px;">-</div>
                             </div>
-                            <button id="weather-refresh-btn" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;">
+                            <button id="weather-refresh-btn" class="btn btn-secondary" style="padding: 5px 10px; font-size: .875rem;">
                                 Refresh
                             </button>
                         </div>
 
                         <!-- Pressure row -->
                         <div style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-bottom: 8px;">
-                            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px;">Barometric Pressure</div>
+                            <div style="font-size: .875rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px;">Barometric Pressure</div>
                             <div style="font-size: 1.5rem; font-weight: 600; color: var(--accent-green);" id="weather-current-pressure">-</div>
-                            <div style="font-size: 0.85rem; margin-top: 3px;" id="weather-pressure-change">-</div>
+                            <div style="font-size: .875rem; margin-top: 3px;" id="weather-pressure-change">-</div>
                         </div>
 
                         <!-- Conditions row (temp, humidity, wind, condition) -->
-                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;" id="weather-current-details">-</div>
+                        <div style="font-size: .875rem; color: var(--text-secondary); margin-bottom: 8px;" id="weather-current-details">-</div>
 
                         <!-- Risk score row -->
-                        <div style="font-size: 0.85rem; padding: 6px 10px; background: var(--bg-primary); border-radius: 6px;" id="weather-risk-display"></div>
+                        <div style="font-size: .875rem; padding: 6px 10px; background: var(--bg-primary); border-radius: 6px;" id="weather-risk-display"></div>
 
-                        <div style="margin-top: 8px; font-size: 0.75rem; color: var(--text-secondary);" id="weather-last-updated">Updated never</div>
+                        <div style="margin-top: 8px; font-size: .875rem; color: var(--text-secondary);" id="weather-last-updated">Updated never</div>
                     </div>
 
                     <!-- Historical Data & Backfill -->
                     <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: 8px; margin-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <div style="font-size: 0.85rem; font-weight: 500;">Pressure History</div>
-                            <button id="weather-backfill-btn" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;">
+                            <div style="font-size: .875rem; font-weight: 500;">Pressure History</div>
+                            <button id="weather-backfill-btn" class="btn btn-secondary" style="padding: 5px 10px; font-size: .875rem;">
                                 Fetch 60-day archive
                             </button>
                         </div>
-                        <div id="weather-backfill-status" style="font-size: 0.8rem; color: var(--text-secondary);">Loading...</div>
+                        <div id="weather-backfill-status" style="font-size: .875rem; color: var(--text-secondary);">Loading...</div>
                     </div>
 
                     <!-- Alert Sensitivity Threshold -->
                     <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: 8px; margin-bottom: 12px;">
-                        <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 6px;">Alert Sensitivity</div>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">
+                        <div style="font-size: .875rem; font-weight: 500; margin-bottom: 6px;">Alert Sensitivity</div>
+                        <div style="font-size: .875rem; color: var(--text-secondary); margin-bottom: 10px;">
                             Alert me when pressure drops or rises by at least:
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -1229,26 +1028,26 @@
                                 style="flex: 1; accent-color: var(--accent-green);">
                             <span id="weather-threshold-display" style="font-weight: 600; font-size: 0.95rem; min-width: 60px; text-align: right; color: var(--accent-green);">5 hPa</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">
+                        <div style="display: flex; justify-content: space-between; font-size: .875rem; color: var(--text-secondary); margin-top: 4px;">
                             <span>More sensitive</span>
                             <span>Less sensitive</span>
                         </div>
-                        <div style="margin-top: 6px; font-size: 0.78rem; color: var(--text-secondary);" id="weather-threshold-note">Evidence-based default: 5 hPa / 0.15 inHg in 6 hours (Katsuki et al. 2023)</div>
+                        <div style="margin-top: 6px; font-size: .875rem; color: var(--text-secondary);" id="weather-threshold-note">Evidence-based default: 5 hPa / 0.15 inHg in 6 hours (Katsuki et al. 2023)</div>
                     </div>
 
                     <!-- Display Units -->
                     <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: 8px; margin-bottom: 12px;">
-                        <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: 10px;">Display Units</div>
+                        <div style="font-size: .875rem; font-weight: 500; margin-bottom: 10px;">Display Units</div>
                         <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
-                            <span style="font-size: 0.82rem; color: var(--text-secondary); flex: 0 0 80px;">Pressure</span>
+                            <span style="font-size: .875rem; color: var(--text-secondary); flex: 0 0 80px;">Pressure</span>
                             <div class="segmented" role="group" aria-label="Pressure units">
                                 <button id="unit-inhg-btn" class="segment-btn" aria-pressed="true">inHg</button>
                                 <button id="unit-hpa-btn" class="segment-btn" aria-pressed="false">hPa</button>
                             </div>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">US standard / international</span>
+                            <span style="font-size: .875rem; color: var(--text-secondary);">US standard / international</span>
                         </div>
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <span style="font-size: 0.82rem; color: var(--text-secondary); flex: 0 0 80px;">Temperature</span>
+                            <span style="font-size: .875rem; color: var(--text-secondary); flex: 0 0 80px;">Temperature</span>
                             <div class="segmented" role="group" aria-label="Temperature units">
                                 <button id="unit-fahrenheit-btn" class="segment-btn" aria-pressed="true">°F</button>
                                 <button id="unit-celsius-btn" class="segment-btn" aria-pressed="false">°C</button>
@@ -1257,27 +1056,18 @@
                     </div>
 
                     <!-- Privacy notice -->
-                    <div style="font-size: 0.78rem; color: var(--text-secondary); text-align: center;">
+                    <div style="font-size: .875rem; color: var(--text-secondary); text-align: center;">
                         Privacy-first — migraine data stays on your device; only your location is sent to the weather service
                     </div>
                 </div>
-            </div>
-
-            <div class="section-card">
-                <h2 style="display: flex; align-items: center; gap: 10px;">
-                    <svg class="icon icon-lg" viewBox="0 0 24 24">
-                        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
-                    </svg>
-                    Privacy & Accessibility
-                </h2>
+            </div></details><details class="settings-panel"  ><summary><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg></span><span><strong>Privacy & screen comfort</strong><small>Encryption, locking, and screen settings</small></span></summary><div class="settings-panel-body">
                 <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.95rem;">
                     Features to enhance security, accessibility, and ease of use during episodes.
                 </p>
 
                 <!-- Screen Wake Lock -->
                 <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
-                    <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <div class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
                         <span style="font-weight: 500; display: flex; align-items: center; gap: 8px;">
                             <svg class="icon icon-sm" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="5"></circle>
@@ -1293,18 +1083,18 @@
                             Keep Screen Awake
                         </span>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="wake-lock-toggle" checked>
+                            <input type="checkbox" id="wake-lock-toggle" aria-label="Keep screen awake" checked>
                             <span class="toggle-slider"></span>
                         </label>
-                    </label>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 12px;">
-                        Prevents screen from dimming during active migraine episodes. Essential for viewing breathing exercises or tracking symptoms.
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: .875rem; margin-left: 12px;">
+                        Keep the screen on while an attack is active. Leave off to let your phone rest normally.
                     </p>
                 </div>
 
                 <!-- At-rest Encryption -->
                 <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
-                    <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <div class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
                         <span style="font-weight: 500; display: flex; align-items: center; gap: 8px;">
                             <svg class="icon icon-sm" viewBox="0 0 24 24">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -1313,22 +1103,22 @@
                             Encrypt my data
                         </span>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="encryption-toggle">
+                            <input type="checkbox" id="encryption-toggle" aria-label="Encrypt my data">
                             <span class="toggle-slider"></span>
                         </label>
-                    </label>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 12px; margin-bottom: 12px;">
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: .875rem; margin-left: 12px; margin-bottom: 12px;">
                         Encrypt your migraine data at rest with a passphrase (AES-256). Your data is unreadable without it — even to us. There is no recovery if you forget it, so keep a backup.
                     </p>
-                    <div id="encryption-status" style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 12px; padding: 10px; background: var(--bg-tertiary); border-radius: 8px;">Off</div>
+                    <div id="encryption-status" style="font-size: .875rem; color: var(--text-secondary); margin-left: 12px; padding: 10px; background: var(--bg-tertiary); border-radius: 8px;">Off</div>
                     <div id="encryption-actions" style="display: none; margin-left: 12px; margin-top: 10px;">
-                        <button id="change-passphrase-btn" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 12px;">Change passphrase</button>
+                        <button id="change-passphrase-btn" class="btn btn-secondary" style="font-size: .875rem; padding: 8px 12px;">Change passphrase</button>
                     </div>
                 </div>
 
                 <!-- Biometric Authentication -->
                 <div class="settings-group" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
-                    <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <div class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
                         <span style="font-weight: 500; display: flex; align-items: center; gap: 8px;">
                             <svg class="icon icon-sm" viewBox="0 0 24 24">
                                 <path d="M5 13a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6Z"></path>
@@ -1338,21 +1128,21 @@
                             Biometric Lock
                         </span>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="biometric-toggle">
+                            <input type="checkbox" id="biometric-toggle" aria-label="Biometric screen lock">
                             <span class="toggle-slider"></span>
                         </label>
-                    </label>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 12px; margin-bottom: 12px;">
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: .875rem; margin-left: 12px; margin-bottom: 12px;">
                         Screen lock: require fingerprint or face recognition to open the app. This hides the interface but does not encrypt the stored data — for real at-rest encryption, use "Encrypt my data" above.
                     </p>
-                    <div id="biometric-status" style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 12px; padding: 10px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <div id="biometric-status" style="font-size: .875rem; color: var(--text-secondary); margin-left: 12px; padding: 10px; background: var(--bg-tertiary); border-radius: 8px;">
                         Checking availability...
                     </div>
                 </div>
 
                 <!-- Auto-Lock -->
                 <div class="settings-group" style="margin-bottom: 20px;">
-                    <label class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <div class="settings-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
                         <span style="font-weight: 500; display: flex; align-items: center; gap: 8px;">
                             <svg class="icon icon-sm" viewBox="0 0 24 24">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -1361,11 +1151,11 @@
                             Auto-Lock
                         </span>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="auto-lock-toggle" checked>
+                            <input type="checkbox" id="auto-lock-toggle" aria-label="Automatically lock the app" checked>
                             <span class="toggle-slider"></span>
                         </label>
-                    </label>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 12px; margin-bottom: 12px;">
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: .875rem; margin-left: 12px; margin-bottom: 12px;">
                         Automatically lock the app after inactivity to protect your privacy.
                     </p>
                     <div id="auto-lock-settings">
@@ -1379,12 +1169,21 @@
                         </select>
                     </div>
                 </div>
-            </div>
+            </div></details><details class="settings-panel"  ><summary><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/></svg></span><span><strong>Manage records</strong><small>Storage, archives, and recently deleted items</small></span></summary><div class="settings-panel-body">
+                <div class="settings-info" style="margin-bottom: 16px;">
+                    <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                        Deleted episodes are kept for 30 days before being permanently removed.
+                    </p>
+                </div>
+                <div class="settings-actions">
+                    <button class="settings-btn" id="view-trash-btn">
+                        <span>View Trash</span>
+                        <span class="btn-subtitle" id="trash-subtitle">0 items</span>
+                    </button>
+                </div>
 
-            <div class="section-card">
-                <h2>Advanced Storage</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85rem;">
-                    IndexedDB storage for unlimited migraine history • Works fully offline
+                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: .875rem;">
+                    Storage available in this browser. Export a backup before clearing browser data.
                 </p>
 
                 <!-- Storage Quota -->
@@ -1396,7 +1195,7 @@
                     <div style="height: 6px; background: var(--bg-primary); border-radius: 3px; overflow: hidden;">
                         <div id="storage-bar" style="height: 100%; background: var(--accent-green); width: 0%; transition: width 0.3s ease;"></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: var(--text-secondary);">
+                    <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: .875rem; color: var(--text-secondary);">
                         <span id="storage-used">0 MB</span>
                         <span id="storage-total">0 MB</span>
                     </div>
@@ -1407,8 +1206,8 @@
                     <!-- IndexedDB Status -->
                     <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; text-align: center;">
                         <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-green);" id="indexeddb-count">0</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Migraines</div>
-                        <div id="indexeddb-status" style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">
+                        <div style="font-size: .875rem; color: var(--text-secondary); margin-top: 4px;">Migraines</div>
+                        <div id="indexeddb-status" style="font-size: .875rem; color: var(--text-secondary); margin-top: 2px;">
                             Checking...
                         </div>
                     </div>
@@ -1419,10 +1218,7 @@
                     <span>Archive Old Data</span>
                     <span class="btn-subtitle">Archive migraines older than 12 months</span>
                 </button>
-            </div>
-
-            <div class="section-card">
-                <h2>Information</h2>
+            </div></details><details class="settings-panel"  ><summary><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3v.01"/></svg></span><span><strong>Help & about</strong><small>Guides and information about the app</small></span></summary><div class="settings-panel-body">
                 <div class="settings-actions">
                     <button class="settings-btn" id="tour-btn">
                         <span>Take a Tour</span>
@@ -1438,10 +1234,7 @@
                         <span>Privacy & Your Data</span>
                     </button>
                 </div>
-            </div>
 
-            <div class="section-card">
-                <h2>Help & Resources</h2>
                 <div class="settings-actions">
                     <a href="./help/quick-start.html" class="settings-btn" style="text-decoration: none; display: block;">
                         <span>Launch Quick Start Guide</span>
@@ -1464,22 +1257,19 @@
                         <span class="btn-subtitle">How we protect your data</span>
                     </a>
                 </div>
-            </div>
-
-            <div class="section-card">
-                <h2>Advanced</h2>
+            </div></details><details class="settings-panel"  ><summary><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></span><span><strong>Reset app</strong><small>Clear records from this device</small></span></summary><div class="settings-panel-body">
                 <div class="settings-actions">
                     <button class="settings-btn danger" id="clear-all-btn">
                         <span>Clear All Data</span>
                         <span class="btn-subtitle">Cannot be undone</span>
                     </button>
                 </div>
-            </div>
+            </div></details></div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.7.1</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.9.0 draft</p>
                 <p>Production Release: Enhanced Data Management</p>
-                <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
+                <p style="font-size: .875rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
         </div>
 
@@ -1515,7 +1305,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v5.8.0 Draft 1</strong>
+                            <strong>v5.9.0 Design Draft</strong>
                         </div>
                     </div>
                 </div>
@@ -1572,5 +1362,6 @@
 
     <!-- Service Worker Registration with Update Detection -->
     <script src="./assets/updates.js"></script>
+    <script src="./assets/interface.js"></script>
 </body>
 </html>

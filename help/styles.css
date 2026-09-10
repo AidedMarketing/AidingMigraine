@@ -420,3 +420,17 @@ tr:last-child td {
         font-size: 0.9rem;
     }
 }
+
+/* The help center shares the app's color tokens and quiet visual language. */
+html { scroll-behavior: auto; }
+body { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg-primary); line-height: 1.7; }
+.help-container { max-width: 850px; padding: 32px 24px; }
+.help-header { padding-bottom: 24px; border-bottom: 1px solid var(--border-color); }
+.help-header h1 { font-size: 2rem; letter-spacing: -.04em; font-weight: 550; }
+.help-content, .help-card { border-radius: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color); box-shadow: none; }
+.help-content h2 { font-weight: 550; letter-spacing: -.025em; margin-top: 32px; }
+.back-button { min-height: 48px; border-radius: 12px; color: var(--button-ink); box-shadow: none; }
+a:not(.back-button) { color: var(--accent-blue); }
+.back-button:hover, .help-card:hover { transform: none; box-shadow: none; }
+a:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+@media (max-width: 600px) { .help-container { padding: 24px 18px; }.help-header h1 { font-size: 1.625rem; } }
