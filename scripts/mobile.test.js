@@ -36,13 +36,14 @@ async function fits(page, label) {
         const targets = document.querySelectorAll('.page.active *, .app-topbar *, .modal.active *');
         return {
             width: innerWidth, scrollWidth: document.documentElement.scrollWidth,
+            spilling: [...targets].filter(el => el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 2 && getComputedStyle(el).overflowX === 'visible').map(el => ({ element: el.id || el.tagName + '.' + el.getAttribute('class'), text: el.textContent.trim().slice(0, 60), width: el.clientWidth, contentWidth: el.scrollWidth })).slice(-12),
             outside: [...targets].filter(el => {
                 const r = el.getBoundingClientRect();
                 return r.width > 0 && (r.right > innerWidth + 1 || r.left < -1);
             }).map(el => el.id || el.className).slice(0, 12)
         };
     });
-    assert.ok(result.scrollWidth <= result.width, `${label}: page scrolls sideways`);
+    assert.ok(result.scrollWidth <= result.width, `${label}: page scrolls sideways: ${JSON.stringify(result)}`);
     assert.deepEqual(result.outside, [], `${label}: content exceeds the viewport`);
 }
 async function screenshot(page, name) {
@@ -182,7 +183,9 @@ test('mobile layouts, tracking, editing, themes and offline journal', { timeout:
                             await page.locator('.page.active details').evaluateAll(nodes => nodes.forEach(node => { node.open = true; }));
                             await fits(page, `200% ${screen}`);
                         }
-                        await page.evaluate(() => { showPage('log'); showUpdateBanner(); });
+                        await page.evaluate(() => { showPage('settings'); document.body.style.fontFamily = 'Verdana, sans-serif'; });
+                        await fits(page, '200% Settings with wider fallback font');
+                        await page.evaluate(() => { document.body.style.fontFamily = ''; showPage('log'); showUpdateBanner(); });
                         await page.waitForTimeout(100);
                         const banner = await page.locator('#update-banner').boundingBox();
                         const settings = await page.locator('.settings-shortcut').boundingBox();

@@ -326,3 +326,8 @@ body, button, input, select, textarea, .section-card, .app-topbar { transition: 
 .history-calendar[open] > summary { border-bottom: 1px solid var(--soft-line); }
 .history-calendar > .section-card { border: none; margin-bottom: 0; }
 @media (max-width: 360px) { .history-calendar > .section-card { padding: 14px 8px; } }
+/* Large text and wider fallback fonts must wrap inside Settings controls. */
+#settings-page { overflow-wrap: anywhere; }
+.settings-panel > summary > span, .settings-label > span { min-width: 0; }
+.settings-btn { overflow-wrap: anywhere; }
+.settings-panel-body > div > div:first-child { min-width: 0; }
