@@ -26,8 +26,9 @@ async function startServer() {
 }
 async function ready(page) {
     await page.waitForFunction(() => document.querySelector('#app-loading-screen.hidden') && typeof showPage === 'function');
-    await page.evaluate(async () => { await navigator.serviceWorker.ready; });
-    await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+    // WebKit can leave the registration-ready promise pending after an offline
+    // reload. A controlling worker is the state required by this test.
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 15000 });
     await page.waitForFunction(() => document.querySelector('#app-loading-screen.hidden'));
 }
 async function fits(page, label) {
@@ -59,6 +60,7 @@ test('mobile layouts, tracking, editing, themes and offline journal', { timeout:
                 for (const width of [320, 390, 430, 768, 1280].filter(width => !process.env.MOBILE_WIDTH || Number(process.env.MOBILE_WIDTH) === width)) {
                     await t.test(`${engine.name()} at ${width}px`, async () => {
                         const context = await browser.newContext({ viewport: { width, height: 844 }, isMobile: width < 768, timezoneId: 'America/New_York' });
+                        context.setDefaultTimeout(15000);
                         const page = await context.newPage();
                         const errors = [];
                         page.on('pageerror', error => errors.push(error.message));
@@ -170,6 +172,7 @@ test('mobile layouts, tracking, editing, themes and offline journal', { timeout:
                 }
                 await t.test(`${engine.name()} enlarged text, short screen and landscape`, async () => {
                     const context = await browser.newContext({ viewport: { width: 320, height: 740 }, isMobile: true });
+                    context.setDefaultTimeout(15000);
                     const page = await context.newPage();
                     try {
                         await page.goto(origin); await ready(page);
