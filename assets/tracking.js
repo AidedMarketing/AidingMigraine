@@ -110,7 +110,7 @@ function showActiveEpisodeConflict() {
                 text: 'Clear Stuck Episode',
                 class: 'btn-danger',
                 action: () => {
-                    console.warn('[WARNING] User manually cleared stuck active episode');
+                    appLog.warn('[WARNING] User manually cleared stuck active episode');
                     activeMigraine = null;
                     saveData();
                     checkActiveMigraine();
@@ -228,7 +228,7 @@ function updateActivePain() {
     const modal = document.getElementById('modal');
     const body = document.getElementById('modal-body');
 
-    body.innerHTML = `
+    body.innerHTML = safeHTML(`
         <div class="form-group">
             <label>How strong is the pain?</label><p class="pain-helper">0 is no pain. 10 is the worst imaginable.</p>
             <div class="pain-scale">
@@ -237,12 +237,12 @@ function updateActivePain() {
                 ).join('')}
             </div>
         </div>
-    `;
+    `);
 
-    document.getElementById('modal-actions').innerHTML = `
-        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    document.getElementById('modal-actions').innerHTML = safeHTML(`
+        <button class="btn btn-secondary" data-ui-action="close-modal">Cancel</button>
         <button class="btn btn-primary" id="confirm-pain-update" disabled>Save pain</button>
-    `;
+    `);
 
     document.getElementById('modal-title').textContent = 'Update pain';
     openDialog(modal);
@@ -295,7 +295,7 @@ function endActiveMigraine() {
     // always carries a real, numeric pain value.
     const needsPain = activeMigraine.painLevel == null;
 
-    body.innerHTML = `
+    body.innerHTML = safeHTML(`
         <p>We’ll save the end time now. You can edit it in History.</p>
         ${needsPain ? `
         <div class="form-group" style="margin-top: 16px;">
@@ -318,12 +318,12 @@ function endActiveMigraine() {
             <textarea id="end-notes" placeholder="How did it resolve? What helped?" rows="3"></textarea>
         </div>
         </details>
-    `;
+    `);
 
-    document.getElementById('modal-actions').innerHTML = `
-        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    document.getElementById('modal-actions').innerHTML = safeHTML(`
+        <button class="btn btn-secondary" data-ui-action="close-modal">Cancel</button>
         <button class="btn btn-primary" id="confirm-end">Save &amp; end</button>
-    `;
+    `);
 
     document.getElementById('modal-title').textContent = 'End this migraine?';
     openDialog(modal);
@@ -701,7 +701,7 @@ function updateDashboard() {
     const avgPainElem = document.getElementById('avg-pain');
     const weekCountElem = document.getElementById('week-count');
     if (!totalElem || !avgPainElem || !weekCountElem) {
-        console.warn('[WARNING] Dashboard elements not found in DOM');
+        appLog.warn('[WARNING] Dashboard elements not found in DOM');
         return;
     }
 

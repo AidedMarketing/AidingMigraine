@@ -101,7 +101,7 @@ test('the service worker serves a matching installed release even when the netwo
         assert.equal(options.ignoreSearch, true);
         return new Response('installed release');
     } };
-    const ctx = vm.createContext({ URL, Response, console,
+    const ctx = vm.createContext({ URL, Response, console, appLog: console, importScripts() {},
         self: { location: { origin: 'https://example.test' }, registration: { scope: 'https://example.test/app/' }, addEventListener: (name, fn) => { handlers[name] = fn; } },
         caches: { open: async () => cache }, fetch: async () => { networkCalls++; return new Response('new release'); }
     });

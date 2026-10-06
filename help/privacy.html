@@ -75,6 +75,8 @@
                 <li>✅ Deleted when you disable weather tracking</li>
             </ul>
 
+            <p>Health records use IndexedDB first. Successful saves do not keep a second plaintext copy in localStorage; localStorage is used when IndexedDB is unavailable. Both stores are readable by scripts running in this app unless you turn on passphrase encryption below.</p>
+
             <h3>At-Rest Encryption (Optional)</h3>
             <p>Off by default. When you enable <strong>"Encrypt my data"</strong> in Settings, your health data on this device is encrypted:</p>
             <ul>
@@ -84,7 +86,7 @@
                 <li>⚠️ <strong>There is no recovery if you forget your passphrase</strong> — keep an unencrypted JSON backup somewhere safe before enabling</li>
             </ul>
 
-            <h3>Menstrual Cycle Tracking (Optional, Local Storage Only)</h3>
+            <h3>Menstrual Cycle Tracking (Optional, Device Only)</h3>
             <p>Cycle tracking is off by default. If you turn it on, the app stores on your device:</p>
             <ul>
                 <li><strong>Period start dates:</strong> only the dates you log — nothing else</li>

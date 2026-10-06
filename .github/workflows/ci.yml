@@ -27,4 +27,18 @@ jobs:
       - name: Install Chromium and WebKit
         run: npx playwright install --with-deps chromium webkit
       - name: Check mobile layouts, tracking and offline use
-        run: npm run test:mobile
+        run: npm run test:mobile && npm run test:security-browser
+
+  notification-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: notification-server/package-lock.json
+      - run: npm ci
+        working-directory: notification-server
+      - run: npm test
+        working-directory: notification-server

@@ -12,15 +12,15 @@ return;
 
     try {
 wakeLock = await navigator.wakeLock.request('screen');
-console.log('[SUCCESS] Wake Lock activated');
+appLog.log('[SUCCESS] Wake Lock activated');
 showWakeLockIndicator();
 
 wakeLock.addEventListener('release', () => {
-    console.log('🔓 Wake Lock released');
+    appLog.log('🔓 Wake Lock released');
     hideWakeLockIndicator();
 });
     } catch (err) {
-console.error('[ERROR] Wake Lock failed:', err);
+appLog.error('[ERROR] Wake Lock failed:', err);
     }
 }
 
@@ -78,7 +78,7 @@ function showOfflineBanner() {
     banner.style.display = 'block';
     container.classList.add('with-status-banner');
 
-    console.log('📴 App is offline');
+    appLog.log('📴 App is offline');
 }
 
 function showOnlineBanner() {
@@ -90,7 +90,7 @@ function showOnlineBanner() {
     banner.style.display = 'block';
     container.classList.add('with-status-banner');
 
-    console.log('📶 App is online');
+    appLog.log('📶 App is online');
 
     // Auto-hide after 3 seconds
     if (onlineBannerTimeout) {
@@ -136,7 +136,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
     // Prevent the default install prompt
     e.preventDefault();
     deferredInstallPrompt = e;
-    console.log('Install Install prompt available');
+    appLog.log('Install Install prompt available');
 
     // Show custom install prompt after user has logged 3 migraines
     if (currentPage === 'settings' && !activeMigraine && !installPromptShown && !installPromptDismissed && migraines.length >= 3) {
@@ -153,7 +153,7 @@ function showInstallPrompt() {
     prompt.style.display = 'block';
     installPromptShown = true;
     localStorage.setItem('installPromptShown', 'true');
-    console.log('Update Showing custom install prompt');
+    appLog.log('Update Showing custom install prompt');
 }
 
 function hideInstallPrompt() {
@@ -169,7 +169,7 @@ document.getElementById('install-btn')?.addEventListener('click', async () => {
     deferredInstallPrompt.prompt();
 
     const { outcome } = await deferredInstallPrompt.userChoice;
-    console.log(`Install prompt outcome: ${outcome}`);
+    appLog.log(`Install prompt outcome: ${outcome}`);
 
     deferredInstallPrompt = null;
 });
@@ -179,12 +179,12 @@ document.getElementById('dismiss-install-btn')?.addEventListener('click', () => 
     hideInstallPrompt();
     installPromptDismissed = true;
     localStorage.setItem('installPromptDismissed', 'true');
-    console.log('[ERROR] Install prompt dismissed');
+    appLog.log('[ERROR] Install prompt dismissed');
 });
 
 // Listen for successful installation
 window.addEventListener('appinstalled', () => {
-    console.log('[SUCCESS] PWA installed successfully');
+    appLog.log('[SUCCESS] PWA installed successfully');
     hideInstallPrompt();
     deferredInstallPrompt = null;
 });
@@ -199,7 +199,7 @@ let isAppLocked = false;
 async function setupBiometricAuth() {
     // Check if Web Authentication API is supported
     if (!window.PublicKeyCredential) {
-console.log('[ERROR] Web Authentication API not supported');
+appLog.log('[ERROR] Web Authentication API not supported');
 return false;
     }
 
@@ -208,14 +208,14 @@ return false;
 const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
 
 if (!available) {
-    console.log('[ERROR] Platform authenticator not available');
+    appLog.log('[ERROR] Platform authenticator not available');
     return false;
 }
 
-console.log('[SUCCESS] Biometric authentication available');
+appLog.log('[SUCCESS] Biometric authentication available');
 return true;
     } catch (err) {
-console.error('[ERROR] Biometric auth check failed:', err);
+appLog.error('[ERROR] Biometric auth check failed:', err);
 return false;
     }
 }
@@ -257,11 +257,11 @@ if (credential) {
     localStorage.setItem('biometricCredentialId', btoa(String.fromCharCode(...new Uint8Array(credential.rawId))));
     localStorage.setItem('biometricAuthEnabled', 'true');
     biometricAuthEnabled = true;
-    console.log('[SUCCESS] Biometric registered');
+    appLog.log('[SUCCESS] Biometric registered');
     return true;
 }
     } catch (err) {
-console.error('[ERROR] Biometric registration failed:', err);
+appLog.error('[ERROR] Biometric registration failed:', err);
 return false;
     }
 }
@@ -288,11 +288,11 @@ const assertion = await navigator.credentials.get({
 });
 
 if (assertion) {
-    console.log('[SUCCESS] Biometric authentication successful');
+    appLog.log('[SUCCESS] Biometric authentication successful');
     return true;
 }
     } catch (err) {
-console.error('[ERROR] Biometric authentication failed:', err);
+appLog.error('[ERROR] Biometric authentication failed:', err);
 return false;
     }
 
@@ -367,7 +367,7 @@ showLockForEncryption();
     const lockEl = document.getElementById('lock-screen');
     lockEl.style.display = 'flex';
     openDialog(lockEl, { activate: false });
-    console.log('Lock App locked');
+    appLog.log('Lock App locked');
 }
 
 function unlockApp() {
@@ -439,7 +439,7 @@ document.addEventListener(event, resetInactivityTimer, true);
     });
 
     resetInactivityTimer();
-    console.log('[SUCCESS] Auto-lock initialized');
+    appLog.log('[SUCCESS] Auto-lock initialized');
 }
 
 // ============================================
@@ -528,7 +528,7 @@ if (!phase1SettingsInitialized) {
         } else if (!wakeLockEnabled) {
             releaseWakeLock();
         }
-        console.log(`Wake Lock ${wakeLockEnabled ? 'enabled' : 'disabled'}`);
+        appLog.log(`Wake Lock ${wakeLockEnabled ? 'enabled' : 'disabled'}`);
     });
 }
     }
@@ -597,7 +597,7 @@ if (!phase1SettingsInitialized) {
             clearTimeout(inactivityTimeout);
         }
 
-        console.log(`Auto-lock ${autoLockEnabled ? 'enabled' : 'disabled'}`);
+        appLog.log(`Auto-lock ${autoLockEnabled ? 'enabled' : 'disabled'}`);
     });
 }
     }
@@ -611,7 +611,7 @@ if (!phase1SettingsInitialized) {
         autoLockDelay = parseInt(e.target.value);
         localStorage.setItem('autoLockDelay', autoLockDelay);
         resetInactivityTimer();
-        console.log(`Auto-lock delay set to ${autoLockDelay}ms`);
+        appLog.log(`Auto-lock delay set to ${autoLockDelay}ms`);
     });
 }
     }
@@ -651,5 +651,5 @@ window.endActiveMigraine = function() {
 };
     }
 
-    console.log('[SUCCESS] Phase 1 features initialized');
+    appLog.log('[SUCCESS] Phase 1 features initialized');
 });

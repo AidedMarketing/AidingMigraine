@@ -25,9 +25,9 @@ PORT=3000
 NODE_ENV=production
 VAPID_SUBJECT=mailto:your-email@example.com
 VAPID_PUBLIC_KEY=BKGl5RP_08pVrtXyh08ot_AdICyshiLpiOBLYr1eLRXQFP_pcqGqZOxoMMfPm_09ecr_EKgwqmE5Hac0Lb0G1WU
-VAPID_PRIVATE_KEY=5jqvwodA2zyK3z819NNc40wxDmmUQL-q5RQJ8EPvQvY
-ADMIN_API_KEY=178815e58e1adf23a73954672a8409cc1f31db0d56d18d1e65a9f3096fd195a1
-ALLOWED_ORIGINS=https://aidedmarketing.github.io,https://aidedmarketing.github.io/AidingMigraine
+VAPID_PRIVATE_KEY=your_new_vapid_private_key_here
+ADMIN_API_KEY=your_new_admin_api_key_here
+ALLOWED_ORIGINS=https://aidedmarketing.github.io
 ```
 
 ### 3. Important Notes

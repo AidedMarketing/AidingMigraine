@@ -1,3 +1,4 @@
+const logger = require('./logger');
 /**
  * Push Notification Service
  *
@@ -19,11 +20,11 @@ function initializePushService() {
             process.env.VAPID_PRIVATE_KEY
         );
 
-        console.log('✅ Web Push VAPID configured');
+        logger.log('✅ Web Push VAPID configured');
 
         pushInitialized = true;
     } catch (error) {
-        console.error('❌ Web Push initialization failed:', error);
+        logger.error('❌ Web Push initialization failed:', error);
         throw error;
     }
 }
@@ -48,14 +49,14 @@ async function sendWebPushNotification(subscription, payload) {
 
         const result = await webPush.sendNotification(pushSubscription, notificationPayload);
 
-        console.log('✅ Web push notification sent successfully');
+        logger.log('✅ Web push notification sent successfully');
         return { success: true, result };
     } catch (error) {
-        console.error('❌ Web push notification failed:', error);
+        logger.error('❌ Web push notification failed:', error);
 
         // Handle subscription errors
         if (error.statusCode === 410 || error.statusCode === 404) {
-            console.log('Subscription is no longer valid, should be removed');
+            logger.log('Subscription is no longer valid, should be removed');
             return { success: false, error: 'subscription_expired' };
         }
 

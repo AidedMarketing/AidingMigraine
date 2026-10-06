@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://aiding-migraine-notifications.onrender.com https://api.open-meteo.com https://archive-api.open-meteo.com https://geocoding-api.open-meteo.com https://nominatim.openstreetmap.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'self'; font-src 'self'">
+    <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Aiding Migraine</title>
 
@@ -23,13 +25,14 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512x512.png">
 
-    <script src="./assets/theme.js?v=5.10.0-mobile1"></script>
+    <script src="./assets/logger.js?v=5.10.0-security1"></script>
+    <script src="./assets/theme.js?v=5.10.0-security1"></script>
     <!-- DOMPurify for XSS Protection -->
-    <script src="./assets/vendor/purify.min.js?v=5.10.0-mobile1"></script>
+    <script src="./assets/vendor/purify.min.js?v=5.10.0-security1"></script>
 
-    <link rel="stylesheet" href="./assets/components.css?v=5.10.0-mobile1">
-    <link rel="stylesheet" href="./assets/tokens.css?v=5.10.0-mobile1">
-    <link rel="stylesheet" href="./assets/shell.css?v=5.10.0-mobile1">
+    <link rel="stylesheet" href="./assets/components.css?v=5.10.0-security1">
+    <link rel="stylesheet" href="./assets/tokens.css?v=5.10.0-security1">
+    <link rel="stylesheet" href="./assets/shell.css?v=5.10.0-security1">
 </head>
 <body>
     <!-- App Loading Screen -->
@@ -1319,8 +1322,8 @@
                     </div>
                 </div>
                 <div class="modal-actions">
-                    <button class="btn btn-secondary" onclick="closeDebugModal()">Close</button>
-                    <button class="btn btn-primary" onclick="copyDebugInfo()">Copy Debug Info</button>
+                    <button class="btn btn-secondary" data-ui-action="close-debug">Close</button>
+                    <button class="btn btn-primary" data-ui-action="copy-debug">Copy Debug Info</button>
                 </div>
             </div>
         </div>
@@ -1360,17 +1363,19 @@
         </div>
     </div>
 
-    <script src="./assets/app.js?v=5.10.0-mobile1"></script>
+    <script src="./assets/health-storage.js?v=5.10.0-security1"></script>
+    <script src="./assets/actions.js?v=5.10.0-security1"></script>
+    <script src="./assets/app.js?v=5.10.0-security1"></script>
 
     <!-- Phase 2: IndexedDB Data Layer -->
-    <script src="./assets/tracking.js?v=5.10.0-mobile1"></script>
-    <script src="./assets/storage.js?v=5.10.0-mobile1"></script>
+    <script src="./assets/tracking.js?v=5.10.0-security1"></script>
+    <script src="./assets/storage.js?v=5.10.0-security1"></script>
 
     <!-- Phase 1: Advanced PWA Features -->
-    <script src="./assets/device.js?v=5.10.0-mobile1"></script>
+    <script src="./assets/device.js?v=5.10.0-security1"></script>
 
     <!-- Service Worker Registration with Update Detection -->
-    <script src="./assets/updates.js?v=5.10.0-mobile1"></script>
-    <script src="./assets/interface.js?v=5.10.0-mobile1"></script>
+    <script src="./assets/updates.js?v=5.10.0-security1"></script>
+    <script src="./assets/interface.js?v=5.10.0-security1"></script>
 </body>
 </html>

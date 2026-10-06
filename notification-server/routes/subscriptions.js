@@ -1,3 +1,4 @@
+const logger = require('../logger');
 /**
  * Subscription Management Routes
  */
@@ -13,6 +14,9 @@ const {
 } = require('../database');
 const {
     requireAdminAuth,
+    requireSubscriptionAuth,
+    protectExistingSubscription,
+    validateSubscriptionKeys,
     validateEndpoint,
     validatePreferences
 } = require('../middleware/auth');
@@ -22,7 +26,7 @@ const { strictLimiter } = require('../middleware/rate-limit');
  * POST /api/subscriptions/subscribe
  * Subscribe a user to push notifications
  */
-router.post('/subscribe', validateEndpoint, validatePreferences, async (req, res) => {
+router.post('/subscribe', strictLimiter, validateEndpoint, validateSubscriptionKeys, protectExistingSubscription, validatePreferences, async (req, res) => {
     try {
         const { subscription, preferences } = req.body;
 
@@ -62,13 +66,12 @@ router.post('/subscribe', validateEndpoint, validatePreferences, async (req, res
         res.status(201).json({
             success: true,
             message: 'Subscription created successfully',
-            subscription: result
+            subscription: { endpoint: result.endpoint }
         });
     } catch (error) {
-        console.error('Subscribe error:', error);
+        logger.error('Subscribe error:', error);
         res.status(500).json({
-            error: 'Failed to create subscription',
-            message: error.message
+            error: 'Failed to create subscription'
         });
     }
 });
@@ -77,7 +80,7 @@ router.post('/subscribe', validateEndpoint, validatePreferences, async (req, res
  * POST /api/subscriptions/unsubscribe
  * Unsubscribe a user from push notifications
  */
-router.post('/unsubscribe', validateEndpoint, async (req, res) => {
+router.post('/unsubscribe', strictLimiter, validateEndpoint, requireSubscriptionAuth, async (req, res) => {
     try {
         const { endpoint } = req.body;
 
@@ -100,10 +103,9 @@ router.post('/unsubscribe', validateEndpoint, async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Unsubscribe error:', error);
+        logger.error('Unsubscribe error:', error);
         res.status(500).json({
-            error: 'Failed to remove subscription',
-            message: error.message
+            error: 'Failed to remove subscription'
         });
     }
 });
@@ -112,7 +114,7 @@ router.post('/unsubscribe', validateEndpoint, async (req, res) => {
  * POST /api/subscriptions/update-preferences
  * Update user notification preferences
  */
-router.post('/update-preferences', validateEndpoint, validatePreferences, async (req, res) => {
+router.post('/update-preferences', strictLimiter, validateEndpoint, requireSubscriptionAuth, validatePreferences, async (req, res) => {
     try {
         const { endpoint, preferences } = req.body;
 
@@ -128,7 +130,7 @@ router.post('/update-preferences', validateEndpoint, validatePreferences, async 
             res.json({
                 success: true,
                 message: 'Preferences updated successfully',
-                subscription: updated
+                subscription: { endpoint: updated.endpoint }
             });
         } else {
             res.status(404).json({
@@ -136,10 +138,9 @@ router.post('/update-preferences', validateEndpoint, validatePreferences, async 
             });
         }
     } catch (error) {
-        console.error('Update preferences error:', error);
+        logger.error('Update preferences error:', error);
         res.status(500).json({
-            error: 'Failed to update preferences',
-            message: error.message
+            error: 'Failed to update preferences'
         });
     }
 });
@@ -162,10 +163,9 @@ router.get('/', strictLimiter, requireAdminAuth, async (req, res) => {
             }))
         });
     } catch (error) {
-        console.error('Get subscriptions error:', error);
+        logger.error('Get subscriptions error:', error);
         res.status(500).json({
-            error: 'Failed to get subscriptions',
-            message: error.message
+            error: 'Failed to get subscriptions'
         });
     }
 });
