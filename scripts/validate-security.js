@@ -11,10 +11,12 @@ try {
   const html = require('./frontend-source').source;
   const sw = fs.readFileSync('service-worker.js', 'utf8');
 
+  if (!html.includes('http-equiv="Content-Security-Policy"') || !html.includes("script-src-attr 'none'")) errors.push('Missing CSP protection for inline scripts/handlers');
+
   // Check for inline event handlers (XSS risk)
   const inlineHandlers = html.match(/on(click|load|error|change|submit|mouseover|mouseout|keypress|keydown|keyup)=/gi);
   if (inlineHandlers) {
-    warnings.push(`⚠️  Found ${inlineHandlers.length} inline event handler(s) - consider using addEventListener`);
+    errors.push(`❌ Found ${inlineHandlers.length} inline event handler(s) - consider using addEventListener`);
   }
 
   // Check for eval usage
@@ -22,10 +24,16 @@ try {
     errors.push('❌ Found eval() usage - potential security risk');
   }
 
-  // Check for innerHTML with variables (potential XSS)
-  const innerHTMLMatches = html.match(/innerHTML\s*=\s*(?!['"`])/g);
-  if (innerHTMLMatches && innerHTMLMatches.length > 0) {
-    warnings.push(`⚠️  Found ${innerHTMLMatches.length} dynamic innerHTML assignment(s) - verify XSS protection`);
+  // Guard every application HTML sink; the vendor sanitizer is audited separately.
+  const { scripts } = require('./frontend-source');
+  for (const file of scripts.filter(file => !file.includes('/vendor/'))) {
+    const source = fs.readFileSync(file, 'utf8');
+    for (const match of source.matchAll(/\.innerHTML\s*=\s*([^\n]+)/g)) {
+      const rhs = match[1].trim();
+      if (!rhs.startsWith('safeHTML(') && !rhs.startsWith('HEAD_MAP_SVG') && !/^(?:""|''|``)\s*;/.test(rhs)) {
+        errors.push(`Unprotected HTML assignment in ${file}`);
+      }
+    }
   }
 
   // Check for document.write (can be dangerous)
@@ -82,7 +90,7 @@ try {
   credentialPatterns.forEach(pattern => {
     const matches = html.match(pattern) || sw.match(pattern);
     if (matches) {
-      errors.push(`❌ Found potential hardcoded credential: ${matches[0]}`);
+      errors.push('❌ Found potential hardcoded credential (value redacted)');
     }
   });
 

@@ -1,3 +1,4 @@
+const logger = require('./logger');
 /**
  * Database module - Handles storage of user subscriptions and preferences
  *
@@ -8,13 +9,16 @@
 const fs = require('fs').promises;
 const path = require('path');
 
+// DATA_DIR is deployment configuration, never request input. Use a durable mount in production.
+const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, 'data'));
+
 // Secure path validation - prevents path traversal attacks
 function validateDataPath(relativePath) {
-    const dataDir = path.resolve(__dirname, 'data');
+    const dataDir = DATA_DIR;
     const fullPath = path.resolve(dataDir, relativePath);
 
     // Ensure the resolved path is within the data directory
-    if (!fullPath.startsWith(dataDir)) {
+    if (!fullPath.startsWith(dataDir + path.sep)) {
         throw new Error('Path traversal attack detected');
     }
 
@@ -42,12 +46,12 @@ async function initializeDatabase() {
         try {
             const data = await fs.readFile(DB_PATH, 'utf8');
             subscriptions = JSON.parse(data);
-            console.log(`Loaded ${subscriptions.length} subscriptions from database`);
+            logger.log(`Loaded ${subscriptions.length} subscriptions from database`);
         } catch (err) {
             if (err.code === 'ENOENT') {
                 // File doesn't exist, create empty file
                 await fs.writeFile(DB_PATH, JSON.stringify([], null, 2));
-                console.log('Created new subscriptions database');
+                logger.log('Created new subscriptions database');
             } else {
                 throw err;
             }
@@ -57,11 +61,11 @@ async function initializeDatabase() {
         try {
             const data = await fs.readFile(FOLLOWUPS_PATH, 'utf8');
             scheduledFollowups = JSON.parse(data);
-            console.log(`Loaded ${scheduledFollowups.length} scheduled follow-ups`);
+            logger.log(`Loaded ${scheduledFollowups.length} scheduled follow-ups`);
         } catch (err) {
             if (err.code === 'ENOENT') {
                 await fs.writeFile(FOLLOWUPS_PATH, JSON.stringify([], null, 2));
-                console.log('Created new follow-ups database');
+                logger.log('Created new follow-ups database');
             } else {
                 throw err;
             }
@@ -71,17 +75,17 @@ async function initializeDatabase() {
         try {
             const data = await fs.readFile(ACTIVE_CHECKINS_PATH, 'utf8');
             scheduledActiveCheckins = JSON.parse(data);
-            console.log(`Loaded ${scheduledActiveCheckins.length} scheduled active attack check-ins`);
+            logger.log(`Loaded ${scheduledActiveCheckins.length} scheduled active attack check-ins`);
         } catch (err) {
             if (err.code === 'ENOENT') {
                 await fs.writeFile(ACTIVE_CHECKINS_PATH, JSON.stringify([], null, 2));
-                console.log('Created new active check-ins database');
+                logger.log('Created new active check-ins database');
             } else {
                 throw err;
             }
         }
     } catch (error) {
-        console.error('Database initialization error:', error);
+        logger.error('Database initialization error:', error);
         throw error;
     }
 }
@@ -130,7 +134,9 @@ async function addSubscription(subscription) {
 async function removeSubscription(endpoint) {
     const initialLength = subscriptions.length;
     subscriptions = subscriptions.filter(s => s.endpoint !== endpoint);
-    await saveSubscriptions();
+    scheduledFollowups = scheduledFollowups.filter(f => f.subscriptionEndpoint !== endpoint);
+    scheduledActiveCheckins = scheduledActiveCheckins.filter(c => c.subscriptionEndpoint !== endpoint);
+    await Promise.all([saveSubscriptions(), saveFollowups(), saveActiveCheckins()]);
     return initialLength !== subscriptions.length;
 }
 
@@ -154,40 +160,42 @@ function getAllSubscriptions() {
 }
 
 // Get users who should receive daily check-in at current hour
-function getSubscriptionsForDailyCheckIn(currentHour, currentDay) {
+function getSubscriptionsForDailyCheckIn(currentHour, currentDay, now = new Date()) {
     return subscriptions.filter(sub => {
-        if (!sub.preferences || !sub.preferences.dailyCheckIn ||
-            !sub.preferences.dailyCheckIn.enabled) {
-            return false;
+        const daily = sub.preferences?.dailyCheckIn;
+        if (!daily?.enabled || daily.frequency === 'disabled') return false;
+        let time = `${String(currentHour).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}`;
+        let date = now.toISOString().slice(0, 10);
+        let target = daily.utcTime || (daily.utcHour !== undefined
+            ? `${String(daily.utcHour).padStart(2, '0')}:${String(daily.utcMinutes || 0).padStart(2, '0')}` : daily.time);
+        let weekday = currentDay;
+        if (daily.timezone) {
+            try {
+                const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+                    timeZone: daily.timezone, year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+                }).formatToParts(now).map(p => [p.type, p.value]));
+                time = `${parts.hour}:${parts.minute}`;
+                date = `${parts.year}-${parts.month}-${parts.day}`;
+                target = daily.time;
+                weekday = new Date(date + 'T12:00:00Z').getUTCDay();
+            } catch { return false; }
         }
-
-        // Use UTC hour if available (new implementation with timezone support)
-        // Fall back to parsing time string for backwards compatibility
-        let targetHour;
-        if (sub.preferences.dailyCheckIn.utcHour !== undefined) {
-            targetHour = sub.preferences.dailyCheckIn.utcHour;
-        } else if (typeof sub.preferences.dailyCheckIn.time === 'string') {
-            // Backwards compatibility: assume time is in UTC if no utcHour field
-            const [hour] = sub.preferences.dailyCheckIn.time.split(':').map(Number);
-            targetHour = hour;
-        } else {
-            return false; // No usable schedule on this record
-        }
-
-        // Check if it's the right hour (currentHour is in UTC)
-        if (targetHour !== currentHour) {
-            return false;
-        }
-
-        // Check frequency
-        if (sub.preferences.dailyCheckIn.frequency === 'every-other-day') {
-            // Simple implementation: check if day number is even/odd
-            const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-            return dayOfYear % 2 === 0;
-        }
-
-        return true; // Daily
+        if (typeof target !== 'string' || time < target || sub.lastDailyCheckInDate === date) return false;
+        if (daily.frequency === 'weekly' && weekday !== (daily.weekday ?? 0)) return false;
+        if (daily.frequency === 'every-other-day' && Math.floor(Date.parse(date) / 86400000) % 2 !== 0) return false;
+        sub.pendingDailyCheckInDate = date;
+        return true;
     });
+}
+
+async function markDailyCheckInAsSent(endpoint) {
+    const sub = getSubscriptionByEndpoint(endpoint);
+    if (sub) {
+        sub.lastDailyCheckInDate = sub.pendingDailyCheckInDate;
+        delete sub.pendingDailyCheckInDate;
+        await saveSubscriptions();
+    }
 }
 
 // Scheduled follow-up management
@@ -218,17 +226,16 @@ async function markFollowupAsSent(followupId) {
 }
 
 // Active attack check-in management
-async function addScheduledActiveCheckin(checkin) {
-    // Replace any pending check-in for the same attack so re-scheduling
-    // can't create duplicate IDs that double-fire
-    scheduledActiveCheckins = scheduledActiveCheckins.filter(
-        c => !(c.attackId === checkin.attackId && !c.sent)
-    );
-    scheduledActiveCheckins.push({
-        ...checkin,
-        createdAt: new Date().toISOString()
-    });
+async function addScheduledActiveCheckins(checkins) {
+    const replaced = new Set(checkins.map(c => c.subscriptionEndpoint + '\0' + c.attackId));
+    scheduledActiveCheckins = scheduledActiveCheckins.filter(c => c.sent || !replaced.has(c.subscriptionEndpoint + '\0' + c.attackId));
+    scheduledActiveCheckins.push(...checkins.map(c => ({ ...c, createdAt: new Date().toISOString() })));
     await saveActiveCheckins();
+    return checkins;
+}
+
+async function addScheduledActiveCheckin(checkin) {
+    await addScheduledActiveCheckins([checkin]);
     return checkin;
 }
 
@@ -249,9 +256,14 @@ async function markActiveCheckinAsSent(checkinId) {
     }
 }
 
-async function cancelActiveCheckin(attackId) {
+async function cancelActiveCheckin(attackId, subscriptionEndpoint, cancelSeries = false) {
     const initialLength = scheduledActiveCheckins.length;
-    scheduledActiveCheckins = scheduledActiveCheckins.filter(c => c.attackId !== attackId);
+    scheduledActiveCheckins = scheduledActiveCheckins.filter(c => {
+        const exact = String(c.attackId) === String(attackId);
+        const prefix = String(attackId) + '-';
+        const series = cancelSeries && String(c.attackId).startsWith(prefix) && /^\d+$/.test(String(c.attackId).slice(prefix.length));
+        return !(c.subscriptionEndpoint === subscriptionEndpoint && (exact || series));
+    });
     await saveActiveCheckins();
     return initialLength !== scheduledActiveCheckins.length;
 }
@@ -293,10 +305,12 @@ module.exports = {
     getSubscriptionByEndpoint,
     getAllSubscriptions,
     getSubscriptionsForDailyCheckIn,
+    markDailyCheckInAsSent,
     addScheduledFollowup,
     getFollowupsDueNow,
     markFollowupAsSent,
     addScheduledActiveCheckin,
+    addScheduledActiveCheckins,
     getActiveCheckinsDueNow,
     markActiveCheckinAsSent,
     cancelActiveCheckin,

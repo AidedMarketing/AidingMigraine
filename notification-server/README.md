@@ -5,6 +5,8 @@
 
 Push notification server for the Aiding Migraine PWA. Handles scheduled daily check-ins, post-attack follow-ups, and active attack check-ins.
 
+> **Deployment security update:** See [the security review and rotation steps](../docs/SECURITY-REVIEW-2026-10-06.md). Existing subscription changes now require `keys.auth` and `keys.p256dh`; known published credentials are rejected. Free/ephemeral storage cannot preserve reminder queues.
+
 ## Features
 
 ### Core Notifications
@@ -94,17 +96,19 @@ NODE_ENV=development
 # VAPID Keys for Web Push (from npx web-push generate-vapid-keys)
 VAPID_SUBJECT=mailto:your-email@example.com
 VAPID_PUBLIC_KEY=BHVugOyMNYtN5lftKJrKO10dSl7XPSGB1fWJ2eRrfAhnx-dtqY44AllB0tiTUnZaouhvzZdRADqf4C6MVW4oKdM
-VAPID_PRIVATE_KEY=6F-ixbgK_2sEpZ-HsxXvgebLoOe2Fk03tWOvZfiDUe0
+VAPID_PRIVATE_KEY=your_new_vapid_private_key_here
 
 # Admin API Key (from node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
-ADMIN_API_KEY=a5b2c4013eea5f05c33e706360fc97872ede64a07cc0c005142fdd240c4ed8c3
+ADMIN_API_KEY=your_new_admin_api_key_here
 
 # CORS Allowed Origins (comma-separated)
 ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
 
 # Database Configuration
 DB_TYPE=json
-DB_PATH=./data/subscriptions.json
+DB_PATH=subscriptions.json
+# Production only, with a persistent disk:
+# DATA_DIR=/var/data/aiding-migraine
 ```
 
 **Important Security Notes:**

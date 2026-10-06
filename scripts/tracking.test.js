@@ -17,7 +17,7 @@ function harness({ indexed = false, storageFails = false, encrypted = false, vau
     const nodes = new Map();
     const notices = [];
     const context = vm.createContext({
-        console: { log() {}, warn() {}, error() {} }, Date, structuredClone,
+        appLog: { log() {}, warn() {}, error() {} }, safeHTML: html => html, Date, structuredClone,
         migraines: [], activeMigraine: null, useIndexedDB: indexed, db: indexed ? {} : null,
         encEnabled: () => encrypted, persistVault: async () => vaultSaved,
         DB_STORES: { MIGRAINES: 'migraines', SETTINGS: 'settings' },

@@ -1,12 +1,16 @@
+importScripts('./assets/logger.js');
 // Aiding Migraine - Service Worker
 // Version 4.0.0 - Production Release
 
-const CACHE_NAME = 'aiding-migraine-v5.10.0-mobile1';
+const CACHE_NAME = 'aiding-migraine-v5.10.0-security1';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './assets/vendor/purify.min.js',
     './assets/app.js',
+    './assets/logger.js',
+    './assets/actions.js',
+    './assets/health-storage.js',
     './assets/interface.js',
     './assets/tokens.css',
     './assets/theme.js',
@@ -36,16 +40,16 @@ const ASSETS_TO_CACHE = [
 
 // Install event - cache assets
 self.addEventListener('install', (event) => {
-    console.log('Service Worker: Installing new version...');
+    appLog.log('Service Worker: Installing new version...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('Service Worker: Caching app shell');
+                appLog.log('Service Worker: Caching app shell');
                 return cache.addAll(ASSETS_TO_CACHE);
             })
             .then(() => {
                 // Auto-skip waiting to activate new service worker immediately
-                console.log('Service Worker: Auto-activating new version');
+                appLog.log('Service Worker: Auto-activating new version');
                 // Wait for the user to apply updates, so an open form is not interrupted.
                 return undefined;
             })
@@ -55,20 +59,20 @@ self.addEventListener('install', (event) => {
 // Listen for skip waiting message from app
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
-        console.log('Service Worker: Skip waiting requested by app');
+        appLog.log('Service Worker: Skip waiting requested by app');
         self.skipWaiting();
     }
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-    console.log('Service Worker: Activating...');
+    appLog.log('Service Worker: Activating...');
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cache) => {
                     if (cache.startsWith('aiding-migraine-') && cache !== CACHE_NAME) {
-                        console.log('Service Worker: Clearing old cache', cache);
+                        appLog.log('Service Worker: Clearing old cache', cache);
                         return caches.delete(cache);
                     }
                 })
@@ -113,7 +117,7 @@ self.addEventListener('fetch', (event) => {
 
 // Listen for push events from the server
 self.addEventListener('push', (event) => {
-    console.log('Push notification received:', event);
+    appLog.log('Push notification received:', event);
 
     let data = {
         title: 'Aiding Migraine',
@@ -142,7 +146,7 @@ self.addEventListener('push', (event) => {
                 attackId: pushData.attackId
             };
         } catch (e) {
-            console.error('Error parsing push data:', e);
+            appLog.error('Error parsing push data:', e);
         }
     }
 
@@ -186,7 +190,7 @@ self.addEventListener('push', (event) => {
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
-    console.log('Notification clicked:', event);
+    appLog.log('Notification clicked:', event);
 
     event.notification.close();
 

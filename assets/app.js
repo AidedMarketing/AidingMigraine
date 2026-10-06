@@ -75,22 +75,22 @@ function hit6Grade(score) {
     return { grade: 'Severe', label: 'Severe impact' };
 }
 
-function loadAssessments() {
+async function loadAssessments() {
     if (encEnabled()) return; // vault already populated assessments
-    const stored = localStorage.getItem('assessments');
+    const stored = await readHealthSetting('assessments');
     if (!stored) return;
     try {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) assessments = parsed;
     } catch (e) {
-        console.error('[ERROR] Corrupt assessments, resetting:', e);
+        appLog.error('[ERROR] Corrupt assessments, resetting:', e);
         localStorage.removeItem('assessments');
     }
 }
 
 function saveAssessments() {
-    if (encEnabled()) { persistVault(); return; }
-    localStorage.setItem('assessments', JSON.stringify(assessments));
+    if (encEnabled()) return persistVault();
+    return saveHealthSetting('assessments', assessments);
 }
 
 function latestAssessment(type) {
@@ -121,9 +121,9 @@ function mergeAssessments(incoming) {
 // MENSTRUAL CYCLE TRACKING (opt-in, device-only)
 // ============================================
 
-function loadCycleData() {
+async function loadCycleData() {
     if (encEnabled()) return; // vault already populated cycleData
-    const stored = localStorage.getItem('cycleData');
+    const stored = await readHealthSetting('cycleData');
     if (!stored) return;
     try {
         const parsed = JSON.parse(stored);
@@ -136,15 +136,15 @@ function loadCycleData() {
             };
         }
     } catch (e) {
-        console.error('[ERROR] Corrupt cycleData, resetting:', e);
+        appLog.error('[ERROR] Corrupt cycleData, resetting:', e);
         localStorage.removeItem('cycleData');
         cycleData = { enabled: false, periods: [] };
     }
 }
 
 function saveCycleData() {
-    if (encEnabled()) { persistVault(); return; }
-    localStorage.setItem('cycleData', JSON.stringify(cycleData));
+    if (encEnabled()) return persistVault();
+    return saveHealthSetting('cycleData', cycleData);
 }
 
 // Restore cycle data from a backup: merge period dates (de-duped) and
@@ -833,8 +833,8 @@ function safeHTML(html) {
         // through here - interactivity uses addEventListener with
         // data-* attributes instead
         return DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: ['div', 'span', 'small', 'p', 'b', 'i', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'a', 'button', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'select', 'option', 'input', 'label', 'textarea', 'form'],
-            ALLOWED_ATTR: ['class', 'style', 'href', 'target', 'id', 'value', 'type', 'placeholder', 'checked', 'selected', 'disabled', 'name', 'for', 'title'],
+            ALLOWED_TAGS: ['div', 'span', 'small', 'p', 'b', 'i', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'a', 'button', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'select', 'option', 'input', 'label', 'textarea', 'form', 'details', 'summary', 'svg', 'path', 'line', 'circle', 'rect', 'ellipse', 'text', 'title'],
+            ALLOWED_ATTR: ['class', 'style', 'href', 'target', 'id', 'value', 'type', 'placeholder', 'checked', 'selected', 'disabled', 'name', 'for', 'title', 'autofocus', 'min', 'max', 'step', 'rows', 'multiple', 'autocomplete', 'viewBox', 'd', 'x', 'y', 'x1', 'x2', 'y1', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'fill', 'stroke', 'stroke-width', 'role', 'tabindex'],
             ALLOW_DATA_ATTR: true
         });
     }
@@ -874,7 +874,7 @@ function retryUntilSuccess(fn, checkFn, maxAttempts = 15, delayMs = 10, attemptN
     }
 
     if (attemptNum >= maxAttempts) {
-        console.warn(`[WARNING] Max attempts reached for ${fn.name}, giving up`);
+        appLog.warn(`[WARNING] Max attempts reached for ${fn.name}, giving up`);
         return;
     }
 
@@ -892,7 +892,7 @@ function retryUntilSuccess(fn, checkFn, maxAttempts = 15, delayMs = 10, attemptN
         nextDelay = delayMs * Math.pow(2, attemptNum - 2);
     }
 
-    console.log(`[PENDING] ${fn.name} - elements not ready, retrying in ${Math.round(nextDelay)}ms (attempt ${attemptNum}/${maxAttempts})`);
+    appLog.log(`[PENDING] ${fn.name} - elements not ready, retrying in ${Math.round(nextDelay)}ms (attempt ${attemptNum}/${maxAttempts})`);
 
     if (nextDelay === 0) {
         // Use requestAnimationFrame for the first retry (almost immediate)
@@ -918,7 +918,7 @@ function updateLoadingProgress(percent, status) {
         statusText.textContent = status;
     }
 
-    console.log(`[ANALYTICS] Loading: ${percent}% - ${status}`);
+    appLog.log(`[ANALYTICS] Loading: ${percent}% - ${status}`);
 }
 
 function hideLoadingScreen() {
@@ -932,7 +932,7 @@ function hideLoadingScreen() {
             loadingScreen.style.display = 'none';
         }, 500);
 
-        console.log('[SUCCESS] Loading complete - app ready');
+        appLog.log('[SUCCESS] Loading complete - app ready');
     }
 }
 
@@ -954,9 +954,9 @@ async function initApp() {
     purgeOldDeletedEpisodes();
 
     updateLoadingProgress(25, 'Initializing medication library...');
-    initializeMedicationLibrary();
-    loadAssessments();
-    loadCycleData();
+    await initializeMedicationLibrary();
+    await loadAssessments();
+    await loadCycleData();
 
     updateLoadingProgress(30, 'Setting up theme...');
     initializeTheme();
@@ -995,7 +995,7 @@ async function initApp() {
 
     // CRITICAL FIX: Ensure log page is shown first so DOM elements are accessible
     updateLoadingProgress(85, 'Preparing dashboard...');
-    console.log('[RELOAD] Initializing UI - showing log page first');
+    appLog.log('[RELOAD] Initializing UI - showing log page first');
     showPage('log');
 
     // Apply any notification/shortcut deep-link AFTER the default page
@@ -1003,7 +1003,7 @@ async function initApp() {
     handleNotificationDeepLink();
 
     // Use robust retry mechanism to ensure UI updates when DOM is ready
-    console.log('[RELOAD] Starting robust UI initialization with retry logic...');
+    appLog.log('[RELOAD] Starting robust UI initialization with retry logic...');
 
     updateLoadingProgress(90, 'Loading statistics...');
     // Retry dashboard update until elements are found
@@ -1075,7 +1075,7 @@ function loadEncMeta() {
         const raw = localStorage.getItem('encMeta');
         encMeta = raw ? JSON.parse(raw) : null;
     } catch (e) {
-        console.error('[ERROR] Corrupt encMeta:', e);
+        appLog.error('[ERROR] Corrupt encMeta:', e);
         encMeta = null;
     }
     return encMeta;
@@ -1168,12 +1168,12 @@ function persistVault() {
         let persisted = false;
         if (useIndexedDB && db) {
             try { await IDB.put(DB_STORES.SETTINGS, { key: 'encVault', value: blob }); persisted = true; }
-            catch (e) { console.error('[ERROR] vault IDB write failed:', e); }
+            catch (e) { appLog.error('[ERROR] vault IDB write failed:', e); }
         }
         try { localStorage.setItem('encVault', json); }
         catch (error) { if (!persisted) throw error; }
         return true;
-    }).catch(e => { console.error('[ERROR] persistVault failed:', e); return false; });
+    }).catch(e => { appLog.error('[ERROR] persistVault failed:', e); return false; });
     return vaultWriteChain;
 }
 
@@ -1185,7 +1185,7 @@ async function loadVault() {
         try {
             const rec = await IDB.get(DB_STORES.SETTINGS, 'encVault');
             if (rec && rec.value) blob = rec.value;
-        } catch (e) { console.error('[ERROR] vault IDB read failed:', e); }
+        } catch (e) { appLog.error('[ERROR] vault IDB read failed:', e); }
     }
     if (!blob) {
         const raw = localStorage.getItem('encVault');
@@ -1204,13 +1204,15 @@ async function loadVault() {
 // Remove all plaintext copies of the sensitive stores (called when
 // encryption is turned on, so the vault becomes the sole source).
 async function wipePlaintextStores() {
+    await healthWrites;
     ['migraines', 'activeMigraine', 'cycleData', 'assessments', 'userMedications'].forEach(k => localStorage.removeItem(k));
     if (useIndexedDB && db) {
         try {
             const keys = await IDB.getAllKeys(DB_STORES.MIGRAINES);
             for (const key of keys) await IDB.delete(DB_STORES.MIGRAINES, key);
-            await IDB.delete(DB_STORES.SETTINGS, 'activeMigraine');
-        } catch (e) { console.error('[ERROR] wipePlaintextStores failed:', e); }
+            for (const key of ['activeMigraine', 'cycleData', 'assessments', 'userMedications']) await IDB.delete(DB_STORES.SETTINGS, key);
+            await IDB.clear(DB_STORES.MEDICATIONS);
+        } catch (e) { appLog.error('[ERROR] wipePlaintextStores failed:', e); }
     }
 }
 
@@ -1230,14 +1232,21 @@ function saveEncMeta() {
 // Turn encryption ON: derive a key from the passphrase, encrypt the
 // current in-memory data into the vault, and wipe the plaintext copies.
 async function enableEncryption(passphrase) {
+    const previous = { meta: encMeta, key: encMasterKey, unlocked: encUnlocked };
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const key = await deriveKey(passphrase, salt.buffer, ENC_KDF_ITERATIONS);
     const verifier = await encryptWithKey(ENC_VERIFIER_TEXT, key);
     encMeta = { enabled: true, salt: bufToB64(salt.buffer), iterations: ENC_KDF_ITERATIONS, verifier, kdf: 'PBKDF2', v: 1 };
     encMasterKey = key;
     encUnlocked = true;
-    saveEncMeta();
-    await persistVault();
+    try {
+        saveEncMeta();
+        if (!await persistVault()) throw new Error('Encrypted vault could not be saved');
+    } catch (error) {
+        encMeta = previous.meta; encMasterKey = previous.key; encUnlocked = previous.unlocked;
+        if (encMeta) saveEncMeta(); else localStorage.removeItem('encMeta');
+        throw error;
+    }
     await wipePlaintextStores();
 }
 
@@ -1245,16 +1254,25 @@ async function enableEncryption(passphrase) {
 // remove the vault + metadata. Requires the key in memory (unlocked).
 async function disableEncryption() {
     if (!encMasterKey) return false;
-    encMeta = null; // encEnabled() now false → saves take the plaintext path
-    localStorage.removeItem('encMeta');
-    await saveData();
-    saveCycleData();
-    saveAssessments();
-    saveMedicationLibrary();
-    await removeVault();
-    encMasterKey = null;
-    encUnlocked = false;
-    return true;
+    // Keep a recoverable vault and its metadata until plaintext saves succeed.
+    if (!await persistVault()) throw new Error('Encrypted vault could not be saved');
+    const previousMeta = encMeta;
+    encMeta = null;
+    try {
+        await saveData();
+        const saved = await Promise.all([saveCycleData(), saveAssessments(), saveMedicationLibrary()]);
+        if (saved.some(value => value === false)) throw new Error('Health settings could not be saved');
+        localStorage.removeItem('encMeta');
+        await removeVault();
+        encMasterKey = null;
+        encUnlocked = false;
+        return true;
+    } catch (error) {
+        encMeta = previousMeta;
+        saveEncMeta();
+        await wipePlaintextStores();
+        throw error;
+    }
 }
 
 // Re-key the vault with a new passphrase (old passphrase required).
@@ -1313,7 +1331,7 @@ function openEnableEncryptionModal() {
                 syncEncryptionUI();
                 showModal('Encryption on', 'Your data is now encrypted at rest. You will be asked for your passphrase when you open the app.');
             } catch (e) {
-                console.error('[ERROR] enableEncryption failed:', e);
+                appLog.error('[ERROR] enableEncryption failed:', e);
                 fail('Something went wrong enabling encryption. Your data was not changed.');
             }
         }}
@@ -1330,7 +1348,7 @@ function openDisableEncryptionModal() {
                 syncEncryptionUI();
                 showModal('Encryption off', 'Your data is no longer encrypted at rest.');
             } catch (e) {
-                console.error('[ERROR] disableEncryption failed:', e);
+                appLog.error('[ERROR] disableEncryption failed:', e);
                 closeModal();
                 syncEncryptionUI();
             }
@@ -1404,17 +1422,18 @@ async function loadData() {
                 activeMigraine = activeMigraineData.value;
                 // Validate active migraine
                 if (!validateActiveMigraine(activeMigraine)) {
-                    console.warn('[WARNING] Invalid active migraine found in IndexedDB, clearing...');
+                    appLog.warn('[WARNING] Invalid active migraine found in IndexedDB, clearing...');
                     activeMigraine = null;
                     await IDB.delete(DB_STORES.SETTINGS, 'activeMigraine');
                 }
             }
 
             if (dataLoaded) {
+                try { localStorage.removeItem('migraines'); localStorage.removeItem('activeMigraine'); } catch {}
                 return;
             }
         } catch (error) {
-            console.error('Error loading from IndexedDB:', error);
+            appLog.error('Error loading from IndexedDB:', error);
             // Fall through to localStorage
         }
     }
@@ -1432,13 +1451,13 @@ async function loadData() {
             activeMigraine = JSON.parse(active);
             // Validate active migraine
             if (!validateActiveMigraine(activeMigraine)) {
-                console.warn('[WARNING] Invalid active migraine found in localStorage, clearing...');
+                appLog.warn('[WARNING] Invalid active migraine found in localStorage, clearing...');
                 activeMigraine = null;
                 localStorage.removeItem('activeMigraine');
             }
         }
     } catch (error) {
-        console.error('Error loading from localStorage:', error);
+        appLog.error('Error loading from localStorage:', error);
     }
 }
 
@@ -1483,18 +1502,27 @@ async function saveData() {
             }
             savedToIndexedDB = true;
         } catch (error) {
-            console.error('[ERROR] Error saving to IndexedDB:', error);
+            appLog.error('[ERROR] Error saving to IndexedDB:', error);
         }
     }
 
-    // The mirror is a fallback, not an additional requirement for success.
+    // No redundant plaintext mirror after the primary transaction commits.
+    if (savedToIndexedDB) {
+        try {
+            localStorage.removeItem('migraines');
+            localStorage.removeItem('activeMigraine');
+        } catch {}
+        return;
+    }
+
+    // Preserve offline saves when IndexedDB is unavailable.
     try {
         localStorage.setItem('migraines', JSON.stringify(migraines));
         if (activeMigraine) localStorage.setItem('activeMigraine', JSON.stringify(activeMigraine));
         else localStorage.removeItem('activeMigraine');
     } catch (error) {
         if (!savedToIndexedDB) throw error;
-        console.warn('Local backup unavailable; records saved in IndexedDB.');
+        appLog.warn('Local backup unavailable; records saved in IndexedDB.');
     }
 }
 
@@ -1502,11 +1530,11 @@ async function saveData() {
 // MEDICATION LIBRARY SYSTEM
 // ============================================
 
-function initializeMedicationLibrary() {
+async function initializeMedicationLibrary() {
     // Load user-added medications (skipped when encrypted — the vault
     // already populated userMedications on unlock)
     if (!encEnabled()) {
-        const stored = localStorage.getItem('userMedications');
+        const stored = await readHealthSetting('userMedications');
         if (stored) {
             userMedications = JSON.parse(stored);
         }
@@ -1570,8 +1598,8 @@ function initializeMedicationLibrary() {
 }
 
 function saveMedicationLibrary() {
-    if (encEnabled()) { persistVault(); return; }
-    localStorage.setItem('userMedications', JSON.stringify(userMedications));
+    if (encEnabled()) return persistVault();
+    return saveHealthSetting('userMedications', userMedications);
 }
 
 function showAddMedicationModal(context) {
@@ -1579,7 +1607,7 @@ function showAddMedicationModal(context) {
     const modal = document.getElementById('modal');
     const body = document.getElementById('modal-body');
 
-    body.innerHTML = `
+    body.innerHTML = safeHTML(`
         <div class="form-group">
             <label for="med-search">Search Medication</label>
             <input type="text" id="med-search" placeholder="Type to search..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem;" autofocus>
@@ -1595,11 +1623,11 @@ function showAddMedicationModal(context) {
             <input type="text" id="custom-med-name" placeholder="Medication name" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); margin-bottom: 8px;">
             <button class="btn btn-secondary" id="add-custom-med-btn" style="width: 100%;">Add Custom Medication</button>
         </div>
-    `;
+    `);
 
-    document.getElementById('modal-actions').innerHTML = `
+    document.getElementById('modal-actions').innerHTML = safeHTML(`
         <button class="btn btn-secondary" id="med-picker-cancel">Cancel</button>
-    `;
+    `);
 
     document.getElementById('modal-title').textContent = 'Add Medication';
     openDialog(modal);
@@ -1642,7 +1670,7 @@ function searchMedications(query) {
     }
 
     if (!query || query.length < 2) {
-        resultsDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Type at least 2 characters...</p>';
+        resultsDiv.innerHTML = safeHTML('<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Type at least 2 characters...</p>');
         return;
     }
 
@@ -1651,7 +1679,7 @@ function searchMedications(query) {
     );
 
     if (matches.length === 0) {
-        resultsDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No medications found. Try adding a custom medication below.</p>';
+        resultsDiv.innerHTML = safeHTML('<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No medications found. Try adding a custom medication below.</p>');
         return;
     }
 
@@ -1693,10 +1721,10 @@ function selectMedication(medName) {
         </div>
     `);
 
-    document.getElementById('modal-actions').innerHTML = `
-        <button class="btn btn-secondary" onclick="showAddMedicationModal()">Back</button>
+    document.getElementById('modal-actions').innerHTML = safeHTML(`
+        <button class="btn btn-secondary" data-ui-action="add-medication">Back</button>
         <button class="btn btn-primary" id="confirm-add-med">Add to Episode</button>
-    `;
+    `);
 
     // Show custom dosage input if selected
     document.getElementById('med-dosage').addEventListener('change', (e) => {
@@ -1824,7 +1852,7 @@ function showMedicationEffectivenessModal(completedMigraine) {
         const med = medications[index];
 
         document.getElementById('modal-title').textContent = 'Rate Medication Effectiveness';
-        body.innerHTML = `
+        body.innerHTML = safeHTML(`
             <p style="margin-bottom: 20px; color: var(--text-secondary);">
                 Medication ${index + 1} of ${medications.length}
             </p>
@@ -1883,12 +1911,12 @@ function showMedicationEffectivenessModal(completedMigraine) {
                     </label>
                 </div>
             </div>
-        `;
+        `);
 
-        document.getElementById('modal-actions').innerHTML = `
+        document.getElementById('modal-actions').innerHTML = safeHTML(`
             <button class="btn btn-secondary" id="skip-rating">Skip</button>
             <button class="btn btn-primary" id="save-rating" disabled>Save & ${index < medications.length - 1 ? 'Next' : 'Finish'}</button>
-        `;
+        `);
 
         // Star rating interaction
         let selectedRating = 0;
@@ -2142,11 +2170,11 @@ function renderHistory() {
         list.dataset.delegated = '1';
     }
     if (!entries.length) {
-        list.innerHTML = `<div class="empty-state">
+        list.innerHTML = safeHTML(`<div class="empty-state">
             <h2>Your story starts here</h2>
             <p>Completed attacks will appear here. There’s nothing you need to catch up on.</p>
             <button class="btn btn-secondary" data-action="start">Go to Today</button>
-        </div>`;
+        </div>`);
         return;
     }
     list.innerHTML = safeHTML(entries.map(entry => {
@@ -2352,7 +2380,7 @@ function renderEditEpisodeForm(episode, isActive, fieldOverrides) {
     const endNotesVal = fieldOverrides ? fieldOverrides.endNotes : (episode.endNotes || '');
     const isCompleted = episode.status === 'completed';
 
-    body.innerHTML = `
+    body.innerHTML = safeHTML(`
         <div class="episode-edit-fields">
             <div class="form-group" style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 600;">Start Date &amp; Time</label>
@@ -2442,12 +2470,12 @@ function renderEditEpisodeForm(episode, isActive, fieldOverrides) {
                 Weather data will be preserved
             </div>
         </div>
-    `;
+    `);
 
-    document.getElementById('modal-actions').innerHTML = `
+    document.getElementById('modal-actions').innerHTML = safeHTML(`
         <button class="btn btn-secondary" id="edit-cancel-btn">Cancel</button>
         <button class="btn btn-primary" id="save-edit-btn">Save Changes</button>
-    `;
+    `);
 
     document.getElementById('modal-title').textContent = 'Edit Episode';
     openDialog(modal);
@@ -2566,7 +2594,7 @@ function renderEditReliefMethods() {
     }
 
     if (tempReliefMethods.length === 0) {
-        list.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.9rem; padding: 8px; text-align: center;">No relief methods logged</div>';
+        list.innerHTML = safeHTML('<div style="color: var(--text-secondary); font-size: 0.9rem; padding: 8px; text-align: center;">No relief methods logged</div>');
         return;
     }
 
@@ -2791,7 +2819,7 @@ function purgeOldDeletedEpisodes() {
 
 // Emergency function to restore ALL episodes, even those older than 30 days
 async function emergencyRestoreAllEpisodes() {
-    console.log('[DEBUG] Emergency restore initiated...');
+    appLog.log('[DEBUG] Emergency restore initiated...');
 
     // Count deleted episodes before restore
     const deletedCount = migraines.filter(m => m.deleted).length;
@@ -2821,7 +2849,7 @@ async function emergencyRestoreAllEpisodes() {
         }
     });
 
-    console.log(`[SUCCESS] Restored ${restoredCount} episode(s)`);
+    appLog.log(`[SUCCESS] Restored ${restoredCount} episode(s)`);
 
     // Save to database
     await saveData();
@@ -2892,10 +2920,10 @@ function viewTrash() {
                     ${m.medication ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">Medication: ${safeText(m.medication)}</p>` : ''}
                     ${m.notes ? `<p style="font-size: 0.9rem; margin-bottom: 4px;">Notes: ${safeText(m.notes)}</p>` : ''}
                     <div style="display: flex; gap: 8px; margin-top: 12px;">
-                        <button class="btn btn-primary" style="flex: 1; padding: 8px;" onclick="restoreEpisode(${m.id})">
+                        <button class="btn btn-primary" style="flex: 1; padding: 8px;" data-ui-action="restore" data-record-id="${safeText(m.id)}">
                             Restore
                         </button>
-                        <button class="btn btn-danger" style="flex: 1; padding: 8px;" onclick="permanentlyDelete(${m.id})">
+                        <button class="btn btn-danger" style="flex: 1; padding: 8px;" data-ui-action="permanent-delete" data-record-id="${safeText(m.id)}">
                             Delete Forever
                         </button>
                     </div>
@@ -2905,7 +2933,7 @@ function viewTrash() {
 
     content += `
         <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
-            <button class="btn btn-danger" style="width: 100%;" onclick="emptyTrash()">
+            <button class="btn btn-danger" style="width: 100%;" data-ui-action="empty-trash">
                 Empty Trash (Delete All)
             </button>
         </div>
@@ -2916,8 +2944,8 @@ function viewTrash() {
     const actions = document.getElementById('modal-actions');
 
     document.getElementById('modal-title').textContent = `Trash (${deletedMigraines.length})`;
-    body.innerHTML = content;
-    actions.innerHTML = '<button class="btn btn-secondary" onclick="closeModal()">Close</button>';
+    body.innerHTML = safeHTML(content);
+    actions.innerHTML = safeHTML('<button class="btn btn-secondary" data-ui-action="close-modal">Close</button>');
     openDialog(modal);
 }
 
@@ -2941,15 +2969,15 @@ function permanentlyDelete(id) {
     const body = document.getElementById('modal-body');
     const actions = document.getElementById('modal-actions');
 
-    body.innerHTML = `
+    body.innerHTML = safeHTML(`
         <p style="text-align: center;">Are you sure you want to permanently delete this episode?</p>
         <p style="text-align: center; color: var(--accent-red); font-weight: 600;">This action cannot be undone.</p>
-    `;
+    `);
 
-    actions.innerHTML = `
-        <button class="btn btn-secondary" onclick="viewTrash()">Cancel</button>
-        <button class="btn btn-danger" onclick="confirmPermanentDelete(${id})">Delete Forever</button>
-    `;
+    actions.innerHTML = safeHTML(`
+        <button class="btn btn-secondary" data-ui-action="view-trash">Cancel</button>
+        <button class="btn btn-danger" data-ui-action="confirm-permanent-delete" data-record-id="${safeText(id)}">Delete Forever</button>
+    `);
 
     document.getElementById('modal-title').textContent = 'Confirm Permanent Deletion';
 }
@@ -2976,15 +3004,15 @@ function emptyTrash() {
     const body = document.getElementById('modal-body');
     const actions = document.getElementById('modal-actions');
 
-    body.innerHTML = `
+    body.innerHTML = safeHTML(`
         <p style="text-align: center;">Are you sure you want to permanently delete all ${deletedCount} episode${deletedCount !== 1 ? 's' : ''} from trash?</p>
         <p style="text-align: center; color: var(--accent-red); font-weight: 600;">This action cannot be undone.</p>
-    `;
+    `);
 
-    actions.innerHTML = `
-        <button class="btn btn-secondary" onclick="viewTrash()">Cancel</button>
-        <button class="btn btn-danger" onclick="confirmEmptyTrash()">Empty Trash</button>
-    `;
+    actions.innerHTML = safeHTML(`
+        <button class="btn btn-secondary" data-ui-action="view-trash">Cancel</button>
+        <button class="btn btn-danger" data-ui-action="confirm-empty-trash">Empty Trash</button>
+    `);
 
     document.getElementById('modal-title').textContent = 'Empty Trash';
 }
@@ -3086,7 +3114,7 @@ function updateMonthlyStats() {
     // Update display - check if elements exist first
     const monthDaysEl = document.getElementById('current-month-days');
     if (!monthDaysEl) {
-        console.warn('[WARNING] Monthly stats elements not found in DOM');
+        appLog.warn('[WARNING] Monthly stats elements not found in DOM');
         return;
     }
 
@@ -3146,7 +3174,7 @@ function renderCalendar() {
     const calendarGridElem = document.getElementById('calendar-grid');
 
     if (!currentMonthElem || !calendarGridElem) {
-        console.warn('[WARNING] Calendar elements not found in DOM');
+        appLog.warn('[WARNING] Calendar elements not found in DOM');
         return;
     }
 
@@ -3292,7 +3320,7 @@ function renderCalendar() {
         </button>`;
     }
 
-    calendarGridElem.innerHTML = html;
+    calendarGridElem.innerHTML = safeHTML(html);
 
     // One delegated listener rather than an inline onclick per cell.
     if (!calendarGridElem.dataset.delegated) {
@@ -3438,7 +3466,7 @@ function initializeSettings() {
             if (element) {
                 element.addEventListener(event, handler);
             } else {
-                console.warn(`[WARNING] Element not found during initialization: ${elementId}`);
+                appLog.warn(`[WARNING] Element not found during initialization: ${elementId}`);
             }
         };
 
@@ -3480,9 +3508,9 @@ function initializeSettings() {
         // Initialize hidden debug mode (will handle missing elements gracefully)
         initializeDebugMode();
 
-        console.log('[SUCCESS] Settings initialization completed (deferred mode)');
+        appLog.log('[SUCCESS] Settings initialization completed (deferred mode)');
     } catch (error) {
-        console.error('[ERROR] Error in initializeSettings:', error);
+        appLog.error('[ERROR] Error in initializeSettings:', error);
         // Don't throw - allow app initialization to continue
     }
 }
@@ -3497,17 +3525,17 @@ let versionTapTimer = null;
 let debugModeInitialized = false;
 function initializeDebugMode() {
     if (debugModeInitialized) {
-        console.log('[SUCCESS] Debug mode already initialized');
+        appLog.log('[SUCCESS] Debug mode already initialized');
         return;
     }
 
     const versionElement = document.getElementById('app-version');
     if (!versionElement) {
-        console.warn('[WARNING] Debug mode: app-version element not found, will initialize when settings page is shown');
+        appLog.warn('[WARNING] Debug mode: app-version element not found, will initialize when settings page is shown');
         return;
     }
 
-    console.log('[DEBUG] Initializing debug mode...');
+    appLog.log('[DEBUG] Initializing debug mode...');
 
     // Remove any existing listeners to prevent duplicates
     const newElement = versionElement.cloneNode(true);
@@ -3518,7 +3546,7 @@ function initializeDebugMode() {
         e.stopPropagation();
         versionTapCount++;
 
-        console.log(`[SEARCH] Debug tap registered: ${versionTapCount}/7`);
+        appLog.log(`[SEARCH] Debug tap registered: ${versionTapCount}/7`);
 
         // Visual feedback - briefly change opacity
         newElement.style.opacity = '0.5';
@@ -3529,27 +3557,27 @@ function initializeDebugMode() {
         // Reset counter after 2 seconds of inactivity
         clearTimeout(versionTapTimer);
         versionTapTimer = setTimeout(() => {
-            console.log('[RELOAD] Debug tap counter reset');
+            appLog.log('[RELOAD] Debug tap counter reset');
             versionTapCount = 0;
         }, 2000);
 
         // Show debug modal after 7 taps
         if (versionTapCount === 7) {
-            console.log('[TARGET] Opening debug modal...');
+            appLog.log('[TARGET] Opening debug modal...');
             versionTapCount = 0;
             showDebugModal();
         }
     }, { passive: false });
 
     debugModeInitialized = true;
-    console.log('[SUCCESS] Debug mode initialized successfully');
+    appLog.log('[SUCCESS] Debug mode initialized successfully');
 }
 
 function showDebugModal() {
-    console.log('[SEARCH] showDebugModal called');
+    appLog.log('[SEARCH] showDebugModal called');
     const modal = document.getElementById('debug-modal');
     if (!modal) {
-        console.error('[ERROR] Debug modal element not found!');
+        appLog.error('[ERROR] Debug modal element not found!');
         showToast('Debug information is unavailable right now.', { type: 'error' });
         return;
     }
@@ -3586,7 +3614,7 @@ function showDebugModal() {
         modal.style.display = 'flex';
         openDialog(modal, { activate: false });
     } catch (error) {
-        console.error('[ERROR] Error showing debug modal:', error);
+        appLog.error('[ERROR] Error showing debug modal:', error);
         showToast('Debug information could not be shown.', { type: 'error' });
     }
 }
@@ -3619,7 +3647,7 @@ Browser: ${navigator.userAgent}
     navigator.clipboard.writeText(debugInfo).then(() => {
         showToast('Debug information copied to the clipboard.');
     }).catch((err) => {
-        console.error('Failed to copy:', err);
+        appLog.error('Failed to copy:', err);
         showToast('Could not copy to the clipboard.', { type: 'error' });
     });
 }
@@ -3659,7 +3687,7 @@ function updateStorageInfo() {
             trashSubtitle.textContent = `${deletedMigraines.length} ${itemText}`;
         }
     } catch (error) {
-        console.error('[ERROR] Error in updateStorageInfo:', error);
+        appLog.error('[ERROR] Error in updateStorageInfo:', error);
         // Don't throw - allow operation to continue
     }
 }
@@ -3916,7 +3944,7 @@ function sanitizeEpisode(episode) {
 function checkStorageSpace(dataSize) {
     try {
         // Get current storage usage
-        const currentData = localStorage.getItem('migraines') || '[]';
+        const currentData = JSON.stringify(migraines);
         const currentSize = new Blob([currentData]).size;
 
         // Estimate total size after import
@@ -3946,7 +3974,7 @@ function checkStorageSpace(dataSize) {
         return { hasSpace: true, warning: false };
     } catch (e) {
         // If we can't check, assume it's okay but log the error
-        console.error('Storage check failed:', e);
+        appLog.error('Storage check failed:', e);
         return { hasSpace: true, warning: false };
     }
 }
@@ -4391,7 +4419,7 @@ function handleCSVImport(e) {
 
         } catch (error) {
             showModal('Import Error', 'Failed to read the CSV file. Please check the file format.');
-            console.error('CSV import error:', error);
+            appLog.error('CSV import error:', error);
         }
 
         e.target.value = '';
@@ -4626,7 +4654,7 @@ function showCSVImportPreview(entries) {
         return `Calendar ${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})} - Pain: ${e.painLevel}/10`;
     }).join('<br>');
 
-    body.innerHTML = `
+    body.innerHTML = safeHTML(`
         <p style="margin-bottom: 16px;">Found <strong>${entries.length}</strong> entries in CSV file.</p>
 
         <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
@@ -4643,12 +4671,12 @@ function showCSVImportPreview(entries) {
         <p style="color: var(--text-secondary); font-size: 0.9rem;">
             Imported entries will be merged with your existing data.
         </p>
-    `;
+    `);
 
-    document.getElementById('modal-actions').innerHTML = `
-        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    document.getElementById('modal-actions').innerHTML = safeHTML(`
+        <button class="btn btn-secondary" data-ui-action="close-modal">Cancel</button>
         <button class="btn btn-primary" id="confirm-csv-import">Import ${toImport.length} ${toImport.length === 1 ? 'Entry' : 'Entries'}</button>
-    `;
+    `);
 
     document.getElementById('modal-title').textContent = 'Import Preview';
     openDialog(modal);
@@ -4679,27 +4707,27 @@ function showPDFDateRangeModal() {
     const modal = document.getElementById('modal');
     const body = document.getElementById('modal-body');
 
-    body.innerHTML = `
+    body.innerHTML = safeHTML(`
         <p style="margin-bottom: 20px; color: var(--text-secondary);">Select a date range for your doctor report:</p>
         <div style="display: flex; flex-direction: column; gap: 12px;">
-            <button class="settings-btn" onclick="exportPDF('7days', null, null, this)">
+            <button class="settings-btn" data-ui-action="export-pdf" data-period="7days">
                 <span>Last 7 Days</span>
             </button>
-            <button class="settings-btn" onclick="exportPDF('30days', null, null, this)">
+            <button class="settings-btn" data-ui-action="export-pdf" data-period="30days">
                 <span>Last 30 Days</span>
             </button>
-            <button class="settings-btn" onclick="exportPDF('90days', null, null, this)">
+            <button class="settings-btn" data-ui-action="export-pdf" data-period="90days">
                 <span>Last 90 Days</span>
             </button>
-            <button class="settings-btn" onclick="showCustomDateRange()">
+            <button class="settings-btn" data-ui-action="custom-pdf-range">
                 <span>Custom Range</span>
             </button>
         </div>
-    `;
+    `);
 
-    document.getElementById('modal-actions').innerHTML = `
-        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-    `;
+    document.getElementById('modal-actions').innerHTML = safeHTML(`
+        <button class="btn btn-secondary" data-ui-action="close-modal">Cancel</button>
+    `);
 
     document.getElementById('modal-title').textContent = 'Export PDF Report';
     openDialog(modal);
@@ -4712,7 +4740,7 @@ function showCustomDateRange() {
     const today = new Date().toISOString().split('T')[0];
     const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    body.innerHTML = `
+    body.innerHTML = safeHTML(`
         <div class="form-group">
             <label>Start Date</label>
             <input type="date" id="custom-start-date" value="${monthAgo}" max="${today}"
@@ -4727,12 +4755,12 @@ function showCustomDateRange() {
                           border: 1px solid var(--border-color); border-radius: 8px;
                           color: var(--text-primary); font-size: 1rem;">
         </div>
-    `;
+    `);
 
-    document.getElementById('modal-actions').innerHTML = `
-        <button class="btn btn-secondary" onclick="showPDFDateRangeModal()">Back</button>
-        <button class="btn btn-primary" onclick="exportCustomPDF()">Generate PDF</button>
-    `;
+    document.getElementById('modal-actions').innerHTML = safeHTML(`
+        <button class="btn btn-secondary" data-ui-action="pdf-ranges">Back</button>
+        <button class="btn btn-primary" data-ui-action="export-custom-pdf">Generate PDF</button>
+    `);
 
     document.getElementById('modal-title').textContent = 'Custom Date Range';
 }
@@ -5417,15 +5445,15 @@ function showPrivacy() {
 function clearAllData() {
     const modal = document.getElementById('modal');
     document.getElementById('modal-title').textContent = 'Delete All Data?';
-    document.getElementById('modal-body').innerHTML = `
+    document.getElementById('modal-body').innerHTML = safeHTML(`
         <p><strong>This will permanently delete ALL ${migraines.length} episodes and cannot be undone.</strong></p>
         <p style="margin-top: 12px;">We recommend exporting a backup first.</p>
-    `;
-    document.getElementById('modal-actions').innerHTML = `
-        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-secondary" onclick="exportJSON(); closeModal();">Export First</button>
-        <button class="btn btn-danger" onclick="confirmClearAll()">Delete All</button>
-    `;
+    `);
+    document.getElementById('modal-actions').innerHTML = safeHTML(`
+        <button class="btn btn-secondary" data-ui-action="close-modal">Cancel</button>
+        <button class="btn btn-secondary" data-ui-action="export-json-close">Export First</button>
+        <button class="btn btn-danger" data-ui-action="clear-all">Delete All</button>
+    `);
     openDialog(modal);
 }
 
@@ -5440,7 +5468,7 @@ async function confirmClearAll() {
             try {
                 await IDB.clear(store);
             } catch (error) {
-                console.error('[ERROR] Failed to clear store:', store, error);
+                appLog.error('[ERROR] Failed to clear store:', store, error);
             }
         }
     }
@@ -5473,7 +5501,7 @@ async function withBusy(el, label, task) {
     } finally {
         el.disabled = prevDisabled;
         el.removeAttribute('aria-busy');
-        el.innerHTML = prevHTML;
+        el.innerHTML = safeHTML(prevHTML);
     }
 }
 
@@ -5677,7 +5705,7 @@ function showWelcomeModal() {
     const body = document.getElementById('modal-body');
     const actions = document.getElementById('modal-actions');
 
-    body.innerHTML = `
+    body.innerHTML = safeHTML(`
         <div style="text-align: center; padding: 20px 0;">
             <svg viewBox="0 0 24 24" aria-hidden="true" style="width: 56px; height: 56px; margin-bottom: 20px; stroke: var(--accent-green); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;">
                 <path d="M12 21a9 9 0 1 1 9-9c0 2.5-1.5 3.5-3 3.5s-2-1-3-1-1.5 1-1.5 2.5A4 4 0 0 1 12 21z"></path>
@@ -5700,12 +5728,12 @@ function showWelcomeModal() {
                 Your data stays on your device by default. Optional weather and notification features send only the minimum needed (location or notification schedule) - see Privacy in Settings for details.
             </p>
         </div>
-    `;
+    `);
 
-    actions.innerHTML = `
-        <button class="btn btn-secondary" onclick="closeWelcome()">Get Started</button>
-        <button class="btn btn-primary" onclick="startGuidedTour()">Take a Tour</button>
-    `;
+    actions.innerHTML = safeHTML(`
+        <button class="btn btn-secondary" data-ui-action="close-welcome">Get Started</button>
+        <button class="btn btn-primary" data-ui-action="start-tour">Take a Tour</button>
+    `);
 
     document.getElementById('modal-title').textContent = 'Welcome to Aiding Migraine';
     openDialog(modal);
@@ -5816,7 +5844,7 @@ function showTourStep() {
             visibility: visible !important;
         `;
 
-        tooltip.innerHTML = `
+        tooltip.innerHTML = safeHTML(`
             <div style="margin-bottom: 8px; color: var(--accent-blue); font-size: 0.9rem; font-weight: 600;">
                 Step ${tourStep + 1} of ${tourSteps.length}
             </div>
@@ -5825,14 +5853,14 @@ function showTourStep() {
                 ${step.description}
             </p>
             <div style="display: flex; gap: 12px; justify-content: space-between;">
-                <button class="btn btn-secondary" onclick="skipTour()" style="flex: 1;">
+                <button class="btn btn-secondary" data-ui-action="skip-tour" style="flex: 1;">
                     Skip Tour
                 </button>
-                <button class="btn btn-primary" onclick="nextTourStep()" style="flex: 1;">
+                <button class="btn btn-primary" data-ui-action="next-tour" style="flex: 1;">
                     ${tourStep === tourSteps.length - 1 ? 'Finish' : 'Next'}
                 </button>
             </div>
-        `;
+        `);
 
         document.body.appendChild(tooltip);
 
@@ -6005,14 +6033,14 @@ async function initializeNotifications() {
 // Set up notification UI (called when settings page is shown)
 let notificationUIInitialized = false;
 async function setupNotificationUI() {
-    console.log('[DEBUG] Setting up Notification UI...');
+    appLog.log('[DEBUG] Setting up Notification UI...');
 
     // Always update UI state when settings page is shown
     await updateNotificationUI();
 
     // If already initialized, skip event listener setup
     if (notificationUIInitialized) {
-        console.log('[SUCCESS] Notification UI already initialized (skipping event listeners)');
+        appLog.log('[SUCCESS] Notification UI already initialized (skipping event listeners)');
         return;
     }
 
@@ -6022,7 +6050,7 @@ async function setupNotificationUI() {
     const testBtn = document.getElementById('test-notification-btn');
 
     if (!enableBtn || !disableBtn || !testBtn) {
-        console.warn('[WARNING] Notification UI elements not found, will retry on next settings page visit');
+        appLog.warn('[WARNING] Notification UI elements not found, will retry on next settings page visit');
         return;
     }
 
@@ -6048,7 +6076,7 @@ async function setupNotificationUI() {
     if (followupDelay) followupDelay.addEventListener('change', saveNotificationPreferences);
 
     notificationUIInitialized = true;
-    console.log('[SUCCESS] Notification UI initialized successfully');
+    appLog.log('[SUCCESS] Notification UI initialized successfully');
 }
 
 function loadNotificationPreferences() {
@@ -6059,7 +6087,7 @@ function loadNotificationPreferences() {
         try {
             notificationPreferences = JSON.parse(stored);
         } catch (error) {
-            console.error('[ERROR] Corrupt notificationPreferences, resetting to defaults:', error);
+            appLog.error('[ERROR] Corrupt notificationPreferences, resetting to defaults:', error);
             localStorage.removeItem('notificationPreferences');
             return;
         }
@@ -6106,7 +6134,7 @@ function saveNotificationPreferences() {
     notificationPreferences.dailyCheckIn.utcTime = utcData.utcTime;
     notificationPreferences.dailyCheckIn.timezone = utcData.timezone;
 
-    console.log(`Daily check-in set for ${localTime} local (${utcData.utcTime} UTC) in timezone ${utcData.timezone}`);
+    appLog.log(`Daily check-in set for ${localTime} local (${utcData.utcTime} UTC) in timezone ${utcData.timezone}`);
 
     localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
 
@@ -6124,13 +6152,13 @@ async function updateNotificationUI() {
 
     // Check if elements exist before updating (settings page might not be loaded yet)
     if (!statusText || !enableSection || !preferencesSection || !iosPrompt) {
-        console.log('[PENDING] Notification UI elements not yet available, will update when settings page is shown');
+        appLog.log('[PENDING] Notification UI elements not yet available, will update when settings page is shown');
         return;
     }
 
     // Check if notifications are supported
     if (!('Notification' in window)) {
-        statusText.innerHTML = 'Notifications not supported on this browser';
+        statusText.innerHTML = safeHTML('Notifications not supported on this browser');
         statusText.parentElement.style.background = 'var(--accent-red)';
         statusText.parentElement.style.color = 'white';
         return;
@@ -6141,7 +6169,7 @@ async function updateNotificationUI() {
     const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
 
     if (isIOS && !isInstalled) {
-        statusText.innerHTML = 'Please install app to home screen';
+        statusText.innerHTML = safeHTML('Please install app to home screen');
         statusText.parentElement.style.background = 'var(--accent-blue)';
         statusText.parentElement.style.color = 'white';
         iosPrompt.style.display = 'block';
@@ -6159,29 +6187,57 @@ async function updateNotificationUI() {
         const subscription = await registration.pushManager.getSubscription();
 
         if (subscription && notificationPreferences.enabled) {
-            statusText.innerHTML = ' Notifications enabled';
+            statusText.innerHTML = safeHTML(' Notifications enabled');
             statusText.parentElement.style.background = 'var(--accent-green)';
             statusText.parentElement.style.color = 'white';
             enableSection.style.display = 'none';
             preferencesSection.style.display = 'block';
         } else {
-            statusText.innerHTML = 'Permission granted - click to enable';
+            statusText.innerHTML = safeHTML('Permission granted - click to enable');
             statusText.parentElement.style.background = 'var(--bg-tertiary)';
             enableSection.style.display = 'block';
             preferencesSection.style.display = 'none';
         }
     } else if (permission === 'denied') {
-        statusText.innerHTML = 'Notifications blocked - Check browser settings';
+        statusText.innerHTML = safeHTML('Notifications blocked - Check browser settings');
         statusText.parentElement.style.background = 'var(--accent-red)';
         statusText.parentElement.style.color = 'white';
         enableSection.style.display = 'none';
         preferencesSection.style.display = 'none';
     } else {
-        statusText.innerHTML = 'Click below to enable notifications';
+        statusText.innerHTML = safeHTML('Click below to enable notifications');
         statusText.parentElement.style.background = 'var(--bg-tertiary)';
         enableSection.style.display = 'block';
         preferencesSection.style.display = 'none';
     }
+}
+
+async function removeServerSubscription(subscription) {
+    const response = await fetch('https://aiding-migraine-notifications.onrender.com/api/subscriptions/unsubscribe', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: subscription.endpoint, keys: subscription.keys }),
+        signal: AbortSignal.timeout(15000)
+    });
+    // An absent endpoint cannot retain a queue for this subscriber.
+    if (!response.ok && response.status !== 401 && response.status !== 404) throw new Error('Subscription could not be removed');
+}
+
+async function ensurePushSubscription(registration) {
+    const response = await fetch('https://aiding-migraine-notifications.onrender.com/api/public-key', { signal: AbortSignal.timeout(15000), cache: 'no-store' });
+    if (!response.ok) throw new Error('Notification public key unavailable');
+    const { publicKey } = await response.json();
+    if (typeof publicKey !== 'string') throw new Error('Invalid notification public key');
+    const applicationServerKey = urlBase64ToUint8Array(publicKey);
+    if (applicationServerKey.length !== 65 || applicationServerKey[0] !== 4) throw new Error('Invalid notification public key');
+    const existing = await registration.pushManager.getSubscription();
+    if (existing) {
+        const oldKey = new Uint8Array(existing.options?.applicationServerKey || []);
+        if (oldKey.length !== applicationServerKey.length || oldKey.some((value, index) => value !== applicationServerKey[index])) {
+            await removeServerSubscription(existing.toJSON());
+            await existing.unsubscribe();
+        }
+    }
+    return registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
 }
 
 async function enableNotifications() {
@@ -6198,24 +6254,9 @@ async function enableNotifications() {
         // Get service worker registration
         const registration = await navigator.serviceWorker.ready;
 
-        // VAPID Public Key for push notifications (UPDATED: 2026-01-23)
-        const VAPID_PUBLIC_KEY = 'BKGl5RP_08pVrtXyh08ot_AdICyshiLpiOBLYr1eLRXQFP_pcqGqZOxoMMfPm_09ecr_EKgwqmE5Hac0Lb0G1WU';
-
-        // Check if VAPID key is configured
-        if (VAPID_PUBLIC_KEY === 'YOUR_VAPID_PUBLIC_KEY_HERE') {
-            // Server not configured yet - use local notifications only
-            notificationPreferences.enabled = true;
-            localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
-            showToast('Notifications are on for this device. Reminders will only arrive while the app is open.', { duration: 6000 });
-            updateNotificationUI();
-            return;
-        }
-
-        // Subscribe to push notifications with VAPID key
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        });
+        // Retrieve the current public key so rotating VAPID does not require
+        // publishing a private key or hardcoding a stale pair in the app.
+        const subscription = await ensurePushSubscription(registration);
 
         // Convert local time to UTC for server synchronization
         const localTime = notificationPreferences.dailyCheckIn.time;
@@ -6227,7 +6268,7 @@ async function enableNotifications() {
         notificationPreferences.dailyCheckIn.utcTime = utcData.utcTime;
         notificationPreferences.dailyCheckIn.timezone = utcData.timezone;
 
-        console.log(`Daily check-in set for ${localTime} local (${utcData.utcTime} UTC) in timezone ${utcData.timezone}`);
+        appLog.log(`Daily check-in set for ${localTime} local (${utcData.utcTime} UTC) in timezone ${utcData.timezone}`);
 
         // Send subscription to server
         const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
@@ -6263,7 +6304,7 @@ async function enableNotifications() {
         updateNotificationUI();
 
     } catch (error) {
-        console.error('Error enabling notifications:', error);
+        appLog.error('Error enabling notifications:', error);
         showToast('Notifications could not be turned on. Please try again.', { type: 'error' });
     }
 }
@@ -6287,7 +6328,7 @@ function getUserTimezone() {
     try {
         return Intl.DateTimeFormat().resolvedOptions().timeZone;
     } catch (e) {
-        console.error('Error getting timezone:', e);
+        appLog.error('Error getting timezone:', e);
         return 'UTC';
     }
 }
@@ -6328,6 +6369,7 @@ async function disableNotifications() {
         const subscription = await registration.pushManager.getSubscription();
 
         if (subscription) {
+            await removeServerSubscription(subscription.toJSON());
             await subscription.unsubscribe();
         }
 
@@ -6339,7 +6381,7 @@ async function disableNotifications() {
         updateNotificationUI();
 
     } catch (error) {
-        console.error('Error disabling notifications:', error);
+        appLog.error('Error disabling notifications:', error);
         showToast('Notifications could not be turned off. Please try again.', { type: 'error' });
     }
 }
@@ -6364,7 +6406,7 @@ async function sendTestNotification() {
         });
 
     } catch (error) {
-        console.error('Error sending test notification:', error);
+        appLog.error('Error sending test notification:', error);
         showToast('The test notification could not be sent.', { type: 'error' });
     }
 }
@@ -6402,7 +6444,7 @@ function handleNotificationDeepLink() {
 async function syncPreferencesWithServer() {
     // Sync preferences with the notification server
     if (!notificationPreferences.pushSubscription) {
-        console.log('No push subscription - server sync skipped');
+        appLog.log('No push subscription - server sync skipped');
         return;
     }
 
@@ -6413,6 +6455,7 @@ async function syncPreferencesWithServer() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 endpoint: notificationPreferences.pushSubscription.endpoint,
+                keys: notificationPreferences.pushSubscription.keys,
                 preferences: {
                     dailyCheckIn: notificationPreferences.dailyCheckIn,
                     postAttackFollowUp: notificationPreferences.postAttackFollowUp
@@ -6421,12 +6464,12 @@ async function syncPreferencesWithServer() {
         });
 
         if (response.ok) {
-            console.log('[SUCCESS] Preferences synced with server');
+            appLog.log('[SUCCESS] Preferences synced with server');
         } else {
-            console.error('Failed to sync preferences with server');
+            appLog.error('Failed to sync preferences with server');
         }
     } catch (error) {
-        console.error('Error syncing preferences:', error);
+        appLog.error('Error syncing preferences:', error);
     }
 }
 
@@ -6453,91 +6496,43 @@ async function schedulePostAttackFollowUp(attackId) {
                 body: JSON.stringify({
                     attackId: attackId,
                     followUpTime: followUpTime.toISOString(),
-                    subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
+                    subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint,
+                    keys: notificationPreferences.pushSubscription.keys
                 })
             });
 
             if (response.ok) {
-                console.log('[SUCCESS] Follow-up scheduled on server');
+                appLog.log('[SUCCESS] Follow-up scheduled on server');
             } else {
-                console.error('Failed to schedule follow-up on server');
+                appLog.error('Failed to schedule follow-up on server');
             }
         } catch (error) {
-            console.error('Error scheduling follow-up:', error);
+            appLog.error('Error scheduling follow-up:', error);
         }
     }
 }
 
 async function scheduleActiveAttackCheckIn(attackId) {
-    if (!notificationPreferences.enabled || !notificationPreferences.activeAttackCheckIn.enabled) {
-        return;
-    }
-
-    const delayHours = notificationPreferences.activeAttackCheckIn.delayHours;
-
-    // Schedule multiple recurring check-ins (up to 24 hours worth).
-    // Delivery is server-side only; no local queue is kept.
-    const maxCheckIns = Math.floor(24 / delayHours); // e.g., if delayHours=2, schedule 12 check-ins
-
-    for (let i = 1; i <= maxCheckIns; i++) {
-        const delayMs = delayHours * i * 60 * 60 * 1000;
-        const checkInTime = new Date(Date.now() + delayMs);
-
-        // Send to server if push subscription exists
-        if (notificationPreferences.pushSubscription) {
-            try {
-                const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
-                const response = await fetch(`${SERVER_URL}/api/notifications/schedule-active-checkin`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        attackId: `${attackId}-${i}`, // Unique ID for each check-in
-                        checkInTime: checkInTime.toISOString(),
-                        subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
-                    })
-                });
-
-                if (!response.ok) {
-                    console.error(`Failed to schedule active attack check-in #${i} on server`);
-                }
-            } catch (error) {
-                console.error(`Error scheduling active attack check-in #${i}:`, error);
-            }
-        }
-    }
-
-    console.log(`Active Scheduled ${maxCheckIns} recurring active attack check-ins (every ${delayHours}h for 24h)`);
+    if (!notificationPreferences.enabled || !notificationPreferences.activeAttackCheckIn.enabled || !notificationPreferences.pushSubscription) return;
+    const delayHours = Number(notificationPreferences.activeAttackCheckIn.delayHours);
+    if (!Number.isFinite(delayHours) || delayHours < 1 || delayHours > 24) return;
+    const checkIns = Array.from({ length: Math.floor(24 / delayHours) }, (_, i) => new Date(Date.now() + delayHours * (i + 1) * 3600000).toISOString());
+    try {
+        const response = await fetch('https://aiding-migraine-notifications.onrender.com/api/notifications/schedule-active-checkin', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ attackId, checkIns, subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint, keys: notificationPreferences.pushSubscription.keys })
+        });
+        if (!response.ok) throw new Error('Check-in series could not be scheduled');
+    } catch { appLog.error('Active check-in scheduling failed'); }
 }
 
 function cancelActiveAttackCheckIn(attackId) {
-    // Cancel every scheduled check-in for this attack on the server.
-    // Server IDs are `${attackId}-${sequence}` for sequences
-    // 1..maxCheckIns (see scheduleActiveAttackCheckIn).
     if (!notificationPreferences.pushSubscription) return;
-
-    const delayHours = notificationPreferences.activeAttackCheckIn.delayHours || 2;
-    const maxCheckIns = Math.floor(24 / delayHours);
-
-    try {
-        const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
-
-        for (let i = 1; i <= maxCheckIns; i++) {
-            const serverAttackId = `${attackId}-${i}`;
-
-            fetch(`${SERVER_URL}/api/notifications/cancel-active-checkin`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    attackId: serverAttackId,
-                    subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
-                })
-            }).catch(error => console.error(`Error canceling active attack check-in ${serverAttackId} on server:`, error));
-        }
-
-        console.log(`Canceled up to ${maxCheckIns} active attack check-ins for attack ${attackId}`);
-    } catch (error) {
-        console.error('Error canceling active attack check-ins:', error);
-    }
+    // One authenticated request cancels the entire series without exceeding IP limits.
+    return fetch('https://aiding-migraine-notifications.onrender.com/api/notifications/cancel-active-checkin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ attackId, cancelSeries: true, subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint, keys: notificationPreferences.pushSubscription.keys })
+    }).catch(() => appLog.error('Active check-in cancellation failed'));
 }
 
 // ============================================
@@ -6645,7 +6640,7 @@ function migrateWeatherData(data) {
 
     // Migrate v1 → v2 (if needed)
     if (!data.version || data.version < 2) {
-        console.log('📦 Migrating weather data v1 → v2...');
+        appLog.log('📦 Migrating weather data v1 → v2...');
         migrated = {
             version: 2,
             enabled: data.enabled || false,
@@ -6684,7 +6679,7 @@ function migrateWeatherData(data) {
 
     // Migrate v2 → v3 (add personal profile and ML features)
     if (migrated.version === 2) {
-        console.log('Migrating weather data v2 → v3...');
+        appLog.log('Migrating weather data v2 → v3...');
         migrated.version = 3;
         migrated.personalProfile = {
             threshold24h: null, thresholdRapid: null, sensitivityLevel: 'standard',
@@ -6699,7 +6694,7 @@ function migrateWeatherData(data) {
 
     // Migrate v3 → v4 (add humidity tracking, backfill status, user thresholds, honest correlation)
     if (migrated.version === 3) {
-        console.log('Migrating weather data v3 → v4 (adding humidity + honest correlation)...');
+        appLog.log('Migrating weather data v3 → v4 (adding humidity + honest correlation)...');
         migrated.version = 4;
         // Extend current with new fields
         migrated.current = Object.assign(
@@ -6726,7 +6721,7 @@ function migrateWeatherData(data) {
 
     // Migrate v4 → v5 (add display units, temperature sensitivity, updated research weights)
     if (migrated.version === 4) {
-        console.log('Migrating weather data v4 → v5 (adding unit display + temp sensitivity)...');
+        appLog.log('Migrating weather data v4 → v5 (adding unit display + temp sensitivity)...');
         migrated.version = 5;
         // Add display unit preferences (default to US units)
         migrated.displayUnit = migrated.displayUnit || 'inHg';
@@ -6739,7 +6734,7 @@ function migrateWeatherData(data) {
         migrated.personalProfile = pp5;
     }
 
-    console.log('[SUCCESS] Weather data migrated to v5');
+    appLog.log('[SUCCESS] Weather data migrated to v5');
     return migrated;
 }
 
@@ -6753,10 +6748,10 @@ async function initWeatherTracking() {
             const idbData = await IDB.get(DB_STORES.WEATHER, 'weatherData');
             if (idbData) {
                 loaded = idbData.value;
-                console.log('[SUCCESS] Weather data loaded from IndexedDB');
+                appLog.log('[SUCCESS] Weather data loaded from IndexedDB');
             }
         } catch (error) {
-            console.error('[ERROR] Failed to load weather from IndexedDB:', error);
+            appLog.error('[ERROR] Failed to load weather from IndexedDB:', error);
         }
     }
 
@@ -6766,11 +6761,11 @@ async function initWeatherTracking() {
         if (saved) {
             try {
                 loaded = JSON.parse(saved);
-                console.log('[SUCCESS] Weather data loaded from localStorage');
+                appLog.log('[SUCCESS] Weather data loaded from localStorage');
                 // Migrate to IndexedDB
                 await saveWeatherData();
             } catch (e) {
-                console.error('Error loading weather data:', e);
+                appLog.error('Error loading weather data:', e);
             }
         }
     }
@@ -6806,13 +6801,13 @@ async function initWeatherTracking() {
 // Set up weather UI (called when settings page is shown)
 let weatherUIInitialized = false;
 function setupWeatherUI() {
-    console.log('[DEBUG] Setting up Weather UI...');
+    appLog.log('[DEBUG] Setting up Weather UI...');
 
     const enableToggle = document.getElementById('weather-tracking-enabled');
     const weatherSettings = document.getElementById('weather-settings');
 
     if (!enableToggle || !weatherSettings) {
-        console.warn('[WARNING] Weather UI elements not found, will retry on next settings page visit');
+        appLog.warn('[WARNING] Weather UI elements not found, will retry on next settings page visit');
         return;
     }
 
@@ -6822,7 +6817,7 @@ function setupWeatherUI() {
 
     // If already initialized, skip event listener setup
     if (weatherUIInitialized) {
-        console.log('[SUCCESS] Weather UI already initialized (skipping event listeners)');
+        appLog.log('[SUCCESS] Weather UI already initialized (skipping event listeners)');
         return;
     }
 
@@ -6937,7 +6932,7 @@ function setupWeatherUI() {
     updateBackfillStatus();
 
     weatherUIInitialized = true;
-    console.log('[SUCCESS] Weather UI initialized successfully');
+    appLog.log('[SUCCESS] Weather UI initialized successfully');
 }
 
 // Save weather data to IndexedDB (with localStorage backup)
@@ -6950,7 +6945,7 @@ async function saveWeatherData() {
                 timestamp: Date.now()
             });
         } catch (error) {
-            console.error('[ERROR] Failed to save weather to IndexedDB:', error);
+            appLog.error('[ERROR] Failed to save weather to IndexedDB:', error);
         }
     }
     // Also save to localStorage as backup
@@ -6963,11 +6958,11 @@ async function saveWeatherLocation() {
     const statusDiv = document.getElementById('weather-location-status');
 
     if (!input) {
-        statusDiv.innerHTML = '<span style="color: var(--accent-red);">Please enter a location</span>';
+        statusDiv.innerHTML = safeHTML('<span style="color: var(--accent-red);">Please enter a location</span>');
         return;
     }
 
-    statusDiv.innerHTML = '<span style="color: var(--accent-blue);">Looking up location...</span>';
+    statusDiv.innerHTML = safeHTML('<span style="color: var(--accent-blue);">Looking up location...</span>');
 
     try {
         // Use Open-Meteo geocoding API (free, no key needed)
@@ -6977,7 +6972,7 @@ async function saveWeatherLocation() {
         const data = await response.json();
 
         if (!data.results || data.results.length === 0) {
-            statusDiv.innerHTML = '<span style="color: var(--accent-red);">Location not found. Try a different format (e.g., "New York" or "10001")</span>';
+            statusDiv.innerHTML = safeHTML('<span style="color: var(--accent-red);">Location not found. Try a different format (e.g., "New York" or "10001")</span>');
             return;
         }
 
@@ -6993,7 +6988,7 @@ async function saveWeatherLocation() {
 
         saveWeatherData();
 
-        statusDiv.innerHTML = `<span style="color: var(--accent-green);">Location saved: ${weatherData.location.city}</span>`;
+        statusDiv.innerHTML = safeHTML(`<span style="color: var(--accent-green);">Location saved: ${weatherData.location.city}</span>`);
 
         // Fetch weather for this location
         await fetchWeatherData();
@@ -7003,8 +6998,8 @@ async function saveWeatherLocation() {
         renderCalendar();
 
     } catch (error) {
-        console.error('Geocoding error:', error);
-        statusDiv.innerHTML = '<span style="color: var(--accent-red);">Error looking up location. Please try again.</span>';
+        appLog.error('Geocoding error:', error);
+        statusDiv.innerHTML = safeHTML('<span style="color: var(--accent-red);">Error looking up location. Please try again.</span>');
     }
 }
 
@@ -7013,10 +7008,10 @@ async function useGPSLocation() {
     const statusDiv = document.getElementById('weather-location-status');
     const gpsBtn = document.getElementById('weather-gps-btn');
     if (!navigator.geolocation) {
-        if (statusDiv) statusDiv.innerHTML = '<span style="color:var(--accent-red);">GPS not available on this device</span>';
+        if (statusDiv) statusDiv.innerHTML = safeHTML('<span style="color:var(--accent-red);">GPS not available on this device</span>');
         return;
     }
-    if (statusDiv) statusDiv.innerHTML = '<span style="color:var(--accent-blue);">Detecting your location...</span>';
+    if (statusDiv) statusDiv.innerHTML = safeHTML('<span style="color:var(--accent-blue);">Detecting your location...</span>');
     if (gpsBtn) gpsBtn.disabled = true;
 
     navigator.geolocation.getCurrentPosition(
@@ -7037,7 +7032,7 @@ async function useGPSLocation() {
 
                 const locationInput = document.getElementById('weather-location-input');
                 if (locationInput) locationInput.value = cityLabel;
-                if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--accent-green);">Location set: ${cityLabel}</span>`;
+                if (statusDiv) statusDiv.innerHTML = safeHTML(`<span style="color:var(--accent-green);">Location set: ${cityLabel}</span>`);
 
                 await fetchWeatherData(true);
                 updateLogWeatherDisplay();
@@ -7046,7 +7041,7 @@ async function useGPSLocation() {
                 // Coords are good even if reverse geocode fails
                 weatherData.location = { query: `${latitude.toFixed(3)}, ${longitude.toFixed(3)}`, city: 'Your location', lat: latitude, lon: longitude };
                 saveWeatherData();
-                if (statusDiv) statusDiv.innerHTML = '<span style="color:var(--accent-green);">Location detected — fetching pressure data...</span>';
+                if (statusDiv) statusDiv.innerHTML = safeHTML('<span style="color:var(--accent-green);">Location detected — fetching pressure data...</span>');
                 await fetchWeatherData(true);
             }
             if (gpsBtn) gpsBtn.disabled = false;
@@ -7054,7 +7049,7 @@ async function useGPSLocation() {
         (err) => {
             if (gpsBtn) gpsBtn.disabled = false;
             const msg = err.code === 1 ? 'Location permission denied' : 'Could not get location';
-            if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--accent-red);">${msg} — try typing your city name instead</span>`;
+            if (statusDiv) statusDiv.innerHTML = safeHTML(`<span style="color:var(--accent-red);">${msg} — try typing your city name instead</span>`);
         },
         { timeout: 10000, maximumAge: 300000 }
     );
@@ -7119,7 +7114,7 @@ function getWeatherConditionShort(code) {
 // Fetch weather data from Open-Meteo (enhanced: pressure + humidity + conditions)
 async function fetchWeatherData(forced = false) {
     if (!weatherData.location.lat || !weatherData.location.lon) {
-        console.log('No location set for weather fetch');
+        appLog.log('No location set for weather fetch');
         return;
     }
 
@@ -7127,7 +7122,7 @@ async function fetchWeatherData(forced = false) {
     if (!forced && weatherData.lastFetch) {
         const oneHourAgo = Date.now() - (60 * 60 * 1000);
         if (weatherData.lastFetch > oneHourAgo) {
-            console.log('Weather data is recent, skipping fetch');
+            appLog.log('Weather data is recent, skipping fetch');
             displayCurrentWeather();
             return;
         }
@@ -7276,11 +7271,11 @@ async function fetchWeatherData(forced = false) {
         displayCurrentWeather();
         updateLogWeatherDisplay();
 
-        console.log('[SUCCESS] Weather updated:', currentPressure, 'hPa |', currentHumidity, '% humidity |', getWeatherCondition(currentCode));
-        console.log('   6h max change:', todayEntry.maxChange3h, 'hPa | 24h change:', todayEntry.maxChange24h, 'hPa');
+        appLog.log('[SUCCESS] Weather updated:', currentPressure, 'hPa |', currentHumidity, '% humidity |', getWeatherCondition(currentCode));
+        appLog.log('   6h max change:', todayEntry.maxChange3h, 'hPa | 24h change:', todayEntry.maxChange24h, 'hPa');
 
     } catch (error) {
-        console.error('Weather fetch error:', error);
+        appLog.error('Weather fetch error:', error);
         const message = navigator.onLine
             ? "Couldn't update weather just now. Your logged data is unaffected."
             : "You're offline, so weather couldn't update. Everything else still works.";
@@ -7384,7 +7379,7 @@ function displayCurrentWeather() {
             const color = isSignificant ? 'var(--accent-red)' : 'var(--text-secondary)';
             const arrow = change24h > 0 ? '↑' : '↓';
             const changeDisplay = formatPressureChange(change24h);
-            changeSpan.innerHTML = `<span style="color:${color}">${arrow} ${direction} ${speed} — ${changeDisplay} in 24h${isSignificant ? ' (significant)' : ''}</span>`;
+            changeSpan.innerHTML = safeHTML(`<span style="color:${color}">${arrow} ${direction} ${speed} — ${changeDisplay} in 24h${isSignificant ? ' (significant)' : ''}</span>`);
         } else {
             changeSpan.textContent = 'Not enough data for trend';
         }
@@ -7406,7 +7401,7 @@ function displayCurrentWeather() {
     if (riskSpan) {
         const risk = calculateDailyRiskScore();
         if (risk !== null) {
-            riskSpan.innerHTML = `<span style="color:${risk.color}; font-weight:600;">${risk.label}</span> <span style="color:var(--text-secondary); font-size:0.8rem;">${risk.detail}</span>`;
+            riskSpan.innerHTML = safeHTML(`<span style="color:${risk.color}; font-weight:600;">${risk.label}</span> <span style="color:var(--text-secondary); font-size:0.8rem;">${risk.detail}</span>`);
         }
     }
 
@@ -7710,7 +7705,7 @@ async function fetchHistoricalWeatherData() {
     if (!weatherData.location.lat || !weatherData.location.lon) return;
 
     const statusDiv = document.getElementById('weather-backfill-status');
-    if (statusDiv) statusDiv.innerHTML = '<span style="color:var(--accent-blue);">Fetching last 60 days of pressure data...</span>';
+    if (statusDiv) statusDiv.innerHTML = safeHTML('<span style="color:var(--accent-blue);">Fetching last 60 days of pressure data...</span>');
 
     try {
         const endDate = new Date();
@@ -7827,10 +7822,10 @@ async function fetchHistoricalWeatherData() {
 
         const totalDays = weatherData.history.length;
         if (statusDiv) {
-            statusDiv.innerHTML = `<span style="color:var(--accent-green);">${totalDays} days of pressure data ready. ${backfilledCount > 0 ? `${backfilledCount} days recovered from archive.` : 'Data already complete.'}</span>`;
+            statusDiv.innerHTML = safeHTML(`<span style="color:var(--accent-green);">${totalDays} days of pressure data ready. ${backfilledCount > 0 ? `${backfilledCount} days recovered from archive.` : 'Data already complete.'}</span>`);
         }
 
-        console.log(`[SUCCESS] Historical backfill complete: ${backfilledCount} archive days added, ${totalDays} total history days`);
+        appLog.log(`[SUCCESS] Historical backfill complete: ${backfilledCount} archive days added, ${totalDays} total history days`);
 
         // Refresh analytics if on that page
         if (typeof renderAnalytics === 'function' && document.getElementById('analytics-page')?.classList.contains('active')) {
@@ -7838,9 +7833,9 @@ async function fetchHistoricalWeatherData() {
         }
 
     } catch (error) {
-        console.error('Historical weather fetch error:', error);
+        appLog.error('Historical weather fetch error:', error);
         if (statusDiv) {
-            statusDiv.innerHTML = '<span style="color:var(--accent-red);">Could not fetch historical data. Check your connection and try again.</span>';
+            statusDiv.innerHTML = safeHTML('<span style="color:var(--accent-red);">Could not fetch historical data. Check your connection and try again.</span>');
         }
     }
 }
@@ -7853,12 +7848,12 @@ function updateBackfillStatus() {
     const historyDays = weatherData.history.length;
     if (!bf || !bf.done) {
         if (historyDays < 7) {
-            statusDiv.innerHTML = '<span style="color:var(--text-secondary);">No historical data yet — fetch archive to see last month\'s pressure patterns.</span>';
+            statusDiv.innerHTML = safeHTML('<span style="color:var(--text-secondary);">No historical data yet — fetch archive to see last month\'s pressure patterns.</span>');
         } else {
-            statusDiv.innerHTML = `<span style="color:var(--text-secondary);">${historyDays} days of live data. Fetch archive to extend to 60 days.</span>`;
+            statusDiv.innerHTML = safeHTML(`<span style="color:var(--text-secondary);">${historyDays} days of live data. Fetch archive to extend to 60 days.</span>`);
         }
     } else {
-        statusDiv.innerHTML = `<span style="color:var(--accent-green);">${historyDays} days of pressure history available.</span>`;
+        statusDiv.innerHTML = safeHTML(`<span style="color:var(--accent-green);">${historyDays} days of pressure history available.</span>`);
     }
 }
 
@@ -8233,7 +8228,7 @@ function analyzePersonalWeatherProfile() {
         return; // Need at least 3 migraines for meaningful analysis
     }
 
-    console.log('🧠 Analyzing personal weather sensitivity profile...');
+    appLog.log('🧠 Analyzing personal weather sensitivity profile...');
 
     const profile = weatherData.personalProfile;
 
@@ -8285,7 +8280,7 @@ function analyzePersonalWeatherProfile() {
 
     saveWeatherData();
 
-    console.log('[SUCCESS] Personal profile analyzed:', {
+    appLog.log('[SUCCESS] Personal profile analyzed:', {
         threshold24h: profile.threshold24h,
         thresholdRapid: profile.thresholdRapid,
         dropSensitive: profile.dropSensitive,
@@ -8720,7 +8715,7 @@ function getPredictiveRecommendation(probability, hoursUntil) {
 
 // Simple ML model: Logistic Regression for migraine probability
 function trainMigrainePredictionModel(migraines) {
-    console.log('🤖 Training migraine prediction model...');
+    appLog.log('🤖 Training migraine prediction model...');
 
     const trainingData = [];
     const labels = [];
@@ -8807,7 +8802,7 @@ function trainMigrainePredictionModel(migraines) {
 
     saveWeatherData();
 
-    console.log(`[SUCCESS] Model trained - Balanced accuracy: ${Math.round(balancedAccuracy * 100)}% (raw ${accuracy}%)`,
+    appLog.log(`[SUCCESS] Model trained - Balanced accuracy: ${Math.round(balancedAccuracy * 100)}% (raw ${accuracy}%)`,
                 enabled ? '(enabled)' : '(disabled - no skill over baseline)');
 }
 
@@ -9667,9 +9662,9 @@ function renderWeatherCorrelation(data) {
         const sampleNote = correlation.sampleSize < 10
             ? ` (${correlation.sampleSize || 'limited'} attacks analyzed — more data will improve accuracy)`
             : '';
-        infoBox.innerHTML = `<strong>What this means for you:</strong> ${messageSuffix}${sampleNote} ` +
+        infoBox.innerHTML = safeHTML(`<strong>What this means for you:</strong> ${messageSuffix}${sampleNote} ` +
             `Thresholds used: &gt;${formatThreshold(weatherData.userThreshold24h || 5)} in 24h (slow change), ` +
-            `&gt;${formatThreshold(weatherData.userThreshold6h || 5)} in 6h (rapid change).`;
+            `&gt;${formatThreshold(weatherData.userThreshold6h || 5)} in 6h (rapid change).`);
     }
 }
 
@@ -10025,7 +10020,7 @@ function renderMedicationEffectiveness(stats) {
         .sort((a, b) => b.avgEffectiveness - a.avgEffectiveness);
 
     if (sortedMeds.length === 0) {
-        content.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No effectiveness ratings yet. Rate medications after ending an episode to see analytics here.</p>';
+        content.innerHTML = safeHTML('<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No effectiveness ratings yet. Rate medications after ending an episode to see analytics here.</p>');
         return;
     }
 
@@ -10089,7 +10084,7 @@ function renderMedicationUsage(stats) {
             </div>`;
         }).join('');
 
-        document.getElementById('moh-three-months').innerHTML = monthsHTML;
+        document.getElementById('moh-three-months').innerHTML = safeHTML(monthsHTML);
     } else {
         mohWarning.style.display = 'none';
     }
@@ -10106,7 +10101,7 @@ function renderMedicationUsage(stats) {
         return;
     }
 
-    content.innerHTML = `
+    content.innerHTML = safeHTML(`
         <div style="margin-top: 16px;">
             <h3 style="margin-bottom: 16px;">Medication Usage Frequency</h3>
             ${sortedByUse.map(med => `
@@ -10132,5 +10127,5 @@ function renderMedicationUsage(stats) {
                 making migraines worse. If you're seeing this warning, please consult your doctor about preventive options.
             </p>
         </div>
-    `;
+    `);
 }

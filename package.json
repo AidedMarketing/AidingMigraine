@@ -4,15 +4,16 @@
   "description": "A Progressive Web App for tracking migraines, identifying patterns, and improving communication with healthcare providers",
   "main": "index.html",
   "scripts": {
-    "test": "npm run test:syntax && npm run test:pwa && npm run test:security && npm run test:tracking && npm run test:interface",
+    "test": "npm run test:syntax && npm run test:pwa && npm run test:security && npm run test:tracking && npm run test:interface && node --test scripts/notification-client.test.js",
     "test:syntax": "node scripts/validate-syntax.js",
     "test:pwa": "node scripts/validate-pwa.js",
-    "test:security": "node scripts/validate-security.js",
+    "test:security": "node scripts/validate-security.js && node scripts/scan-secrets.js",
     "test:all": "npm test",
     "validate": "npm test",
     "test:tracking": "node --test scripts/tracking.test.js",
     "test:interface": "node --test scripts/interface.test.js",
-    "test:mobile": "node --test scripts/mobile.test.js"
+    "test:mobile": "node --test scripts/mobile.test.js",
+    "test:security-browser": "node --test scripts/security-browser.test.js"
   },
   "repository": {
     "type": "git",

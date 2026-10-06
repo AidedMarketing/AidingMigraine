@@ -1,3 +1,6 @@
+const { equalSecret, isRetiredCredential } = require('./security');
+const { getSubscriptionByEndpoint } = require('../database');
+
 /**
  * Authentication Middleware
  */
@@ -10,26 +13,11 @@ function requireAdminAuth(req, res, next) {
     const apiKey = req.headers['x-api-key'];
     const adminKey = process.env.ADMIN_API_KEY;
 
-    // If no admin key is set, deny access in production
-    if (!adminKey) {
-        console.error('⚠️  ADMIN_API_KEY not set in environment variables');
-        if (process.env.NODE_ENV === 'production') {
-            return res.status(503).json({
-                error: 'Service unavailable',
-                message: 'Admin authentication not configured'
-            });
-        } else {
-            console.warn('⚠️  Running without admin authentication in development mode');
-            return next(); // Allow in development if key not set
-        }
+    if (!adminKey || isRetiredCredential('admin', adminKey)) {
+        return res.status(503).json({ error: 'Admin authentication unavailable' });
     }
-
-    // Check if API key matches
-    if (!apiKey || apiKey !== adminKey) {
-        return res.status(401).json({
-            error: 'Unauthorized',
-            message: 'Invalid or missing API key'
-        });
+    if (!equalSecret(apiKey, adminKey)) {
+        return res.status(401).json({ error: 'Unauthorized' });
     }
 
     next();
@@ -45,16 +33,14 @@ function validateEndpoint(req, res, next) {
         req.body.subscriptionEndpoint ||
         (req.body.subscription && req.body.subscription.endpoint);
 
-    if (!endpoint) {
-        return next(); // Let route handler deal with missing endpoint
-    }
+    if (typeof endpoint !== 'string' || endpoint.length > 4096) return res.status(400).json({ error: 'Invalid endpoint' });
 
     // Validate endpoint is a proper URL
     try {
         const url = new URL(endpoint);
 
         // Must be HTTPS in production
-        if (process.env.NODE_ENV === 'production' && url.protocol !== 'https:') {
+        if (url.protocol !== 'https:' || url.username || url.password || (url.port && url.port !== '443') || url.hash) {
             return res.status(400).json({
                 error: 'Invalid endpoint',
                 message: 'Subscription endpoints must use HTTPS in production'
@@ -119,12 +105,27 @@ function validateTimeFormat(timeString) {
 function validatePreferences(req, res, next) {
     const { preferences } = req.body;
 
-    if (!preferences) {
-        return next();
+    if (preferences === undefined) return next();
+    if (!preferences || typeof preferences !== 'object' || Array.isArray(preferences)) return res.status(400).json({ error: 'Invalid preferences' });
+    for (const key of ['dailyCheckIn', 'postAttackFollowUp']) {
+        const value = preferences[key];
+        if (value !== undefined && (!value || typeof value !== 'object' || Array.isArray(value) || (value.enabled !== undefined && typeof value.enabled !== 'boolean'))) return res.status(400).json({ error: 'Invalid preferences' });
+    }
+    if (preferences.dailyCheckIn) {
+        const daily = preferences.dailyCheckIn;
+        for (const [field, max] of [['utcHour', 23], ['utcMinutes', 59]]) {
+            if (daily[field] !== undefined && (!Number.isInteger(daily[field]) || daily[field] < 0 || daily[field] > max)) return res.status(400).json({ error: 'Invalid reminder time' });
+        }
+        if (daily.weekday !== undefined && (!Number.isInteger(daily.weekday) || daily.weekday < 0 || daily.weekday > 6)) return res.status(400).json({ error: 'Invalid weekday' });
+        if (daily.timezone !== undefined) {
+            if (typeof daily.timezone !== 'string' || daily.timezone.length > 100) return res.status(400).json({ error: 'Invalid timezone' });
+            try { new Intl.DateTimeFormat('en', { timeZone: daily.timezone }).format(); }
+            catch { return res.status(400).json({ error: 'Invalid timezone' }); }
+        }
     }
 
     // Validate dailyCheckIn.time if present
-    if (preferences.dailyCheckIn && preferences.dailyCheckIn.time) {
+    if (preferences.dailyCheckIn && preferences.dailyCheckIn.time !== undefined) {
         const validTime = validateTimeFormat(preferences.dailyCheckIn.time);
         if (!validTime) {
             return res.status(400).json({
@@ -136,7 +137,7 @@ function validatePreferences(req, res, next) {
     }
 
     // Validate dailyCheckIn.frequency
-    if (preferences.dailyCheckIn && preferences.dailyCheckIn.frequency) {
+    if (preferences.dailyCheckIn && preferences.dailyCheckIn.frequency !== undefined) {
         const validFrequencies = ['daily', 'every-other-day', 'weekly', 'disabled'];
         if (!validFrequencies.includes(preferences.dailyCheckIn.frequency)) {
             return res.status(400).json({
@@ -149,7 +150,7 @@ function validatePreferences(req, res, next) {
     // Validate postAttackFollowUp.delayHours
     if (preferences.postAttackFollowUp && preferences.postAttackFollowUp.delayHours !== undefined) {
         const hours = Number(preferences.postAttackFollowUp.delayHours);
-        if (isNaN(hours) || hours < 0 || hours > 168) { // Max 1 week
+        if (!Number.isFinite(hours) || hours < 0 || hours > 168) { // Max 1 week
             return res.status(400).json({
                 error: 'Invalid preferences',
                 message: 'postAttackFollowUp.delayHours must be between 0 and 168'
@@ -161,8 +162,45 @@ function validatePreferences(req, res, next) {
     next();
 }
 
+// Mutating an existing subscription requires possession of BOTH browser keys.
+// Every unknown endpoint and key mismatch returns the same response.
+function requireSubscriptionAuth(req, res, next) {
+    const endpoint = req.body.endpoint || req.body.subscriptionEndpoint || req.body.subscription?.endpoint;
+    const subscription = getSubscriptionByEndpoint(endpoint);
+    const keys = req.body.keys || req.body.subscription?.keys;
+    if (!subscription || !equalSecret(keys?.auth, subscription.keys?.auth) ||
+        !equalSecret(keys?.p256dh, subscription.keys?.p256dh)) {
+        return res.status(401).json({ error: 'Invalid subscription credentials' });
+    }
+    req.pushSubscription = subscription;
+    next();
+}
+
+function protectExistingSubscription(req, res, next) {
+    const subscription = getSubscriptionByEndpoint(req.body.subscription?.endpoint);
+    const keys = req.body.subscription?.keys;
+    if (subscription && (!equalSecret(keys?.auth, subscription.keys?.auth) || !equalSecret(keys?.p256dh, subscription.keys?.p256dh))) {
+        // A public enrollment request must not act as an endpoint-existence oracle.
+        // Acknowledge identically without modifying someone else's subscription.
+        return res.status(201).json({ success: true, message: 'Subscription created successfully', subscription: { endpoint: req.body.subscription.endpoint } });
+    }
+    next();
+}
+
+function validateSubscriptionKeys(req, res, next) {
+    const keys = req.body.subscription?.keys;
+    const valid = (value, bytes) => typeof value === 'string' && /^[A-Za-z0-9_-]+={0,2}$/.test(value) && Buffer.from(value, 'base64url').length === bytes;
+    if (!valid(keys?.auth, 16) || !valid(keys?.p256dh, 65) || Buffer.from(keys.p256dh, 'base64url')[0] !== 4) {
+        return res.status(400).json({ error: 'Invalid subscription keys' });
+    }
+    next();
+}
+
 module.exports = {
     requireAdminAuth,
+    requireSubscriptionAuth,
+    protectExistingSubscription,
+    validateSubscriptionKeys,
     validateEndpoint,
     validateTimeFormat,
     validatePreferences

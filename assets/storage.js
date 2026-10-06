@@ -20,7 +20,7 @@ const DB_STORES = {
  */
 async function initIndexedDB() {
     if (!window.indexedDB) {
-console.warn('[WARNING] IndexedDB not supported, using localStorage');
+appLog.warn('[WARNING] IndexedDB not supported, using localStorage');
 useIndexedDB = false;
 return false;
     }
@@ -44,7 +44,7 @@ db = await new Promise((resolve, reject) => {
             });
             migraineStore.createIndex('startTime', 'startTime', { unique: false });
             migraineStore.createIndex('deletedAt', 'deletedAt', { unique: false });
-            console.log('[SUCCESS] Created migraines object store');
+            appLog.log('[SUCCESS] Created migraines object store');
         } else {
             // v3 upgrade: remove indexes declared on fields
             // that never existed on stored records
@@ -59,7 +59,7 @@ db = await new Promise((resolve, reject) => {
         // v3 upgrade: drop the unused background-sync queue store
         if (database.objectStoreNames.contains('syncQueue')) {
             database.deleteObjectStore('syncQueue');
-            console.log('[SUCCESS] Dropped unused syncQueue store');
+            appLog.log('[SUCCESS] Dropped unused syncQueue store');
         }
 
         // Medications store
@@ -70,7 +70,7 @@ db = await new Promise((resolve, reject) => {
             });
             medStore.createIndex('name', 'name', { unique: false });
             medStore.createIndex('type', 'type', { unique: false });
-            console.log('[SUCCESS] Created medications object store');
+            appLog.log('[SUCCESS] Created medications object store');
         }
 
         // Settings store
@@ -78,7 +78,7 @@ db = await new Promise((resolve, reject) => {
             database.createObjectStore(DB_STORES.SETTINGS, {
                 keyPath: 'key'
             });
-            console.log('[SUCCESS] Created settings object store');
+            appLog.log('[SUCCESS] Created settings object store');
         }
 
         // Weather store (Phase 2 Refinements)
@@ -87,15 +87,15 @@ db = await new Promise((resolve, reject) => {
                 keyPath: 'key'
             });
             weatherStore.createIndex('timestamp', 'timestamp', { unique: false });
-            console.log('[SUCCESS] Created weather object store');
+            appLog.log('[SUCCESS] Created weather object store');
         }
     };
 });
 
-console.log('[SUCCESS] IndexedDB initialized successfully');
+appLog.log('[SUCCESS] IndexedDB initialized successfully');
 return true;
     } catch (error) {
-console.error('[ERROR] IndexedDB initialization failed:', error);
+appLog.error('[ERROR] IndexedDB initialization failed:', error);
 useIndexedDB = false;
 return false;
     }
@@ -156,8 +156,9 @@ return new Promise((resolve, reject) => {
     const store = transaction.objectStore(storeName);
     const request = store.put(item);
 
-    request.onsuccess = () => resolve(request.result);
+    transaction.oncomplete = () => resolve(request.result);
     request.onerror = () => reject(request.error);
+    transaction.onabort = () => reject(transaction.error || new Error("Storage transaction aborted"));
 });
     },
 
@@ -170,8 +171,9 @@ return new Promise((resolve, reject) => {
     const store = transaction.objectStore(storeName);
     const request = store.add(item);
 
-    request.onsuccess = () => resolve(request.result);
+    transaction.oncomplete = () => resolve(request.result);
     request.onerror = () => reject(request.error);
+    transaction.onabort = () => reject(transaction.error || new Error("Storage transaction aborted"));
 });
     },
 
@@ -184,8 +186,9 @@ return new Promise((resolve, reject) => {
     const store = transaction.objectStore(storeName);
     const request = store.delete(key);
 
-    request.onsuccess = () => resolve(true);
+    transaction.oncomplete = () => resolve(true);
     request.onerror = () => reject(request.error);
+    transaction.onabort = () => reject(transaction.error || new Error("Storage transaction aborted"));
 });
     },
 
@@ -198,8 +201,9 @@ return new Promise((resolve, reject) => {
     const store = transaction.objectStore(storeName);
     const request = store.clear();
 
-    request.onsuccess = () => resolve(true);
+    transaction.oncomplete = () => resolve(true);
     request.onerror = () => reject(request.error);
+    transaction.onabort = () => reject(transaction.error || new Error("Storage transaction aborted"));
 });
     },
 
@@ -224,23 +228,23 @@ return new Promise((resolve, reject) => {
 async function migrateToIndexedDB() {
     const migrated = localStorage.getItem('indexedDB_migrated');
     if (migrated === 'true') {
-console.log('[SUCCESS] Already migrated to IndexedDB');
+appLog.log('[SUCCESS] Already migrated to IndexedDB');
 return;
     }
 
     if (!useIndexedDB || !db) {
-console.log('[WARNING] IndexedDB not available, skipping migration');
+appLog.log('[WARNING] IndexedDB not available, skipping migration');
 return;
     }
 
-    console.log('[RELOAD] Starting migration to IndexedDB...');
+    appLog.log('[RELOAD] Starting migration to IndexedDB...');
 
     try {
 // Migrate migraines
 const migrainesJSON = localStorage.getItem('migraines');
 if (migrainesJSON) {
     const migrainesArray = JSON.parse(migrainesJSON);
-    console.log(`📦 Migrating ${migrainesArray.length} migraines...`);
+    appLog.log(`📦 Migrating ${migrainesArray.length} migraines...`);
 
     for (const migraine of migrainesArray) {
         // Ensure each migraine has an ID
@@ -249,7 +253,7 @@ if (migrainesJSON) {
         }
         await IDB.put(DB_STORES.MIGRAINES, migraine);
     }
-    console.log('[SUCCESS] Migraines migrated');
+    appLog.log('[SUCCESS] Migraines migrated');
 }
 
 // Migrate active migraine
@@ -260,42 +264,42 @@ if (activeMigraineJSON) {
         key: 'activeMigraine',
         value: activeMigraine
     });
-    console.log('[SUCCESS] Active migraine migrated');
+    appLog.log('[SUCCESS] Active migraine migrated');
 }
 
 // Migrate user medications
 const userMedsJSON = localStorage.getItem('userMedications');
 if (userMedsJSON) {
     const userMeds = JSON.parse(userMedsJSON);
-    console.log(`Medication Migrating ${userMeds.length} medications...`);
+    appLog.log(`Medication Migrating ${userMeds.length} medications...`);
 
     for (const med of userMeds) {
         await IDB.add(DB_STORES.MEDICATIONS, med);
     }
-    console.log('[SUCCESS] Medications migrated');
+    appLog.log('[SUCCESS] Medications migrated');
 }
 
 // Migrate weather data
 const weatherJSON = localStorage.getItem('weatherData');
 if (weatherJSON) {
     const weather = JSON.parse(weatherJSON);
-    console.log('🌦️ Migrating weather data...');
+    appLog.log('🌦️ Migrating weather data...');
 
     await IDB.put(DB_STORES.WEATHER, {
         key: 'weatherData',
         value: weather,
         timestamp: Date.now()
     });
-    console.log('[SUCCESS] Weather data migrated');
+    appLog.log('[SUCCESS] Weather data migrated');
 }
 
 // Mark migration as complete
 localStorage.setItem('indexedDB_migrated', 'true');
-console.log('[SUCCESS] Migration to IndexedDB complete!');
+appLog.log('[SUCCESS] Migration to IndexedDB complete!');
 
 // Keep localStorage as backup for now (don't delete)
     } catch (error) {
-console.error('[ERROR] Migration failed:', error);
+appLog.error('[ERROR] Migration failed:', error);
 localStorage.removeItem('indexedDB_migrated');
     }
 }
@@ -320,7 +324,7 @@ try {
         percentage: estimate.quota ? Math.round((estimate.usage / estimate.quota) * 100) : 0
     };
 
-    console.log(`Save Storage: ${formatBytes(storageQuota.usage)} / ${formatBytes(storageQuota.quota)} (${storageQuota.percentage}%)`);
+    appLog.log(`Save Storage: ${formatBytes(storageQuota.usage)} / ${formatBytes(storageQuota.quota)} (${storageQuota.percentage}%)`);
 
     // Warn if storage is getting full
     if (storageQuota.percentage > 80) {
@@ -329,7 +333,7 @@ try {
 
     return storageQuota;
 } catch (error) {
-    console.error('[ERROR] Storage quota check failed:', error);
+    appLog.error('[ERROR] Storage quota check failed:', error);
 }
     }
     return storageQuota;
@@ -372,7 +376,7 @@ if (migraineDate < cutoffDate && !migraine.deleted && !migraine.archived) {
 await saveData();
     }
 
-    console.log(`Archived ${archivedCount} migraines older than ${monthsOld} months`);
+    appLog.log(`Archived ${archivedCount} migraines older than ${monthsOld} months`);
     return archivedCount;
 }
 

@@ -142,7 +142,7 @@ FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@aiding-migraine-abc123.iam.gservic
 
 # VAPID Keys (from Part 1)
 VAPID_PUBLIC_KEY=BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U
-VAPID_PRIVATE_KEY=UUxI4O8DildjgE6hHXAovpkQQPdKfPrNccGwdJO7dUU
+VAPID_PRIVATE_KEY=your_new_vapid_private_key_here
 VAPID_SUBJECT=mailto:your-email@example.com
 
 # Database

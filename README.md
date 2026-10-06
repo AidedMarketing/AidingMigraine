@@ -57,3 +57,6 @@ Read [the interface review](docs/INTERFACE-OVERHAUL.md) for this design pass and
 Run `npm test` before committing. GitHub Actions runs the same checks on pull requests. Static checks are not a substitute for device testing; this draft still needs physical-iPhone, assistive-technology, and real-device encryption review before merging. Browser layout and offline scenarios are now covered by the automated mobile suite.
 
 [Help](help/index.html) · [Issues](https://github.com/AidedMarketing/AidingMigraine/issues) · [License](LICENSE)
+
+
+Security review and credential rotation: [6 October 2026 remediation](docs/SECURITY-REVIEW-2026-10-06.md).

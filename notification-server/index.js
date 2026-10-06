@@ -1,3 +1,4 @@
+const logger = require('./logger');
 /**
  * Aiding Migraine - Push Notification Server
  *
@@ -8,7 +9,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 const { initializeScheduler } = require('./scheduler');
 const { initializeDatabase, flushWrites } = require('./database');
@@ -16,33 +17,14 @@ const { limiter } = require('./middleware/rate-limit');
 const subscriptionRoutes = require('./routes/subscriptions');
 const notificationRoutes = require('./routes/notifications');
 
+const { corsOptions, checkCredentials } = require('./middleware/security');
+checkCredentials();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Behind a single reverse proxy (Render) - required for express-rate-limit
 // to key limits off the real client IP instead of the proxy's IP
 app.set('trust proxy', 1);
-
-// CORS Configuration - Whitelist specific origins
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:8080,http://127.0.0.1:8080')
-    .split(',')
-    .map(origin => origin.trim());
-
-const corsOptions = {
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests) in development
-        if (!origin && process.env.NODE_ENV === 'development') {
-            return callback(null, true);
-        }
-        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    optionsSuccessStatus: 200
-};
 
 // Security Headers
 app.use(helmet({
@@ -90,9 +72,17 @@ app.get('/', (req, res) => {
 });
 
 // Middleware
-app.use(cors(corsOptions));
+app.use(cors(corsOptions()));
 app.use(express.json({ limit: '10kb' })); // Limit request body size to 10KB
 app.use(limiter);
+
+// The VAPID public key is public by design; private keys are never returned.
+app.get('/api/public-key', (req, res) => {
+    const publicKey = process.env.VAPID_PUBLIC_KEY;
+    res.set('Cache-Control', 'no-store');
+    if (!publicKey) return res.status(503).json({ error: 'Push notifications not configured' });
+    res.json({ publicKey });
+});
 
 // Routes
 app.use('/api/subscriptions', subscriptionRoutes);
@@ -100,9 +90,9 @@ app.use('/api/notifications', notificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err);
-    res.status(500).json({
-        error: 'Internal server error',
+    logger.error('Error:', err);
+    res.status(err.status || 500).json({
+        error: err.status === 403 ? 'Origin not allowed' : 'Internal server error',
         message: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
 });
@@ -114,15 +104,15 @@ function setupGracefulShutdown(server, jobs) {
     const shutdown = async (signal) => {
         if (shuttingDown) return;
         shuttingDown = true;
-        console.log(`\n${signal} received — shutting down gracefully...`);
+        logger.log(`\n${signal} received — shutting down gracefully...`);
         try {
             Object.values(jobs || {}).forEach(job => { if (job && job.cancel) job.cancel(); });
             await new Promise(resolve => server.close(resolve));
             await flushWrites();
-            console.log('✅ Clean shutdown complete');
+            logger.log('✅ Clean shutdown complete');
             process.exit(0);
         } catch (error) {
-            console.error('❌ Error during shutdown:', error);
+            logger.error('❌ Error during shutdown:', error);
             process.exit(1);
         }
     };
@@ -134,21 +124,22 @@ function setupGracefulShutdown(server, jobs) {
 async function startServer() {
     try {
         await initializeDatabase();
-        console.log('✅ Database initialized');
+        logger.log('✅ Database initialized');
 
         const jobs = initializeScheduler();
-        console.log('✅ Notification scheduler started');
+        logger.log('✅ Notification scheduler started');
 
         const server = app.listen(PORT, () => {
-            console.log(`🚀 Notification server running on port ${PORT}`);
-            console.log(`📡 Health check: http://localhost:${PORT}/health`);
+            logger.log(`🚀 Notification server running on port ${PORT}`);
+            logger.log(`📡 Health check: http://localhost:${PORT}/health`);
         });
 
         setupGracefulShutdown(server, jobs);
     } catch (error) {
-        console.error('❌ Failed to start server:', error);
+        logger.error('❌ Failed to start server:', error);
         process.exit(1);
     }
 }
 
-startServer();
+if (require.main === module) startServer();
+module.exports = { app, startServer };

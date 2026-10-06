@@ -22,7 +22,7 @@ function hideUpdateBanner() {
 function updateApp() {
     if (newWorker) {
 updateRequested = true;
-console.log('Active Updating app...');
+appLog.log('Active Updating app...');
 // Send message to skip waiting
 newWorker.postMessage({ type: 'SKIP_WAITING' });
     }
@@ -32,14 +32,14 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
 navigator.serviceWorker.register('./service-worker.js')
     .then(registration => {
-        console.log('[SUCCESS] Service Worker registered:', registration.scope);
+        appLog.log('[SUCCESS] Service Worker registered:', registration.scope);
 
         // Immediately check for updates on load
         registration.update().then(() => {
-            console.log('[SEARCH] Checked for updates');
+            appLog.log('[SEARCH] Checked for updates');
         }).catch(() => {
             // An installed journal remains usable when the update server is offline.
-            console.info('Update check deferred until a connection is available.');
+            appLog.info('Update check deferred until a connection is available.');
         });
 
         // Check if there's already a waiting service worker
@@ -50,17 +50,17 @@ navigator.serviceWorker.register('./service-worker.js')
 
         // Check for updates every hour
         setInterval(() => {
-            console.log('⏰ Hourly update check...');
+            appLog.log('⏰ Hourly update check...');
             registration.update().catch(() => {});
         }, 60 * 60 * 1000);
 
         // Listen for waiting service worker
         registration.addEventListener('updatefound', () => {
-            console.log('📦 Update found!');
+            appLog.log('📦 Update found!');
             const installingWorker = registration.installing;
 
             installingWorker.addEventListener('statechange', () => {
-                console.log('Service worker state:', installingWorker.state);
+                appLog.log('Service worker state:', installingWorker.state);
                 if (installingWorker.state === 'installed') {
                     if (navigator.serviceWorker.controller) {
                         // New update available
@@ -68,14 +68,14 @@ navigator.serviceWorker.register('./service-worker.js')
                         showUpdateBanner();
                     } else {
                         // First time installation
-                        console.log('Service Worker installed for the first time');
+                        appLog.log('Service Worker installed for the first time');
                     }
                 }
             });
         });
     })
     .catch(error => {
-        console.error('[ERROR] Service Worker registration failed:', error);
+        appLog.error('[ERROR] Service Worker registration failed:', error);
     });
 
 // Listen for service worker controller change

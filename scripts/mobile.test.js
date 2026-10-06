@@ -33,7 +33,7 @@ async function ready(page) {
 }
 async function fits(page, label) {
     const result = await page.evaluate(() => {
-        const targets = document.querySelectorAll('.page.active *, .app-topbar *, .modal.active *');
+        const targets = document.querySelectorAll(document.querySelector('.modal.active') ? '.modal.active *' : '.page.active *, .app-topbar *');
         return {
             width: innerWidth, scrollWidth: document.documentElement.scrollWidth,
             spilling: [...targets].filter(el => el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 2 && getComputedStyle(el).overflowX === 'visible').map(el => ({ element: el.id || el.tagName + '.' + el.getAttribute('class'), text: el.textContent.trim().slice(0, 60), width: el.clientWidth, contentWidth: el.scrollWidth })).slice(-12),
@@ -56,7 +56,7 @@ test('mobile layouts, tracking, editing, themes and offline journal', { timeout:
     await startServer();
     try {
         for (const engine of [chromium, webkit].filter(engine => !process.env.MOBILE_ENGINE || process.env.MOBILE_ENGINE === engine.name())) {
-            const browser = await engine.launch();
+            const browser = await engine.launch(process.env.MOBILE_BROWSER_PATH && engine.name() === 'chromium' ? { executablePath: process.env.MOBILE_BROWSER_PATH } : {});
             try {
                 for (const width of [320, 390, 430, 768, 1280].filter(width => !process.env.MOBILE_WIDTH || Number(process.env.MOBILE_WIDTH) === width)) {
                     await t.test(`${engine.name()} at ${width}px`, async () => {

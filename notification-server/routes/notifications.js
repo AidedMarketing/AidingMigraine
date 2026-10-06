@@ -1,3 +1,4 @@
+const logger = require('../logger');
 /**
  * Notification Routes
  */
@@ -7,17 +8,21 @@ const router = express.Router();
 const {
     addScheduledFollowup,
     addScheduledActiveCheckin,
+    addScheduledActiveCheckins,
     cancelActiveCheckin
 } = require('../database');
 const { sendWebPushNotification } = require('../push-notifications');
-const { requireAdminAuth, validateEndpoint } = require('../middleware/auth');
+const { requireAdminAuth, requireSubscriptionAuth, validateEndpoint } = require('../middleware/auth');
+const { validateSchedule } = require('../middleware/security');
+const crypto = require('node:crypto');
+const subscriptionRecordId = (endpoint, attackId) => crypto.createHash('sha256').update(endpoint + '\0' + attackId).digest('hex');
 const { strictLimiter } = require('../middleware/rate-limit');
 
 /**
  * POST /api/notifications/schedule-followup
  * Schedule a post-attack follow-up notification
  */
-router.post('/schedule-followup', strictLimiter, validateEndpoint, async (req, res) => {
+router.post('/schedule-followup', strictLimiter, validateEndpoint, requireSubscriptionAuth, validateSchedule, async (req, res) => {
     try {
         const { attackId, followUpTime, subscriptionEndpoint } = req.body;
 
@@ -40,13 +45,12 @@ router.post('/schedule-followup', strictLimiter, validateEndpoint, async (req, r
         res.status(201).json({
             success: true,
             message: 'Follow-up notification scheduled successfully',
-            followup: result
+            followup: { id: result.id }
         });
     } catch (error) {
-        console.error('Schedule follow-up error:', error);
+        logger.error('Schedule follow-up error:', error);
         res.status(500).json({
-            error: 'Failed to schedule follow-up',
-            message: error.message
+            error: 'Failed to schedule follow-up'
         });
     }
 });
@@ -55,7 +59,7 @@ router.post('/schedule-followup', strictLimiter, validateEndpoint, async (req, r
  * POST /api/notifications/send-test
  * Send a test notification (admin only - for debugging)
  */
-router.post('/send-test', strictLimiter, requireAdminAuth, validateEndpoint, async (req, res) => {
+router.post('/send-test', strictLimiter, requireAdminAuth, requireSubscriptionAuth, validateEndpoint, async (req, res) => {
     try {
         const { subscription } = req.body;
 
@@ -85,14 +89,13 @@ router.post('/send-test', strictLimiter, requireAdminAuth, validateEndpoint, asy
         } else {
             res.status(500).json({
                 error: 'Failed to send test notification',
-                details: result.error
+                details: 'Push delivery failed'
             });
         }
     } catch (error) {
-        console.error('Send test error:', error);
+        logger.error('Send test error:', error);
         res.status(500).json({
-            error: 'Failed to send test notification',
-            message: error.message
+            error: 'Failed to send test notification'
         });
     }
 });
@@ -101,9 +104,21 @@ router.post('/send-test', strictLimiter, requireAdminAuth, validateEndpoint, asy
  * POST /api/notifications/schedule-active-checkin
  * Schedule an active attack check-in notification
  */
-router.post('/schedule-active-checkin', strictLimiter, validateEndpoint, async (req, res) => {
+router.post('/schedule-active-checkin', strictLimiter, validateEndpoint, requireSubscriptionAuth, validateSchedule, async (req, res) => {
     try {
-        const { attackId, checkInTime, subscriptionEndpoint } = req.body;
+        const { attackId, checkInTime, subscriptionEndpoint, checkIns } = req.body;
+        if (checkIns !== undefined) {
+            const validTime = time => typeof time === 'string' && Number.isFinite(Date.parse(time)) && Date.parse(time) >= Date.now() - 60000 && Date.parse(time) <= Date.now() + 7 * 86400000;
+            if (!Array.isArray(checkIns) || checkIns.length < 1 || checkIns.length > 24 || !checkIns.every(validTime)) {
+                return res.status(400).json({ error: 'Invalid check-in series' });
+            }
+            const records = checkIns.map((time, i) => ({
+                id: `active-checkin-${subscriptionRecordId(subscriptionEndpoint, `${attackId}-${i + 1}`)}`,
+                attackId: `${attackId}-${i + 1}`, scheduledTime: time, subscriptionEndpoint, sent: false
+            }));
+            await addScheduledActiveCheckins(records);
+            return res.status(201).json({ success: true, message: 'Active check-in series scheduled successfully' });
+        }
 
         if (!attackId || !checkInTime || !subscriptionEndpoint) {
             return res.status(400).json({
@@ -112,7 +127,7 @@ router.post('/schedule-active-checkin', strictLimiter, validateEndpoint, async (
         }
 
         const checkin = {
-            id: `active-checkin-${attackId}`,
+            id: `active-checkin-${subscriptionRecordId(subscriptionEndpoint, attackId)}`,
             attackId,
             scheduledTime: checkInTime,
             subscriptionEndpoint,
@@ -124,13 +139,12 @@ router.post('/schedule-active-checkin', strictLimiter, validateEndpoint, async (
         res.status(201).json({
             success: true,
             message: 'Active attack check-in scheduled successfully',
-            checkin: result
+            checkin: { id: result.id }
         });
     } catch (error) {
-        console.error('Schedule active check-in error:', error);
+        logger.error('Schedule active check-in error:', error);
         res.status(500).json({
-            error: 'Failed to schedule active attack check-in',
-            message: error.message
+            error: 'Failed to schedule active attack check-in'
         });
     }
 });
@@ -139,7 +153,7 @@ router.post('/schedule-active-checkin', strictLimiter, validateEndpoint, async (
  * POST /api/notifications/cancel-active-checkin
  * Cancel an active attack check-in notification
  */
-router.post('/cancel-active-checkin', strictLimiter, validateEndpoint, async (req, res) => {
+router.post('/cancel-active-checkin', strictLimiter, validateEndpoint, requireSubscriptionAuth, validateSchedule, async (req, res) => {
     try {
         const { attackId, subscriptionEndpoint } = req.body;
 
@@ -149,7 +163,7 @@ router.post('/cancel-active-checkin', strictLimiter, validateEndpoint, async (re
             });
         }
 
-        const canceled = await cancelActiveCheckin(attackId);
+        const canceled = await cancelActiveCheckin(attackId, subscriptionEndpoint, req.body.cancelSeries === true);
 
         if (canceled) {
             res.json({
@@ -163,10 +177,9 @@ router.post('/cancel-active-checkin', strictLimiter, validateEndpoint, async (re
             });
         }
     } catch (error) {
-        console.error('Cancel active check-in error:', error);
+        logger.error('Cancel active check-in error:', error);
         res.status(500).json({
-            error: 'Failed to cancel active attack check-in',
-            message: error.message
+            error: 'Failed to cancel active attack check-in'
         });
     }
 });
