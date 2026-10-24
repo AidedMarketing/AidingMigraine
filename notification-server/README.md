@@ -97,7 +97,7 @@ VAPID_PUBLIC_KEY=BHVugOyMNYtN5lftKJrKO10dSl7XPSGB1fWJ2eRrfAhnx-dtqY44AllB0tiTUnZ
 VAPID_PRIVATE_KEY=6F-ixbgK_2sEpZ-HsxXvgebLoOe2Fk03tWOvZfiDUe0
 
 # Admin API Key (from node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
-ADMIN_API_KEY=a5b2c4013eea5f05c33e706360fc97872ede64a07cc0c005142fdd240c4ed8c3
+ADMIN_API_KEY=replace-with-a-new-random-secret
 
 # CORS Allowed Origins (comma-separated)
 ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
