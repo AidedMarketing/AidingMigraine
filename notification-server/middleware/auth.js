@@ -10,18 +10,13 @@ function requireAdminAuth(req, res, next) {
     const apiKey = req.headers['x-api-key'];
     const adminKey = process.env.ADMIN_API_KEY;
 
-    // If no admin key is set, deny access in production
+    // Admin routes always fail closed when no admin key is configured
     if (!adminKey) {
         console.error('⚠️  ADMIN_API_KEY not set in environment variables');
-        if (process.env.NODE_ENV === 'production') {
-            return res.status(503).json({
-                error: 'Service unavailable',
-                message: 'Admin authentication not configured'
-            });
-        } else {
-            console.warn('⚠️  Running without admin authentication in development mode');
-            return next(); // Allow in development if key not set
-        }
+        return res.status(503).json({
+            error: 'Service unavailable',
+            message: 'Admin authentication not configured'
+        });
     }
 
     // Check if API key matches
