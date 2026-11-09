@@ -6199,7 +6199,7 @@ async function enableNotifications() {
         const registration = await navigator.serviceWorker.ready;
 
         // VAPID Public Key for push notifications (UPDATED: 2026-01-23)
-        const VAPID_PUBLIC_KEY = 'BKGl5RP_08pVrtXyh08ot_AdICyshiLpiOBLYr1eLRXQFP_pcqGqZOxoMMfPm_09ecr_EKgwqmE5Hac0Lb0G1WU';
+        const VAPID_PUBLIC_KEY = 'BIM4hhVR8txa6Sjz2-yLZwTvsqq886iHi2psDuUuCIl8dVELZ5ofMGCom-GCNthhSiTFGZsntJZNv70Yeq0CnlI';
 
         // Check if VAPID key is configured
         if (VAPID_PUBLIC_KEY === 'YOUR_VAPID_PUBLIC_KEY_HERE') {

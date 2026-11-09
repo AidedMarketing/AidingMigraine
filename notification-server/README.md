@@ -70,7 +70,7 @@ This will output:
 Public Key:
 BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U
 Private Key:
-UUxI4O8DildjgE6hHXAovpkQQPdKfPrNccGwdJO7dUU
+<redacted — rotated out; set in Render only>
 =======================================
 ```
 
