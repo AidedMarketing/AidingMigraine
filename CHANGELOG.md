@@ -5,6 +5,27 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0-beta.1] - 2026-11-09
+
+### Closed beta release
+
+This release freezes the unreleased 5.10.0 draft work (the mobile journal rebuild) as a closed, invitation-only beta. Versions between 5.7.1 and this release were unreleased drafts and were not changelogged separately.
+
+### Added
+
+- **Beta welcome and feedback (PR #113):** first-run beta welcome in the welcome modal (re-openable from Settings → Beta Welcome) and a feedback form (`help/feedback.html`, 7 short optional questions) sent via email to support@aidingmigraine.com — no backend, no analytics.
+- **Medical disclaimer and Terms of Service (PR #112):** disclaimer in the welcome modal and on Care/Analytics, plus `help/terms.html`.
+- **Domain and support mailbox:** aidingmigraine.com, with support at support@aidingmigraine.com.
+
+### Security
+
+- **VAPID key rotation (PR #111):** a live notification-server private key that had been published in the public repo was rotated. The new keypair lives only in the Render environment; existing push subscriptions must re-subscribe.
+
+### Fixed
+
+- **Version alignment:** the app showed 5.10.0 in some places and 5.7.1 in others (About, debug info, Settings, service-worker cache, asset cache-busters, CHANGELOG). All version strings are now 5.10.0-beta.1; About and debug info now read the single `APP_VERSION` constant so they cannot drift again. The PWA manifest carries no version field, so none was added there.
+- **Privacy wording:** the short version of the Privacy Policy overstated "your migraine data never leaves your device" and "works completely offline". It now says data stays on-device by default, with the optional notification and weather features — which you turn on yourself — as the only exceptions, and that offline use covers logging and viewing (first install, updates, charts/PDF libraries, and notifications need a connection). The detailed sections were already accurate and are unchanged. A note was added that notification preferences live on the notification server, so if notifications stop after a server restart, toggle them off and on again in Settings to re-register.
+
 ## [5.7.1] - 2026-08-04
 
 ### Fixed — Bottom nav drifting away from the screen edge on iOS

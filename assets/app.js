@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.10.0-draft.1';
+const APP_VERSION = '5.10.0-beta.1';
 
 let migraines = [];
 let selectedPain = null;
@@ -3604,7 +3604,7 @@ function copyDebugInfo() {
     const activeMigraines = getActiveMigraines();
     const deletedMigraines = getDeletedMigraines();
 
-    const debugInfo = `Aiding Migraine v5.7.1 - Debug Information
+    const debugInfo = `Aiding Migraine v${APP_VERSION} - Debug Information
 Generated: ${new Date().toISOString()}
 
 Data Source: ${useIndexedDB && db ? 'IndexedDB' : 'localStorage'}
@@ -5360,7 +5360,7 @@ function showHowTo() {
 
 function showAbout() {
     const content = `
-        <p><strong>Aiding Migraine v5.7.1</strong></p>
+        <p><strong>Aiding Migraine v${APP_VERSION}</strong></p>
         <p>Built with care for migraine sufferers.</p>
 
         <h3>Features</h3>
