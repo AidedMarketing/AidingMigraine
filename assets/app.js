@@ -1000,6 +1000,9 @@ async function initApp() {
 
     // Apply any notification/shortcut deep-link AFTER the default page
     // is set, so ?action=analytics/care/log lands on the right screen.
+    // Remember whether one was present: the welcome modal must not cover
+    // a deep-linked screen on first run.
+    const hadDeepLink = new URLSearchParams(window.location.search).has('action');
     handleNotificationDeepLink();
 
     // Use robust retry mechanism to ensure UI updates when DOM is ready
@@ -1042,6 +1045,14 @@ async function initApp() {
     updateLoadingProgress(100, 'Ready!');
     setTimeout(() => {
         hideLoadingScreen();
+        // First run: show the beta welcome (disclaimer, what beta means,
+        // feedback link). hasSeenWelcome is set when the user closes it
+        // (Get Started) or takes the tour, and Clear All Data wipes
+        // localStorage, so a tester who resets sees it again too.
+        // Skipped when opened from a notification deep link.
+        if (!hadDeepLink && localStorage.getItem('hasSeenWelcome') !== 'true') {
+            showWelcomeModal();
+        }
     }, 300);
 }
 
@@ -1241,10 +1252,23 @@ async function enableEncryption(passphrase) {
     await wipePlaintextStores();
 }
 
-// Turn encryption OFF: write the in-memory data back as plaintext and
-// remove the vault + metadata. Requires the key in memory (unlocked).
-async function disableEncryption() {
-    if (!encMasterKey) return false;
+// Turn encryption OFF: the current passphrase is required first, so
+// anyone holding an unlocked device cannot silently decrypt the vault.
+// The passphrase is verified against the stored verifier (AES-GCM auth
+// tag — the same check the unlock gate uses). A wrong passphrase leaves
+// everything untouched and encryption stays on. On success the vault is
+// decrypted back into memory and written out as plaintext, then the
+// vault + metadata are removed. If the session was locked, the vault is
+// loaded with the verified key first so no data is lost.
+async function disableEncryption(passphrase) {
+    if (!encEnabled()) return false;
+    const key = await verifyPassphrase(passphrase);
+    if (!key) return false;
+    encMasterKey = key;
+    if (!encUnlocked) {
+        encUnlocked = true;
+        await loadVault();
+    }
     encMeta = null; // encEnabled() now false → saves take the plaintext path
     localStorage.removeItem('encMeta');
     await saveData();
@@ -1321,18 +1345,34 @@ function openEnableEncryptionModal() {
 }
 
 function openDisableEncryptionModal() {
-    showModal('Turn off encryption', '<p>Your data will be stored unencrypted again on this device. Continue?</p>', [
+    const body = `
+        <p>Your data will be stored unencrypted again on this device.</p>
+        <p style="margin-top: 8px;">Enter your passphrase to turn encryption off. If you don't know it, keep encryption on — there is no recovery.</p>
+        <div class="form-group" style="margin-top: 14px;">
+            <label for="enc-disable-pass">Current passphrase</label>
+            <input type="password" id="enc-disable-pass" placeholder="Enter your passphrase" autocomplete="current-password" style="width: 100%; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem;">
+        </div>
+        <p id="enc-error" style="display: none; color: var(--accent-red); font-size: 0.85rem;"></p>`;
+    showModal('Turn off encryption', body, [
         { text: 'Cancel', class: 'btn-secondary', action: () => { closeModal(); syncEncryptionUI(); } },
         { text: 'Turn off', class: 'btn-danger', action: async (e) => {
+            const pass = document.getElementById('enc-disable-pass').value;
+            const err = document.getElementById('enc-error');
+            const fail = (msg) => { if (err) { err.textContent = msg; err.style.display = 'block'; } };
+            if (!pass) return fail('Enter your current passphrase to turn encryption off.');
             try {
-                await withBusy(e.currentTarget, 'Decrypting...', () => disableEncryption());
+                const ok = await withBusy(e.currentTarget, 'Decrypting...', () => disableEncryption(pass));
+                if (!ok) {
+                    syncEncryptionUI();
+                    return fail('Passphrase is incorrect. Encryption is still on — your data is unchanged.');
+                }
                 closeModal();
                 syncEncryptionUI();
                 showModal('Encryption off', 'Your data is no longer encrypted at rest.');
             } catch (e) {
                 console.error('[ERROR] disableEncryption failed:', e);
-                closeModal();
                 syncEncryptionUI();
+                fail('Something went wrong turning off encryption. Your data was not changed.');
             }
         }}
     ]);
