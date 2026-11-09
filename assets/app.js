@@ -3475,6 +3475,7 @@ function initializeSettings() {
         safeAddListener('how-to-btn', 'click', showHowTo);
         safeAddListener('about-btn', 'click', showAbout);
         safeAddListener('privacy-btn', 'click', showPrivacy);
+        safeAddListener('beta-welcome-btn', 'click', showWelcomeModal);
         safeAddListener('clear-all-btn', 'click', clearAllData);
 
         // Initialize hidden debug mode (will handle missing elements gracefully)
@@ -5691,6 +5692,21 @@ function showWelcomeModal() {
                     <strong>A quick note:</strong> Aiding Migraine is a personal diary for tracking your migraines &mdash; it is not medical advice, and it can&rsquo;t diagnose you or tell you what treatment or medication changes to make. Only your clinician can do that. If something feels sudden, severe, or different from your usual pattern, get urgent care and talk to your doctor.
                 </p>
             </div>
+            <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; margin: 16px 0 4px; text-align: left;">
+                <h3 style="font-size: 1rem; margin-bottom: 8px;">You&rsquo;re testing the beta</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6; margin: 0 0 8px;">
+                    You&rsquo;re one of a small group trying Aiding Migraine before it opens to everyone. That means features may change, and something may break &mdash; your feedback shapes what gets fixed first.
+                </p>
+                <ul style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6; margin: 0; padding-left: 18px;">
+                    <li>Please log for 2 weeks if you can, then tell us how it went.</li>
+                    <li>Export a backup regularly from Settings &mdash; backups are your responsibility, and if you turn on passphrase encryption there is no recovery if you forget it.</li>
+                    <li>To leave the beta, stop using the app and delete your data in Settings &rarr; Clear All Data. That cannot be undone.</li>
+                    <li>Need help? Email <a href="mailto:support@aidingmigraine.com">support@aidingmigraine.com</a> &mdash; if you don&rsquo;t hear back, please also try <a href="https://github.com/AidedMarketing/AidingMigraine/issues" target="_blank" rel="noopener">GitHub issues</a>.</li>
+                </ul>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6; margin: 12px 0 0;">
+                    <a href="./help/feedback.html">Share beta feedback</a> &mdash; it takes a few minutes, and every question is optional.
+                </p>
+            </div>
             <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 20px; margin: 24px 0; text-align: left;">
                 <h3 style="font-size: 1.1rem; margin-bottom: 12px; text-align: center;">Key features</h3>
                 <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 2;">
@@ -5705,7 +5721,7 @@ function showWelcomeModal() {
                 Your data stays on your device by default. Optional weather and notification features send only the minimum needed (location or notification schedule) - see Privacy in Settings for details.
             </p>
             <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">
-                <a href="./help/terms.html">Terms of Service</a> &middot; <a href="./help/privacy.html">Privacy Policy</a>
+                <a href="./help/terms.html">Terms of Service</a> &middot; <a href="./help/privacy.html">Privacy Policy</a> &middot; <a href="./help/feedback.html">Beta feedback</a>
             </p>
         </div>
     `;
