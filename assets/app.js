@@ -478,7 +478,7 @@ function submitMidas() {
     saveAssessments();
     closeModal();
     renderAssessments();
-    showModal('MIDAS Result', `<p>Your MIDAS score is <strong>${score}</strong> — Grade ${grade} (${label}).</p><p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">Saved. It will be included in your doctor report.</p>`);
+    showModal('MIDAS Result', `<p>Your MIDAS score is <strong>${score}</strong> — Grade ${grade} (${label}).</p><p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">Saved. It will be included in your doctor report.</p><p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">This score is a summary of what you logged — not a diagnosis. Talk it through with your clinician.</p>`);
 }
 
 function openHit6Modal() {
@@ -514,7 +514,7 @@ function submitHit6() {
     saveAssessments();
     closeModal();
     renderAssessments();
-    showModal('HIT-6 Result', `<p>Your HIT-6 score is <strong>${score}</strong> (${label}).</p><p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">Saved. It will be included in your doctor report.</p>`);
+    showModal('HIT-6 Result', `<p>Your HIT-6 score is <strong>${score}</strong> (${label}).</p><p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">Saved. It will be included in your doctor report.</p><p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">This score is a summary of what you logged — not a diagnosis. Talk it through with your clinician.</p>`);
 }
 
 // Render the latest MIDAS/HIT-6 results on the Care page card
@@ -5686,6 +5686,11 @@ function showWelcomeModal() {
                 Your personal migraine tracking companion. Log episodes, track patterns,
                 and generate professional reports for your healthcare provider.
             </p>
+            <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; margin: 0 0 4px; text-align: left;">
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6; margin: 0;">
+                    <strong>A quick note:</strong> Aiding Migraine is a personal diary for tracking your migraines &mdash; it is not medical advice, and it can&rsquo;t diagnose you or tell you what treatment or medication changes to make. Only your clinician can do that. If something feels sudden, severe, or different from your usual pattern, get urgent care and talk to your doctor.
+                </p>
+            </div>
             <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 20px; margin: 24px 0; text-align: left;">
                 <h3 style="font-size: 1.1rem; margin-bottom: 12px; text-align: center;">Key features</h3>
                 <ul style="list-style: none; padding: 0; color: var(--text-secondary); line-height: 2;">
@@ -5698,6 +5703,9 @@ function showWelcomeModal() {
             </div>
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
                 Your data stays on your device by default. Optional weather and notification features send only the minimum needed (location or notification schedule) - see Privacy in Settings for details.
+            </p>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">
+                <a href="./help/terms.html">Terms of Service</a> &middot; <a href="./help/privacy.html">Privacy Policy</a>
             </p>
         </div>
     `;
