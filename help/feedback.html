@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beta Feedback - Aiding Migraine</title>
+    <script src="../assets/theme.js?v=5.10.0-mobile1"></script>
+    <link rel="stylesheet" href="styles.css?v=5.10.0-mobile1">
+    <link rel="stylesheet" href="../assets/tokens.css?v=5.10.0-mobile1">
+    <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
+    <style>
+        .feedback-field { margin-bottom: 20px; }
+        .feedback-field label { display: block; font-weight: 600; margin-bottom: 6px; }
+        .feedback-field .hint { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 6px; }
+        .feedback-field select,
+        .feedback-field textarea,
+        .feedback-field input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font: inherit;
+        }
+        .feedback-field textarea { min-height: 72px; resize: vertical; }
+        .feedback-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+        .feedback-actions button {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--accent-green);
+            color: white;
+        }
+        .feedback-actions button.secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); }
+        #feedback-status { margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <header class="help-header">
+            <h1>Beta Feedback</h1>
+            <a href="index.html" class="back-button">← Back to Help</a>
+        </header>
+
+        <main class="help-content">
+            <p><em>Last updated: November 9, 2026</em></p>
+
+            <div class="info-box success">
+                <h4>Thank you for testing the beta</h4>
+                <p>There is no account and no form stored on a server. Your answers stay on this device until you choose to send them — sending opens an email to <a href="mailto:support@aidingmigraine.com">support@aidingmigraine.com</a> with your answers filled in. Every question is optional. Please don&rsquo;t include personal health details beyond what you already log in the app, and don&rsquo;t ask for advice about medication or treatment changes here — only your clinician can help with that. If you send feedback, you give us permission to use it to improve Aiding Migraine, as described in the <a href="terms.html">Terms of Service</a>.</p>
+            </div>
+
+            <form id="beta-feedback-form">
+                <div class="feedback-field">
+                    <label for="q-ease">1. How easy was it to log a migraine?</label>
+                    <select id="q-ease" name="ease">
+                        <option value="">Choose one (optional)</option>
+                        <option>Very easy</option>
+                        <option>Easy</option>
+                        <option>Okay</option>
+                        <option>Hard</option>
+                        <option>Very hard</option>
+                    </select>
+                </div>
+
+                <div class="feedback-field">
+                    <label for="q-confusing">2. What was confusing or hard to find?</label>
+                    <textarea id="q-confusing" name="confusing" placeholder="Anything you had to hunt for, or that didn&rsquo;t work the way you expected"></textarea>
+                </div>
+
+                <div class="feedback-field">
+                    <label for="q-broken">3. Did anything feel wrong or break? What happened?</label>
+                    <select id="q-broken" name="broken">
+                        <option value="">Choose one (optional)</option>
+                        <option>No, nothing broke</option>
+                        <option>Yes, something broke</option>
+                        <option>Not sure</option>
+                    </select>
+                    <p class="hint">If yes, describe what happened below.</p>
+                    <textarea id="q-broken-detail" name="broken-detail" placeholder="What you were doing, and what you saw"></textarea>
+                </div>
+
+                <div class="feedback-field">
+                    <label for="q-helped">4. Which feature helped most, if any?</label>
+                    <input type="text" id="q-helped" name="helped" placeholder="For example: one-tap logging, the calendar, the doctor report">
+                </div>
+
+                <div class="feedback-field">
+                    <label for="q-missing">5. What is missing that you wanted?</label>
+                    <textarea id="q-missing" name="missing" placeholder="A feature, a view, or something you tried to do and couldn&rsquo;t"></textarea>
+                </div>
+
+                <div class="feedback-field">
+                    <label for="q-keep-using">6. How likely would you keep using it after 2 weeks?</label>
+                    <select id="q-keep-using" name="keep-using">
+                        <option value="">Choose one (optional)</option>
+                        <option>Very likely</option>
+                        <option>Likely</option>
+                        <option>Not sure</option>
+                        <option>Unlikely</option>
+                        <option>Very unlikely</option>
+                    </select>
+                </div>
+
+                <div class="feedback-field">
+                    <label for="q-anything-else">7. Anything else?</label>
+                    <textarea id="q-anything-else" name="anything-else" placeholder="Anything else you want us to know"></textarea>
+                </div>
+
+                <div class="feedback-actions">
+                    <button type="submit">Open email to send feedback</button>
+                    <button type="button" class="secondary" id="copy-feedback-btn">Copy feedback as text</button>
+                </div>
+                <p id="feedback-status" role="status"></p>
+            </form>
+
+            <div class="info-box" style="margin-top: 32px;">
+                <h4>Prefer to write your own email?</h4>
+                <p>Email <a href="mailto:support@aidingmigraine.com">support@aidingmigraine.com</a> directly, or <a href="https://github.com/AidedMarketing/AidingMigraine/issues" target="_blank" rel="noopener">report an issue on GitHub</a> if you don&rsquo;t hear back.</p>
+            </div>
+        </main>
+
+        <footer class="help-footer">
+            <p>Questions? <a href="mailto:support@aidingmigraine.com">Contact us</a></p>
+            <p><a href="index.html">← Back to Help Center</a> | <a href="../index.html">Return to App</a></p>
+        </footer>
+    </div>
+
+    <script>
+        (function () {
+            var form = document.getElementById('beta-feedback-form');
+            var statusEl = document.getElementById('feedback-status');
+            var copyBtn = document.getElementById('copy-feedback-btn');
+
+            function fieldValue(id) {
+                var el = document.getElementById(id);
+                return el ? el.value.trim() : '';
+            }
+
+            function buildFeedbackText() {
+                var lines = [
+                    'Aiding Migraine beta feedback',
+                    '',
+                    '1. How easy was it to log a migraine? ' + (fieldValue('q-ease') || '(not answered)'),
+                    '2. What was confusing or hard to find? ' + (fieldValue('q-confusing') || '(not answered)'),
+                    '3. Did anything feel wrong or break? ' + (fieldValue('q-broken') || '(not answered)'),
+                    '   Details: ' + (fieldValue('q-broken-detail') || '(none)'),
+                    '4. Which feature helped most, if any? ' + (fieldValue('q-helped') || '(not answered)'),
+                    '5. What is missing that you wanted? ' + (fieldValue('q-missing') || '(not answered)'),
+                    '6. How likely would you keep using it after 2 weeks? ' + (fieldValue('q-keep-using') || '(not answered)'),
+                    '7. Anything else? ' + (fieldValue('q-anything-else') || '(not answered)')
+                ];
+                return lines.join('\n');
+            }
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                var subject = 'Aiding Migraine beta feedback';
+                var mailto = 'mailto:support@aidingmigraine.com'
+                    + '?subject=' + encodeURIComponent(subject)
+                    + '&body=' + encodeURIComponent(buildFeedbackText());
+                statusEl.textContent = 'Opening your email app with your answers filled in. Nothing has been sent yet — send it from your email app when you are ready.';
+                window.location.href = mailto;
+            });
+
+            copyBtn.addEventListener('click', function () {
+                var text = buildFeedbackText();
+                function done() {
+                    statusEl.textContent = 'Feedback copied. Paste it into an email to support@aidingmigraine.com, or into a GitHub issue.';
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done, function () {
+                        statusEl.textContent = 'Could not copy automatically. Select the text below and copy it yourself: ' + text;
+                    });
+                } else {
+                    statusEl.textContent = 'Copy is not available in this browser. Please use “Open email to send feedback” instead.';
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

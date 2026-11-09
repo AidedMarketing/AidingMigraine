@@ -32,6 +32,7 @@ const ASSETS_TO_CACHE = [
     './help/faq.html',
     './help/privacy.html',
     './help/terms.html',
+    './help/feedback.html',
     './help/styles.css'
 ];
 
