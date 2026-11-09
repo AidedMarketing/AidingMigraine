@@ -93,8 +93,8 @@ NODE_ENV=development
 
 # VAPID Keys for Web Push (from npx web-push generate-vapid-keys)
 VAPID_SUBJECT=mailto:your-email@example.com
-VAPID_PUBLIC_KEY=BHVugOyMNYtN5lftKJrKO10dSl7XPSGB1fWJ2eRrfAhnx-dtqY44AllB0tiTUnZaouhvzZdRADqf4C6MVW4oKdM
-VAPID_PRIVATE_KEY=6F-ixbgK_2sEpZ-HsxXvgebLoOe2Fk03tWOvZfiDUe0
+VAPID_PUBLIC_KEY=YOUR_VAPID_PUBLIC_KEY_HERE
+VAPID_PRIVATE_KEY=YOUR_VAPID_PRIVATE_KEY_HERE
 
 # Admin API Key (from node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
 ADMIN_API_KEY=replace-with-a-new-random-secret
