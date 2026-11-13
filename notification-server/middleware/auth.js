@@ -153,6 +153,46 @@ function validatePreferences(req, res, next) {
         preferences.postAttackFollowUp.delayHours = hours;
     }
 
+    // Validate pressureAlerts (sent alongside notification preferences when
+    // the user also has weather tracking on; location + threshold are what
+    // the server needs to poll the forecast for pressure alerts)
+    if (preferences.pressureAlerts !== undefined) {
+        const pa = preferences.pressureAlerts;
+        if (typeof pa !== 'object' || pa === null) {
+            return res.status(400).json({
+                error: 'Invalid preferences',
+                message: 'pressureAlerts must be an object'
+            });
+        }
+        if (pa.enabled) {
+            const lat = Number(pa.latitude);
+            const lon = Number(pa.longitude);
+            if (!Number.isFinite(lat) || lat < -90 || lat > 90 ||
+                !Number.isFinite(lon) || lon < -180 || lon > 180) {
+                return res.status(400).json({
+                    error: 'Invalid preferences',
+                    message: 'pressureAlerts latitude/longitude must be valid coordinates'
+                });
+            }
+            pa.latitude = lat;
+            pa.longitude = lon;
+            const threshold = Number(pa.thresholdHpa);
+            if (!Number.isFinite(threshold) || threshold < 1 || threshold > 20) {
+                return res.status(400).json({
+                    error: 'Invalid preferences',
+                    message: 'pressureAlerts.thresholdHpa must be between 1 and 20'
+                });
+            }
+            pa.thresholdHpa = threshold;
+            if (pa.timezone !== undefined && typeof pa.timezone !== 'string') {
+                return res.status(400).json({
+                    error: 'Invalid preferences',
+                    message: 'pressureAlerts.timezone must be a string'
+                });
+            }
+        }
+    }
+
     next();
 }
 

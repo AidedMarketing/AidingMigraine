@@ -17,7 +17,7 @@
         </header>
 
         <main class="help-content">
-            <p><em>Last updated: November 9, 2026</em></p>
+            <p><em>Last updated: November 13, 2026</em></p>
 
             <div class="info-box success">
                 <h4>Privacy First, Always</h4>
@@ -67,9 +67,9 @@
                 <li><strong>Weather data:</strong> 30 days of barometric pressure history</li>
             </ul>
 
-            <p><strong>Important:</strong> All weather data is stored exclusively on your device. Your location is:</p>
+            <p><strong>Important:</strong> Your weather history is stored exclusively on your device. Your location is:</p>
             <ul>
-                <li>✅ Never sent to our servers</li>
+                <li>✅ Never sent to our servers — with one exception you control: if you also turn on Notifications, your coordinates and pressure-alert threshold are stored on the notification server so it can check the forecast and send you a pressure alert while the app is closed. Turn notifications off and that copy is removed with your subscription</li>
                 <li>✅ Only sent to two services that make the feature work: Open-Meteo (fetches the weather for your coordinates) and Nominatim/OpenStreetMap (turns your city/ZIP into coordinates, or coordinates into a city name if you use the optional GPS button)</li>
                 <li>✅ Never shared with anyone else</li>
                 <li>✅ Deleted when you disable weather tracking</li>
@@ -116,7 +116,7 @@
             <ul>
                 <li>❌ <strong>No personal identifying information</strong> (name, email, phone number)</li>
                 <li>❌ <strong>No migraine symptoms or health data</strong> (we never see your entries)</li>
-                <li>❌ <strong>No server-side location tracking</strong> (weather location stored locally only, timezone for notifications)</li>
+                <li>❌ <strong>No server-side location tracking</strong> (your location is never tracked or logged; if you use both weather tracking and notifications, your chosen coordinates are stored with your notification subscription only so the server can check your forecast for pressure alerts)</li>
                 <li>❌ <strong>No GPS access unless you ask for it</strong> (you can type your location manually; the optional "use my location" button asks the browser for GPS one time to fill it in)</li>
                 <li>❌ <strong>No analytics or usage tracking</strong> (we don't use Google Analytics, Facebook Pixel, etc.)</li>
                 <li>❌ <strong>No advertising IDs or tracking cookies</strong></li>
@@ -154,7 +154,7 @@
             <strong>Who has access:</strong> Only you (via your device)</p>
 
             <h3>Notification Server (Our Servers)</h3>
-            <p><strong>What's stored:</strong> Push subscription token, notification time, timezone<br>
+            <p><strong>What's stored:</strong> Push subscription token, notification time, timezone; if weather tracking is also on, your location coordinates and pressure-alert threshold (used only to check your forecast and send pressure alerts)<br>
             <strong>How long:</strong> Until you disable notifications or the token expires<br>
             <strong>Who has access:</strong> Only our notification service (not shared with third parties)<br>
             <strong>Location:</strong> Hosted on Render.com servers</p>
@@ -177,7 +177,7 @@
                 <tr>
                     <td>Render.com</td>
                     <td>Host notification scheduling server</td>
-                    <td>Notification preferences (time, timezone, schedule); for follow-ups, an attack identifier + reminder times</td>
+                    <td>Notification preferences (time, timezone, schedule); for follow-ups, an attack identifier + reminder times; for pressure alerts, location coordinates + alert threshold</td>
                 </tr>
                 <tr>
                     <td>GitHub Pages</td>
