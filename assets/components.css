@@ -1649,41 +1649,59 @@ textarea:focus-visible,
     cursor: default;
 }
 
-.calendar-day.today {
-    border-color: var(--accent-blue);
-}
-
 .calendar-day.has-episode {
     font-weight: 600;
 }
 
+/* Today and the selected day are border rings, not fills, so they stay
+   obvious on top of every day state (plain, start, continuation) in
+   every theme. Selected is declared after today so its ring wins when
+   a day is both. */
+.calendar-day.today {
+    border-color: var(--accent-green);
+    font-weight: 700;
+}
+
+.calendar-day.selected {
+    border-color: var(--text-primary);
+    font-weight: 700;
+}
+
+/* Day-state fills come from the beta.5 data tokens in tokens.css: start
+   days wear the same severity scale as the Insights charts, and
+   continuation days wear solid mixes of that scale over the card color
+   (the old translucent --pain-*-soft fills composited into mud over
+   dark cards, and in Dusk the start fills were near-identical rose).
+   --cal-on-sev keeps day numbers >= 4.5:1 on the start fills in every
+   theme; continuation numbers use the body text color, likewise
+   verified >= 4.5:1 on the solid mixes. */
 .calendar-day.mild {
-    background: var(--pain-mild);
-    color: var(--bg-primary);
+    background: var(--chart-sev-mild);
+    color: var(--cal-on-sev);
 }
 
 .calendar-day.moderate {
-    background: var(--pain-moderate);
-    color: var(--bg-primary);
+    background: var(--chart-sev-moderate);
+    color: var(--cal-on-sev);
 }
 
 .calendar-day.severe {
-    background: var(--pain-severe);
-    color: var(--bg-primary);
+    background: var(--chart-sev-severe);
+    color: var(--cal-on-sev);
 }
 
 .calendar-day.mild-continuation {
-    background: var(--pain-mild-soft);
+    background: var(--cal-cont-mild);
     color: var(--text-primary);
 }
 
 .calendar-day.moderate-continuation {
-    background: var(--pain-moderate-soft);
+    background: var(--cal-cont-moderate);
     color: var(--text-primary);
 }
 
 .calendar-day.severe-continuation {
-    background: var(--pain-severe-soft);
+    background: var(--cal-cont-severe);
     color: var(--text-primary);
 }
 
@@ -1722,15 +1740,15 @@ textarea:focus-visible,
 }
 
 .legend-dot.mild {
-    background: var(--pain-mild);
+    background: var(--chart-sev-mild);
 }
 
 .legend-dot.moderate {
-    background: var(--pain-moderate);
+    background: var(--chart-sev-moderate);
 }
 
 .legend-dot.severe {
-    background: var(--pain-severe);
+    background: var(--chart-sev-severe);
 }
 
 #history-list {
