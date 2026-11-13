@@ -190,6 +190,29 @@ function getSubscriptionsForDailyCheckIn(currentHour, currentDay) {
     });
 }
 
+// Pressure alert management
+// Subscriptions whose preferences include pressure alerts with a usable
+// location. The per-subscription pressureAlertState lives on the record:
+// { lastEventKey, lastSentLocalDate, lastSentAt }.
+function getSubscriptionsForPressureAlerts() {
+    return subscriptions.filter(sub => {
+        const pa = sub.preferences && sub.preferences.pressureAlerts;
+        return pa && pa.enabled === true &&
+            Number.isFinite(pa.latitude) && Number.isFinite(pa.longitude);
+    });
+}
+
+async function updatePressureAlertState(endpoint, state) {
+    const subscription = subscriptions.find(s => s.endpoint === endpoint);
+    if (subscription) {
+        subscription.pressureAlertState = state;
+        subscription.updatedAt = new Date().toISOString();
+        await saveSubscriptions();
+        return subscription;
+    }
+    return null;
+}
+
 // Scheduled follow-up management
 async function addScheduledFollowup(followup) {
     scheduledFollowups.push({
@@ -293,6 +316,8 @@ module.exports = {
     getSubscriptionByEndpoint,
     getAllSubscriptions,
     getSubscriptionsForDailyCheckIn,
+    getSubscriptionsForPressureAlerts,
+    updatePressureAlertState,
     addScheduledFollowup,
     getFollowupsDueNow,
     markFollowupAsSent,

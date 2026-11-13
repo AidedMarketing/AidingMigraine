@@ -126,11 +126,34 @@ function createActiveCheckinPayload(attackId) {
     };
 }
 
+/**
+ * Create notification payload for a barometric pressure alert.
+ * @param {{direction: 'drop'|'rise', rapidChange: number, hoursUntil: number}} alert
+ * Copy is a gentle heads-up only — no risk percentages, no medical claims.
+ */
+function createPressureAlertPayload(alert) {
+    const change = Math.abs(alert.rapidChange).toFixed(1);
+    const when = alert.hoursUntil <= 1 ? 'within the next hour' : `starting in about ${alert.hoursUntil} hours`;
+    const body = alert.direction === 'drop'
+        ? `Pressure is dropping — about ${change} hPa over 6 hours, ${when}. A gentle heads-up so you can plan.`
+        : `Pressure is rising — about ${change} hPa over 6 hours, ${when}. A gentle heads-up so you can plan.`;
+    return {
+        title: 'Aiding Migraine',
+        body: body,
+        icon: './icons/icon-192x192.png',
+        badge: './icons/icon-72x72.png',
+        tag: 'pressure-alert',
+        url: './?action=analytics',
+        type: 'pressure-alert'
+    };
+}
+
 module.exports = {
     initializePushService,
     sendWebPushNotification,
     sendBulkNotifications,
     createDailyCheckInPayload,
     createFollowUpPayload,
-    createActiveCheckinPayload
+    createActiveCheckinPayload,
+    createPressureAlertPayload
 };

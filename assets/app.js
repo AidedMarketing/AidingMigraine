@@ -6309,7 +6309,8 @@ async function enableNotifications() {
                         utcTime: utcData.utcTime,
                         timezone: utcData.timezone
                     },
-                    postAttackFollowUp: notificationPreferences.postAttackFollowUp
+                    postAttackFollowUp: notificationPreferences.postAttackFollowUp,
+                    pressureAlerts: getPressureAlertPreferences()
                 }
             })
         });
@@ -6433,6 +6434,41 @@ async function sendTestNotification() {
     }
 }
 
+// On-device fallback for pressure alerts: when the app is opened and a
+// predictive alert with a pressure trigger is showing on the risk card,
+// also surface it as a device notification. The server-side pressure job
+// covers the app-closed case; this covers users whose subscription has
+// not (yet) synced a location. Deduped once per forecast alert time.
+async function maybeShowLocalPressureAlert(alerts) {
+    try {
+        if (!notificationPreferences.enabled || typeof Notification === 'undefined' ||
+            Notification.permission !== 'granted') {
+            return;
+        }
+        const alert = (alerts || []).find(a =>
+            (a.triggers || []).some(t => /pressure/i.test(t)));
+        if (!alert) return;
+
+        const dedupeKey = `pressureAlertShown:${alert.time}`;
+        if (localStorage.getItem(dedupeKey)) return;
+
+        const trigger = alert.triggers.find(t => /pressure/i.test(t));
+        const when = alert.hoursUntil <= 1 ? 'within the hour' : `in about ${alert.hoursUntil} hours`;
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification('Aiding Migraine', {
+            body: `${trigger} — expected ${when}. A gentle heads-up so you can plan.`,
+            icon: './icons/icon-192x192.png',
+            badge: './icons/icon-72x72.png',
+            tag: 'pressure-alert',
+            requireInteraction: false,
+            data: { url: './?action=analytics' }
+        });
+        localStorage.setItem(dedupeKey, new Date().toISOString());
+    } catch (error) {
+        console.warn('Local pressure alert could not be shown:', error);
+    }
+}
+
 function handleNotificationDeepLink() {
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get('action');
@@ -6463,6 +6499,25 @@ function handleNotificationDeepLink() {
     window.history.replaceState({}, document.title, window.location.pathname);
 }
 
+// Pressure alert preferences for the notification server. The server can
+// only check the forecast (and push an alert while the app is closed) if
+// it knows where to look and how big a change matters to this user, so
+// when weather tracking is on we sync the location + effective rapid
+// threshold alongside the notification preferences. Location is only
+// ever synced while a push subscription exists.
+function getPressureAlertPreferences() {
+    const hasLocation = weatherData.enabled &&
+        Number.isFinite(weatherData.location.lat) &&
+        Number.isFinite(weatherData.location.lon);
+    return {
+        enabled: !!hasLocation,
+        latitude: hasLocation ? weatherData.location.lat : null,
+        longitude: hasLocation ? weatherData.location.lon : null,
+        thresholdHpa: getEffectiveThreshold('rapid'),
+        timezone: getUserTimezone()
+    };
+}
+
 async function syncPreferencesWithServer() {
     // Sync preferences with the notification server
     if (!notificationPreferences.pushSubscription) {
@@ -6479,7 +6534,8 @@ async function syncPreferencesWithServer() {
                 endpoint: notificationPreferences.pushSubscription.endpoint,
                 preferences: {
                     dailyCheckIn: notificationPreferences.dailyCheckIn,
-                    postAttackFollowUp: notificationPreferences.postAttackFollowUp
+                    postAttackFollowUp: notificationPreferences.postAttackFollowUp,
+                    pressureAlerts: getPressureAlertPreferences()
                 }
             })
         });
@@ -7019,6 +7075,11 @@ async function saveWeatherData() {
     }
     // Also save to localStorage as backup
     localStorage.setItem('weatherData', JSON.stringify(weatherData));
+
+    // Weather location/threshold feed the server-side pressure alerts;
+    // keep the notification server in step whenever they change.
+    // (No-op when there is no push subscription.)
+    syncPreferencesWithServer();
 }
 
 // Save weather location (geocode and fetch weather)
@@ -8015,6 +8076,7 @@ function updateTodayRiskCard() {
     const alertsEl = document.getElementById('risk-card-alerts');
     if (alertsEl) {
         const alerts = generatePredictiveAlerts().slice(0, 2);
+        maybeShowLocalPressureAlert(alerts);
         if (alerts.length > 0) {
             alertsEl.innerHTML = safeHTML(alerts.map(a => {
                 const trigger = (a.triggers && a.triggers.length > 0) ? a.triggers[0] : 'Atmospheric change';

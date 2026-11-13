@@ -13,14 +13,23 @@ const {
     markActiveCheckinAsSent,
     getSubscriptionByEndpoint,
     removeSubscription,
-    pruneOldRecords
+    pruneOldRecords,
+    getSubscriptionsForPressureAlerts,
+    updatePressureAlertState
 } = require('./database');
 const {
     sendWebPushNotification,
     createDailyCheckInPayload,
     createFollowUpPayload,
-    createActiveCheckinPayload
+    createActiveCheckinPayload,
+    createPressureAlertPayload
 } = require('./push-notifications');
+const {
+    fetchPressureForecast,
+    findStrongestPressureWindow,
+    localDateKey,
+    shouldSendPressureAlert
+} = require('./pressure-alerts');
 
 function initializeScheduler() {
     console.log('🕐 Initializing notification scheduler...');
@@ -65,12 +74,75 @@ function initializeScheduler() {
         }
     });
 
+    // Every hour at :30: check pressure forecasts for users who opted in
+    const pressureJob = schedule.scheduleJob('30 * * * *', async () => {
+        try {
+            await processPressureAlerts();
+        } catch (error) {
+            console.error('❌ Error in pressure alert check:', error);
+        }
+    });
+
     console.log('✅ Scheduler initialized');
     console.log('   - Hourly job for daily check-ins');
     console.log('   - Every 15 minutes for follow-ups and active check-ins');
+    console.log('   - Hourly at :30 for pressure alerts');
     console.log('   - Daily prune of old notification records');
 
-    return { hourlyJob, followupJob, pruneJob };
+    return { hourlyJob, followupJob, pruneJob, pressureJob };
+}
+
+async function processPressureAlerts(now = new Date()) {
+    const subscriptions = getSubscriptionsForPressureAlerts();
+
+    if (subscriptions.length === 0) {
+        return;
+    }
+
+    console.log(`🌡️ Checking pressure forecasts for ${subscriptions.length} user(s)...`);
+
+    let sent = 0;
+    let failed = 0;
+
+    for (const subscription of subscriptions) {
+        const pa = subscription.preferences.pressureAlerts;
+        try {
+            const hourly = await fetchPressureForecast(pa.latitude, pa.longitude);
+            const alert = findStrongestPressureWindow(hourly, pa.thresholdHpa || 5, now);
+            if (!alert) continue;
+
+            const todayLocal = localDateKey(now, pa.timezone);
+            if (!shouldSendPressureAlert(subscription.pressureAlertState, alert.eventKey, todayLocal)) {
+                continue;
+            }
+
+            const payload = createPressureAlertPayload(alert);
+            const result = await sendWebPushNotification(subscription, payload);
+
+            if (result.success) {
+                await updatePressureAlertState(subscription.endpoint, {
+                    lastEventKey: alert.eventKey,
+                    lastSentLocalDate: todayLocal,
+                    lastSentAt: now.toISOString()
+                });
+                sent++;
+                console.log(`   ✅ Pressure alert sent (${alert.direction} ${alert.rapidChange} hPa/6h)`);
+            } else {
+                failed++;
+                if (result.error === 'subscription_expired') {
+                    await removeSubscription(subscription.endpoint);
+                    console.log('   🧹 Removed expired subscription');
+                }
+            }
+        } catch (error) {
+            console.error('   Error processing pressure alert:', error);
+            failed++;
+        }
+    }
+
+    if (sent > 0 || failed > 0) {
+        console.log(`   ✅ Pressure alerts sent: ${sent}, Failed: ${failed}`);
+    }
 }
 
 async function processDailyCheckIns(currentHour, currentDay) {
@@ -225,5 +297,6 @@ module.exports = {
     initializeScheduler,
     processDailyCheckIns,
     processScheduledFollowUps,
-    processActiveCheckins
+    processActiveCheckins,
+    processPressureAlerts
 };
