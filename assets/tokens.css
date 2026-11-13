@@ -1,4 +1,11 @@
 /* Aiding Migraine — a quiet journal with a focused attack surface. */
+/* Data colors (5.10.0-beta.5): every theme block also defines a chart
+   palette (--chart-1..4), ONE severity scale (--chart-sev-*) shared by
+   the Insights charts and the History calendar, solid continuation-day
+   fills (--cal-cont-*) mixed from that scale over the card color, and
+   the day-number color for severity-filled cells (--cal-on-sev). All
+   values were contrast-checked per theme: severity marks >= 3:1 on the
+   card color, calendar day numbers >= 4.5:1 on their cell fills. */
 :root {
     color-scheme: dark;
     --bg-primary: #2a1e22;
@@ -14,6 +21,17 @@
     --pain-mild: #d59d84;
     --pain-moderate: #d9b887;
     --pain-severe: #dfa08d;
+    --chart-1: #d59d84;
+    --chart-2: #d9b269;
+    --chart-3: #d97e5f;
+    --chart-4: #b39a90;
+    --chart-sev-mild: #d3a284;
+    --chart-sev-moderate: #d9b269;
+    --chart-sev-severe: #de8468;
+    --cal-cont-mild: #74584f;
+    --cal-cont-moderate: #775e44;
+    --cal-cont-severe: #794c43;
+    --cal-on-sev: #2a1e22;
     --accent-soft: #413039;
     --surface-raised: #413039;
     --surface-nav: #2a1e22;
@@ -61,6 +79,17 @@
     --pain-mild: #c4b6e8;
     --pain-moderate: #d9b887;
     --pain-severe: #e9a095;
+    --chart-1: #c4b6e8;
+    --chart-2: #d9b887;
+    --chart-3: #e9a095;
+    --chart-4: #a89fc4;
+    --chart-sev-mild: #c4b6e8;
+    --chart-sev-moderate: #d9b887;
+    --chart-sev-severe: #e9a095;
+    --cal-cont-mild: #655f7b;
+    --cal-cont-moderate: #6d6054;
+    --cal-cont-severe: #73565a;
+    --cal-on-sev: #1c1c27;
     --accent-soft: #363047;
     --surface-raised: #303040;
     --surface-nav: #1c1c27;
@@ -89,6 +118,17 @@
     --pain-mild: #695085;
     --pain-moderate: #806023;
     --pain-severe: #a14238;
+    --chart-1: #695085;
+    --chart-2: #806023;
+    --chart-3: #a14238;
+    --chart-4: #8a7d99;
+    --chart-sev-mild: #695085;
+    --chart-sev-moderate: #806023;
+    --chart-sev-severe: #a14238;
+    --cal-cont-mild: #ccc2d2;
+    --cal-cont-moderate: #d4c8b1;
+    --cal-cont-severe: #dfbdb8;
+    --cal-on-sev: #fffdfa;
     --accent-soft: #eee5f5;
     --surface-raised: #eee9f3;
     --surface-nav: #f7f4ef;
@@ -117,6 +157,17 @@
     --pain-mild: #d2ffc2;
     --pain-moderate: #ffdf8e;
     --pain-severe: #ffb7b0;
+    --chart-1: #66bb6a;
+    --chart-2: #ffdf8e;
+    --chart-3: #ffb7b0;
+    --chart-4: #e0e0e0;
+    --chart-sev-mild: #d2ffc2;
+    --chart-sev-moderate: #ffdf8e;
+    --chart-sev-severe: #ffb7b0;
+    --cal-cont-mild: #5e7257;
+    --cal-cont-moderate: #706542;
+    --cal-cont-severe: #705550;
+    --cal-on-sev: #000000;
     --accent-soft: #202820;
     --surface-raised: #202820;
     --surface-nav: #000;
@@ -153,6 +204,17 @@
     --pain-mild: #74452e;
     --pain-moderate: #8a5d1f;
     --pain-severe: #9c4a34;
+    --chart-1: #74452e;
+    --chart-2: #a06a1c;
+    --chart-3: #9c4a34;
+    --chart-4: #8a6f66;
+    --chart-sev-mild: #8f6134;
+    --chart-sev-moderate: #7a5410;
+    --chart-sev-severe: #9c4a34;
+    --cal-cont-mild: #ceb8a1;
+    --cal-cont-moderate: #c5b392;
+    --cal-cont-severe: #d3aea1;
+    --cal-on-sev: #fbf6ee;
     --accent-soft: #efe3d3;
     --surface-raised: #efe3d3;
     --surface-nav: #f4ece1;
@@ -182,6 +244,17 @@
     --pain-mild: #d59d84;
     --pain-moderate: #d9b887;
     --pain-severe: #dfa08d;
+    --chart-1: #d59d84;
+    --chart-2: #d9b269;
+    --chart-3: #d97e5f;
+    --chart-4: #b39a90;
+    --chart-sev-mild: #d3a284;
+    --chart-sev-moderate: #d9b269;
+    --chart-sev-severe: #de8468;
+    --cal-cont-mild: #74584f;
+    --cal-cont-moderate: #775e44;
+    --cal-cont-severe: #794c43;
+    --cal-on-sev: #2a1e22;
     --accent-soft: #413039;
     --surface-raised: #413039;
     --surface-nav: #2a1e22;
@@ -211,6 +284,17 @@
     --pain-mild: #cf9a76;
     --pain-moderate: #d3ad7c;
     --pain-severe: #d69c88;
+    --chart-1: #cf9a76;
+    --chart-2: #d3ab72;
+    --chart-3: #d9836a;
+    --chart-4: #a89084;
+    --chart-sev-mild: #cfa07e;
+    --chart-sev-moderate: #d3ab72;
+    --chart-sev-severe: #d9836a;
+    --cal-cont-mild: #675044;
+    --cal-cont-moderate: #68543f;
+    --cal-cont-severe: #6b443c;
+    --cal-on-sev: #171213;
     --accent-soft: #2a2026;
     --surface-raised: #2a2026;
     --surface-nav: #171213;
@@ -240,6 +324,17 @@
     --pain-mild: #4e6a4a;
     --pain-moderate: #8a5d1f;
     --pain-severe: #9c4a34;
+    --chart-1: #4e6a4a;
+    --chart-2: #8a5d1f;
+    --chart-3: #9c4a34;
+    --chart-4: #6d7c5f;
+    --chart-sev-mild: #4e6a4a;
+    --chart-sev-moderate: #8a5d1f;
+    --chart-sev-severe: #9c4a34;
+    --cal-cont-mild: #bfc9bc;
+    --cal-cont-moderate: #d3c5ad;
+    --cal-cont-severe: #d9beb4;
+    --cal-on-sev: #f9faf6;
     --accent-soft: #e3e9dc;
     --surface-raised: #e3e9dc;
     --surface-nav: #eef1ea;
@@ -269,6 +364,17 @@
     --pain-mild: #a5c69e;
     --pain-moderate: #cfb489;
     --pain-severe: #dda08e;
+    --chart-1: #a5c69e;
+    --chart-2: #cfb489;
+    --chart-3: #dda08e;
+    --chart-4: #93a487;
+    --chart-sev-mild: #a5c69e;
+    --chart-sev-moderate: #cfb489;
+    --chart-sev-severe: #dda08e;
+    --cal-cont-mild: #596b54;
+    --cal-cont-moderate: #69644c;
+    --cal-cont-severe: #6f5c4e;
+    --cal-on-sev: #22281f;
     --accent-soft: #35402f;
     --surface-raised: #35402f;
     --surface-nav: #22281f;
@@ -298,6 +404,17 @@
     --pain-mild: #a6c69b;
     --pain-moderate: #c8ab7d;
     --pain-severe: #d69c88;
+    --chart-1: #a6c69b;
+    --chart-2: #c8ab7d;
+    --chart-3: #d69c88;
+    --chart-4: #8b9c80;
+    --chart-sev-mild: #a6c69b;
+    --chart-sev-moderate: #c8ab7d;
+    --chart-sev-severe: #d69c88;
+    --cal-cont-mild: #52624b;
+    --cal-cont-moderate: #60583f;
+    --cal-cont-severe: #655244;
+    --cal-on-sev: #12160f;
     --accent-soft: #232b1e;
     --surface-raised: #232b1e;
     --surface-nav: #12160f;

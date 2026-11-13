@@ -5,6 +5,14 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0-beta.5] - 2026-11-13
+
+### Fixed
+
+- **Brightness previews now follow the tone you pick:** in Settings → Comfort & color, the Light / Dim / Dark preview cards always showed the Dusk swatches, even with Sage selected. Each preview is now painted from the selected tone's colors at that brightness, and repaints the moment you tap Dusk or Sage.
+- **History calendar day colors are clear in every theme:** attack-start days now use one strong severity scale (the same colors as the Insights severity chart), continuation days use solid, softer versions of the same scale instead of the old translucent fills that turned muddy over dark cards, and day numbers keep at least 4.5:1 contrast on their fills in all six tone × brightness combinations. Today keeps a clear ring, and the day you open is now ringed too.
+- **Insights charts share one color system:** every chart — frequency, severity, time of day, day of week, pressure, and the ranked breakdowns — now reads a dedicated chart palette defined per theme, so the charts match the tone and brightness you've chosen and each other. The Day of Week bars and pressure line no longer use the blue accent color, and switching tone or brightness re-renders the charts in the new palette (including a change made in another tab).
+
 ## [5.10.0-beta.4] - 2026-11-13
 
 ### Added

@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.10.0-beta.4';
+const APP_VERSION = '5.10.0-beta.5';
 
 let migraines = [];
 let selectedPain = null;
@@ -2027,6 +2027,13 @@ function initializeTheme() {
     colorThemePref = readColorTheme();
     applyTheme(colorThemePref);
 
+    // A theme change made in another tab repaints attributes via
+    // theme.js, but charts keep the colors they were constructed with —
+    // route it through applyTheme so Insights re-renders too (beta.5).
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'colorTheme') applyTheme(readColorTheme());
+    });
+
     document.querySelectorAll('.theme-brightness-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             setColorTheme({ brightness: btn.dataset.brightness, contrast: false });
@@ -3212,6 +3219,11 @@ function updateMonthlyStats() {
     }
 }
 
+// The day whose details are open, kept as visual state only (beta.5) so
+// the calendar can ring it; renderCalendar re-applies the class after
+// every rebuild (e.g. month navigation).
+let selectedCalendarDay = null;
+
 function renderCalendar() {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
@@ -3301,6 +3313,10 @@ function renderCalendar() {
             classes += ' today';
         }
 
+        if (dateStr === selectedCalendarDay) {
+            classes += ' selected';
+        }
+
         if (activeMigraine) {
             const activeDate = new Date(activeMigraine.startTime).toISOString().split('T')[0];
             if (dateStr === activeDate) {
@@ -3379,6 +3395,11 @@ function renderCalendar() {
 }
 
 function showDayDetails(dateStr) {
+    // Ring the opened day (visual state only — no data changes).
+    selectedCalendarDay = dateStr;
+    document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
+    document.querySelector(`.calendar-day[data-day="${dateStr}"]`)?.classList.add('selected');
+
     const activeMigraines = getActiveMigraines();
 
     // Find attacks that started on this day
@@ -9130,7 +9151,7 @@ function withAlpha(color, alpha) {
 
 // Chart palette, derived from the active theme's brand tokens.
 function getChartColors() {
-    const primary = themeToken('--accent-green', '#8fb394');
+    const primary = themeToken('--chart-1', '#d59d84');
     const text = themeToken('--text-primary', '#ede8df');
 
     return {
@@ -9140,10 +9161,21 @@ function getChartColors() {
         primary: primary,
         primaryBg: withAlpha(primary, 0.2),
         primaryFill: withAlpha(primary, 0.6),
-        green: themeToken('--pain-mild', '#8fb394'),
-        yellow: themeToken('--pain-moderate', '#d4a574'),
-        red: themeToken('--pain-severe', '#c97a6f'),
-        blue: themeToken('--accent-blue', '#7a95b8')
+        // One data palette for every Insights chart (beta.5), defined
+        // per theme in tokens.css. Before this, the severity doughnut
+        // borrowed the --pain-* UI tokens (near-identical mild/severe
+        // in Dusk) and the Day of Week bars + pressure line read the
+        // --accent-blue UI token — a blue series, and the aggravating
+        // band for this app's users. Fallbacks are the Dusk Dim values.
+        series: [
+            primary,
+            themeToken('--chart-2', '#d9b269'),
+            themeToken('--chart-3', '#d97e5f'),
+            themeToken('--chart-4', '#b39a90')
+        ],
+        sevMild: themeToken('--chart-sev-mild', '#d3a284'),
+        sevModerate: themeToken('--chart-sev-moderate', '#d9b269'),
+        sevSevere: themeToken('--chart-sev-severe', '#de8468')
     };
 }
 
@@ -9445,8 +9477,8 @@ function renderTriggerWeatherCorrelation(data) {
         const pct = Math.round(p.rate * 100);
         const barPct = pct;
         const above = p.rate > corr.baselineRate + 0.0001;
-        const barColor = above ? colors.red : colors.primary;
-        const flag = above ? ` <span style="color: ${colors.red};" title="Above your baseline">▲</span>` : '';
+        const barColor = above ? colors.sevSevere : colors.primary;
+        const flag = above ? ` <span style="color: ${colors.sevSevere};" title="Above your baseline">▲</span>` : '';
         return `
             <div style="margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px;">
@@ -9611,9 +9643,9 @@ function renderPainChart(data) {
             datasets: [{
                 data: [mild, moderate, severe],
                 backgroundColor: [
-                    colors.green,
-                    colors.yellow,
-                    colors.red
+                    colors.sevMild,
+                    colors.sevModerate,
+                    colors.sevSevere
                 ]
             }]
         },
@@ -9744,8 +9776,8 @@ function renderDayOfWeekChart(data) {
             datasets: [{
                 label: 'Number of Migraines',
                 data: Object.values(dowCounts),
-                backgroundColor: colors.blue,
-                borderColor: colors.blue,
+                backgroundColor: colors.primaryFill,
+                borderColor: colors.primary,
                 borderWidth: 2
             }]
         },
@@ -9937,7 +9969,7 @@ function renderPressureChart(data, startDate, endDate) {
                     label: 'Migraine day',
                     type: 'bar',
                     data: migraineBarData,
-                    backgroundColor: isDark ? 'rgba(201, 104, 104, 0.18)' : 'rgba(201, 104, 104, 0.12)',
+                    backgroundColor: withAlpha(colors.sevSevere, isDark ? 0.18 : 0.12),
                     borderColor: 'transparent',
                     borderWidth: 0,
                     yAxisID: 'y',
@@ -9949,12 +9981,12 @@ function renderPressureChart(data, startDate, endDate) {
                     // Main pressure line
                     label: `Pressure (${pressureUnit})`,
                     data: pressureData,
-                    borderColor: colors.blue,
+                    borderColor: colors.series[1],
                     backgroundColor: 'transparent',
                     borderWidth: 2,
                     pointRadius: 2,
                     pointHoverRadius: 5,
-                    pointBackgroundColor: colors.blue,
+                    pointBackgroundColor: colors.series[1],
                     tension: 0.3,
                     yAxisID: 'y',
                     order: 1
@@ -9963,8 +9995,8 @@ function renderPressureChart(data, startDate, endDate) {
                     // Migraine day dot markers on the pressure line
                     label: 'Attack occurred',
                     data: migraineMarkers,
-                    borderColor: colors.red,
-                    backgroundColor: colors.red,
+                    borderColor: colors.sevSevere,
+                    backgroundColor: colors.sevSevere,
                     pointRadius: 6,
                     pointHoverRadius: 8,
                     pointStyle: 'circle',

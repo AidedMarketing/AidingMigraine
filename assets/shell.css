@@ -336,9 +336,18 @@ body, button, input, select, textarea, .section-card, .app-topbar { transition: 
    high-contrast row is a single full-width option. */
 .theme-options-tone { grid-template-columns: repeat(2,minmax(0,1fr)); }
 .theme-options-single { grid-template-columns: minmax(0,1fr); }
+/* Brightness previews follow the SELECTED tone (beta.5): the base rules
+   are Dusk (the default tone); the [data-tone="sage"] overrides repaint
+   the same three cards from Sage's tokens. theme.js keeps data-tone on
+   <html> current, so tapping Dusk/Sage repaints these previews live.
+   Chip order is accent / raised surface / text, sampled from the tone's
+   tokens at that brightness. */
 .swatch-bright-light { background: #f4ece1; }.swatch-bright-light i { background: #74452e; }.swatch-bright-light i:nth-child(2) { background:#efe3d3; }.swatch-bright-light i:nth-child(3) { background:#382b25; }
 .swatch-bright-dim { background: #2a1e22; }.swatch-bright-dim i { background: #d59d84; }.swatch-bright-dim i:nth-child(2) { background:#413039; }.swatch-bright-dim i:nth-child(3) { background:#f0e4d7; }
 .swatch-bright-dark { background: #171213; }.swatch-bright-dark i { background: #cf9a76; }.swatch-bright-dark i:nth-child(2) { background:#2a2026; }.swatch-bright-dark i:nth-child(3) { background:#eadccf; }
+:root[data-tone="sage"] .swatch-bright-light { background: #eef1ea; }:root[data-tone="sage"] .swatch-bright-light i { background: #4e6a4a; }:root[data-tone="sage"] .swatch-bright-light i:nth-child(2) { background:#e3e9dc; }:root[data-tone="sage"] .swatch-bright-light i:nth-child(3) { background:#2f382f; }
+:root[data-tone="sage"] .swatch-bright-dim { background: #22281f; }:root[data-tone="sage"] .swatch-bright-dim i { background: #a5c69e; }:root[data-tone="sage"] .swatch-bright-dim i:nth-child(2) { background:#35402f; }:root[data-tone="sage"] .swatch-bright-dim i:nth-child(3) { background:#e8eee1; }
+:root[data-tone="sage"] .swatch-bright-dark { background: #12160f; }:root[data-tone="sage"] .swatch-bright-dark i { background: #a6c69b; }:root[data-tone="sage"] .swatch-bright-dark i:nth-child(2) { background:#232b1e; }:root[data-tone="sage"] .swatch-bright-dark i:nth-child(3) { background:#e1e9d7; }
 .swatch-dusk { background: #2a1e22; }.swatch-dusk i { background: #d59d84; }.swatch-dusk i:nth-child(2) { background:#74452f; }.swatch-dusk i:nth-child(3) { background:#f0e4d7; }
 .swatch-sage { background: #22281f; }.swatch-sage i { background: #a5c69e; }.swatch-sage i:nth-child(2) { background:#5c7052; }.swatch-sage i:nth-child(3) { background:#e8eee1; }
 
