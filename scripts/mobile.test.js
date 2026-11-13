@@ -52,6 +52,17 @@ async function screenshot(page, name) {
     await page.screenshot({ path: path.join(process.env.MOBILE_SCREENSHOTS, `${name}.png`), fullPage: false });
 }
 
+async function newAppContext(browser, options) {
+    const context = await browser.newContext(options);
+    // The beta welcome modal auto-shows on first run (PR #115) and blocks
+    // pointer events. These tests exercise the journal, not the welcome,
+    // so seed the same flag closing the welcome sets for real users.
+    await context.addInitScript(() => {
+        try { localStorage.setItem('hasSeenWelcome', 'true'); } catch { /* storage unavailable */ }
+    });
+    return context;
+}
+
 test('mobile layouts, tracking, editing, themes and offline journal', { timeout: 240000 }, async t => {
     await startServer();
     try {
@@ -60,7 +71,7 @@ test('mobile layouts, tracking, editing, themes and offline journal', { timeout:
             try {
                 for (const width of [320, 390, 430, 768, 1280].filter(width => !process.env.MOBILE_WIDTH || Number(process.env.MOBILE_WIDTH) === width)) {
                     await t.test(`${engine.name()} at ${width}px`, async () => {
-                        const context = await browser.newContext({ viewport: { width, height: 844 }, isMobile: width < 768, timezoneId: 'America/New_York' });
+                        const context = await newAppContext(browser, { viewport: { width, height: 844 }, isMobile: width < 768, timezoneId: 'America/New_York' });
                         context.setDefaultTimeout(15000);
                         const page = await context.newPage();
                         const errors = [];
@@ -172,7 +183,7 @@ test('mobile layouts, tracking, editing, themes and offline journal', { timeout:
                     });
                 }
                 await t.test(`${engine.name()} enlarged text, short screen and landscape`, async () => {
-                    const context = await browser.newContext({ viewport: { width: 320, height: 740 }, isMobile: true });
+                    const context = await newAppContext(browser, { viewport: { width: 320, height: 740 }, isMobile: true });
                     context.setDefaultTimeout(15000);
                     const page = await context.newPage();
                     try {
