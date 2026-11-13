@@ -153,13 +153,23 @@ test('mobile layouts, tracking, editing, themes and offline journal', { timeout:
                             }
                             await page.evaluate(() => { closeModal(); showPage('settings'); });
                             await page.locator('.settings-panel').first().evaluate(node => { node.open = true; });
-                            for (const theme of ['warm-light', 'high-contrast', 'warm-dark']) {
-                                await page.locator(`[data-theme="${theme}"].theme-btn`).click();
-                                assert.equal(await page.locator('html').getAttribute('data-theme'), theme);
+                            for (const check of [
+                                { brightness: 'light', tone: 'dusk', theme: 'dusk-light', expected: ['rgb(244, 236, 225)', 'rgb(56, 43, 37)'] },
+                                { brightness: 'dim', tone: 'sage', theme: 'sage-dim', expected: ['rgb(34, 40, 31)', 'rgb(232, 238, 225)'] },
+                                { brightness: 'dark', tone: 'dusk', theme: 'dusk-dark', expected: ['rgb(23, 18, 19)', 'rgb(234, 220, 207)'] }
+                            ]) {
+                                await page.locator(`.theme-brightness-btn[data-brightness="${check.brightness}"]`).click();
+                                await page.locator(`.theme-tone-btn[data-tone="${check.tone}"]`).click();
+                                assert.equal(await page.locator('html').getAttribute('data-theme'), check.theme);
                                 const colors = await page.evaluate(() => ({ background: getComputedStyle(document.body).backgroundColor, ink: getComputedStyle(document.body).color }));
-                                const expected = { 'warm-light': ['rgb(247, 244, 239)', 'rgb(49, 42, 64)'], 'warm-dark': ['rgb(28, 28, 39)', 'rgb(240, 237, 245)'], 'high-contrast': ['rgb(0, 0, 0)', 'rgb(255, 255, 255)'] }[theme];
-                                assert.deepEqual([colors.background, colors.ink], expected, 'Legacy selectors cannot override the selected theme');
+                                assert.deepEqual([colors.background, colors.ink], check.expected, 'Legacy selectors cannot override the selected theme');
                             }
+                            await page.locator('.theme-contrast-btn').click();
+                            assert.equal(await page.locator('html').getAttribute('data-theme'), 'high-contrast');
+                            const contrastColors = await page.evaluate(() => ({ background: getComputedStyle(document.body).backgroundColor, ink: getComputedStyle(document.body).color }));
+                            assert.deepEqual([contrastColors.background, contrastColors.ink], ['rgb(0, 0, 0)', 'rgb(255, 255, 255)'], 'Legacy selectors cannot override the selected theme');
+                            await page.locator('.theme-brightness-btn[data-brightness="dim"]').click();
+                            assert.equal(await page.locator('html').getAttribute('data-theme'), 'dusk-dim', 'Choosing a brightness leaves High contrast');
                             // WebKit's automated offline toggle aborts navigations before SW
                             // interception on macOS. Kill server connections to exercise its cache.
                             if (engine === chromium) await context.setOffline(true);

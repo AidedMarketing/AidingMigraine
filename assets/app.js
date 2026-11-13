@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.10.0-beta.3';
+const APP_VERSION = '5.10.0-beta.4';
 
 let migraines = [];
 let selectedPain = null;
@@ -2010,43 +2010,77 @@ function showMedicationEffectivenessModal(completedMigraine) {
     return true; // Indicates effectiveness modal was shown
 }
 
-// Themes the picker offers. Anything else in storage (notably the
-// retired 'light' theme) is migrated to its closest surviving match so
-// it can't leave the app on a data-theme with no token block behind it.
-const VALID_THEMES = new Set(['warm-dark', 'warm-light', 'high-contrast']);
-const THEME_MIGRATIONS = { light: 'warm-light', dark: 'warm-dark' };
+// Comfort & color: two tones (Dusk, Sage) x three brightness levels
+// (Light, Dim, Dark), plus the preserved High contrast mode. The
+// preference is resolved in theme.js (loaded before first paint) under
+// the 'colorTheme' key; the retired 'theme' key is only ever read as a
+// first-run seed, never rewritten.
+let colorThemePref = null;
 
-function normalizeTheme(theme) {
-    if (VALID_THEMES.has(theme)) return theme;
-    return THEME_MIGRATIONS[theme] || 'warm-dark';
-}
+const THEME_COLOR_META = {
+    'dusk-light': '#f4ece1', 'dusk-dim': '#2a1e22', 'dusk-dark': '#171213',
+    'sage-light': '#eef1ea', 'sage-dim': '#22281f', 'sage-dark': '#12160f',
+    'warm-dark': '#1c1c27', 'warm-light': '#f7f4ef', 'high-contrast': '#000000'
+};
 
 function initializeTheme() {
-    const storedTheme = localStorage.getItem('theme') || 'warm-dark';
-    const savedTheme = normalizeTheme(storedTheme);
-    if (savedTheme !== storedTheme) {
-        localStorage.setItem('theme', savedTheme);
-    }
-    applyTheme(savedTheme);
+    colorThemePref = readColorTheme();
+    applyTheme(colorThemePref);
 
-    document.querySelectorAll('.theme-btn').forEach(btn => {
+    document.querySelectorAll('.theme-brightness-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const theme = btn.dataset.theme;
-            applyTheme(theme);
-            localStorage.setItem('theme', theme);
+            setColorTheme({ brightness: btn.dataset.brightness, contrast: false });
+        });
+    });
+    document.querySelectorAll('.theme-tone-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setColorTheme({ tone: btn.dataset.tone, contrast: false });
+        });
+    });
+    document.querySelectorAll('.theme-contrast-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setColorTheme({ contrast: !colorThemePref.contrast });
         });
     });
 }
 
-function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    document.querySelectorAll('.theme-btn').forEach(button => {
-        const selected = button.dataset.theme === theme;
+function setColorTheme(patch) {
+    colorThemePref = Object.assign({}, colorThemePref || readColorTheme(), patch);
+    saveColorTheme(colorThemePref);
+    applyTheme(colorThemePref);
+}
+
+// Accepts the preference object theme.js resolves. (A legacy string is
+// tolerated so a mixed-cache page can never throw here.)
+function applyTheme(pref) {
+    if (typeof pref === 'string') {
+        pref = pref === 'high-contrast'
+            ? { tone: 'dusk', brightness: 'dim', contrast: true }
+            : { tone: 'dusk', brightness: pref === 'warm-light' ? 'light' : 'dim', contrast: false };
+    }
+    pref = pref || colorThemePref || readColorTheme();
+    colorThemePref = pref;
+    const name = colorThemeName(pref);
+    const root = document.documentElement;
+    root.setAttribute('data-theme', name);
+    root.setAttribute('data-tone', pref.tone);
+    root.setAttribute('data-brightness', pref.brightness);
+    document.querySelectorAll('.theme-brightness-btn').forEach(button => {
+        const selected = !pref.contrast && button.dataset.brightness === pref.brightness;
         button.classList.toggle('active', selected);
         button.setAttribute('aria-pressed', String(selected));
     });
+    document.querySelectorAll('.theme-tone-btn').forEach(button => {
+        const selected = !pref.contrast && button.dataset.tone === pref.tone;
+        button.classList.toggle('active', selected);
+        button.setAttribute('aria-pressed', String(selected));
+    });
+    document.querySelectorAll('.theme-contrast-btn').forEach(button => {
+        button.classList.toggle('active', pref.contrast);
+        button.setAttribute('aria-pressed', String(pref.contrast));
+    });
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = { 'warm-dark': '#1c1c27', 'warm-light': '#f7f4ef', 'high-contrast': '#000000' }[theme] || '#1c1c27';
+    if (meta) meta.content = THEME_COLOR_META[name] || '#2a1e22';
     if (typeof currentPage !== 'undefined' && currentPage === 'analytics' && chartsAvailable()) renderAnalytics();
 }
 
@@ -9061,9 +9095,9 @@ let analyticsCharts = {
     pressure: null
 };
 
-// Light themes use a light chart palette; warm-dark and high-contrast
-// (a dark high-contrast theme) use the dark palette.
-const LIGHT_THEMES = new Set(['warm-light']);
+// Light themes use a light chart palette; the dim/dark tones and
+// high-contrast (a dark high-contrast theme) use the dark palette.
+const LIGHT_THEMES = new Set(['warm-light', 'dusk-light', 'sage-light']);
 function isDarkTheme() {
     return !LIGHT_THEMES.has(document.documentElement.getAttribute('data-theme'));
 }

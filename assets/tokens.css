@@ -1,5 +1,52 @@
 /* Aiding Migraine — a quiet journal with a focused attack surface. */
-:root, :root[data-theme="warm-dark"] {
+:root {
+    color-scheme: dark;
+    --bg-primary: #2a1e22;
+    --bg-secondary: #36262a;
+    --bg-tertiary: #413039;
+    --text-primary: #f0e4d7;
+    --text-secondary: #cdb6a4;
+    --border-color: #57404a;
+    --accent-green: #d59d84;
+    --accent-green-hover: #e0b199;
+    --accent-red: #dfa08d;
+    --accent-blue: #c9ada1;
+    --pain-mild: #d59d84;
+    --pain-moderate: #d9b887;
+    --pain-severe: #dfa08d;
+    --accent-soft: #413039;
+    --surface-raised: #413039;
+    --surface-nav: #2a1e22;
+    --card-border: #57404a;
+    --chip-bg: #413039;
+    --chip-border: #57404a;
+    --nav-active-bg: #413039;
+    --surface-overlay: rgba(20, 10, 10, .68);
+    --field-bg: #312227;
+    --button-ink: #331f14;
+    --soft-line: #46333c;
+    --focus: #e0b199;
+    --radius: 24px;
+    --radius-md: 14px;
+    --radius-lg: 24px;
+    --text-xs: .8125rem;
+    --text-sm: .875rem;
+    --text-md: 1rem;
+    --card-shadow: none;
+    --shadow: none;
+    --transition: none;
+    --app-bg-gradient: none;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --nav-height: 80px;
+}
+/* Legacy warm-dark (retired as a picker option in 5.10.0-beta.4).
+   Kept so a stored or cross-tab legacy value never lands on a theme
+   with no token block behind it. Bare :root above now carries the
+   default theme, Dusk Dim. */
+:root[data-theme="warm-dark"] {
     color-scheme: dark;
     --bg-primary: #1c1c27;
     --bg-secondary: #252532;
@@ -26,21 +73,6 @@
     --button-ink: #272035;
     --soft-line: #3a3749;
     --focus: #d4c8f1;
-    --radius: 24px;
-    --radius-md: 14px;
-    --radius-lg: 24px;
-    --text-xs: .8125rem;
-    --text-sm: .875rem;
-    --text-md: 1rem;
-    --card-shadow: none;
-    --shadow: none;
-    --transition: none;
-    --app-bg-gradient: none;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --safe-left: env(safe-area-inset-left, 0px);
-    --safe-right: env(safe-area-inset-right, 0px);
-    --nav-height: 80px;
 }
 :root[data-theme="warm-light"] {
     color-scheme: light;
@@ -97,4 +129,185 @@
     --soft-line: #a3b69f;
     --focus: #d2ffc2;
     --surface-overlay: rgba(0,0,0,.9);
+}
+
+/* === COMFORT & COLOR — DUSK / SAGE TONES (5.10.0-beta.4) ===
+   Two research-informed tones, each in Light / Dim / Dark. Values come
+   from the welcome-page palette study (low luminance, muted saturation,
+   no pure white or black fields; see color-research-brief). The bare
+   :root defaults above carry Dusk Dim, the default tone/brightness. */
+
+/* === DUSK LIGHT === */
+:root[data-theme="dusk-light"] {
+    color-scheme: light;
+    --bg-primary: #f4ece1;
+    --bg-secondary: #fbf6ee;
+    --bg-tertiary: #efe3d3;
+    --text-primary: #382b25;
+    --text-secondary: #6f5a4e;
+    --border-color: #ddcbb6;
+    --accent-green: #74452e;
+    --accent-green-hover: #5f3823;
+    --accent-red: #9c4a34;
+    --accent-blue: #7d5a49;
+    --pain-mild: #74452e;
+    --pain-moderate: #8a5d1f;
+    --pain-severe: #9c4a34;
+    --accent-soft: #efe3d3;
+    --surface-raised: #efe3d3;
+    --surface-nav: #f4ece1;
+    --card-border: #ddcbb6;
+    --chip-bg: #efe3d3;
+    --chip-border: #ddcbb6;
+    --nav-active-bg: #efe3d3;
+    --surface-overlay: rgba(56,38,28,.50);
+    --field-bg: #fdfaf4;
+    --button-ink: #fbf6ee;
+    --soft-line: #e7dac6;
+    --focus: #5f3823;
+}
+/* === DUSK DIM (DEFAULT) === */
+:root[data-theme="dusk-dim"] {
+    color-scheme: dark;
+    --bg-primary: #2a1e22;
+    --bg-secondary: #36262a;
+    --bg-tertiary: #413039;
+    --text-primary: #f0e4d7;
+    --text-secondary: #cdb6a4;
+    --border-color: #57404a;
+    --accent-green: #d59d84;
+    --accent-green-hover: #e0b199;
+    --accent-red: #dfa08d;
+    --accent-blue: #c9ada1;
+    --pain-mild: #d59d84;
+    --pain-moderate: #d9b887;
+    --pain-severe: #dfa08d;
+    --accent-soft: #413039;
+    --surface-raised: #413039;
+    --surface-nav: #2a1e22;
+    --card-border: #57404a;
+    --chip-bg: #413039;
+    --chip-border: #57404a;
+    --nav-active-bg: #413039;
+    --surface-overlay: rgba(20,10,10,.68);
+    --field-bg: #312227;
+    --button-ink: #331f14;
+    --soft-line: #46333c;
+    --focus: #e0b199;
+}
+/* === DUSK DARK === */
+:root[data-theme="dusk-dark"] {
+    color-scheme: dark;
+    --bg-primary: #171213;
+    --bg-secondary: #21191d;
+    --bg-tertiary: #2a2026;
+    --text-primary: #eadccf;
+    --text-secondary: #bfae9f;
+    --border-color: #3d2f36;
+    --accent-green: #cf9a76;
+    --accent-green-hover: #dbb08f;
+    --accent-red: #d69c88;
+    --accent-blue: #c2a294;
+    --pain-mild: #cf9a76;
+    --pain-moderate: #d3ad7c;
+    --pain-severe: #d69c88;
+    --accent-soft: #2a2026;
+    --surface-raised: #2a2026;
+    --surface-nav: #171213;
+    --card-border: #3d2f36;
+    --chip-bg: #2a2026;
+    --chip-border: #3d2f36;
+    --nav-active-bg: #2a2026;
+    --surface-overlay: rgba(8,5,5,.74);
+    --field-bg: #1d1619;
+    --button-ink: #2e1c11;
+    --soft-line: #32262c;
+    --focus: #dbb08f;
+}
+/* === SAGE LIGHT === */
+:root[data-theme="sage-light"] {
+    color-scheme: light;
+    --bg-primary: #eef1ea;
+    --bg-secondary: #f9faf6;
+    --bg-tertiary: #e3e9dc;
+    --text-primary: #2f382f;
+    --text-secondary: #5f6d5e;
+    --border-color: #cfd8c6;
+    --accent-green: #4e6a4a;
+    --accent-green-hover: #40593d;
+    --accent-red: #9c4a34;
+    --accent-blue: #55705c;
+    --pain-mild: #4e6a4a;
+    --pain-moderate: #8a5d1f;
+    --pain-severe: #9c4a34;
+    --accent-soft: #e3e9dc;
+    --surface-raised: #e3e9dc;
+    --surface-nav: #eef1ea;
+    --card-border: #cfd8c6;
+    --chip-bg: #e3e9dc;
+    --chip-border: #cfd8c6;
+    --nav-active-bg: #e3e9dc;
+    --surface-overlay: rgba(38,48,34,.50);
+    --field-bg: #fdfefb;
+    --button-ink: #f9faf6;
+    --soft-line: #dde4d2;
+    --focus: #40593d;
+}
+/* === SAGE DIM === */
+:root[data-theme="sage-dim"] {
+    color-scheme: dark;
+    --bg-primary: #22281f;
+    --bg-secondary: #2b3327;
+    --bg-tertiary: #35402f;
+    --text-primary: #e8eee1;
+    --text-secondary: #bfcbb4;
+    --border-color: #46523f;
+    --accent-green: #a5c69e;
+    --accent-green-hover: #b7d4b0;
+    --accent-red: #dda08e;
+    --accent-blue: #a9bfae;
+    --pain-mild: #a5c69e;
+    --pain-moderate: #cfb489;
+    --pain-severe: #dda08e;
+    --accent-soft: #35402f;
+    --surface-raised: #35402f;
+    --surface-nav: #22281f;
+    --card-border: #46523f;
+    --chip-bg: #35402f;
+    --chip-border: #46523f;
+    --nav-active-bg: #35402f;
+    --surface-overlay: rgba(10,14,8,.68);
+    --field-bg: #262d22;
+    --button-ink: #1e2b18;
+    --soft-line: #3a4634;
+    --focus: #b7d4b0;
+}
+/* === SAGE DARK === */
+:root[data-theme="sage-dark"] {
+    color-scheme: dark;
+    --bg-primary: #12160f;
+    --bg-secondary: #1a2016;
+    --bg-tertiary: #232b1e;
+    --text-primary: #e1e9d7;
+    --text-secondary: #aebba2;
+    --border-color: #364330;
+    --accent-green: #a6c69b;
+    --accent-green-hover: #b8d3ad;
+    --accent-red: #d69c88;
+    --accent-blue: #a2b7a6;
+    --pain-mild: #a6c69b;
+    --pain-moderate: #c8ab7d;
+    --pain-severe: #d69c88;
+    --accent-soft: #232b1e;
+    --surface-raised: #232b1e;
+    --surface-nav: #12160f;
+    --card-border: #364330;
+    --chip-bg: #232b1e;
+    --chip-border: #364330;
+    --nav-active-bg: #232b1e;
+    --surface-overlay: rgba(5,8,4,.74);
+    --field-bg: #161c12;
+    --button-ink: #1c2917;
+    --soft-line: #2b3626;
+    --focus: #b8d3ad;
 }

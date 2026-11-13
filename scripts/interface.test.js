@@ -47,16 +47,35 @@ test('insight categories expose only the selected panel, including empty-categor
     assert.equal(tabs.hidden, true);
 });
 test('theme bootstrap honors saved choices and provides a safe default with unavailable storage', () => {
-    for (const [saved, expected] of [['warm-light','warm-light'],['dark','warm-dark'],['high-contrast','high-contrast'],['unknown','warm-dark']]) {
-        let actual;
-        const ctx = vm.createContext({ localStorage: { getItem: () => saved }, document: { documentElement: { setAttribute: (_, value) => { actual = value; } } }, window: { addEventListener() {} } });
+    const capture = () => {
+        const state = {};
+        return { state, documentElement: { setAttribute: (name, value) => { state[name] = value; } } };
+    };
+    // The retired single-axis 'theme' value only seeds the first-run
+    // Comfort & color default; it is never the applied theme itself.
+    for (const [saved, expected] of [['warm-light','dusk-light'],['dark','dusk-dim'],['high-contrast','high-contrast'],['unknown','dusk-dim']]) {
+        const { state, documentElement } = capture();
+        const ctx = vm.createContext({ localStorage: { getItem: () => saved }, document: { documentElement }, window: { addEventListener() {} } });
         vm.runInContext(fs.readFileSync('assets/theme.js','utf8'), ctx);
-        assert.equal(actual, expected);
+        assert.equal(state['data-theme'], expected);
     }
-    let actual;
-    const ctx = vm.createContext({ localStorage: { getItem: () => { throw Error('blocked'); } }, document: { documentElement: { setAttribute: (_, value) => { actual = value; } } }, window: { addEventListener() {} } });
-    vm.runInContext(fs.readFileSync('assets/theme.js','utf8'), ctx);
-    assert.equal(actual, 'warm-dark');
+    // A saved colorTheme preference wins over the legacy seed.
+    {
+        const { state, documentElement } = capture();
+        const savedPref = JSON.stringify({ tone: 'sage', brightness: 'dark', contrast: false });
+        const ctx = vm.createContext({ localStorage: { getItem: key => key === 'colorTheme' ? savedPref : 'warm-light' }, document: { documentElement }, window: { addEventListener() {} } });
+        vm.runInContext(fs.readFileSync('assets/theme.js','utf8'), ctx);
+        assert.equal(state['data-theme'], 'sage-dark');
+        assert.equal(state['data-tone'], 'sage');
+        assert.equal(state['data-brightness'], 'dark');
+    }
+    // Unavailable storage falls back to the safe default, Dusk Dim.
+    {
+        const { state, documentElement } = capture();
+        const ctx = vm.createContext({ localStorage: { getItem: () => { throw Error('blocked'); } }, document: { documentElement }, window: { addEventListener() {} } });
+        vm.runInContext(fs.readFileSync('assets/theme.js','utf8'), ctx);
+        assert.equal(state['data-theme'], 'dusk-dim');
+    }
 });
 
 test('medication waits for persistence and rolls back a failed save', async () => {

@@ -187,6 +187,264 @@
     --surface-overlay: rgba(0, 0, 0, 0.85);
 }
 
+
+/* === COMFORT & COLOR — DUSK / SAGE SURFACE TOKENS (5.10.0-beta.4) ===
+   Companion blocks to tokens.css: the surface/hero/chip variables that
+   live only in this file, per tone x brightness. */
+
+/* === DUSK LIGHT === */
+:root[data-theme="dusk-light"] {
+    --bg-primary: #f4ece1;
+    --bg-secondary: #fbf6ee;
+    --bg-tertiary: #efe3d3;
+    --text-primary: #382b25;
+    --text-secondary: #6f5a4e;
+    --border-color: #ddcbb6;
+    --accent-green: #74452e;
+    --accent-red: #9c4a34;
+    --accent-blue: #7d5a49;
+    --pain-mild: #74452e;
+    --pain-moderate: #8a5d1f;
+    --pain-severe: #9c4a34;
+    --shadow: 0 2px 8px rgba(0,0,0,.10);
+
+    --app-bg-gradient:
+        radial-gradient(circle at top left, rgba(201,138,84,.16), transparent 34rem),
+        linear-gradient(180deg, rgba(239,227,211,.96) 0%, var(--bg-primary) 22rem);
+    --card-border: #ddcbb6;
+    --card-shadow: 0 14px 40px rgba(0,0,0,.07);
+    --hero-tint-a: rgba(201,138,84,.16);
+    --hero-tint-b: rgba(156,74,52,.07);
+    --hero-border: rgba(116,69,46,.32);
+    --chip-bg: #efe3d3;
+    --chip-border: #ddcbb6;
+    --surface-nav: rgba(251,246,238,.94);
+    --surface-nav-border: #ddcbb6;
+    --surface-nav-shadow: 0 -16px 40px rgba(0,0,0,.10);
+    --nav-active-bg: rgba(116,69,46,.14);
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236f5a4e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --accent-green-hover: #5f3823;
+    --accent-soft: rgba(116,69,46,.16);
+    --surface-raised: #efe3d3;
+    --trend-up-bg: rgba(156,74,52,.18);
+    --trend-down-bg: rgba(116,69,46,.18);
+    --pain-mild-soft: rgba(116,69,46,.22);
+    --pain-moderate-soft: rgba(138,93,31,.22);
+    --pain-severe-soft: rgba(156,74,52,.22);
+    --surface-nav-blur: blur(18px);
+    --surface-overlay: rgba(56,38,28,.50);
+}
+/* === DUSK DIM (DEFAULT) === */
+:root[data-theme="dusk-dim"] {
+    --bg-primary: #2a1e22;
+    --bg-secondary: #36262a;
+    --bg-tertiary: #413039;
+    --text-primary: #f0e4d7;
+    --text-secondary: #cdb6a4;
+    --border-color: #57404a;
+    --accent-green: #d59d84;
+    --accent-red: #dfa08d;
+    --accent-blue: #c9ada1;
+    --pain-mild: #d59d84;
+    --pain-moderate: #d9b887;
+    --pain-severe: #dfa08d;
+    --shadow: 0 4px 6px rgba(0,0,0,.30);
+
+    --app-bg-gradient:
+        radial-gradient(circle at top left, rgba(213,157,132,.15), transparent 34rem),
+        linear-gradient(180deg, rgba(54,38,42,.96) 0%, var(--bg-primary) 22rem);
+    --card-border: #57404a;
+    --card-shadow: 0 14px 40px rgba(0,0,0,.18);
+    --hero-tint-a: rgba(213,157,132,.15);
+    --hero-tint-b: rgba(223,160,141,.10);
+    --hero-border: rgba(213,157,132,.32);
+    --chip-bg: #413039;
+    --chip-border: #57404a;
+    --surface-nav: rgba(42,30,34,.94);
+    --surface-nav-border: #57404a;
+    --surface-nav-shadow: 0 -16px 40px rgba(0,0,0,.28);
+    --nav-active-bg: rgba(213,157,132,.14);
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23cdb6a4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --accent-green-hover: #e0b199;
+    --accent-soft: rgba(213,157,132,.16);
+    --surface-raised: #413039;
+    --trend-up-bg: rgba(223,160,141,.18);
+    --trend-down-bg: rgba(213,157,132,.18);
+    --pain-mild-soft: rgba(213,157,132,.35);
+    --pain-moderate-soft: rgba(217,184,135,.35);
+    --pain-severe-soft: rgba(223,160,141,.35);
+    --surface-nav-blur: blur(18px);
+    --surface-overlay: rgba(20,10,10,.68);
+}
+/* === DUSK DARK === */
+:root[data-theme="dusk-dark"] {
+    --bg-primary: #171213;
+    --bg-secondary: #21191d;
+    --bg-tertiary: #2a2026;
+    --text-primary: #eadccf;
+    --text-secondary: #bfae9f;
+    --border-color: #3d2f36;
+    --accent-green: #cf9a76;
+    --accent-red: #d69c88;
+    --accent-blue: #c2a294;
+    --pain-mild: #cf9a76;
+    --pain-moderate: #d3ad7c;
+    --pain-severe: #d69c88;
+    --shadow: 0 4px 6px rgba(0,0,0,.40);
+
+    --app-bg-gradient:
+        radial-gradient(circle at top left, rgba(207,154,118,.13), transparent 34rem),
+        linear-gradient(180deg, rgba(33,25,29,.96) 0%, var(--bg-primary) 22rem);
+    --card-border: #3d2f36;
+    --card-shadow: 0 14px 40px rgba(0,0,0,.24);
+    --hero-tint-a: rgba(207,154,118,.13);
+    --hero-tint-b: rgba(214,156,136,.09);
+    --hero-border: rgba(207,154,118,.32);
+    --chip-bg: #2a2026;
+    --chip-border: #3d2f36;
+    --surface-nav: rgba(23,18,19,.94);
+    --surface-nav-border: #3d2f36;
+    --surface-nav-shadow: 0 -16px 40px rgba(0,0,0,.34);
+    --nav-active-bg: rgba(207,154,118,.14);
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23bfae9f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --accent-green-hover: #dbb08f;
+    --accent-soft: rgba(207,154,118,.16);
+    --surface-raised: #2a2026;
+    --trend-up-bg: rgba(214,156,136,.18);
+    --trend-down-bg: rgba(207,154,118,.18);
+    --pain-mild-soft: rgba(207,154,118,.35);
+    --pain-moderate-soft: rgba(211,173,124,.35);
+    --pain-severe-soft: rgba(214,156,136,.35);
+    --surface-nav-blur: blur(18px);
+    --surface-overlay: rgba(8,5,5,.74);
+}
+/* === SAGE LIGHT === */
+:root[data-theme="sage-light"] {
+    --bg-primary: #eef1ea;
+    --bg-secondary: #f9faf6;
+    --bg-tertiary: #e3e9dc;
+    --text-primary: #2f382f;
+    --text-secondary: #5f6d5e;
+    --border-color: #cfd8c6;
+    --accent-green: #4e6a4a;
+    --accent-red: #9c4a34;
+    --accent-blue: #55705c;
+    --pain-mild: #4e6a4a;
+    --pain-moderate: #8a5d1f;
+    --pain-severe: #9c4a34;
+    --shadow: 0 2px 8px rgba(0,0,0,.10);
+
+    --app-bg-gradient:
+        radial-gradient(circle at top left, rgba(122,139,111,.14), transparent 34rem),
+        linear-gradient(180deg, rgba(227,233,220,.96) 0%, var(--bg-primary) 22rem);
+    --card-border: #cfd8c6;
+    --card-shadow: 0 14px 40px rgba(0,0,0,.07);
+    --hero-tint-a: rgba(122,139,111,.14);
+    --hero-tint-b: rgba(156,74,52,.06);
+    --hero-border: rgba(78,106,74,.32);
+    --chip-bg: #e3e9dc;
+    --chip-border: #cfd8c6;
+    --surface-nav: rgba(249,250,246,.94);
+    --surface-nav-border: #cfd8c6;
+    --surface-nav-shadow: 0 -16px 40px rgba(0,0,0,.10);
+    --nav-active-bg: rgba(78,106,74,.14);
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235f6d5e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --accent-green-hover: #40593d;
+    --accent-soft: rgba(78,106,74,.16);
+    --surface-raised: #e3e9dc;
+    --trend-up-bg: rgba(156,74,52,.18);
+    --trend-down-bg: rgba(78,106,74,.18);
+    --pain-mild-soft: rgba(78,106,74,.22);
+    --pain-moderate-soft: rgba(138,93,31,.22);
+    --pain-severe-soft: rgba(156,74,52,.22);
+    --surface-nav-blur: blur(18px);
+    --surface-overlay: rgba(38,48,34,.50);
+}
+/* === SAGE DIM === */
+:root[data-theme="sage-dim"] {
+    --bg-primary: #22281f;
+    --bg-secondary: #2b3327;
+    --bg-tertiary: #35402f;
+    --text-primary: #e8eee1;
+    --text-secondary: #bfcbb4;
+    --border-color: #46523f;
+    --accent-green: #a5c69e;
+    --accent-red: #dda08e;
+    --accent-blue: #a9bfae;
+    --pain-mild: #a5c69e;
+    --pain-moderate: #cfb489;
+    --pain-severe: #dda08e;
+    --shadow: 0 4px 6px rgba(0,0,0,.30);
+
+    --app-bg-gradient:
+        radial-gradient(circle at top left, rgba(165,198,158,.14), transparent 34rem),
+        linear-gradient(180deg, rgba(43,51,39,.96) 0%, var(--bg-primary) 22rem);
+    --card-border: #46523f;
+    --card-shadow: 0 14px 40px rgba(0,0,0,.18);
+    --hero-tint-a: rgba(165,198,158,.14);
+    --hero-tint-b: rgba(221,160,142,.09);
+    --hero-border: rgba(165,198,158,.32);
+    --chip-bg: #35402f;
+    --chip-border: #46523f;
+    --surface-nav: rgba(34,40,31,.94);
+    --surface-nav-border: #46523f;
+    --surface-nav-shadow: 0 -16px 40px rgba(0,0,0,.28);
+    --nav-active-bg: rgba(165,198,158,.14);
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23bfcbb4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --accent-green-hover: #b7d4b0;
+    --accent-soft: rgba(165,198,158,.16);
+    --surface-raised: #35402f;
+    --trend-up-bg: rgba(221,160,142,.18);
+    --trend-down-bg: rgba(165,198,158,.18);
+    --pain-mild-soft: rgba(165,198,158,.35);
+    --pain-moderate-soft: rgba(207,180,137,.35);
+    --pain-severe-soft: rgba(221,160,142,.35);
+    --surface-nav-blur: blur(18px);
+    --surface-overlay: rgba(10,14,8,.68);
+}
+/* === SAGE DARK === */
+:root[data-theme="sage-dark"] {
+    --bg-primary: #12160f;
+    --bg-secondary: #1a2016;
+    --bg-tertiary: #232b1e;
+    --text-primary: #e1e9d7;
+    --text-secondary: #aebba2;
+    --border-color: #364330;
+    --accent-green: #a6c69b;
+    --accent-red: #d69c88;
+    --accent-blue: #a2b7a6;
+    --pain-mild: #a6c69b;
+    --pain-moderate: #c8ab7d;
+    --pain-severe: #d69c88;
+    --shadow: 0 4px 6px rgba(0,0,0,.40);
+
+    --app-bg-gradient:
+        radial-gradient(circle at top left, rgba(166,198,155,.12), transparent 34rem),
+        linear-gradient(180deg, rgba(26,32,22,.96) 0%, var(--bg-primary) 22rem);
+    --card-border: #364330;
+    --card-shadow: 0 14px 40px rgba(0,0,0,.24);
+    --hero-tint-a: rgba(166,198,155,.12);
+    --hero-tint-b: rgba(214,156,136,.08);
+    --hero-border: rgba(166,198,155,.32);
+    --chip-bg: #232b1e;
+    --chip-border: #364330;
+    --surface-nav: rgba(18,22,15,.94);
+    --surface-nav-border: #364330;
+    --surface-nav-shadow: 0 -16px 40px rgba(0,0,0,.34);
+    --nav-active-bg: rgba(166,198,155,.14);
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23aebba2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --accent-green-hover: #b8d3ad;
+    --accent-soft: rgba(166,198,155,.16);
+    --surface-raised: #232b1e;
+    --trend-up-bg: rgba(214,156,136,.18);
+    --trend-down-bg: rgba(166,198,155,.18);
+    --pain-mild-soft: rgba(166,198,155,.35);
+    --pain-moderate-soft: rgba(200,171,125,.35);
+    --pain-severe-soft: rgba(214,156,136,.35);
+    --surface-nav-blur: blur(18px);
+    --surface-overlay: rgba(5,8,4,.74);
+}
+
 /* === BASE STYLES === */
 * {
     margin: 0;
