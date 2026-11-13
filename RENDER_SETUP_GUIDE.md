@@ -28,6 +28,8 @@ VAPID_PUBLIC_KEY=BIM4hhVR8txa6Sjz2-yLZwTvsqq886iHi2psDuUuCIl8dVELZ5ofMGCom-GCNth
 VAPID_PRIVATE_KEY=<redacted — set in Render only>
 ADMIN_API_KEY=178815e58e1adf23a73954672a8409cc1f31db0d56d18d1e65a9f3096fd195a1
 ALLOWED_ORIGINS=https://aidedmarketing.github.io,https://aidedmarketing.github.io/AidingMigraine
+
+Note: the production app origins (https://app.aidingmigraine.com and https://aidedmarketing.github.io) are always allowed by the server in code - ALLOWED_ORIGINS only needs to list any *additional* origins.
 ```
 
 ### 3. Important Notes

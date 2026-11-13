@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.10.0-beta.2';
+const APP_VERSION = '5.10.0-beta.3';
 
 let migraines = [];
 let selectedPain = null;
@@ -5550,12 +5550,34 @@ function closeModal() {
 // appear as system sheets. These are announced through a polite live
 // region instead, so screen-reader users hear them without the app
 // stealing focus.
+function scheduleToastRemoval(toast, type, duration) {
+    if (toast._dismissTimer) clearTimeout(toast._dismissTimer);
+    // Errors get a longer floor so they can be read, but every toast
+    // dismisses itself - nothing stays on screen indefinitely.
+    const visibleFor = type === 'error' ? Math.max(duration, 8000) : duration;
+    if (visibleFor > 0) {
+        toast._dismissTimer = setTimeout(() => { if (toast.parentNode) toast.remove(); }, visibleFor);
+    }
+}
+
 function showToast(message, { type = 'success', duration = 4000 } = {}) {
     const region = document.getElementById('toast-region');
     if (!region) return;
 
+    // Don't pile up: if the identical toast is already on screen, reset its
+    // dismiss timer instead of stacking a twin beneath it (retrying a failed
+    // action used to leave one permanent banner per attempt).
+    const existing = [...region.querySelectorAll('.toast')]
+        .find(t => t.dataset.message === message && t.dataset.type === type);
+    if (existing) {
+        scheduleToastRemoval(existing, type, duration);
+        return existing;
+    }
+
     const toast = document.createElement('div');
     toast.className = `toast ${type === 'success' ? '' : type}`.trim();
+    toast.dataset.message = message;
+    toast.dataset.type = type;
 
     const text = document.createElement('div');
     text.className = 'toast-text';
@@ -5567,13 +5589,15 @@ function showToast(message, { type = 'success', duration = 4000 } = {}) {
     dismiss.setAttribute('aria-label', 'Dismiss message');
     dismiss.innerHTML = safeHTML('<svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">' +
         '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>');
-    const remove = () => { if (toast.parentNode) toast.remove(); };
+    const remove = () => {
+        if (toast._dismissTimer) clearTimeout(toast._dismissTimer);
+        if (toast.parentNode) toast.remove();
+    };
     dismiss.addEventListener('click', remove);
     toast.appendChild(dismiss);
 
     region.appendChild(toast);
-    // Errors stay until dismissed; confirmations clear themselves.
-    if (type !== 'error' && duration > 0) setTimeout(remove, duration);
+    scheduleToastRemoval(toast, type, duration);
     return toast;
 }
 
