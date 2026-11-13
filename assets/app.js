@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.10.0-beta.5';
+const APP_VERSION = '5.10.0-beta.6';
 
 let migraines = [];
 let selectedPain = null;
@@ -349,7 +349,7 @@ function renderCycleCorrelation() {
     if (starts.length < 2) { el.innerHTML = ''; return; }
 
     const earliestMig = migraines.reduce((min, m) => {
-        const t = parseLocalDate(new Date(m.startTime).toISOString().split('T')[0]);
+        const t = parseLocalDate(toLocalDateStr(new Date(m.startTime)));
         return (!min || (t && t < min)) ? t : min;
     }, null);
     const startDate = new Date(Math.min(starts[0].getTime(), earliestMig ? earliestMig.getTime() : starts[0].getTime()));
@@ -3117,7 +3117,9 @@ function getMigraineDays(migraine) {
     finalDate.setHours(0, 0, 0, 0);
 
     while (currentDate <= finalDate) {
-        days.push(currentDate.toISOString().split('T')[0]);
+        // currentDate walks LOCAL midnights — format it as a local day.
+        // toISOString() would shift the day in UTC+ timezones.
+        days.push(toLocalDateStr(currentDate));
         currentDate.setDate(currentDate.getDate() + 1);
     }
 
@@ -3260,11 +3262,14 @@ function renderCalendar() {
 
     for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
-        const dateStr = date.toISOString().split('T')[0];
+        // Calendar days are LOCAL days: an episode belongs to the local
+        // date it started on, not its UTC date (an 8 PM ET start is
+        // already the next day in UTC).
+        const dateStr = toLocalDateStr(date);
 
         // Check if any attacks started on this day
         const dayMigraines = activeMigraines.filter(m => {
-            const mDate = new Date(m.startTime).toISOString().split('T')[0];
+            const mDate = toLocalDateStr(new Date(m.startTime));
             return mDate === dateStr;
         });
 
@@ -3275,7 +3280,7 @@ function renderCalendar() {
             const currentDate = new Date(dateStr + 'T23:59:59'); // End of the day
 
             // Check if this day falls within the attack duration but is not the start day
-            const mDate = new Date(m.startTime).toISOString().split('T')[0];
+            const mDate = toLocalDateStr(new Date(m.startTime));
             return mDate !== dateStr && startDate < currentDate && endDate >= date;
         });
 
@@ -3318,7 +3323,7 @@ function renderCalendar() {
         }
 
         if (activeMigraine) {
-            const activeDate = new Date(activeMigraine.startTime).toISOString().split('T')[0];
+            const activeDate = toLocalDateStr(new Date(activeMigraine.startTime));
             if (dateStr === activeDate) {
                 classes += ' active-indicator';
             }
@@ -3332,7 +3337,7 @@ function renderCalendar() {
                 // Find previous day to calculate change
                 const prevDate = new Date(date);
                 prevDate.setDate(prevDate.getDate() - 1);
-                const prevDateStr = prevDate.toISOString().split('T')[0];
+                const prevDateStr = toLocalDateStr(prevDate);
                 const prevEntry = weatherData.history.find(w => w.date.startsWith(prevDateStr));
 
                 if (prevEntry) {
@@ -3404,7 +3409,7 @@ function showDayDetails(dateStr) {
 
     // Find attacks that started on this day
     const startedToday = activeMigraines.filter(m => {
-        const mDate = new Date(m.startTime).toISOString().split('T')[0];
+        const mDate = toLocalDateStr(new Date(m.startTime));
         return mDate === dateStr;
     });
 
@@ -3415,7 +3420,7 @@ function showDayDetails(dateStr) {
         const date = new Date(dateStr + 'T00:00:00');
         const currentDate = new Date(dateStr + 'T23:59:59');
 
-        const mDate = new Date(m.startTime).toISOString().split('T')[0];
+        const mDate = toLocalDateStr(new Date(m.startTime));
         return mDate !== dateStr && startDate < currentDate && endDate >= date;
     });
 
@@ -3428,7 +3433,7 @@ function showDayDetails(dateStr) {
         if (weatherEntry) {
             const prevDate = new Date(date);
             prevDate.setDate(prevDate.getDate() - 1);
-            const prevDateStr = prevDate.toISOString().split('T')[0];
+            const prevDateStr = toLocalDateStr(prevDate);
             const prevEntry = weatherData.history.find(w => w.date.startsWith(prevDateStr));
 
             // Use dailyAvg or fallback to pressure for old data

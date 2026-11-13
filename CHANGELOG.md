@@ -5,6 +5,12 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0-beta.6] - 2026-11-13
+
+### Fixed
+
+- **Calendar days now follow your local day, not UTC:** the History calendar worked out which day an attack started on using UTC dates, so an attack that began in your evening (for example 8 PM US Eastern) was drawn as merely "ongoing" on the day it actually started and as an attack start on the following day. Attack-start days, continuation days, the active-attack marker, and the details shown when you tap a day all use your device's local date now — the same local-day rule the rest of the app (monthly stats, insights frequency, cycle tracking) already used for the shared day-span calculation, which is corrected with it. No logged data changes; only which calendar day each attack is drawn on.
+
 ## [5.10.0-beta.5] - 2026-11-13
 
 ### Fixed
