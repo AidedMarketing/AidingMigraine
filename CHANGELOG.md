@@ -5,6 +5,14 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0-beta.3] - 2026-11-13
+
+### Fixed
+
+- **Notifications could not be turned on (server CORS):** the notification server built its CORS allowlist only from the `ALLOWED_ORIGINS` environment variable, which still listed the app's pre-Nov-12 origin. Every API call from the app at its current domain (app.aidingmigraine.com) was rejected, and the rejection surfaced as a generic server error, so the in-app toggle simply failed. The production app origins (app.aidingmigraine.com and the legacy GitHub Pages origin) are now always allowed in code, in addition to whatever `ALLOWED_ORIGINS` provides.
+- **Weather location input squeezed to a sliver:** in Settings -> Weather Tracking, the Location row's buttons carry the shared `.btn` style (`width: 100%`), which crushed the text input to 22px wide at phone widths - typed text was invisible. The buttons in that row now size to their content and the input takes the remaining width (190px at a 390px viewport).
+- **Error messages stacked and never went away:** error toasts were exempt from auto-dismiss, and every retry stacked another permanent banner. Identical toasts now share one banner whose dismiss timer resets, and every toast dismisses itself (errors after at least 8 seconds).
+
 ## [5.10.0-beta.2] - 2026-11-13
 
 ### Added

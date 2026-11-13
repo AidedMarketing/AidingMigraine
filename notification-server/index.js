@@ -28,6 +28,15 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:8080,ht
     .split(',')
     .map(origin => origin.trim());
 
+// The production app origins are always allowed, in addition to whatever
+// ALLOWED_ORIGINS provides - the app moved to app.aidingmigraine.com and a
+// stale env allowlist must never lock real users out of the API.
+for (const appOrigin of ['https://app.aidingmigraine.com', 'https://aidedmarketing.github.io']) {
+    if (!allowedOrigins.includes(appOrigin)) {
+        allowedOrigins.push(appOrigin);
+    }
+}
+
 const corsOptions = {
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests) in development
