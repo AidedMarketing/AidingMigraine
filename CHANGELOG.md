@@ -5,6 +5,16 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0-beta.4] - 2026-11-13
+
+### Added
+
+- **Comfort & color — the app now wears the same two tones as the welcome page:** Settings → Appearance offers two calm color families, **Dusk** (warm rose & amber, the default) and **Sage** (quiet green), each in three brightness levels — **Light, Dim, and Dark**. The palettes were shaped by photophobia research (low luminance, muted saturation, no pure white or black fields, accents kept out of the bright blue-cyan band); they are a comfort choice, not a health claim, and the comfortable setting varies by person — which is why both tones ship. Charts in Insights read the same tokens, so they re-color with the theme. The choice is stored on this device only, like every other app preference.
+
+### Changed
+
+- **Theme choice carries over:** an existing Warm dark choice becomes Dusk Dim, Warm light becomes Dusk Light, and a High contrast choice stays High contrast (still available under Settings → Appearance → Accessibility). On a first install, brightness follows the device's light/dark setting and the tone is Dusk. The retired "Warm dark / Warm light" names are gone from the picker; the underlying token blocks remain so no stored value can strand the app without a theme.
+
 ## [5.10.0-beta.3] - 2026-11-13
 
 ### Fixed

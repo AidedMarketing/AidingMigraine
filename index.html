@@ -7,7 +7,7 @@
 
     <!-- PWA Configuration -->
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#1c1c27">
+    <meta name="theme-color" content="#2a1e22">
     <meta name="description" content="Track and manage your migraine symptoms with ease">
 
     <!-- iOS PWA Support -->
@@ -23,13 +23,13 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512x512.png">
 
-    <script src="./assets/theme.js?v=5.10.0-beta.3"></script>
+    <script src="./assets/theme.js?v=5.10.0-beta.4"></script>
     <!-- DOMPurify for XSS Protection -->
-    <script src="./assets/vendor/purify.min.js?v=5.10.0-beta.3"></script>
+    <script src="./assets/vendor/purify.min.js?v=5.10.0-beta.4"></script>
 
-    <link rel="stylesheet" href="./assets/components.css?v=5.10.0-beta.3">
-    <link rel="stylesheet" href="./assets/tokens.css?v=5.10.0-beta.3">
-    <link rel="stylesheet" href="./assets/shell.css?v=5.10.0-beta.3">
+    <link rel="stylesheet" href="./assets/components.css?v=5.10.0-beta.4">
+    <link rel="stylesheet" href="./assets/tokens.css?v=5.10.0-beta.4">
+    <link rel="stylesheet" href="./assets/shell.css?v=5.10.0-beta.4">
 </head>
 <body>
     <!-- App Loading Screen -->
@@ -732,14 +732,24 @@
 
             <div class="settings-panels"><details class="settings-panel" open ><summary><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></span><span><strong>Appearance</strong><small>Choose the screen that feels comfortable</small></span></summary><div class="settings-panel-body">
                 <div class="settings-group">
-                    <div class="settings-label">Color Theme</div>
+                    <div class="settings-label">Comfort &amp; color</div>
                     <p style="color: var(--text-secondary); font-size: .875rem; margin-bottom: 16px;">
-                        Choose a color scheme that's comfortable for your eyes
+                        Two calm color families, each in three brightness levels — low light, muted color, nothing that shouts. Your choice is saved on this device only.
                     </p>
-                    <div class="theme-options" role="group" aria-label="Color theme">
-<button class="theme-btn active" data-theme="warm-dark" aria-pressed="true"><span class="theme-swatch swatch-dark"><i></i><i></i><i></i></span><strong>Warm dark</strong><small>A softer evening screen</small></button>
-<button class="theme-btn" data-theme="warm-light" aria-pressed="false"><span class="theme-swatch swatch-light"><i></i><i></i><i></i></span><strong>Warm light</strong><small>A quiet daytime screen</small></button>
-<button class="theme-btn" data-theme="high-contrast" aria-pressed="false"><span class="theme-swatch swatch-contrast"><i></i><i></i><i></i></span><strong>High contrast</strong><small>Clearer separation</small></button>
+                    <div class="settings-label">Brightness</div>
+                    <div class="theme-options" role="group" aria-label="Brightness">
+<button class="theme-btn theme-brightness-btn" data-brightness="light" aria-pressed="false"><span class="theme-swatch swatch-bright-light"><i></i><i></i><i></i></span><strong>Light</strong><small>A quiet daytime screen</small></button>
+<button class="theme-btn theme-brightness-btn active" data-brightness="dim" aria-pressed="true"><span class="theme-swatch swatch-bright-dim"><i></i><i></i><i></i></span><strong>Dim</strong><small>A softer evening screen</small></button>
+<button class="theme-btn theme-brightness-btn" data-brightness="dark" aria-pressed="false"><span class="theme-swatch swatch-bright-dark"><i></i><i></i><i></i></span><strong>Dark</strong><small>The lowest light</small></button>
+</div>
+                    <div class="settings-label" style="margin-top: 20px;">Tone</div>
+                    <div class="theme-options theme-options-tone" role="group" aria-label="Color tone">
+<button class="theme-btn theme-tone-btn active" data-tone="dusk" aria-pressed="true"><span class="theme-swatch swatch-dusk"><i></i><i></i><i></i></span><strong>Dusk</strong><small>Warm rose &amp; amber</small></button>
+<button class="theme-btn theme-tone-btn" data-tone="sage" aria-pressed="false"><span class="theme-swatch swatch-sage"><i></i><i></i><i></i></span><strong>Sage</strong><small>Quiet green</small></button>
+</div>
+                    <div class="settings-label" style="margin-top: 20px;">Accessibility</div>
+                    <div class="theme-options theme-options-single" role="group" aria-label="Accessibility">
+<button class="theme-btn theme-contrast-btn" data-contrast aria-pressed="false"><span class="theme-swatch swatch-contrast"><i></i><i></i><i></i></span><strong>High contrast</strong><small>Clearer separation</small></button>
 </div>
                 </div>
             </div></details><details class="settings-panel"  ><summary><span class="destination-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8m-8 4h5"/></svg></span><span><strong>Backup & export</strong><small>Keep a copy or bring your records with you</small></span></summary><div class="settings-panel-body">
@@ -1297,7 +1307,7 @@
             </div></details></div>
 
             <div class="app-info">
-                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.10.0-beta.3</p>
+                <p id="app-version" style="cursor: pointer; user-select: none; transition: opacity 0.1s;">Aiding Migraine v5.10.0-beta.4</p>
                 <p>Your personal migraine journal</p>
                 <p style="font-size: .875rem; margin-top: 4px; opacity: 0.7;">Built with care for migraine sufferers</p>
             </div>
@@ -1336,7 +1346,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
                             <span>Install App Version:</span>
-                            <strong>v5.10.0-beta.3</strong>
+                            <strong>v5.10.0-beta.4</strong>
                         </div>
                     </div>
                 </div>
@@ -1382,17 +1392,17 @@
         </div>
     </div>
 
-    <script src="./assets/app.js?v=5.10.0-beta.3"></script>
+    <script src="./assets/app.js?v=5.10.0-beta.4"></script>
 
     <!-- Phase 2: IndexedDB Data Layer -->
-    <script src="./assets/tracking.js?v=5.10.0-beta.3"></script>
-    <script src="./assets/storage.js?v=5.10.0-beta.3"></script>
+    <script src="./assets/tracking.js?v=5.10.0-beta.4"></script>
+    <script src="./assets/storage.js?v=5.10.0-beta.4"></script>
 
     <!-- Phase 1: Advanced PWA Features -->
-    <script src="./assets/device.js?v=5.10.0-beta.3"></script>
+    <script src="./assets/device.js?v=5.10.0-beta.4"></script>
 
     <!-- Service Worker Registration with Update Detection -->
-    <script src="./assets/updates.js?v=5.10.0-beta.3"></script>
-    <script src="./assets/interface.js?v=5.10.0-beta.3"></script>
+    <script src="./assets/updates.js?v=5.10.0-beta.4"></script>
+    <script src="./assets/interface.js?v=5.10.0-beta.4"></script>
 </body>
 </html>

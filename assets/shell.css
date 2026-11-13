@@ -331,3 +331,14 @@ body, button, input, select, textarea, .section-card, .app-topbar { transition: 
 .settings-panel > summary > span, .settings-label > span { min-width: 0; }
 .settings-btn { overflow-wrap: anywhere; }
 .settings-panel-body > div > div:first-child { min-width: 0; }
+
+/* Comfort & color picker (5.10.0-beta.4): tone row is two-up, the
+   high-contrast row is a single full-width option. */
+.theme-options-tone { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.theme-options-single { grid-template-columns: minmax(0,1fr); }
+.swatch-bright-light { background: #f4ece1; }.swatch-bright-light i { background: #74452e; }.swatch-bright-light i:nth-child(2) { background:#efe3d3; }.swatch-bright-light i:nth-child(3) { background:#382b25; }
+.swatch-bright-dim { background: #2a1e22; }.swatch-bright-dim i { background: #d59d84; }.swatch-bright-dim i:nth-child(2) { background:#413039; }.swatch-bright-dim i:nth-child(3) { background:#f0e4d7; }
+.swatch-bright-dark { background: #171213; }.swatch-bright-dark i { background: #cf9a76; }.swatch-bright-dark i:nth-child(2) { background:#2a2026; }.swatch-bright-dark i:nth-child(3) { background:#eadccf; }
+.swatch-dusk { background: #2a1e22; }.swatch-dusk i { background: #d59d84; }.swatch-dusk i:nth-child(2) { background:#74452f; }.swatch-dusk i:nth-child(3) { background:#f0e4d7; }
+.swatch-sage { background: #22281f; }.swatch-sage i { background: #a5c69e; }.swatch-sage i:nth-child(2) { background:#5c7052; }.swatch-sage i:nth-child(3) { background:#e8eee1; }
+
