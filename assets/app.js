@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.10.0-beta.1';
+const APP_VERSION = '5.10.0-beta.2';
 
 let migraines = [];
 let selectedPain = null;

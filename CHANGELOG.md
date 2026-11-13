@@ -5,6 +5,21 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0-beta.2] - 2026-11-13
+
+### Added
+
+- **Pressure alerts now actually notify (PR #119):** the Alert Sensitivity setting previously only fed the in-app risk card — nothing ever turned a pressure change into a notification. Now, when weather tracking and notifications are both on, the app syncs the location and the effective alert threshold to the notification server, which checks the Open-Meteo forecast hourly and pushes a gentle heads-up (direction + hPa change over 6 hours) when a change at or over the threshold is coming in the next 24 hours — at most one alert per day, and never twice for the same forecast change. An on-device fallback also shows the alert when the app is opened to the Today risk card. Notification copy makes no risk or medical claims.
+- **Welcome page copy (AidingMigraine-Welcome repo):** "Closed beta — invite only for now" now sits in the hero; a fifth "What it does" card covers the gentle reminders; "See your patterns" mentions barometric pressure alongside episodes; and How it works prepares new testers for the first-run beta welcome message.
+
+### Fixed
+
+- **Mobile CI green again (PR #118):** the `mobile-browsers` job had failed on every run since the beta welcome began auto-showing on first run (PR #115) — the suite's fresh browser contexts always hit the modal, which blocked its first click. The suite now seeds the same `hasSeenWelcome` flag that closing the welcome sets for real users. No app behavior change.
+
+### Privacy
+
+- **Location sharing clarified (PR #119):** the Privacy Policy said your location is never sent to our servers. That is no longer the whole story: with both weather tracking and notifications on, your coordinates and pressure-alert threshold are stored on the notification server so it can check your forecast for pressure alerts (and are removed when notifications are turned off, with the subscription). The policy and the Settings weather note now say exactly this; weather history itself still never leaves the device.
+
 ## [5.10.0-beta.1] - 2026-11-09
 
 ### Closed beta release
