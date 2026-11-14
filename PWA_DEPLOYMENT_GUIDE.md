@@ -1,7 +1,7 @@
 # Progressive Web App (PWA) Deployment Guide
-## Aiding Migraine v2.0
+## Aiding Migraine v5.10.0-beta.7
 
-**Last Updated:** 2026-01-22
+**Last Updated:** 2026-11-13
 **Status:** Production Ready
 
 ---
@@ -87,10 +87,7 @@ help/                     # Optional: Documentation pages
      ```
 
 4. **Update Notification Server URL**
-   In `index.html` (around line 5900), update the notification server URL:
-   ```javascript
-   const NOTIFICATION_SERVER_URL = 'https://your-notification-server.com';
-   ```
+   The notification server URL and VAPID public key are already set for production in `assets/app.js` (search for `aiding-migraine-notifications.onrender.com` and for `VAPID_PUBLIC_KEY`). Only change them if you deploy your own notification server or rotate VAPID keys - then update every `SERVER_URL` occurrence and the `VAPID_PUBLIC_KEY` value in `assets/app.js` to match your server.
 
 5. **Test Deployment**
    - Visit `https://yourusername.github.io/AidingMigraine/`
@@ -400,30 +397,9 @@ server {
 
 ## Configuration
 
-### Required: Update Notification Server URL
+### Notification Server URL and VAPID Public Key
 
-Before deploying, update the notification server URL in `index.html`:
-
-**Find (around line 5900):**
-```javascript
-const NOTIFICATION_SERVER_URL = 'http://localhost:3000';
-```
-
-**Replace with your production notification server:**
-```javascript
-const NOTIFICATION_SERVER_URL = 'https://your-notification-server.com';
-```
-
-### Required: Update VAPID Public Key
-
-After rotating credentials on the notification server, update the VAPID public key:
-
-**Find (around line 5929):**
-```javascript
-const VAPID_PUBLIC_KEY = 'BHVugOyMNYtN5lftKJrKO10dSl7XPSGB1fWJ2eRrfAhnx-dtqY44AllB0tiTUnZaouhvzZdRADqf4C6MVW4oKdM';
-```
-
-**Replace with your VAPID public key from notification server setup.**
+The notification server URL and VAPID public key are already set for production in `assets/app.js` (search for `aiding-migraine-notifications.onrender.com` and for `VAPID_PUBLIC_KEY`). Only change them if you deploy your own notification server or rotate VAPID keys - then update every `SERVER_URL` occurrence and the `VAPID_PUBLIC_KEY` value in `assets/app.js` to match your server.
 
 ### Optional: Update Manifest
 
@@ -432,11 +408,11 @@ Edit `manifest.json` to customize:
 {
   "name": "Aiding Migraine",
   "short_name": "AidMigraine",
-  "description": "Track and manage your migraine symptoms with ease",
+  "description": "A calm, privacy-first migraine tracker built for mobile and offline use",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#1a1d24",
-  "theme_color": "#7ba68a",
+  "background_color": "#2a1e22",
+  "theme_color": "#2a1e22",
   ...
 }
 ```
@@ -650,8 +626,8 @@ def twaManifest = [
     hostName: "your-domain.com",
     launchUrl: "/",
     name: "Aiding Migraine",
-    themeColor: "#7ba68a",
-    backgroundColor: "#1a1d24",
+    themeColor: "#2a1e22",
+    backgroundColor: "#2a1e22",
     enableNotifications: true
 ]
 
@@ -899,5 +875,5 @@ MIT License - See [LICENSE](./LICENSE) file
 
 ---
 
-**Last Updated:** 2026-01-22
-**Version:** 2.0.0
+**Last Updated:** 2026-11-13
+**Version:** 5.10.0-beta.7

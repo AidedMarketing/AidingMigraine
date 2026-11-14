@@ -5,6 +5,15 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0-beta.7] - 2026-11-13
+
+### Fixed
+
+- **Final pass — stress test, cohesion, and copy audit:** a full functional stress test of the core loop, calendar, Insights in all six tone × brightness combinations, settings persistence, offline/PWA behavior, and the notification server (subscribe/unsubscribe round-trip, CORS) found no defects in the core app; this release ships the fixes from the accompanying cohesion and copy audit.
+- **Help pages now follow your theme:** the help pages previously carried their own legacy color set. They now load the same theme tokens and theme script as the app and follow the tone and brightness you chose (including the High contrast variant); shared component styles were re-pointed to the same token values, and the calendar legend and tour copy were corrected to match shipped behavior.
+- **Copy corrected to match the app as shipped:** the FAQ, privacy, terms, analytics, and iOS notification guides were audited line by line against the app — offline behavior, multi-day and multiple-per-day logging, notification settings paths, PDF report contents, accessibility descriptions, and storage wording (IndexedDB with a localStorage fallback) now describe what the app actually does. Setup and deployment docs no longer describe a retired Firebase setup (the notification server uses Web Push with VAPID only), and the app's meta description now matches its manifest.
+- **Notification server:** requests without an `Origin` header (health checks, server-to-server calls) no longer fail with a 500 in production; browser CORS rules are unchanged.
+
 ## [5.10.0-beta.6] - 2026-11-13
 
 ### Fixed

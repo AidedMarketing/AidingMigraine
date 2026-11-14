@@ -39,8 +39,11 @@ for (const appOrigin of ['https://app.aidingmigraine.com', 'https://aidedmarketi
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests) in development
-        if (!origin && process.env.NODE_ENV === 'development') {
+        // Allow requests with no Origin header (curl, server-to-server,
+        // admin checks) in every environment: browsers always send an
+        // Origin header, so this cannot weaken browser CORS protection -
+        // and throwing here turned origin-less requests into 500s.
+        if (!origin) {
             return callback(null, true);
         }
         if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {

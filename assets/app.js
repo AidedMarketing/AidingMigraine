@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.10.0-beta.6';
+const APP_VERSION = '5.10.0-beta.7';
 
 let migraines = [];
 let selectedPain = null;
@@ -5495,7 +5495,7 @@ function showPrivacy() {
         <p>Two features are off by default and only send data if you turn them on:</p>
         <ul>
             <li><strong>Weather tracking:</strong> sends your location (city/ZIP you enter, or GPS coordinates if you allow them) to Open-Meteo (weather data) and Nominatim/OpenStreetMap (location lookup). Your migraine data is never sent.</li>
-            <li><strong>Push notifications:</strong> sends your push subscription, timezone, notification schedule, and attack-onset timestamps (used to time follow-up reminders) to this project's notification server. No pain levels, notes, medications, or other health details are sent.</li>
+            <li><strong>Push notifications:</strong> sends your push subscription, timezone, notification schedule, and attack-onset timestamps (used to time follow-up and active-attack check-in reminders) to this project's notification server. If weather tracking is also on, your location coordinates and pressure-alert threshold are sent too, so the server can check your forecast and send pressure alerts while the app is closed. No pain levels, notes, medications, or other health details are sent.</li>
         </ul>
         <p>Turning these features off stops all network activity. Everything else stays on your device.</p>
 
@@ -5896,7 +5896,7 @@ const tourSteps = [
     },
     {
         title: 'Your Data is Private',
-        description: 'Everything is stored locally on your device. No data is sent to any server. Remember to export backups regularly!',
+        description: 'Your migraine data is stored locally on your device by default. The optional weather and notification features — only if you turn them on — send only the minimum needed. Remember to export backups regularly!',
         target: '#privacy-btn',
         page: 'settings',
         position: 'center'
@@ -5990,7 +5990,7 @@ function showTourStep() {
             if (targetEl) {
                 targetEl.style.position = 'relative';
                 targetEl.style.zIndex = '9999';
-                targetEl.style.boxShadow = '0 0 0 4px var(--accent-blue), 0 0 20px rgba(107, 139, 184, 0.5)';
+                targetEl.style.boxShadow = `0 0 0 4px var(--accent-blue), 0 0 20px ${withAlpha(themeToken('--accent-blue', '#c9ada1'), 0.5)}`;
                 targetEl.style.borderRadius = '8px';
                 targetEl.setAttribute('data-tour-highlight', 'true');
             }
@@ -9157,11 +9157,11 @@ function withAlpha(color, alpha) {
 // Chart palette, derived from the active theme's brand tokens.
 function getChartColors() {
     const primary = themeToken('--chart-1', '#d59d84');
-    const text = themeToken('--text-primary', '#ede8df');
+    const text = themeToken('--text-primary', '#f0e4d7');
 
     return {
         text: text,
-        textSecondary: themeToken('--text-secondary', '#cfc7b8'),
+        textSecondary: themeToken('--text-secondary', '#cdb6a4'),
         grid: withAlpha(text, 0.12),
         primary: primary,
         primaryBg: withAlpha(primary, 0.2),

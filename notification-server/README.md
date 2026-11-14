@@ -1,6 +1,6 @@
 # Aiding Migraine - Notification Server
 
-**Version:** 2.0.0
+**Version:** 5.1.0
 **Status:** Production Ready with Enterprise-Grade Security
 
 Push notification server for the Aiding Migraine PWA. Handles scheduled daily check-ins, post-attack follow-ups, and active attack check-ins.
@@ -11,11 +11,12 @@ Push notification server for the Aiding Migraine PWA. Handles scheduled daily ch
 - ✅ Daily check-in notifications (user-configurable time)
 - ✅ Post-attack follow-up notifications (2-4 hours after attack logged)
 - ✅ Active attack check-in notifications (regular check-ins during ongoing migraines)
+- ✅ Pressure alerts - server-side barometric pressure-drop alerts for users with weather tracking + notifications on. Uses each user's own in-app sensitivity threshold, falling back to 5 hPa within 6 hours; at most one alert per user per day
 - ✅ Web Push Protocol with VAPID authentication (no Firebase dependency!)
 - ✅ Timezone-aware scheduling (accurate delivery worldwide)
 - ✅ Persistent storage (JSON file for development, easily extendable to databases)
 
-### Security Features (NEW in v2.0)
+### Security Features
 - 🔐 **API Key Authentication** - Admin endpoints protected
 - 🛡️ **Security Headers** - Helmet.js with CSP, HSTS, X-Frame-Options
 - ⚡ **Rate Limiting** - Multi-tier protection (100 req/15min, 10 req/min strict)
@@ -118,13 +119,13 @@ DB_PATH=./data/subscriptions.json
 
 You need to add the VAPID public key to your PWA so it can subscribe to push notifications.
 
-In `index.html`, find the line with `VAPID_PUBLIC_KEY` (around line 5929):
+In `assets/app.js`, find the line with `VAPID_PUBLIC_KEY`:
 
 ```javascript
-const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+const VAPID_PUBLIC_KEY = '...';
 ```
 
-Replace with your VAPID public key from step 2.
+Replace the value with your VAPID public key from step 2.
 
 **That's it!** The PWA already has all the necessary subscription code built-in.
 
@@ -276,14 +277,17 @@ Content-Type: application/json
 
 The notification scheduler runs automatically when the server starts:
 
-- **Hourly Job**: Checks for daily check-in notifications (runs at :00 of each hour)
-- **15-Minute Job**: Checks for scheduled follow-up notifications (runs every 15 minutes)
+- **Hourly Job** (:00): daily check-in notifications
+- **15-Minute Job**: scheduled follow-up notifications and due active-attack check-ins
+- **Hourly Job** (:30): pressure alerts - for subscribers with weather tracking data, fetches the forecast, computes the largest 6-hour pressure drop, and sends an alert when it meets the user's threshold (at most one per user per day)
+- **Daily Job** (03:00 UTC): prunes expired scheduled follow-ups and sent check-ins
 
 ## Data Storage
 
 In development mode, data is stored in JSON files:
 - `./data/subscriptions.json` - User subscriptions and preferences
 - `./data/scheduled-followups.json` - Scheduled follow-up notifications
+- `./data/scheduled-active-checkins.json` - Scheduled active-attack check-ins
 
 For production, extend `database.js` to use PostgreSQL, MongoDB, or your preferred database.
 
@@ -305,11 +309,10 @@ The PWA automatically detects iOS and shows installation instructions if needed.
 4. **iOS**: Ensure PWA is installed to home screen
 5. **Browser**: Check notification permission in browser settings
 
-### FCM initialization fails
+### Push sends fail (410/404 from the push service)
 
-- Verify Firebase credentials in `.env`
-- Ensure private key has proper `\n` line breaks
-- Check Firebase project has Cloud Messaging enabled
+- The subscription is stale (app uninstalled or browser data cleared) - the server removes it automatically
+- Verify the server's VAPID key pair matches the public key in the app (`assets/app.js`)
 
 ### Subscription expired errors
 
