@@ -25,7 +25,7 @@ The Aiding Migraine PWA now includes a comprehensive notification system that se
 ┌────────▼────────────┐
 │ Notification Server │
 │  - Node.js/Express  │
-│  - FCM Integration  │
+│  - Web Push (VAPID) │
 │  - Scheduler (cron) │
 └─────────────────────┘
 ```
@@ -51,7 +51,7 @@ The PWA includes:
 - ✅ Test notification feature
 
 **What Users See:**
-1. Navigate to Settings → Notifications
+1. Navigate to More → Settings & backup → Reminders
 2. Click "Enable Notifications" (triggers permission request)
 3. Configure daily check-in time and frequency
 4. Configure post-attack follow-up delay
@@ -64,50 +64,13 @@ See [`notification-server/README.md`](notification-server/README.md) for detaile
 
 **Quick Steps:**
 1. Install dependencies: `cd notification-server && npm install`
-2. Set up Firebase project and get credentials
-3. Generate VAPID keys: `npx web-push generate-vapid-keys`
-4. Configure `.env` file with credentials
-5. Start server: `npm start`
+2. Generate VAPID keys: `npx web-push generate-vapid-keys`
+3. Configure `.env` file with credentials
+4. Start server: `npm start`
 
-## Firebase Setup (Detailed)
+## No Firebase Required
 
-### Step 1: Create Firebase Project
-
-1. Go to https://console.firebase.google.com/
-2. Click "Add project" or use existing
-3. Enter project name: "aiding-migraine"
-4. Disable Google Analytics (optional for this use case)
-5. Click "Create Project"
-
-### Step 2: Get Firebase Credentials
-
-1. Click the **gear icon** → **Project Settings**
-2. Go to **Service Accounts** tab
-3. Click **Generate New Private Key**
-4. Download the JSON file (keep it secure!)
-
-The file contains:
-```json
-{
-  "type": "service_account",
-  "project_id": "aiding-migraine-xxxxx",
-  "private_key_id": "...",
-  "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
-  "client_email": "firebase-adminsdk-xxxxx@aiding-migraine-xxxxx.iam.gserviceaccount.com",
-  ...
-}
-```
-
-Use these values in your `.env`:
-- `FIREBASE_PROJECT_ID` = `project_id`
-- `FIREBASE_PRIVATE_KEY` = `private_key` (keep the `\n` characters)
-- `FIREBASE_CLIENT_EMAIL` = `client_email`
-
-### Step 3: Enable Cloud Messaging
-
-1. In Firebase Console, go to **Cloud Messaging** tab (under Project Settings)
-2. Note: For Web Push, you don't need the legacy Server Key
-3. Web Push uses VAPID keys instead (generated separately)
+The shipped server uses Web Push with VAPID only - there is no Firebase project, service account, or FCM configuration to set up. (Push *transport* to Chrome/Android devices passes through Google's push service, but that requires no project or credentials.)
 
 ## VAPID Keys Setup
 
@@ -139,72 +102,7 @@ VAPID_PRIVATE_KEY=UUxI4O8DildjgE6hHXAovpkQQP...
 VAPID_SUBJECT=mailto:your-email@example.com
 ```
 
-**PWA (index.html):**
-
-Find the `enableNotifications` function and update it to subscribe to push:
-
-```javascript
-async function enableNotifications() {
-    try {
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-            alert('Notification permission denied.');
-            updateNotificationUI();
-            return;
-        }
-
-        const registration = await navigator.serviceWorker.ready;
-
-        // Subscribe to push with VAPID key
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array('YOUR_VAPID_PUBLIC_KEY_HERE')
-        });
-
-        // Send to server
-        const response = await fetch('http://localhost:3000/api/subscriptions/subscribe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                subscription: subscription,
-                preferences: notificationPreferences
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to subscribe');
-        }
-
-        notificationPreferences.enabled = true;
-        notificationPreferences.pushSubscription = subscription;
-        localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
-
-        alert('✅ Notifications enabled!');
-        updateNotificationUI();
-
-    } catch (error) {
-        console.error('Error enabling notifications:', error);
-        alert('Failed to enable notifications.');
-    }
-}
-```
-
-Don't forget to add the helper function:
-
-```javascript
-function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-        .replace(/\\-/g, '+')
-        .replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-}
-```
+**PWA (assets/app.js):** Already implemented - the Reminders panel's Enable Notifications flow requests permission, subscribes with the VAPID public key defined in `assets/app.js`, and posts the subscription and preferences to the production notification server. Nothing to paste. If you rotate VAPID keys, update the `VAPID_PUBLIC_KEY` constant in `assets/app.js` to match the server's public key.
 
 ## iOS Considerations
 
@@ -237,7 +135,7 @@ function urlBase64ToUint8Array(base64String) {
 
 The PWA includes a test button that sends a local notification:
 
-1. Navigate to Settings → Notifications
+1. Navigate to More → Settings & backup → Reminders
 2. Click "Enable Notifications" and grant permission
 3. Click "Send Test Notification"
 4. You should receive a notification immediately
@@ -307,14 +205,13 @@ navigator.serviceWorker.ready.then(reg => {
 - [x] PWA notification UI implemented
 - [x] Service worker push handlers added
 - [x] Server structure created
-- [x] FCM integration complete
+- [x] Web Push (VAPID) integration complete
 - [x] Scheduler implemented
 - [x] API endpoints created
 - [x] Documentation complete
 
 ### Production Ready
 - [ ] Update server URL in PWA (from localhost to production)
-- [ ] Set up Firebase production project
 - [ ] Generate production VAPID keys
 - [ ] Deploy notification server to hosting platform
 - [ ] Set up proper database (PostgreSQL/MongoDB)
@@ -357,6 +254,7 @@ navigator.serviceWorker.ready.then(reg => {
 - Push subscription endpoint (URL to push service)
 - Notification preferences (time, frequency, enabled status)
 - Scheduled notification metadata (attack ID, scheduled time)
+- Pressure-alert data (only for users with weather tracking + notifications on): location coordinates and pressure-alert threshold, plus the last pressure alert sent (to enforce at most one per day)
 
 **What data is NOT stored:**
 - Migraine attack details (stays on device only)
@@ -374,7 +272,7 @@ For issues or questions:
 1. Check this documentation
 2. Review server logs
 3. Test with local notifications first
-4. Verify Firebase/VAPID configuration
+4. Verify VAPID configuration (public key in the app must match the server's key pair)
 5. Check browser console for errors
 
 ## Next Steps
@@ -397,7 +295,6 @@ For issues or questions:
 ## Resources
 
 - [Web Push Protocol](https://developers.google.com/web/fundamentals/push-notifications)
-- [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging)
 - [VAPID Specification](https://datatracker.ietf.org/doc/html/rfc8292)
 - [MDN: Notifications API](https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API)
 - [iOS PWA Guide](https://developer.apple.com/documentation/webkit/safari_web_extensions)

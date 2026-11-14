@@ -4,13 +4,13 @@
 
 Aiding Migraine is a **privacy-first, offline-first Progressive Web App (PWA)** for migraine tracking and management. Users log migraines, track patterns, view analytics, manage medications, and export data for healthcare providers. All user data is stored locally on the device (IndexedDB/localStorage). An optional Node.js/Express notification server handles push notifications.
 
-- **Version:** 5.9.0-draft.1
+- **Version:** 5.10.0-beta.7
 - **License:** MIT
 - **Repository:** https://github.com/AidedMarketing/AidingMigraine
 
 ## Architecture
 
-### Draft architecture (5.9.0)
+### Current architecture (5.10.0)
 
 The attack-first redesign separates page markup in `index.html` from classic scripts in `assets/` and styles in `assets/components.css` and `assets/shell.css`. Preserve script order and shared global scope for now. `assets/tracking.js` owns the core attack lifecycle; `assets/app.js` holds shared feature logic; `assets/storage.js`, `assets/device.js`, and `assets/updates.js` retain their existing responsibilities. All local runtime assets must be precached in `service-worker.js`. Charts and PDFs load on demand. Shared theme tokens are in assets/tokens.css; theme.js runs in the head and interface.js controls insight presentation. See README.md and docs/INTERFACE-OVERHAUL.md for the current source map.
 
@@ -115,13 +115,13 @@ All checks must pass. Node.js 20 is used in CI.
 ### Formatting
 - 4-space indentation throughout
 - CommonJS modules in the backend (`require`/`module.exports`)
-- Inline styles and scripts in `index.html` (single-file architecture)
+- Markup in `index.html`; styles/scripts split across `assets/` (see architecture above)
 
 ### Frontend Architecture
 - Multiple `.page` divs toggled via display (SPA-style page routing)
 - IndexedDB as primary data store, localStorage as backup/fallback
 - DOMPurify used for all user-input sanitization before DOM insertion
-- Dark theme by default, light theme via `[data-theme="light"]` attribute
+- Themes: tone (Dusk/Sage) × brightness (Light/Dim/Dark) via `data-tone`/`data-theme` attributes; shared tokens in `assets/tokens.css`
 
 ### Backend Architecture
 - Express middleware stack: Helmet → CORS → rate limiting → body parsing → routes
@@ -158,7 +158,9 @@ These are enforced by `scripts/validate-security.js` and CI:
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Entire frontend app (HTML + CSS + JS) |
+| `index.html` | Page markup + head bootstrap |
+| `assets/app.js` | Main feature logic |
+| `assets/*.css` | Tokens, shell, components |
 | `service-worker.js` | Offline caching, push handling |
 | `manifest.json` | PWA install configuration |
 | `notification-server/index.js` | Backend server setup and middleware |
@@ -170,12 +172,7 @@ These are enforced by `scripts/validate-security.js` and CI:
 ## Important Patterns
 
 ### Modifying the Frontend
-The entire frontend lives in `index.html`. When editing:
-- CSS is in a `<style>` block near the top
-- HTML pages are `<div class="page" id="pageName">` sections
-- JavaScript is in `<script>` blocks at the bottom
-- Be mindful of the file size — keep changes focused
-- Always sanitize user input with `DOMPurify.sanitize()` before inserting into DOM
+Markup lives in `index.html`; styles in `assets/tokens.css` (theme tokens), `assets/shell.css`, and `assets/components.css`; logic in `assets/app.js` plus `assets/theme.js`, `assets/tracking.js`, `assets/storage.js`, `assets/device.js`, `assets/updates.js`. Preserve script order and shared global scope. Always sanitize user input with `DOMPurify.sanitize()` before inserting into DOM.
 
 ### Adding Notification Features
 1. Frontend subscribes via Push API and sends subscription to backend
@@ -185,9 +182,8 @@ The entire frontend lives in `index.html`. When editing:
 5. Service worker receives push event and displays notification
 
 ### Theming
-- CSS variables defined on `:root` (dark theme) and `[data-theme="light"]`
-- Primary colors: greens (`#7ba68a`), reds (`#c96868`), blues (`#6b8bb8`)
-- Background: `#1a1d24` (dark), `#f5f5f5` (light)
+- Themes are two tones (Dusk default, Sage) x three brightnesses (Light/Dim/Dark), plus a High contrast accessibility variant; definitions live in `assets/tokens.css`, selected via `data-tone` + `data-theme` attributes set by `assets/theme.js` from the `colorTheme` localStorage key (values like `dusk-dim`). `help/` pages load the same tokens + theme script.
+- Chart colors come from per-theme `--chart-*` tokens - never hardcode chart colors in JS.
 
 ## Git Workflow
 

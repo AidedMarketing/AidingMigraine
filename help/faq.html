@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frequently Asked Questions - Aiding Migraine</title>
-    <script src="../assets/theme.js?v=5.10.0-beta.6"></script>
-    <link rel="stylesheet" href="styles.css?v=5.10.0-beta.6">
-    <link rel="stylesheet" href="../assets/tokens.css?v=5.10.0-beta.6">
+    <script src="../assets/theme.js?v=5.10.0-beta.7"></script>
+    <link rel="stylesheet" href="styles.css?v=5.10.0-beta.7">
+    <link rel="stylesheet" href="../assets/tokens.css?v=5.10.0-beta.7">
     <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
 </head>
 <body>
@@ -22,14 +22,15 @@
             <h2>Privacy & Data</h2>
 
             <h3>Is my data private?</h3>
-            <p><strong>Local by default.</strong> All your migraine entries, analytics, and personal health information are stored exclusively on your device using browser local storage &mdash; your migraine data itself is never transmitted anywhere. Two features are optional and off by default: if you enable them, notifications send a push subscription/timezone/schedule to our notification server, and weather tracking sends your location to Open-Meteo and Nominatim. See the <a href="privacy.html">Privacy Policy</a> for the full details.</p>
+            <p><strong>Local by default.</strong> All your migraine entries, analytics, and personal health information are stored exclusively on your device in your browser's on-device storage (IndexedDB, with a localStorage fallback) &mdash; your migraine data itself is never transmitted anywhere. Two features are optional and off by default: if you enable them, notifications send a push subscription/timezone/schedule to our notification server, and weather tracking sends your location to Open-Meteo and Nominatim. See the <a href="privacy.html">Privacy Policy</a> for the full details.</p>
 
             <h3>Where is my data stored?</h3>
-            <p>Your migraine tracking data is stored in your browser's local storage on your device. The only information sent to our servers &mdash; and only if you turn notifications on &mdash; is:</p>
+            <p>Your migraine tracking data is stored on your device, in your browser's on-device storage (IndexedDB, with a localStorage fallback). The only information sent to our servers &mdash; and only if you turn notifications on &mdash; is:</p>
             <ul>
                 <li>Your notification preferences (time, timezone, enabled/disabled status)</li>
                 <li>An anonymous push notification subscription token</li>
-                <li>For follow-up reminders only: an attack identifier (derived from the attack's start time) and the scheduled reminder times</li>
+                <li><strong>For follow-up and active-attack check-in reminders:</strong> an attack identifier (derived from the attack's start time) and the scheduled reminder times</li>
+                <li><strong>For pressure alerts only (weather tracking + notifications both on):</strong> your location coordinates and pressure-alert threshold, so the server can check your forecast. Removed when you turn notifications off.</li>
             </ul>
             <p>No pain levels, notes, symptoms, medications, or other personally identifiable health data is ever transmitted.</p>
 
@@ -56,18 +57,13 @@
             <h2>Technical</h2>
 
             <h3>Does this work offline?</h3>
-            <p><strong>Yes!</strong> Once installed, Aiding Migraine works completely offline. You can:</p>
+            <p><strong>Yes, for logging and viewing.</strong> Once the app's files have been cached, you can log migraines and view your calendar and your data offline, and CSV/JSON export still works.</p>
+            <p><strong>Note:</strong> You need an internet connection for:</p>
             <ul>
-                <li>Log migraines without internet</li>
-                <li>View your calendar and analytics</li>
-                <li>Export PDF reports</li>
-                <li>Access all features</li>
-            </ul>
-            <p><strong>Note:</strong> You need internet connection for:</p>
-            <ul>
-                <li>Initial installation</li>
+                <li>First install and app updates</li>
                 <li>Receiving push notifications</li>
-                <li>App updates</li>
+                <li>Weather tracking</li>
+                <li>Loading the chart and PDF libraries the first time they're used (so a first PDF export may need a connection)</li>
             </ul>
 
             <h3>Can I use it on multiple devices?</h3>
@@ -126,29 +122,21 @@
             <h3>How do I log a multi-day migraine?</h3>
             <p>If your migraine lasts across multiple calendar days:</p>
             <ol>
-                <li>Tap the date when the migraine <strong>started</strong></li>
-                <li>Enter the start time</li>
-                <li>Select severity (mild, moderate, severe)</li>
-                <li>Enter the total duration (e.g., "48 hours" or "72 hours")</li>
-                <li>Save the entry</li>
+                <li>On <strong>Today</strong>, tap <strong>Start migraine</strong> when it starts &mdash; leave it running; don't end it at midnight.</li>
+                <li>Tap <strong>End migraine</strong> when it actually ends. The duration is worked out from the start and end times.</li>
+                <li>If you're logging it afterwards instead, log it, then open it from History and choose <strong>Edit</strong> to set the correct start and end dates and times.</li>
             </ol>
-            <p>The app will automatically count each calendar day as a separate migraine day. For example, a migraine from Monday 11 PM to Wednesday 3 AM counts as 3 migraine days (Mon, Tue, Wed) - which is clinically accurate.</p>
+            <p>The app will automatically count each calendar day it spans as a separate migraine day. For example, a migraine from Monday 11 PM to Wednesday 3 AM counts as 3 migraine days (Mon, Tue, Wed).</p>
 
             <h3>Can I edit past entries?</h3>
             <p><strong>Yes.</strong> To modify a past entry, either tap the date on the calendar and choose <em>Edit</em>, or open the episode from the History page and tap <em>Edit</em>. You can update the times, pain level, medication, notes, and relief methods. If you'd rather start over, you can also delete the entry and create a new one.</p>
 
             <h3>What if I miss a day?</h3>
-            <p>Don't worry! You can log past days at any time:</p>
-            <ol>
-                <li>Use the calendar navigation arrows to go back in time</li>
-                <li>Tap the missed date</li>
-                <li>Log whether you had a migraine or not</li>
-            </ol>
+            <p>Don't worry! A day with nothing logged is simply a day with no episodes recorded &mdash; there's no separate 'no migraine' entry to fill in. To add a migraine you forgot to log: log it from <strong>Today</strong> (Start migraine, then End migraine), then open it in <strong>History</strong>, choose <strong>Edit</strong>, and set the correct start and end dates and times.</p>
             <p><strong>Tip:</strong> Enable daily reminders in Settings to avoid missing days in the future.</p>
 
             <h3>Can I track multiple migraines per day?</h3>
-            <p><strong>Currently, no.</strong> The app is designed around the clinical standard of counting "migraine days" rather than individual attacks. If you have multiple distinct migraines in one day (rare, but possible), log the most severe one or the longest duration.</p>
-            <p>Clinically, what matters most is the total number of days affected by migraine per month, not the number of individual attacks.</p>
+            <p><strong>Yes.</strong> End the first episode, then tap <strong>Start migraine</strong> again to log the next one &mdash; each is saved as its own episode. Monthly counts still count migraine <em>days</em>, so two episodes on one day count as one migraine day.</p>
 
             <h3>What's the difference between "mild," "moderate," and "severe"?</h3>
             <p>Use these guidelines:</p>
@@ -197,12 +185,12 @@
             </ol>
 
             <h3>Can I change notification times?</h3>
-            <p><strong>Yes!</strong> Go to Settings → Daily Check-In Time → select your new preferred time. Changes take effect immediately for tomorrow's notification.</p>
+            <p><strong>Yes!</strong> Go to More → Settings &amp; backup → Reminders → Daily Check-in and change <strong>Reminder Time</strong>. The new time is saved on this device and synced to the notification server.</p>
 
             <h3>How do I disable notifications?</h3>
             <p>Two ways:</p>
             <ol>
-                <li><strong>In the app:</strong> Settings → Toggle off "Daily Check-In" and "Post-Attack Reminders"</li>
+                <li><strong>In the app:</strong> More → Settings &amp; backup → Reminders → turn off the reminders you don't want (Daily Check-in, Active Attack Check-in, Post-Attack Follow-up), or tap <strong>Disable Notifications</strong> to unsubscribe from all of them.</li>
                 <li><strong>Device settings:</strong> iOS: Settings → Notifications → Aiding Migraine → Toggle off</li>
             </ol>
 
@@ -245,7 +233,7 @@
                 <li>Clinical status (episodic/chronic)</li>
                 <li>Key metrics doctors need</li>
             </ul>
-            <p><strong>Not included:</strong> Individual entry-by-entry details (this keeps the report concise and doctor-friendly).</p>
+            <p><strong>Also included:</strong> An Episode Details section listing each episode in the range (date, time, pain, duration, and medication, with locations, warning signs, and symptoms where you logged them).</p>
 
             <h3>Can I import data?</h3>
             <p><strong>Yes.</strong> From Settings you can import a <strong>JSON backup</strong> (previously exported from Aiding Migraine) or a <strong>CSV file</strong>. CSV import matches on date, time, and pain level and skips duplicates, so re-importing is safe. If you're coming from another tracker, export its data to CSV and map the columns to Date, Start Time, and Pain Level.</p>
@@ -315,8 +303,8 @@
             <h3>What accessibility features does the app include?</h3>
             <p>Aiding Migraine was designed with migraine sufferers in mind:</p>
             <ul>
-                <li><strong>Dark mode by default</strong> - reduces blue light exposure and eye strain</li>
-                <li><strong>Muted color palette</strong> - soft greens, no harsh bright colors that trigger migraines</li>
+                <li><strong>Comfort &amp; color choices</strong> - two tones (Dusk, warm rose &amp; amber, and Sage, quiet green), each in Light, Dim, or Dark, so you can pick the screen that feels comfortable to you</li>
+                <li><strong>Muted color palette</strong> - low-luminance, muted colors with no pure white or black fields</li>
                 <li><strong>High contrast text</strong> - easy to read even during an attack</li>
                 <li><strong>Large touch targets</strong> - easier to tap when experiencing hand tremors</li>
                 <li><strong>System fonts</strong> - clean, readable typography</li>
@@ -337,15 +325,8 @@
             <h3>Is the app compatible with screen readers?</h3>
             <p>Basic screen reader support is available. The app works with VoiceOver (iOS/Mac) and TalkBack (Android). We're continually improving accessibility - if you encounter issues, please <a href="mailto:support@aidingmigraine.com">let us know</a>.</p>
 
-            <h3>Why is dark mode the default?</h3>
-            <p>Research shows that people with migraines are hypersensitive to blue light (around 480nm wavelength). Dark mode:</p>
-            <ul>
-                <li>Reduces blue light exposure from screens</li>
-                <li>Lowers overall brightness</li>
-                <li>Is easier on the eyes during photophobic episodes</li>
-                <li>May help prevent photophobia-triggered attacks</li>
-            </ul>
-            <p>You can switch to light mode if preferred - the app follows your system's color scheme setting.</p>
+            <h3>How do I change how the screen looks?</h3>
+            <p>Open More → Settings &amp; backup → Appearance → <strong>Comfort &amp; color</strong>. Choose a tone &mdash; <strong>Dusk</strong> (warm rose &amp; amber, the default) or <strong>Sage</strong> (quiet green) &mdash; and a brightness &mdash; <strong>Light, Dim, or Dark</strong>. There's also a separate <strong>High contrast</strong> toggle under Accessibility if you need clearer separation. Your choice is stored on this device only. On a first install, the brightness starts from your device's light/dark setting; after that, the choice you make here is what the app uses.</p>
 
             <h2>Weather Tracking</h2>
 
@@ -381,8 +362,8 @@
             <h3>Is my location data private?</h3>
             <p>Your location is stored on your device and used only to make weather tracking work. It is:</p>
             <ul>
-                <li>Stored on your device (localStorage)</li>
-                <li>Never sent to <em>our</em> servers</li>
+                <li>Stored on your device (browser on-device storage)</li>
+                <li>Never sent to <em>our</em> servers on its own &mdash; with one exception you control: if you also turn on Notifications, your coordinates and pressure-alert threshold are stored on the notification server so it can check the forecast and send pressure alerts while the app is closed. Turn notifications off and that copy is removed with your subscription</li>
                 <li>Sent to two third-party services that provide the feature: <strong>Open-Meteo</strong> (fetches the weather for your coordinates) and <strong>Nominatim/OpenStreetMap</strong> (turns a city/ZIP into coordinates, or coordinates into a city name)</li>
                 <li>Deleted when you disable weather tracking</li>
             </ul>

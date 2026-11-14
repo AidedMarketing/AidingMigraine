@@ -2,23 +2,23 @@
    AIDING MIGRAINE v5.7.1 - PRODUCTION
    ============================================ */
 
-/* === ROOT VARIABLES (WARM DARK - DEFAULT) === */
+/* === ROOT VARIABLES (fallback - tokens.css overrides with the live themes) === */
 :root {
-    --bg-primary: #1c1815;
-    --bg-secondary: #2a2420;
-    --bg-tertiary: #362f28;
-    --text-primary: #ede8df;
-    --text-secondary: #cfc7b8;
-    --border-color: #4a4237;
-    --accent-green: #8fb394;
-    --accent-red: #c97a6f;
-    --accent-blue: #7a95b8;
-    --pain-mild: #8fb394;
-    --pain-moderate: #d4a574;
-    --pain-severe: #c97a6f;
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    --radius: 12px;
-    --transition: all 0.2s ease;
+    --bg-primary: #2a1e22;
+    --bg-secondary: #36262a;
+    --bg-tertiary: #413039;
+    --text-primary: #f0e4d7;
+    --text-secondary: #cdb6a4;
+    --border-color: #57404a;
+    --accent-green: #d59d84;
+    --accent-red: #dfa08d;
+    --accent-blue: #c9ada1;
+    --pain-mild: #d59d84;
+    --pain-moderate: #d9b887;
+    --pain-severe: #dfa08d;
+    --shadow: none;
+    --radius: 24px;
+    --transition: none;
 
     /* === SCALES ===
        Structural, so they live only here and never vary by theme.
@@ -37,9 +37,9 @@
 
     /* Type. --text-sm and --text-md carry most of the UI; the values
        between them (0.82/0.84/0.86/0.92) were indistinguishable. */
-    --text-xs: 0.75rem;
-    --text-sm: 0.85rem;
-    --text-md: 0.9rem;
+    --text-xs: .8125rem;
+    --text-sm: .875rem;
+    --text-md: 1rem;
     --text-base: 1rem;
     --text-lg: 1.1rem;
     --text-xl: 1.3rem;
@@ -49,8 +49,8 @@
 
     /* Radius. --radius stays as the large alias for existing callers. */
     --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
+    --radius-md: 14px;
+    --radius-lg: 24px;
     --radius-pill: 999px;
     --radius-circle: 50%;
 
@@ -72,119 +72,117 @@
        behind or on top of content (page background, nav, cards, chips)
        reads from here so a theme switch changes the whole app, not just
        the parts that happened to use a var(). */
-    --app-bg-gradient:
-        radial-gradient(circle at top left, rgba(143, 179, 148, 0.12), transparent 34rem),
-        linear-gradient(180deg, rgba(42, 36, 32, 0.96) 0%, var(--bg-primary) 22rem);
-    --card-border: rgba(237, 232, 223, 0.1);
-    --card-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+    --app-bg-gradient: none;
+    --card-border: #57404a;
+    --card-shadow: none;
     --hero-tint-a: rgba(143, 179, 148, 0.18);
     --hero-tint-b: rgba(201, 122, 111, 0.09);
     --hero-border: rgba(143, 179, 148, 0.32);
-    --chip-bg: rgba(28, 24, 21, 0.36);
-    --chip-border: rgba(237, 232, 223, 0.12);
-    --surface-nav: rgba(42, 36, 32, 0.94);
+    --chip-bg: #413039;
+    --chip-border: #57404a;
+    --surface-nav: #2a1e22;
     --surface-nav-border: rgba(237, 232, 223, 0.1);
     --surface-nav-shadow: 0 -16px 40px rgba(0, 0, 0, 0.28);
-    --nav-active-bg: rgba(143, 179, 148, 0.14);
+    --nav-active-bg: #413039;
     --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23cfc7b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    --accent-green-hover: #a5c5ad;
-    --accent-soft: rgba(143, 179, 148, 0.18);
-    --surface-raised: rgba(237, 232, 223, 0.06);
+    --accent-green-hover: #e0b199;
+    --accent-soft: #413039;
+    --surface-raised: #413039;
     --trend-up-bg: rgba(201, 122, 111, 0.18);
     --trend-down-bg: rgba(143, 179, 148, 0.18);
     --pain-mild-soft: rgba(143, 179, 148, 0.35);
     --pain-moderate-soft: rgba(212, 165, 116, 0.35);
     --pain-severe-soft: rgba(201, 122, 111, 0.35);
     --surface-nav-blur: blur(18px);
-    --surface-overlay: rgba(0, 0, 0, 0.7);
+    --surface-overlay: rgba(20, 10, 10, .68);
 }
 
 /* === WARM LIGHT THEME === */
 :root[data-theme="warm-light"] {
-    --bg-primary: #f8f6f3;
-    --bg-secondary: #fdfcfb;
-    --bg-tertiary: #f0ede8;
-    --text-primary: #3a3634;
-    --text-secondary: #6b6560;
-    --border-color: #d4cfc8;
-    --accent-green: #4a7c59;
-    --accent-red: #b85050;
-    --accent-blue: #4a6b9e;
+    --bg-primary: #f7f4ef;
+    --bg-secondary: #fffdfa;
+    --bg-tertiary: #eee9f3;
+    --text-primary: #312a40;
+    --text-secondary: #6b6175;
+    --border-color: #bdb1c8;
+    --accent-green: #695085;
+    --accent-red: #a14238;
+    --accent-blue: #385e7b;
     /* Darker than the dark-theme amber so the white text drawn on it
        (calendar day cells, legend dots) clears 4.5:1 on a light field. */
-    --pain-mild: #4a7c59;
-    --pain-moderate: #8a5d1f;
-    --pain-severe: #b85050;
+    --pain-mild: #695085;
+    --pain-moderate: #806023;
+    --pain-severe: #a14238;
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
     --app-bg-gradient:
         radial-gradient(circle at top left, rgba(74, 124, 89, 0.10), transparent 34rem),
         linear-gradient(180deg, rgba(240, 237, 232, 0.96) 0%, var(--bg-primary) 22rem);
-    --card-border: rgba(58, 54, 52, 0.10);
+    --card-border: #bdb1c8;
     --card-shadow: 0 14px 40px rgba(0, 0, 0, 0.07);
     --hero-tint-a: rgba(74, 124, 89, 0.14);
     --hero-tint-b: rgba(184, 80, 80, 0.07);
     --hero-border: rgba(74, 124, 89, 0.30);
-    --chip-bg: rgba(58, 54, 52, 0.05);
-    --chip-border: rgba(58, 54, 52, 0.14);
-    --surface-nav: rgba(253, 252, 251, 0.94);
+    --chip-bg: #eee9f3;
+    --chip-border: #a99ab9;
+    --surface-nav: #f7f4ef;
     --surface-nav-border: rgba(58, 54, 52, 0.12);
     --surface-nav-shadow: 0 -16px 40px rgba(0, 0, 0, 0.10);
-    --nav-active-bg: rgba(74, 124, 89, 0.12);
+    --nav-active-bg: #eee5f5;
     --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b6560' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    --accent-green-hover: #3d6849;
-    --accent-soft: rgba(74, 124, 89, 0.16);
-    --surface-raised: rgba(58, 54, 52, 0.04);
+    --accent-green-hover: #543c71;
+    --accent-soft: #eee5f5;
+    --surface-raised: #eee9f3;
     --trend-up-bg: rgba(184, 80, 80, 0.14);
     --trend-down-bg: rgba(74, 124, 89, 0.14);
     --pain-mild-soft: rgba(74, 124, 89, 0.22);
     --pain-moderate-soft: rgba(138, 93, 31, 0.22);
     --pain-severe-soft: rgba(184, 80, 80, 0.22);
     --surface-nav-blur: blur(18px);
-    --surface-overlay: rgba(58, 54, 52, 0.45);
+    --surface-overlay: rgba(23, 37, 28, .55);
 }
 
 /* === HIGH CONTRAST THEME === */
 :root[data-theme="high-contrast"] {
-    --bg-primary: #000000;
-    --bg-secondary: #1a1a1a;
-    --bg-tertiary: #2d2d2d;
-    --text-primary: #ffffff;
-    --text-secondary: #d0d0d0;
-    --border-color: #555555;
-    --accent-green: #00ff88;
-    --accent-red: #ff4444;
-    --accent-blue: #4488ff;
-    --pain-mild: #00ff88;
-    --pain-moderate: #ffaa00;
-    --pain-severe: #ff4444;
+    --bg-primary: #000;
+    --bg-secondary: #101410;
+    --bg-tertiary: #202820;
+    --text-primary: #fff;
+    --text-secondary: #e0e9df;
+    --border-color: #a3b69f;
+    --accent-green: #d2ffc2;
+    --accent-red: #ffb7b0;
+    --accent-blue: #b6dcff;
+    --pain-mild: #d2ffc2;
+    --pain-moderate: #ffdf8e;
+    --pain-severe: #ffb7b0;
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
 
     /* Flat and opaque on purpose: gradients, blur and soft shadows all
        work against a high-contrast theme. */
     --app-bg-gradient: none;
-    --card-border: #666666;
+    --card-border: #a3b69f;
     --card-shadow: none;
     --hero-tint-a: transparent;
     --hero-tint-b: transparent;
     --hero-border: var(--accent-green);
-    --chip-bg: #2d2d2d;
-    --chip-border: #666666;
-    --surface-nav: #000000;
+    --chip-bg: #202820;
+    --chip-border: #a3b69f;
+    --surface-nav: #000;
     --surface-nav-border: #666666;
     --surface-nav-shadow: none;
-    --nav-active-bg: #2d2d2d;
+    --nav-active-bg: #202820;
     --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23d0d0d0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    --accent-green-hover: #66ffb0;
-    --accent-soft: #2d2d2d;
-    --surface-raised: #2d2d2d;
+    --accent-green-hover: #e4ffdd;
+    --accent-soft: #202820;
+    --surface-raised: #202820;
     --trend-up-bg: #2d2d2d;
     --trend-down-bg: #2d2d2d;
     --pain-mild-soft: #2d2d2d;
     --pain-moderate-soft: #2d2d2d;
     --pain-severe-soft: #2d2d2d;
     --surface-nav-blur: none;
-    --surface-overlay: rgba(0, 0, 0, 0.85);
+    --surface-overlay: rgba(0,0,0,.9);
 }
 
 

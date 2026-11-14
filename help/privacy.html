@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - Aiding Migraine</title>
-    <script src="../assets/theme.js?v=5.10.0-beta.6"></script>
-    <link rel="stylesheet" href="styles.css?v=5.10.0-beta.6">
-    <link rel="stylesheet" href="../assets/tokens.css?v=5.10.0-beta.6">
+    <script src="../assets/theme.js?v=5.10.0-beta.7"></script>
+    <link rel="stylesheet" href="styles.css?v=5.10.0-beta.7">
+    <link rel="stylesheet" href="../assets/tokens.css?v=5.10.0-beta.7">
     <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32x32.png">
 </head>
 <body>
@@ -49,6 +49,7 @@
                 <li><strong>Timezone:</strong> Your timezone (e.g., "America/New_York") to deliver notifications at the correct local time</li>
                 <li><strong>Enabled status:</strong> Whether notifications are on or off</li>
                 <li><strong>Attack timing (follow-ups only):</strong> If you enable post-attack follow-ups or active-attack check-ins, the server also receives an attack identifier and the scheduled reminder times. The identifier is derived from when the attack started; no pain levels, notes, symptoms, or medications are ever sent</li>
+                <li><strong>Pressure alerts (only if weather tracking is also on):</strong> Your location coordinates and your pressure-alert threshold, so the server can check your forecast hourly and send a pressure alert. Removed when notifications are turned off, with your subscription</li>
             </ul>
 
             <p><strong>Important:</strong> This data is stored on our notification server and is necessary for the notification system to function. Notification preferences are stored on that server, so if notifications stop working (for example after a server restart), toggle notifications off and on again in Settings to re-register. However:</p>
@@ -64,7 +65,7 @@
             <ul>
                 <li><strong>Location query:</strong> The ZIP code or city name you entered (e.g., "10001" or "New York, NY")</li>
                 <li><strong>Coordinates:</strong> Latitude and longitude for your location (for fetching weather data)</li>
-                <li><strong>Weather data:</strong> 30 days of barometric pressure history</li>
+                <li><strong>Weather data:</strong> 60 days of barometric pressure history</li>
             </ul>
 
             <p><strong>Important:</strong> Your weather history is stored exclusively on your device. Your location is:</p>
@@ -107,7 +108,7 @@
                 <li>Weather correlation analysis (if weather tracking enabled)</li>
             </ul>
 
-            <p><strong>This data never leaves your device.</strong> It's stored in your browser's local storage and is not transmitted to our servers, cloud services, or third parties.</p>
+            <p><strong>This data never leaves your device.</strong> It's stored in your browser's on-device storage (IndexedDB, with a localStorage fallback) and is not transmitted to our servers, cloud services, or third parties.</p>
 
             <h2>What We Don't Collect</h2>
 
@@ -130,7 +131,7 @@
             <p>Your data is stored on your device, accessible anytime. You can view all your migraine entries in the calendar and analytics pages.</p>
 
             <h3>Right to Export</h3>
-            <p>Go to Settings → "Export PDF Report" to generate a comprehensive report of your migraine history. This is your data - export it whenever you want.</p>
+            <p>Go to More → Settings &amp; backup → Backup &amp; export → Export as PDF to generate a report of your migraine history. This is your data - export it whenever you want.</p>
 
             <h3>Right to Delete</h3>
             <p>Delete your data anytime:</p>
@@ -328,7 +329,7 @@
                 </tr>
                 <tr>
                     <td>What about notifications?</td>
-                    <td>Anonymous token + time/timezone on server</td>
+                    <td>Anonymous token + time/timezone on server; for follow-ups/active check-ins, an attack identifier + reminder times; if weather is also on, location coordinates + pressure-alert threshold for pressure alerts</td>
                 </tr>
             </table>
 

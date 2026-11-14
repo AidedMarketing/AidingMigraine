@@ -1,10 +1,9 @@
-# Quick Start Guide: Firebase & VAPID Setup
+# Quick Start Guide: VAPID Setup
 
-This guide walks you through setting up Firebase and VAPID keys for the Aiding Migraine notification system.
+This guide walks you through setting up VAPID keys for the Aiding Migraine notification system. (No Firebase: the server uses Web Push with VAPID only.)
 
 ## What You'll Need
 
-- ☐ A Google account
 - ☐ Terminal/Command Prompt access
 - ☐ Text editor
 - ☐ 15-20 minutes
@@ -51,72 +50,7 @@ Private Key:
 
 ---
 
-### Part 2: Set Up Firebase (10 minutes)
-
-#### 2.1 Go to Firebase Console
-
-1. Open: **https://console.firebase.google.com/**
-2. Sign in with your Google account
-3. You'll see the Firebase homepage
-
-#### 2.2 Create Project
-
-1. Click **"Add project"** (or "Create a project")
-2. **Project name:** Enter `aiding-migraine` (or any name you prefer)
-3. Click **"Continue"**
-
-#### 2.3 Disable Analytics (Optional)
-
-1. Toggle OFF "Enable Google Analytics"
-   - We don't need it for notifications
-2. Click **"Create project"**
-3. Wait 30-60 seconds
-4. Click **"Continue"**
-
-You're now in your Firebase project! 🎉
-
-#### 2.4 Get Project ID
-
-1. Click the **⚙️ gear icon** (top-left, next to "Project Overview")
-2. Click **"Project settings"**
-3. You'll see **"Project ID"** - it looks like: `aiding-migraine-abc123`
-4. **Copy this** - save it to your text file
-
-#### 2.5 Generate Service Account Key
-
-This is the most important step!
-
-1. At the top of Project Settings, click the **"Service accounts"** tab
-2. You'll see a section titled **"Firebase Admin SDK"**
-3. Make sure **"Node.js"** is selected (should be by default)
-4. Click **"Generate new private key"** button
-5. A popup appears: **"Generate new private key?"**
-6. Click **"Generate key"**
-7. A JSON file downloads: `aiding-migraine-abc123-firebase-adminsdk-xxxxx.json`
-
-**⚠️ IMPORTANT:** This file contains secrets! Keep it secure! Never commit to git!
-
-#### 2.6 Extract Credentials from JSON
-
-1. Open the downloaded JSON file in a text editor
-2. Find these three values:
-
-```json
-{
-  "project_id": "aiding-migraine-abc123",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----\n",
-  "client_email": "firebase-adminsdk-xxxxx@aiding-migraine-abc123.iam.gserviceaccount.com"
-}
-```
-
-3. **Copy these three values** to your text file:
-   - `project_id`
-   - `private_key` (the ENTIRE string, including `-----BEGIN...` and `\n` characters)
-   - `client_email`
-
----
-
-### Part 3: Configure Server (5 minutes)
+### Part 2: Configure Server (5 minutes)### Part 3: Configure Server (5 minutes)
 
 #### 3.1 Create .env File
 
@@ -135,33 +69,31 @@ Open `notification-server/.env` in your text editor and fill in the values:
 PORT=3000
 NODE_ENV=development
 
-# Firebase Cloud Messaging
-FIREBASE_PROJECT_ID=aiding-migraine-abc123
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@aiding-migraine-abc123.iam.gserviceaccount.com
-
-# VAPID Keys (from Part 1)
-VAPID_PUBLIC_KEY=BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U
-VAPID_PRIVATE_KEY=<redacted — rotated out; set in Render only>
+# VAPID Keys for Web Push (Generate with: npx web-push generate-vapid-keys)
 VAPID_SUBJECT=mailto:your-email@example.com
+VAPID_PUBLIC_KEY=your_vapid_public_key_here
+VAPID_PRIVATE_KEY=your_vapid_private_key_here
 
-# Database
-DB_TYPE=json
-DB_PATH=./data/subscriptions.json
+# Admin API Key (Generate a secure random key)
+# Used to protect admin endpoints like GET /api/subscriptions
+ADMIN_API_KEY=<redacted>
+
+# CORS Allowed Origins (comma-separated)
+ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080,https://your-domain.com
+
+# Database Path (optional - defaults to subscriptions.json within data directory)
+# DB_PATH=subscriptions.json
 ```
 
 **Replace:**
-- `FIREBASE_PROJECT_ID` → Your project_id
-- `FIREBASE_PRIVATE_KEY` → Your private_key (keep quotes and `\n` characters!)
-- `FIREBASE_CLIENT_EMAIL` → Your client_email
 - `VAPID_PUBLIC_KEY` → Public key from Part 1
 - `VAPID_PRIVATE_KEY` → Private key from Part 1
 - `VAPID_SUBJECT` → Your email (e.g., `mailto:you@gmail.com`)
+- `ADMIN_API_KEY` → A secure random key you generate
 
 **⚠️ Important Notes:**
-- Keep `FIREBASE_PRIVATE_KEY` in quotes: `"-----BEGIN...-----END-----\n"`
-- Don't remove the `\n` characters - they're important!
-- The private key should be one long line
+- Keep `VAPID_PRIVATE_KEY` secret - never commit it to git.
+- The server's VAPID public key must match the public key in the app (see Part 3).
 
 #### 3.3 Save the File
 
@@ -169,39 +101,11 @@ Save `.env` - Your server is now configured!
 
 ---
 
-### Part 4: Configure PWA (2 minutes)
+### Part 3: Configure PWA (2 minutes)
 
-#### 4.1 Open index.html
+The PWA already carries the matching VAPID public key in `assets/app.js` - there is nothing to configure for a normal setup. Only change it if you rotate keys: search `assets/app.js` for `VAPID_PUBLIC_KEY` and replace the value with your new public key.
 
-Open `index.html` in your text editor.
-
-#### 4.2 Find the VAPID_PUBLIC_KEY Line
-
-Search for: `VAPID_PUBLIC_KEY`
-
-You'll find around line 3530:
-
-```javascript
-const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
-```
-
-#### 4.3 Replace with Your Public Key
-
-Change it to:
-
-```javascript
-const VAPID_PUBLIC_KEY = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
-```
-
-(Use YOUR public key from Part 1)
-
-#### 4.4 Save the File
-
-Save `index.html` - Your PWA is now configured!
-
----
-
-### Part 5: Test Everything! (5 minutes)
+### Part 4: Test Everything! (5 minutes)
 
 #### 5.1 Install Dependencies
 
@@ -293,17 +197,16 @@ You should receive a notification from the server! 🎉
 
 ## Troubleshooting
 
-### "Error: Invalid Firebase credentials"
+### "Error: Push sends fail / server fails to start"
 
-- Check your `.env` file
-- Make sure `FIREBASE_PRIVATE_KEY` has quotes and `\n` characters
-- Verify you copied the entire private key
+- Verify `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` in `.env` form a matching pair, and that the public key matches the one in `assets/app.js`
+- Check `VAPID_SUBJECT` is a valid `mailto:` address
 
 ### "Error: Invalid VAPID keys"
 
 - Make sure you copied the keys correctly
 - No extra spaces or line breaks
-- Public key goes in both `.env` and `index.html`
+- Public key goes in both `.env` and `assets/app.js`
 
 ### "Notifications enabled (local only)"
 
@@ -345,7 +248,7 @@ You should receive a notification from the server! 🎉
 When you're ready to deploy:
 
 1. Deploy the server to Heroku/AWS/Google Cloud
-2. Update `SERVER_URL` in `index.html` (line 3549 and 3678, 3725)
+2. The production server URL is already set in `assets/app.js`. To point the app at a different notification server, search `assets/app.js` for `aiding-migraine-notifications.onrender.com` and replace every occurrence
 3. Set `NODE_ENV=production` in server
 4. Use a real database (PostgreSQL/MongoDB)
 5. Set up HTTPS
@@ -356,10 +259,8 @@ When you're ready to deploy:
 ## Summary Checklist
 
 - ✅ Generated VAPID keys
-- ✅ Created Firebase project
-- ✅ Downloaded service account JSON
 - ✅ Configured `.env` file
-- ✅ Updated `VAPID_PUBLIC_KEY` in `index.html`
+- ✅ Confirmed `VAPID_PUBLIC_KEY` in `assets/app.js` matches the server
 - ✅ Installed dependencies
 - ✅ Started server successfully
 - ✅ Tested health endpoint
@@ -376,11 +277,11 @@ When you're ready to deploy:
 - Review server logs for errors
 - Check browser console (F12) for client-side errors
 - Verify all values in `.env` are correct
-- Make sure Firebase project has Cloud Messaging enabled
+- Make sure the server's VAPID key pair matches the public key in `assets/app.js`
 
 ## Files You Modified
 
 - `notification-server/.env` (created from .env.example)
-- `index.html` (line 3530: VAPID_PUBLIC_KEY)
+- `assets/app.js` (VAPID_PUBLIC_KEY - only if you rotated keys)
 
 **Never commit `.env` to git!** It's already in `.gitignore`.

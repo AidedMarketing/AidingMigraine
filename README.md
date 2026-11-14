@@ -2,7 +2,7 @@
 
 A private, device-local migraine tracker. Start an attack with one tap and add details when you can.
 
-**5.10.0-beta.6 — closed beta.** This is the frozen beta release of the mobile journal rebuild. The existing [published app](https://aidedmarketing.github.io/AidingMigraine/) serves the main branch; the beta is by invitation only.
+**5.10.0-beta.7 — closed beta.** This is the frozen beta release of the mobile journal rebuild, live by invitation only at [app.aidingmigraine.com](https://app.aidingmigraine.com). (`aidedmarketing.github.io` is the legacy install origin only.)
 
 ## The core experience
 
@@ -32,10 +32,10 @@ The optional notification server has its own setup in [notification-server/READM
 | --- | --- |
 | `index.html` | Page markup and ordered script entrypoints |
 | `assets/shell.css` | Responsive layouts, journal, settings groups, and dialogs |
-| `assets/tokens.css` | Shared color and type tokens for all three themes |
+| `assets/tokens.css` | Shared color and type tokens for both tones (Dusk, Sage) in all three brightness levels, plus High contrast |
 | `assets/theme.js` | Apply the selected theme before first paint, including Help |
 | `assets/interface.js` | Insight category visibility and chart resizing |
-| `assets/components.css` | Shared component styles and three themes |
+| `assets/components.css` | Shared component styles for all Comfort & color themes |
 | `assets/tracking.js` | Start, update, end, active state, relief, and dashboard summaries |
 | `assets/app.js` | Shared state, feature logic, navigation, exports, analytics, and optional library loading |
 | `assets/storage.js` | IndexedDB adapter, migration, quotas, and startup |

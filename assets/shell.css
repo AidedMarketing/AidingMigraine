@@ -97,10 +97,8 @@ h3 { font-size: 1rem; line-height: 1.45; margin: 16px 0 8px; }
 .theme-btn.active { border: 2px solid var(--accent-green); padding: 9px; background: var(--accent-soft); }
 .theme-btn strong { font-size: .875rem; margin-top: 10px; font-weight: 600; }
 .theme-btn small { font-size: .8125rem; color: var(--text-secondary); margin-top: 4px; }
-.theme-swatch { display: flex; align-items: flex-end; gap: 5px; width: 100%; height: 60px; padding: 10px; border-radius: 8px; border: 1px solid #788477; }
+.theme-swatch { display: flex; align-items: flex-end; gap: 5px; width: 100%; height: 60px; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); }
 .theme-swatch i { display: block; height: 10px; width: 25%; border-radius: 3px; }
-.swatch-dark { background: #191d1c; }.swatch-dark i { background: #b5cbb0; }.swatch-dark i:nth-child(2) { background:#414d45; }.swatch-dark i:nth-child(3) { background:#eeeae1; }
-.swatch-light { background: #f5f3ed; }.swatch-light i { background: #42654b; }.swatch-light i:nth-child(2) { background:#b5c2b4; }.swatch-light i:nth-child(3) { background:#27392e; }
 .swatch-contrast { background: #000; }.swatch-contrast i { background: #d2ffc2; }.swatch-contrast i:nth-child(2) { background:#fff; }.swatch-contrast i:nth-child(3) { background:#a3b69f; }
 input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), select, textarea { background: var(--field-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 12px; min-height: 50px; padding: 12px 14px; font: inherit; width: 100%; }
 textarea { min-height: 100px; resize: vertical; }
@@ -258,8 +256,6 @@ body.dialog-open { position: fixed; width: 100%; overflow: hidden; }
 .theme-btn .theme-swatch { font-size: 1rem; flex-shrink: 0; }
 .theme-btn span:last-child { font-size: .875rem; }
 .theme-swatch { min-width: 0; }
-.swatch-dark { background: #1c1c27; }.swatch-dark i { background: #c4b6e8; }
-.swatch-light { background: #f7f4ef; }.swatch-light i { background: #695085; }
 .calendar-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .calendar-day { min-width: 0; min-height: 44px; aspect-ratio: auto; padding: 6px 0; }
 .toast-region { top: auto; bottom: calc(var(--nav-height) + var(--safe-bottom) + 12px); }

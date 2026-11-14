@@ -5,7 +5,7 @@
 **Service URL:** `https://aiding-migraine-notifications.onrender.com`
 **Server ID:** `srv-d4n4oca4d50c73f64s00`
 **Outbound IPs:** 74.220.50.0/24, 74.220.58.0/24
-**App Domain:** `https://aidedmarketing.github.io/AidingMigraine/`
+**App Domain:** `https://app.aidingmigraine.com` (the legacy `https://aidedmarketing.github.io/AidingMigraine/` origin remains CORS-allowed for existing installs)
 
 ---
 
@@ -26,7 +26,7 @@ NODE_ENV=production
 VAPID_SUBJECT=mailto:your-email@example.com
 VAPID_PUBLIC_KEY=BIM4hhVR8txa6Sjz2-yLZwTvsqq886iHi2psDuUuCIl8dVELZ5ofMGCom-GCNthhSiTFGZsntJZNv70Yeq0CnlI
 VAPID_PRIVATE_KEY=<redacted — set in Render only>
-ADMIN_API_KEY=178815e58e1adf23a73954672a8409cc1f31db0d56d18d1e65a9f3096fd195a1
+ADMIN_API_KEY=<set in the Render dashboard - never commit the value>
 ALLOWED_ORIGINS=https://aidedmarketing.github.io,https://aidedmarketing.github.io/AidingMigraine
 
 Note: the production app origins (https://app.aidingmigraine.com and https://aidedmarketing.github.io) are always allowed by the server in code - ALLOWED_ORIGINS only needs to list any *additional* origins.
@@ -35,7 +35,7 @@ Note: the production app origins (https://app.aidingmigraine.com and https://aid
 ### 3. Important Notes
 
 - **VAPID_SUBJECT**: Replace `your-email@example.com` with your actual email address
-- **VAPID_PUBLIC_KEY**: Already updated in your app (index.html:5930)
+- **VAPID_PUBLIC_KEY**: Already updated in your app (assets/app.js)
 - **VAPID_PRIVATE_KEY**: Keep this secret! Never commit to git
 - **ADMIN_API_KEY**: Secure random key for admin endpoints
 - **ALLOWED_ORIGINS**: Your GitHub Pages domains for CORS
@@ -65,7 +65,7 @@ Expected response:
 ```
 
 ### 2. Test Notifications in App
-1. Open: `https://aidedmarketing.github.io/AidingMigraine/`
+1. Open: `https://app.aidingmigraine.com`
 2. Go to Settings
 3. Enable "Daily Check-In Notifications"
 4. Grant browser permission when prompted
@@ -147,7 +147,7 @@ curl -X POST https://aiding-migraine-notifications.onrender.com/api/notification
 ## 🔄 Generated Keys Info
 
 **Keys Generated:** 2026-01-23
-**App Updated:** Yes (index.html:5930)
+**App Updated:** Yes (assets/app.js)
 **Status:** Ready for deployment
 
 **Security Note:** Store these credentials securely! Never commit `.env` files or share private keys publicly.
