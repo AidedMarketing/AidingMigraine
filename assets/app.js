@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.10.0-beta.7';
+const APP_VERSION = '5.10.0-beta.8';
 
 let migraines = [];
 let selectedPain = null;
@@ -5219,7 +5219,7 @@ function buildPDFReport(rangeType, customStart, customEnd) {
             doc.setFont(undefined, 'italic');
             let clinicalNote = '';
             if (correlation.level === 'strong') {
-                clinicalNote = 'Clinical note: Strong weather sensitivity detected. Consider preventive measures before significant pressure changes.';
+                clinicalNote = 'Clinical note: Strong weather sensitivity detected in the logged data. Worth discussing with your clinician.';
             } else if (correlation.level === 'moderate') {
                 clinicalNote = 'Clinical note: Moderate weather sensitivity. May benefit from monitoring pressure changes.';
             } else {

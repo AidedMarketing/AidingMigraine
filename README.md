@@ -2,7 +2,7 @@
 
 A private, device-local migraine tracker. Start an attack with one tap and add details when you can.
 
-**5.10.0-beta.7 — closed beta.** This is the frozen beta release of the mobile journal rebuild, live by invitation only at [app.aidingmigraine.com](https://app.aidingmigraine.com). (`aidedmarketing.github.io` is the legacy install origin only.)
+**5.10.0-beta.8 — closed beta.** This is the frozen beta release of the mobile journal rebuild, live by invitation only at [app.aidingmigraine.com](https://app.aidingmigraine.com). (`aidedmarketing.github.io` is the legacy install origin only.)
 
 ## The core experience
 

@@ -5,6 +5,12 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0-beta.8] - 2026-11-13
+
+### Fixed
+
+- **Final-pass decisions applied:** the items the beta.7 audit left for a decision are now resolved. The analytics guide no longer grades treatment control — the "Good Control / Poor Control" percentage table and lines like "treatment is working" / "treatment adjustment needed" were replaced with neutral descriptions of what the charts show and prompts to discuss changes with your doctor. The FAQ no longer mentions a possible Google Drive sync. The PDF report's weather note now reads "Worth discussing with your clinician" instead of advising preventive measures. The iOS notification guide's test step now explains that daily reminders are dispatched by the server once an hour, on the hour, so a test time is set a few minutes into the next hour. The quick-start guide now names the **Comfort & color** section it points to. Open Graph tags were added so links to the app show a proper preview title, description, and icon.
+
 ## [5.10.0-beta.7] - 2026-11-13
 
 ### Fixed
