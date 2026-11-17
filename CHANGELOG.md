@@ -5,6 +5,12 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0-beta.9] - 2026-11-17
+
+### Fixed
+
+- **Pressure alerts now honor the Alert Sensitivity slider:** the slider sets an explicit threshold (for example 3 hPa), but the value was never read by the code that decides whether a pressure change counts as an alert. Predictive alerts and the threshold sent to the notification server for push pressure alerts silently stayed at the 5 hPa standard, so a user who chose a more sensitive setting received no alerts for changes between their setting and 5 hPa. The slider value is now the threshold used everywhere. After updating, open the app once so the corrected threshold syncs to the notification server.
+
 ## [5.10.0-beta.8] - 2026-11-13
 
 ### Fixed
