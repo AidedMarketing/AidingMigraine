@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.10.0-beta.8';
+const APP_VERSION = '5.10.0-beta.9';
 
 let migraines = [];
 let selectedPain = null;
@@ -8784,6 +8784,19 @@ function analyzeSeasonalPatterns(migraines) {
 // Get effective threshold based on user settings and learned thresholds
 function getEffectiveThreshold(type = '24h') {
     const profile = weatherData.personalProfile;
+
+    // The Alert Sensitivity slider is the user's explicit choice, so it
+    // wins over the learned/profile defaults below. Before this, the
+    // slider value (userThreshold6h / userThreshold24h) was never read
+    // here, so predictive alerts and the threshold synced to the
+    // notification server for push pressure alerts silently stayed at
+    // the 5 hPa standard no matter what the slider was set to.
+    const explicit = type === '24h' ?
+        weatherData.userThreshold24h :
+        weatherData.userThreshold6h;
+    if (Number.isFinite(explicit) && explicit > 0) {
+        return explicit;
+    }
 
     // Check user's sensitivity setting
     if (profile.sensitivityLevel === 'custom') {
