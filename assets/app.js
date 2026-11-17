@@ -21,7 +21,7 @@ function loadOptionalLibrary(name) {
     return promise;
 }
 
-const APP_VERSION = '5.10.0-beta.9';
+const APP_VERSION = '5.10.0-beta.10';
 
 let migraines = [];
 let selectedPain = null;
@@ -6178,6 +6178,11 @@ async function setupNotificationUI() {
     disableBtn.addEventListener('click', disableNotifications);
     testBtn.addEventListener('click', sendTestNotification);
 
+    const testPressureBtn = document.getElementById('test-pressure-alert-btn');
+    if (testPressureBtn) {
+        testPressureBtn.addEventListener('click', sendTestPressureAlert);
+    }
+
     // Preference change listeners
     const dailyEnabled = document.getElementById('daily-checkin-enabled');
     const dailyTime = document.getElementById('daily-checkin-time');
@@ -6598,6 +6603,7 @@ function getPressureAlertPreferences() {
         latitude: hasLocation ? weatherData.location.lat : null,
         longitude: hasLocation ? weatherData.location.lon : null,
         thresholdHpa: getEffectiveThreshold('rapid'),
+        threshold24hHpa: getEffectiveThreshold('24h'),
         timezone: getUserTimezone()
     };
 }
@@ -6626,11 +6632,116 @@ async function syncPreferencesWithServer() {
 
         if (response.ok) {
             console.log('[SUCCESS] Preferences synced with server');
+        } else if (response.status === 404) {
+            // The server no longer has this subscription (its records
+            // were lost, or the endpoint was cleaned up as expired).
+            // Re-register so pushes resume instead of every sync
+            // failing silently from here on.
+            console.warn('Server lost this push subscription - re-registering');
+            await registerSubscriptionWithServer();
         } else {
             console.error('Failed to sync preferences with server');
         }
     } catch (error) {
         console.error('Error syncing preferences:', error);
+    }
+}
+
+// Re-register this device's push subscription with the notification
+// server, restoring the full preference set. The subscribe endpoint
+// upserts by endpoint, so this is safe to call when a sync reports the
+// subscription is unknown server-side. Returns true on success.
+async function registerSubscriptionWithServer() {
+    try {
+        if (!notificationPreferences.enabled) {
+            return false;
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+            });
+        }
+
+        const localTime = notificationPreferences.dailyCheckIn.time;
+        const utcData = convertLocalTimeToUTC(localTime);
+
+        const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
+        const response = await fetch(`${SERVER_URL}/api/subscriptions/subscribe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                subscription: subscription,
+                preferences: {
+                    dailyCheckIn: {
+                        ...notificationPreferences.dailyCheckIn,
+                        time: localTime,
+                        utcHour: utcData.utcHour,
+                        utcMinutes: utcData.utcMinutes,
+                        utcTime: utcData.utcTime,
+                        timezone: utcData.timezone
+                    },
+                    postAttackFollowUp: notificationPreferences.postAttackFollowUp,
+                    pressureAlerts: getPressureAlertPreferences()
+                }
+            })
+        });
+
+        if (!response.ok) {
+            console.error('Failed to re-register subscription with server');
+            return false;
+        }
+
+        notificationPreferences.pushSubscription = subscription.toJSON();
+        localStorage.setItem('notificationPreferences', JSON.stringify(notificationPreferences));
+        console.log('[SUCCESS] Push subscription re-registered with server');
+        return true;
+    } catch (error) {
+        console.error('Error re-registering subscription:', error);
+        return false;
+    }
+}
+
+// Ask the server to send a one-off test pressure alert to this device.
+// Unlike the local test notification, this exercises the whole chain —
+// server registration, Web Push delivery, this phone — which is the
+// chain real pressure alerts travel.
+async function sendTestPressureAlert() {
+    if (!notificationPreferences.pushSubscription) {
+        showToast('Turn notifications on first, then send a test.', { type: 'warning' });
+        return;
+    }
+
+    try {
+        const SERVER_URL = 'https://aiding-migraine-notifications.onrender.com';
+        const response = await fetch(`${SERVER_URL}/api/notifications/test-pressure-alert`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                subscriptionEndpoint: notificationPreferences.pushSubscription.endpoint
+            })
+        });
+
+        if (response.ok) {
+            showToast('Test pressure alert sent — it should arrive in a few seconds.', { duration: 6000 });
+        } else if (response.status === 404 || response.status === 410) {
+            // Server lost (or dropped) this subscription: heal the
+            // registration, then ask for one more tap to complete the test.
+            const healed = await registerSubscriptionWithServer();
+            if (healed) {
+                showToast('Your alert registration was refreshed. Tap the test button once more.', { duration: 6000 });
+            } else {
+                showToast('The test alert could not be sent. Please try again.', { type: 'error' });
+            }
+        } else {
+            showToast('The test alert could not be sent. Please try again.', { type: 'error' });
+        }
+    } catch (error) {
+        console.error('Error sending test pressure alert:', error);
+        showToast('The test alert could not be sent. Please try again.', { type: 'error' });
     }
 }
 

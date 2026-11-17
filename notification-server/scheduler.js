@@ -22,13 +22,16 @@ const {
     createDailyCheckInPayload,
     createFollowUpPayload,
     createActiveCheckinPayload,
-    createPressureAlertPayload
+    createPressureAlertPayload,
+    createPressureDriftPayload
 } = require('./push-notifications');
 const {
     fetchPressureForecast,
     findStrongestPressureWindow,
+    findStrongestPressureDrift,
     localDateKey,
-    shouldSendPressureAlert
+    shouldSendPressureAlert,
+    shouldSendPressureDrift
 } = require('./pressure-alerts');
 
 function initializeScheduler() {
@@ -108,31 +111,62 @@ async function processPressureAlerts(now = new Date()) {
         const pa = subscription.preferences.pressureAlerts;
         try {
             const hourly = await fetchPressureForecast(pa.latitude, pa.longitude);
-            const alert = findStrongestPressureWindow(hourly, pa.thresholdHpa || 5, now);
-            if (!alert) continue;
-
             const todayLocal = localDateKey(now, pa.timezone);
-            if (!shouldSendPressureAlert(subscription.pressureAlertState, alert.eventKey, todayLocal)) {
-                continue;
+            // updatePressureAlertState replaces the stored object, so
+            // carry a merged copy holding both the rapid and drift keys.
+            let state = { ...(subscription.pressureAlertState || {}) };
+            let pushed = false;
+            let expired = false;
+
+            // Rapid 6-hour change first: the sooner, sharper signal.
+            const alert = findStrongestPressureWindow(hourly, pa.thresholdHpa || 5, now);
+            if (alert && shouldSendPressureAlert(state, alert.eventKey, todayLocal)) {
+                const result = await sendWebPushNotification(subscription, createPressureAlertPayload(alert));
+                if (result.success) {
+                    state = {
+                        ...state,
+                        lastEventKey: alert.eventKey,
+                        lastSentLocalDate: todayLocal,
+                        lastSentAt: now.toISOString()
+                    };
+                    await updatePressureAlertState(subscription.endpoint, state);
+                    sent++;
+                    pushed = true;
+                    console.log(`   ✅ Pressure alert sent (${alert.direction} ${alert.rapidChange} hPa/6h)`);
+                } else {
+                    failed++;
+                    if (result.error === 'subscription_expired') expired = true;
+                }
             }
 
-            const payload = createPressureAlertPayload(alert);
-            const result = await sendWebPushNotification(subscription, payload);
-
-            if (result.success) {
-                await updatePressureAlertState(subscription.endpoint, {
-                    lastEventKey: alert.eventKey,
-                    lastSentLocalDate: todayLocal,
-                    lastSentAt: now.toISOString()
-                });
-                sent++;
-                console.log(`   ✅ Pressure alert sent (${alert.direction} ${alert.rapidChange} hPa/6h)`);
-            } else {
-                failed++;
-                if (result.error === 'subscription_expired') {
-                    await removeSubscription(subscription.endpoint);
-                    console.log('   🧹 Removed expired subscription');
+            // 24-hour drift second, and only when no rapid alert went
+            // out in this run: at most one pressure push per user per
+            // run, so a front that qualifies both ways is one heads-up.
+            if (!pushed && !expired) {
+                const driftThreshold = pa.threshold24hHpa || pa.thresholdHpa || 5;
+                const drift = findStrongestPressureDrift(hourly, driftThreshold, now);
+                if (drift && shouldSendPressureDrift(state, drift.eventKey, todayLocal)) {
+                    const result = await sendWebPushNotification(subscription, createPressureDriftPayload(drift));
+                    if (result.success) {
+                        state = {
+                            ...state,
+                            lastDriftEventKey: drift.eventKey,
+                            lastDriftSentLocalDate: todayLocal,
+                            lastDriftSentAt: now.toISOString()
+                        };
+                        await updatePressureAlertState(subscription.endpoint, state);
+                        sent++;
+                        console.log(`   ✅ Pressure drift alert sent (${drift.direction} ${drift.driftChange} hPa/24h)`);
+                    } else {
+                        failed++;
+                        if (result.error === 'subscription_expired') expired = true;
+                    }
                 }
+            }
+
+            if (expired) {
+                await removeSubscription(subscription.endpoint);
+                console.log('   🧹 Removed expired subscription');
             }
         } catch (error) {
             console.error('   Error processing pressure alert:', error);

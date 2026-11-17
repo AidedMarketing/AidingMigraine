@@ -3,8 +3,10 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const {
     findStrongestPressureWindow,
+    findStrongestPressureDrift,
     localDateKey,
     shouldSendPressureAlert,
+    shouldSendPressureDrift,
     fetchPressureForecast
 } = require('./pressure-alerts');
 
@@ -83,6 +85,62 @@ test('shouldSendPressureAlert dedupes by event and by local day', () => {
     // Different event on a new day — allowed
     assert.equal(shouldSendPressureAlert(
         { lastEventKey: 'evt0', lastSentLocalDate: '2026-11-12' }, 'evt1', '2026-11-13'), true);
+});
+
+test('drift: finds a slow 24h decline that no 6h window catches', () => {
+    // Steady -0.3 hPa/hour: 1.8 hPa per 6h window (below a 5 threshold),
+    // but 7.2 hPa across 24h — the slow-front case.
+    const hourly = series(50, h => 1015 - 0.3 * (h + 1));
+    assert.equal(findStrongestPressureWindow(hourly, 5, NOW), null);
+    const result = findStrongestPressureDrift(hourly, 5, NOW);
+    assert.ok(result);
+    assert.equal(result.direction, 'drop');
+    assert.equal(result.driftChange, 7.2);
+    assert.ok(result.hoursUntil >= 0 && result.hoursUntil <= 24);
+    assert.equal(result.eventKey, result.startTime);
+});
+
+test('drift: reports a rising drift with direction rise', () => {
+    const hourly = series(50, h => 1005 + 0.3 * (h + 1));
+    const result = findStrongestPressureDrift(hourly, 5, NOW);
+    assert.ok(result);
+    assert.equal(result.direction, 'rise');
+    assert.ok(result.totalChange > 0);
+});
+
+test('drift: returns null when the 24h change stays below the threshold', () => {
+    const hourly = series(50, h => 1012 + Math.sin(h / 3)); // ±1 hPa wobble
+    assert.equal(findStrongestPressureDrift(hourly, 5, NOW), null);
+});
+
+test('drift: ignores spans starting beyond the 24h lookahead', () => {
+    // Flat until hour +49, then a steep fall no in-lookahead start can span
+    const hourly = series(60, h => (h < 49 ? 1015 : 1015 - (h - 48)));
+    assert.equal(findStrongestPressureDrift(hourly, 5, NOW), null);
+});
+
+test('drift: returns null for short or invalid input', () => {
+    assert.equal(findStrongestPressureDrift([], 5, NOW), null);
+    assert.equal(findStrongestPressureDrift(series(10, () => 1010), 5, NOW), null);
+    assert.equal(findStrongestPressureDrift(null, 5, NOW), null);
+    assert.equal(findStrongestPressureDrift(series(50, () => 1010), 0, NOW), null);
+});
+
+test('shouldSendPressureDrift dedupes by drift event and local day, independent of rapid state', () => {
+    assert.equal(shouldSendPressureDrift(undefined, 'evt1', '2026-11-13'), true);
+    assert.equal(shouldSendPressureDrift({}, 'evt1', '2026-11-13'), true);
+    // Same drift event again — never re-fire
+    assert.equal(shouldSendPressureDrift(
+        { lastDriftEventKey: 'evt1', lastDriftSentLocalDate: '2026-11-12' }, 'evt1', '2026-11-13'), false);
+    // Different drift event but a drift already went out today
+    assert.equal(shouldSendPressureDrift(
+        { lastDriftEventKey: 'evt0', lastDriftSentLocalDate: '2026-11-13' }, 'evt1', '2026-11-13'), false);
+    // Different drift event on a new day — allowed
+    assert.equal(shouldSendPressureDrift(
+        { lastDriftEventKey: 'evt0', lastDriftSentLocalDate: '2026-11-12' }, 'evt1', '2026-11-13'), true);
+    // A rapid alert sent today does not consume the drift allowance
+    assert.equal(shouldSendPressureDrift(
+        { lastEventKey: 'rapid1', lastSentLocalDate: '2026-11-13' }, 'evt1', '2026-11-13'), true);
 });
 
 test('fetchPressureForecast maps unixtime + pressure arrays', async () => {

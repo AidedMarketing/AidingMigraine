@@ -148,6 +148,44 @@ function createPressureAlertPayload(alert) {
     };
 }
 
+/**
+ * Create notification payload for a 24-hour pressure drift alert.
+ * @param {{direction: 'drop'|'rise', driftChange: number, hoursUntil: number}} alert
+ * Copy is a gentle heads-up only — no risk percentages, no medical claims.
+ */
+function createPressureDriftPayload(alert) {
+    const change = Math.abs(alert.driftChange).toFixed(1);
+    const when = alert.hoursUntil <= 1 ? 'starting within the next hour' : `starting in about ${alert.hoursUntil} hours`;
+    const body = alert.direction === 'drop'
+        ? `Pressure is drifting down — about ${change} hPa across 24 hours, ${when}. A gentle heads-up so you can plan.`
+        : `Pressure is drifting up — about ${change} hPa across 24 hours, ${when}. A gentle heads-up so you can plan.`;
+    return {
+        title: 'Aiding Migraine',
+        body: body,
+        icon: './icons/icon-192x192.png',
+        badge: './icons/icon-72x72.png',
+        tag: 'pressure-drift',
+        url: './?action=analytics',
+        type: 'pressure-drift'
+    };
+}
+
+/**
+ * Create notification payload for a user-requested test pressure alert.
+ * Clearly labeled as a test so it is never mistaken for a real warning.
+ */
+function createTestPressureAlertPayload() {
+    return {
+        title: 'Aiding Migraine',
+        body: 'Test alert — pressure alerts are working. This was a test you requested, not a weather warning.',
+        icon: './icons/icon-192x192.png',
+        badge: './icons/icon-72x72.png',
+        tag: 'pressure-alert-test',
+        url: './?action=analytics',
+        type: 'pressure-alert-test'
+    };
+}
+
 module.exports = {
     initializePushService,
     sendWebPushNotification,
@@ -155,5 +193,7 @@ module.exports = {
     createDailyCheckInPayload,
     createFollowUpPayload,
     createActiveCheckinPayload,
-    createPressureAlertPayload
+    createPressureAlertPayload,
+    createPressureDriftPayload,
+    createTestPressureAlertPayload
 };

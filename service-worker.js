@@ -1,7 +1,7 @@
 // Aiding Migraine - Service Worker
-// Version 5.10.0-beta.9 - Closed Beta Release
+// Version 5.10.0-beta.10 - Closed Beta Release
 
-const CACHE_NAME = 'aiding-migraine-v5.10.0-beta.9';
+const CACHE_NAME = 'aiding-migraine-v5.10.0-beta.10';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

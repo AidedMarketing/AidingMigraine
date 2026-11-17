@@ -14,6 +14,7 @@
  */
 
 const WINDOW_POINTS = 7; // hourly points spanning 6 hours
+const DRIFT_POINTS = 25; // hourly points spanning 24 hours
 const LOOKAHEAD_HOURS = 24;
 
 /**
@@ -62,6 +63,55 @@ function findStrongestPressureWindow(hourly, thresholdHpa, now = new Date()) {
 }
 
 /**
+ * Find the strongest 24-hour pressure drift in the next LOOKAHEAD_HOURS
+ * hours of an hourly forecast: the largest point-to-point change between
+ * two forecast points 24 hours apart, where the earlier point starts
+ * within the lookahead. Mirrors the app's 24h projection check in
+ * generatePredictiveAlerts. This catches slow-moving fronts whose
+ * pressure never swings sharply inside any single 6-hour window.
+ *
+ * @param {Array<{time: string, pressure: number}>} hourly - forecast points
+ *   with ISO timestamps, in chronological order
+ * @param {number} thresholdHpa - minimum 24h change that counts as an alert
+ * @param {Date} [now] - reference time (defaults to current time)
+ * @returns {null|{startTime: string, hoursUntil: number, driftChange: number,
+ *   totalChange: number, direction: 'drop'|'rise', eventKey: string}}
+ */
+function findStrongestPressureDrift(hourly, thresholdHpa, now = new Date()) {
+    if (!Array.isArray(hourly) || hourly.length < DRIFT_POINTS) return null;
+    if (!Number.isFinite(thresholdHpa) || thresholdHpa <= 0) return null;
+
+    const horizon = now.getTime() + LOOKAHEAD_HOURS * 60 * 60 * 1000;
+    let best = null;
+
+    for (let i = 0; i + DRIFT_POINTS - 1 < hourly.length; i++) {
+        const start = new Date(hourly[i].time);
+        if (isNaN(start) || start <= now || start > horizon) continue;
+
+        const from = hourly[i].pressure;
+        const to = hourly[i + DRIFT_POINTS - 1].pressure;
+        if (!Number.isFinite(from) || !Number.isFinite(to)) continue;
+
+        const totalChange = to - from;
+        const driftChange = Math.abs(totalChange);
+        if (driftChange < thresholdHpa) continue;
+
+        if (!best || driftChange > best.driftChange) {
+            best = {
+                startTime: hourly[i].time,
+                hoursUntil: Math.max(0, Math.round((start - now) / (60 * 60 * 1000))),
+                driftChange: Math.round(driftChange * 10) / 10,
+                totalChange: Math.round(totalChange * 10) / 10,
+                direction: totalChange < 0 ? 'drop' : 'rise',
+                eventKey: hourly[i].time
+            };
+        }
+    }
+
+    return best;
+}
+
+/**
  * Local calendar date (YYYY-MM-DD) for a date in an IANA timezone.
  * Falls back to the UTC date when the timezone is missing/invalid.
  */
@@ -91,6 +141,22 @@ function shouldSendPressureAlert(state, eventKey, todayLocal) {
     if (!state) return true;
     if (state.lastEventKey === eventKey) return false;
     if (state.lastSentLocalDate === todayLocal) return false;
+    return true;
+}
+
+/**
+ * Dedupe rule for drift alerts, tracked independently of rapid alerts:
+ * at most one drift alert per user per local day, and never re-fire for
+ * the same drift event (24h span start) even across days.
+ *
+ * @param {Object|undefined} state - subscription.pressureAlertState
+ * @param {string} eventKey - candidate span's startTime
+ * @param {string} todayLocal - user's local date key for today
+ */
+function shouldSendPressureDrift(state, eventKey, todayLocal) {
+    if (!state) return true;
+    if (state.lastDriftEventKey === eventKey) return false;
+    if (state.lastDriftSentLocalDate === todayLocal) return false;
     return true;
 }
 
@@ -125,7 +191,9 @@ async function fetchPressureForecast(latitude, longitude, fetchImpl = fetch) {
 
 module.exports = {
     findStrongestPressureWindow,
+    findStrongestPressureDrift,
     localDateKey,
     shouldSendPressureAlert,
+    shouldSendPressureDrift,
     fetchPressureForecast
 };
