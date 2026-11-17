@@ -5,6 +5,17 @@ All notable changes to Aiding Migraine will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.10.0-beta.10] - 2026-11-17
+
+### Added
+
+- **24-hour drift pressure alerts:** push pressure alerts previously only fired on a sharp change inside a 6-hour window, so a slow-moving front that lowered pressure gradually across a day never alerted. The notification server now also watches the 24-hour change (the same projection the app's risk card uses), against the 24-hour threshold from the same Alert Sensitivity slider, and sends a "drifting down/up" heads-up. Rapid and drift alerts dedupe separately (one of each per day at most), and if both qualify in the same hourly check only the rapid one is sent, so a front is never two pushes at once.
+
+### Fixed
+
+- **Push subscriptions now heal themselves:** if the notification server lost a device's subscription (for example its records were reset, or the endpoint was cleaned up), every preference sync from the app failed with "not found" and all push notifications silently stopped, while the app still looked subscribed. The app now re-registers automatically when that happens, restoring delivery with the full preference set.
+- **Test pressure alert:** the Reminders settings gain a "Send Test Pressure Alert" button. The existing test notification is drawn locally by the app; this one is sent by the server through the same Web Push path real pressure alerts travel, so it verifies the whole chain — server registration, delivery, this phone — on demand instead of waiting for qualifying weather. If the test finds the registration was lost, the app repairs it and asks for one more tap.
+
 ## [5.10.0-beta.9] - 2026-11-17
 
 ### Fixed

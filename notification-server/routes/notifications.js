@@ -7,9 +7,11 @@ const router = express.Router();
 const {
     addScheduledFollowup,
     addScheduledActiveCheckin,
-    cancelActiveCheckin
+    cancelActiveCheckin,
+    getSubscriptionByEndpoint,
+    removeSubscription
 } = require('../database');
-const { sendWebPushNotification } = require('../push-notifications');
+const { sendWebPushNotification, createTestPressureAlertPayload } = require('../push-notifications');
 const { requireAdminAuth, validateEndpoint } = require('../middleware/auth');
 const { strictLimiter } = require('../middleware/rate-limit');
 
@@ -92,6 +94,58 @@ router.post('/send-test', strictLimiter, requireAdminAuth, validateEndpoint, asy
         console.error('Send test error:', error);
         res.status(500).json({
             error: 'Failed to send test notification',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/notifications/test-pressure-alert
+ * Send a one-off test pressure alert to an existing subscription so the
+ * user can verify the full server -> push -> device chain on demand,
+ * instead of waiting for qualifying weather.
+ */
+router.post('/test-pressure-alert', strictLimiter, validateEndpoint, async (req, res) => {
+    try {
+        const { subscriptionEndpoint } = req.body;
+
+        if (!subscriptionEndpoint) {
+            return res.status(400).json({
+                error: 'subscriptionEndpoint is required'
+            });
+        }
+
+        const subscription = getSubscriptionByEndpoint(subscriptionEndpoint);
+
+        if (!subscription) {
+            return res.status(404).json({
+                error: 'Subscription not found'
+            });
+        }
+
+        const result = await sendWebPushNotification(subscription, createTestPressureAlertPayload());
+
+        if (result.success) {
+            res.json({
+                success: true,
+                message: 'Test pressure alert sent successfully'
+            });
+        } else if (result.error === 'subscription_expired') {
+            await removeSubscription(subscriptionEndpoint);
+            res.status(410).json({
+                error: 'Subscription expired',
+                message: 'The push subscription is no longer valid and was removed'
+            });
+        } else {
+            res.status(500).json({
+                error: 'Failed to send test pressure alert',
+                details: result.error
+            });
+        }
+    } catch (error) {
+        console.error('Test pressure alert error:', error);
+        res.status(500).json({
+            error: 'Failed to send test pressure alert',
             message: error.message
         });
     }

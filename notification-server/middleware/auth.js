@@ -184,6 +184,16 @@ function validatePreferences(req, res, next) {
                 });
             }
             pa.thresholdHpa = threshold;
+            if (pa.threshold24hHpa !== undefined) {
+                const driftThreshold = Number(pa.threshold24hHpa);
+                if (!Number.isFinite(driftThreshold) || driftThreshold < 1 || driftThreshold > 20) {
+                    return res.status(400).json({
+                        error: 'Invalid preferences',
+                        message: 'pressureAlerts.threshold24hHpa must be between 1 and 20'
+                    });
+                }
+                pa.threshold24hHpa = driftThreshold;
+            }
             if (pa.timezone !== undefined && typeof pa.timezone !== 'string') {
                 return res.status(400).json({
                     error: 'Invalid preferences',
